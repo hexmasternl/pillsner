@@ -64,7 +64,8 @@ Any change to this table should go through the spec-driven workflow described be
 | --- | --- |
 | `src/` | The Android application. Open this folder as the project in Android Studio. |
 | `openspec/` | Spec-driven planning: `specs/` holds the agreed behaviour of the app, `changes/` holds in-progress change proposals, and `changes/archive/` holds completed ones. |
-| `.claude/` | Configuration for AI-assisted development (skills and slash commands for the OpenSpec workflow). |
+| `docs/` | The design system (`design-system.md`) and its visual companion (`design-system.html`): colours, typography, components and accessibility rules for the app. |
+| `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, plus the design agent and UI skills that enforce the design system. |
 | `CLAUDE.md` | Working instructions for AI coding assistants contributing to this repository. |
 | `LICENSE` | MIT license. |
 

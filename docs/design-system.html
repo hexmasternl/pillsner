@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Pillsner Design System</title>
+<!-- Visual companion to design-system.md. Open directly in a browser; fonts load from Google Fonts. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200;300&family=Montserrat:wght@400;500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap">
+<style>
+  :root {
+    --primary:#1B7F5C; --on-primary:#FFFFFF; --primary-container:#A8F0CE; --on-primary-container:#00381F;
+    --secondary:#2D6DA8; --on-secondary:#FFFFFF; --secondary-container:#D3E4FF; --on-secondary-container:#0B2F52;
+    --tertiary:#0F7C8C; --on-tertiary:#FFFFFF; --tertiary-container:#B5EEF6; --on-tertiary-container:#00363D;
+    --error:#BA1A1A; --on-error:#FFFFFF; --error-container:#FFDAD6; --on-error-container:#410002;
+    --surface:#F9FBFA; --on-surface:#191C1B; --on-surface-variant:#3F4945;
+    --sc-lowest:#FFFFFF; --sc-low:#F3F6F4; --sc:#EDF1EF; --sc-high:#E7ECE9; --sc-highest:#E1E6E3;
+    --outline:#6F7975; --outline-variant:#BFC9C4;
+    --card:#FFFFFF;
+    --sans:"Montserrat",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --display:"Raleway","Montserrat",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --primary:#8CD8B0; --on-primary:#00382A; --primary-container:#005E43; --on-primary-container:#A8F0CE;
+      --secondary:#A2C9FF; --on-secondary:#003259; --secondary-container:#1D4E7F; --on-secondary-container:#D3E4FF;
+      --tertiary:#83D4E0; --on-tertiary:#00363D; --tertiary-container:#005A66; --on-tertiary-container:#B5EEF6;
+      --error:#FFB4AB; --on-error:#690005; --error-container:#93000A; --on-error-container:#FFDAD6;
+      --surface:#101413; --on-surface:#E1E3E0; --on-surface-variant:#BFC9C4;
+      --sc-lowest:#0B0F0E; --sc-low:#191C1B; --sc:#1D211F; --sc-high:#272B29; --sc-highest:#323634;
+      --outline:#89938E; --outline-variant:#3F4945;
+      --card:#272B29;
+    }
+  }
+  :root[data-theme="dark"] {
+    --primary:#8CD8B0; --on-primary:#00382A; --primary-container:#005E43; --on-primary-container:#A8F0CE;
+    --secondary:#A2C9FF; --on-secondary:#003259; --secondary-container:#1D4E7F; --on-secondary-container:#D3E4FF;
+    --tertiary:#83D4E0; --on-tertiary:#00363D; --tertiary-container:#005A66; --on-tertiary-container:#B5EEF6;
+    --error:#FFB4AB; --on-error:#690005; --error-container:#93000A; --on-error-container:#FFDAD6;
+    --surface:#101413; --on-surface:#E1E3E0; --on-surface-variant:#BFC9C4;
+    --sc-lowest:#0B0F0E; --sc-low:#191C1B; --sc:#1D211F; --sc-high:#272B29; --sc-highest:#323634;
+    --outline:#89938E; --outline-variant:#3F4945;
+    --card:#272B29;
+  }
+  /* Fixed-theme panels: these show a specific theme regardless of the viewer's setting. */
+  .theme-light {
+    --primary:#1B7F5C; --on-primary:#FFFFFF; --primary-container:#A8F0CE; --on-primary-container:#00381F;
+    --secondary:#2D6DA8; --on-secondary:#FFFFFF; --secondary-container:#D3E4FF; --on-secondary-container:#0B2F52;
+    --tertiary:#0F7C8C; --on-tertiary:#FFFFFF; --tertiary-container:#B5EEF6; --on-tertiary-container:#00363D;
+    --error:#BA1A1A; --on-error:#FFFFFF; --error-container:#FFDAD6; --on-error-container:#410002;
+    --surface:#F9FBFA; --on-surface:#191C1B; --on-surface-variant:#3F4945;
+    --sc-lowest:#FFFFFF; --sc-low:#F3F6F4; --sc:#EDF1EF; --sc-high:#E7ECE9; --sc-highest:#E1E6E3;
+    --outline:#6F7975; --outline-variant:#BFC9C4; --card:#FFFFFF;
+  }
+  .theme-dark {
+    --primary:#8CD8B0; --on-primary:#00382A; --primary-container:#005E43; --on-primary-container:#A8F0CE;
+    --secondary:#A2C9FF; --on-secondary:#003259; --secondary-container:#1D4E7F; --on-secondary-container:#D3E4FF;
+    --tertiary:#83D4E0; --on-tertiary:#00363D; --tertiary-container:#005A66; --on-tertiary-container:#B5EEF6;
+    --error:#FFB4AB; --on-error:#690005; --error-container:#93000A; --on-error-container:#FFDAD6;
+    --surface:#101413; --on-surface:#E1E3E0; --on-surface-variant:#BFC9C4;
+    --sc-lowest:#0B0F0E; --sc-low:#191C1B; --sc:#1D211F; --sc-high:#272B29; --sc-highest:#323634;
+    --outline:#89938E; --outline-variant:#3F4945; --card:#272B29;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--surface); color:var(--on-surface);
+    font-family:var(--sans); font-size:18px; font-weight:400; line-height:1.55;
+    padding-block: 0 96px; padding-inline: 20px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .prose { max-width: 66ch; }
+  a { color: var(--secondary); }
+
+  h1,h2,h3 { font-family: var(--display); margin:0; text-wrap: balance; }
+  h1 { font-size: 48px; font-weight: 200; line-height: 1.15; letter-spacing: -0.005em; }
+  h2 { font-size: 34px; font-weight: 200; line-height: 1.2; margin-top: 88px; margin-bottom: 8px; }
+  h3 { font-size: 24px; font-weight: 300; line-height: 1.3; margin-top: 40px; margin-bottom: 12px; }
+  p { margin: 0 0 16px; }
+  .lede { font-size: 20px; color: var(--on-surface-variant); }
+  .eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+  .muted { color: var(--on-surface-variant); }
+  .small { font-size: 14px; line-height: 1.45; }
+  code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .9em; background: var(--sc); padding: 1px 6px; border-radius: 4px; }
+  .sym { font-family: "Material Symbols Rounded"; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; display:inline-block; vertical-align: middle; font-variation-settings: 'FILL' 0; }
+  .sym.fill { font-variation-settings: 'FILL' 1; }
+
+  header { padding-block: 64px 24px; display:grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+  .mark { width: 72px; height: 72px; border-radius: 50%; background: #fff; display:grid; place-items:center; border: 1px solid var(--outline-variant); }
+  .mark svg { width: 44px; height: 44px; }
+  .status { display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:600; letter-spacing:.04em; color: var(--on-secondary-container); background: var(--secondary-container); border-radius: 999px; padding: 6px 14px; }
+
+  .grid { display:grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+  /* Principles */
+  .principle { border-top: 2px solid var(--primary-container); padding-top: 14px; }
+  .principle b { display:block; font-weight: 600; margin-bottom: 4px; }
+
+  /* Brand hue strip */
+  .hues { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .hue { border-radius: 16px; padding: 16px; min-height: 130px; display:flex; flex-direction:column; justify-content:flex-end; }
+  .hue b { font-weight: 600; font-size: 16px; }
+  .hue span { font-size: 14px; font-variant-numeric: tabular-nums; opacity: .85; }
+
+  /* Theme panels */
+  .panel { background: var(--surface); color: var(--on-surface); border-radius: 20px; padding: 20px; border: 1px solid var(--outline-variant); }
+  .panel h4 { margin: 0 0 14px; font-family: var(--sans); font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface-variant); }
+  .roles { display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .role { border-radius: 10px; padding: 12px 12px 10px; min-height: 64px; display:flex; flex-direction:column; justify-content: space-between; font-size: 13px; line-height: 1.3; }
+  .role b { font-weight: 600; font-size: 14px; }
+  .role span { font-variant-numeric: tabular-nums; opacity: .9; }
+  .tiers { display:grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+  .tier { height: 56px; border-radius: 8px; border: 1px solid var(--outline-variant); display:flex; align-items:flex-end; padding: 6px; font-size: 11px; color: var(--on-surface-variant); }
+
+  /* Chips */
+  .chips { display:flex; flex-wrap:wrap; gap: 10px; }
+  .chip { display:inline-flex; align-items:center; gap: 8px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px; font-size: 14px; font-weight: 600; letter-spacing: .02em; }
+  .chip .sym { font-size: 18px; }
+  .c-due { background: var(--secondary-container); color: var(--on-secondary-container); }
+  .c-taken { background: var(--primary-container); color: var(--on-primary-container); }
+  .c-snoozed { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+  .c-skipped { background: var(--sc-highest); color: var(--on-surface-variant); }
+  .c-missed, .c-overdue { background: var(--error-container); color: var(--on-error-container); }
+
+  /* Type specimens */
+  .spec { display:grid; grid-template-columns: 190px 1fr; gap: 20px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--outline-variant); }
+  .spec:last-child { border-bottom: 0; }
+  .spec .meta { font-size: 13px; color: var(--on-surface-variant); line-height: 1.5; font-variant-numeric: tabular-nums; }
+  .spec .meta b { display:block; color: var(--on-surface); font-weight: 600; font-size: 14px; }
+  .spec .sample { overflow-wrap: anywhere; }
+  @media (max-width: 560px) { .spec { grid-template-columns: 1fr; gap: 6px; } }
+
+  /* Shape and spacing */
+  .shapes { display:flex; flex-wrap:wrap; gap: 16px; align-items:flex-end; }
+  .shape { width: 96px; height: 72px; background: var(--primary-container); color: var(--on-primary-container); display:grid; place-items:center; font-size: 13px; font-weight: 600; }
+  .spaces { display:flex; flex-wrap:wrap; gap: 20px; align-items: flex-end; }
+  .space { display:flex; flex-direction:column; align-items:center; gap: 6px; font-size: 13px; color: var(--on-surface-variant); font-variant-numeric: tabular-nums; }
+  .space i { display:block; background: var(--secondary); border-radius: 2px; }
+
+  /* Phone frames */
+  .phones { display:flex; flex-wrap:wrap; gap: 28px; justify-content: center; }
+  .phone { width: 360px; max-width: 100%; border-radius: 32px; border: 1px solid var(--outline-variant); background: var(--surface); color: var(--on-surface); overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+  .phone .bar { height: 28px; display:flex; justify-content: space-between; align-items:center; padding: 0 20px; font-size: 12px; font-weight: 600; color: var(--on-surface-variant); }
+  .screen { padding: 8px 16px 0; min-height: 560px; display:flex; flex-direction:column; gap: 16px; position: relative; }
+  .screen h1 { font-size: 48px; font-weight: 200; line-height: 1.15; }
+  .screen .date { font-size: 16px; color: var(--on-surface-variant); margin-top: -8px; }
+  .tile { background: var(--card); border-radius: 16px; padding: 16px 16px 16px 20px; position: relative; display:grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+  .tile::before { content:""; position:absolute; left:0; top:0; bottom:0; width: 4px; background: var(--stripe, var(--secondary-container)); border-radius: 16px 0 0 16px; }
+  .tile .name { font-weight: 600; font-size: 18px; line-height: 1.4; }
+  .tile .time { font-weight: 500; font-size: 22px; font-variant-numeric: tabular-nums; grid-row: span 2; align-self: start; }
+  .tile .amt { font-size: 18px; }
+  .tile .chip { margin-top: 8px; grid-column: 1 / -1; justify-self: start; }
+  .tile.inactive { background: var(--sc-low); color: var(--on-surface-variant); }
+  .tile.inactive::before { display:none; }
+  .tile.plain::before { display:none; }
+  .tile.plain { padding-left: 16px; }
+  .tile .lines { font-size: 16px; color: var(--on-surface-variant); line-height: 1.5; }
+  .banner { background: var(--error-container); color: var(--on-error-container); border-radius: 16px; padding: 14px 16px; display:grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
+  .banner .sym { font-variation-settings: 'FILL' 1; }
+  .banner p { margin: 0 0 8px; font-size: 16px; line-height: 1.45; }
+  .banner button { background: none; border: 0; color: inherit; font: inherit; font-weight: 600; font-size: 15px; padding: 8px 0 0; letter-spacing: .02em; cursor: default; }
+  .fab { position:absolute; right: 16px; bottom: 16px; width: 96px; height: 96px; border-radius: 28px; background: var(--primary-container); color: var(--on-primary-container); display:grid; place-items:center; box-shadow: 0 6px 16px rgba(0,0,0,.22); }
+  .fab .sym { font-size: 36px; }
+  .nav { background: var(--sc); display:grid; grid-template-columns: repeat(3, 1fr); padding: 12px 8px 16px; }
+  .nav div { display:flex; flex-direction:column; align-items:center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--on-surface-variant); }
+  .nav div.sel { color: var(--on-surface); }
+  .nav .ind { width: 64px; height: 32px; border-radius: 999px; display:grid; place-items:center; }
+  .nav div.sel .ind { background: var(--secondary-container); color: var(--on-secondary-container); }
+  .nav .ind .sym { font-size: 24px; }
+  .section-h { font-family: var(--display); font-size: 24px; font-weight: 300; margin: 8px 0 -4px; }
+  .empty { text-align:center; padding: 48px 16px; color: var(--on-surface-variant); }
+  .empty .sym { font-size: 64px; }
+  .empty h3 { margin-top: 12px; color: var(--on-surface); }
+
+  /* Reminder */
+  .notif { background: var(--sc-high); border-radius: 24px; padding: 16px 16px 12px; display:grid; gap: 10px; }
+  .notif .head { display:flex; align-items:center; gap: 8px; font-size: 13px; color: var(--on-surface-variant); }
+  .notif .app { font-weight: 600; color: var(--on-surface); }
+  .notif .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); display:grid; place-items:center; }
+  .notif .dot svg { width: 12px; height: 12px; }
+  .notif .title { font-weight: 600; font-size: 16px; }
+  .notif .text { font-size: 15px; line-height: 1.45; }
+  .notif .acts { display:flex; gap: 6px; flex-wrap:wrap; }
+  .notif .acts span { font-size: 14px; font-weight: 600; color: var(--primary); padding: 10px 8px; }
+  .fullscreen { display:flex; flex-direction:column; justify-content: flex-end; }
+  .fullscreen .t { font-family: var(--display); font-size: 40px; font-weight: 200; line-height: 1.1; }
+  .fullscreen .m { font-family: var(--display); font-size: 28px; font-weight: 300; margin-top: 4px; }
+  .fullscreen .a { font-size: 18px; color: var(--on-surface-variant); margin-bottom: auto; }
+
+  /* Buttons */
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 999px; font: inherit; font-size: 16px; font-weight: 600; letter-spacing: .02em; border: 0; cursor: default; }
+  .btn.tall { height: 56px; }
+  .btn.full { width: 100%; }
+  .filled { background: var(--primary); color: var(--on-primary); }
+  .tonal { background: var(--secondary-container); color: var(--on-secondary-container); }
+  .outlined { background: transparent; color: var(--primary); border: 1px solid var(--outline); }
+  .text { background: transparent; color: var(--primary); }
+  .danger { background: var(--error); color: var(--on-error); }
+  .btnrow { display:flex; flex-wrap:wrap; gap: 12px; align-items:center; }
+  .btnstack { display:grid; gap: 12px; padding-bottom: 20px; }
+
+  /* Form */
+  .field { border: 1px solid var(--outline); border-radius: 4px; padding: 14px 16px 12px; position: relative; }
+  .field label { position:absolute; top: -9px; left: 12px; background: var(--surface); padding: 0 4px; font-size: 13px; color: var(--on-surface-variant); }
+  .field.err { border-color: var(--error); }
+  .field.err label { color: var(--error); }
+  .help { font-size: 14px; color: var(--on-surface-variant); margin: 4px 16px 0; }
+  .help.err { color: var(--error); }
+  .weekdays { display:flex; gap: 8px; flex-wrap:wrap; }
+  .wd { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 14px; font-weight: 600; display:grid; place-items:center; }
+  .wd.on { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 16px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--outline-variant); vertical-align: top; }
+  th { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--on-surface-variant); }
+  .tablewrap { overflow-x: auto; }
+  .dd td:first-child { color: var(--primary); }
+  .dd td:last-child { color: var(--error); }
+
+  footer { margin-top: 88px; padding-top: 24px; border-top: 1px solid var(--outline-variant); }
+  @media (prefers-reduced-motion: no-preference) { .tile { transition: background .25s; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow">Design system · confirmed 11 September 2026</div>
+    <h1>Pillsner</h1>
+    <p class="lede prose" style="margin-top:12px">Your partner in taking your pills. Green for done, blue for due, red only when something needs you. Body set in Montserrat 18, headers in Raleway 48 ExtraLight.</p>
+    <span class="status" style="background:var(--primary-container);color:var(--on-primary-container)"><span class="sym" style="font-size:18px">check_circle</span> Confirmed</span>
+  </div>
+  <div class="mark" aria-label="Placeholder product mark">
+    <svg viewBox="0 0 44 44" aria-hidden="true">
+      <defs><clipPath id="cap"><rect x="6" y="12" width="32" height="20" rx="10"/></clipPath></defs>
+      <g clip-path="url(#cap)" transform="rotate(-35 22 22)">
+        <rect x="0" y="0" width="22" height="44" fill="#1B7F5C"/>
+        <rect x="22" y="0" width="22" height="44" fill="#2D6DA8"/>
+      </g>
+    </svg>
+  </div>
+</header>
+
+<p class="prose">This page mirrors <code>docs/design-system.md</code> in the repository. The document holds the full token tables and rules; this page shows what they look like. The page follows your own device theme, except the paired panels, which are pinned to light and dark so both can be judged side by side.</p>
+
+<h2>Principles</h2>
+<div class="grid g3" style="margin-top:20px">
+  <div class="principle"><b>Calm by default, loud only when it matters</b><span class="muted">Greens and blues carry the app. Red is reserved for missed and overdue doses, undeliverable reminders and empty stock. Because red is rare, it is unmistakable.</span></div>
+  <div class="principle"><b>Legible at 2 a.m.</b><span class="muted">18 sp body, 48 dp targets, a 56 dp confirm button, AA contrast everywhere, and layouts that survive 200 % font scale by wrapping.</span></div>
+  <div class="principle"><b>One tap to confirm</b><span class="muted">Every surface has one filled green action in the bottom third of the screen. Everything else steps back.</span></div>
+  <div class="principle"><b>The system's theme is the app's theme</b><span class="muted">Light and dark follow the OS. Both are designed, not inverted.</span></div>
+  <div class="principle"><b>Brand colour, not wallpaper colour</b><span class="muted">Material You dynamic colour is off. Pillsner is always green, blue and white.</span></div>
+</div>
+
+<h2>Colour</h2>
+<p class="prose muted">Six brand hues, expanded into the full Material 3 role set so every Material component inherits the brand without overrides.</p>
+
+<div class="hues" style="margin-top:20px">
+  <div class="hue" style="background:#1B7F5C;color:#fff"><b>Pillsner Green</b><span>#1B7F5C · primary</span></div>
+  <div class="hue" style="background:#2D6DA8;color:#fff"><b>Pillsner Blue</b><span>#2D6DA8 · secondary</span></div>
+  <div class="hue" style="background:#0F7C8C;color:#fff"><b>Pillsner Teal</b><span>#0F7C8C · tertiary</span></div>
+  <div class="hue" style="background:#BA1A1A;color:#fff"><b>Signal Red</b><span>#BA1A1A · error</span></div>
+  <div class="hue" style="background:#F9FBFA;color:#191C1B;border:1px solid #BFC9C4"><b>Mint White</b><span>#F9FBFA · light surface</span></div>
+  <div class="hue" style="background:#101413;color:#E1E3E0"><b>Deep Moss</b><span>#101413 · dark surface</span></div>
+</div>
+
+<h3>Colour roles in both themes</h3>
+<div class="grid g2">
+  <div class="panel theme-light">
+    <h4>Light</h4>
+    <div class="roles">
+      <div class="role" style="background:var(--primary);color:var(--on-primary)"><b>primary</b><span>#1B7F5C · on #FFFFFF</span></div>
+      <div class="role" style="background:var(--primary-container);color:var(--on-primary-container)"><b>primaryContainer</b><span>#A8F0CE · on #00381F</span></div>
+      <div class="role" style="background:var(--secondary);color:var(--on-secondary)"><b>secondary</b><span>#2D6DA8 · on #FFFFFF</span></div>
+      <div class="role" style="background:var(--secondary-container);color:var(--on-secondary-container)"><b>secondaryContainer</b><span>#D3E4FF · on #0B2F52</span></div>
+      <div class="role" style="background:var(--tertiary);color:var(--on-tertiary)"><b>tertiary</b><span>#0F7C8C · on #FFFFFF</span></div>
+      <div class="role" style="background:var(--tertiary-container);color:var(--on-tertiary-container)"><b>tertiaryContainer</b><span>#B5EEF6 · on #00363D</span></div>
+      <div class="role" style="background:var(--error);color:var(--on-error)"><b>error</b><span>#BA1A1A · on #FFFFFF</span></div>
+      <div class="role" style="background:var(--error-container);color:var(--on-error-container)"><b>errorContainer</b><span>#FFDAD6 · on #410002</span></div>
+    </div>
+    <div class="tiers">
+      <div class="tier" style="background:var(--sc-lowest)">lowest</div>
+      <div class="tier" style="background:var(--sc-low)">low</div>
+      <div class="tier" style="background:var(--sc)">container</div>
+      <div class="tier" style="background:var(--sc-high)">high</div>
+      <div class="tier" style="background:var(--sc-highest)">highest</div>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">surface #F9FBFA · onSurface #191C1B · onSurfaceVariant #3F4945 · outline #6F7975</p>
+  </div>
+  <div class="panel theme-dark">
+    <h4>Dark</h4>
+    <div class="roles">
+      <div class="role" style="background:var(--primary);color:var(--on-primary)"><b>primary</b><span>#8CD8B0 · on #00382A</span></div>
+      <div class="role" style="background:var(--primary-container);color:var(--on-primary-container)"><b>primaryContainer</b><span>#005E43 · on #A8F0CE</span></div>
+      <div class="role" style="background:var(--secondary);color:var(--on-secondary)"><b>secondary</b><span>#A2C9FF · on #003259</span></div>
+      <div class="role" style="background:var(--secondary-container);color:var(--on-secondary-container)"><b>secondaryContainer</b><span>#1D4E7F · on #D3E4FF</span></div>
+      <div class="role" style="background:var(--tertiary);color:var(--on-tertiary)"><b>tertiary</b><span>#83D4E0 · on #00363D</span></div>
+      <div class="role" style="background:var(--tertiary-container);color:var(--on-tertiary-container)"><b>tertiaryContainer</b><span>#005A66 · on #B5EEF6</span></div>
+      <div class="role" style="background:var(--error);color:var(--on-error)"><b>error</b><span>#FFB4AB · on #690005</span></div>
+      <div class="role" style="background:var(--error-container);color:var(--on-error-container)"><b>errorContainer</b><span>#93000A · on #FFDAD6</span></div>
+    </div>
+    <div class="tiers">
+      <div class="tier" style="background:var(--sc-lowest)">lowest</div>
+      <div class="tier" style="background:var(--sc-low)">low</div>
+      <div class="tier" style="background:var(--sc)">container</div>
+      <div class="tier" style="background:var(--sc-high)">high</div>
+      <div class="tier" style="background:var(--sc-highest)">highest</div>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">surface #101413 · onSurface #E1E3E0 · onSurfaceVariant #BFC9C4 · outline #89938E</p>
+  </div>
+</div>
+<p class="small muted" style="margin-top:12px">Every text-on-container pair above measures at least 4.5 : 1 (lowest pair: light primary on white at 4.96 : 1). Outlines clear 3 : 1.</p>
+
+<h3>Intake states</h3>
+<p class="prose muted">States map onto the role set; no new hues. Skipped is deliberately neutral: the user chose it. Each chip carries an icon so the state never depends on colour alone.</p>
+<div class="grid g2">
+  <div class="panel theme-light">
+    <h4>Light</h4>
+    <div class="chips">
+      <span class="chip c-due"><span class="sym">schedule</span>Due</span>
+      <span class="chip c-taken"><span class="sym fill">check_circle</span>Taken</span>
+      <span class="chip c-snoozed"><span class="sym">snooze</span>Snoozed</span>
+      <span class="chip c-skipped"><span class="sym">do_not_disturb_on</span>Skipped</span>
+      <span class="chip c-overdue"><span class="sym fill">error</span>Overdue</span>
+      <span class="chip c-missed"><span class="sym fill">cancel</span>Missed</span>
+    </div>
+  </div>
+  <div class="panel theme-dark">
+    <h4>Dark</h4>
+    <div class="chips">
+      <span class="chip c-due"><span class="sym">schedule</span>Due</span>
+      <span class="chip c-taken"><span class="sym fill">check_circle</span>Taken</span>
+      <span class="chip c-snoozed"><span class="sym">snooze</span>Snoozed</span>
+      <span class="chip c-skipped"><span class="sym">do_not_disturb_on</span>Skipped</span>
+      <span class="chip c-overdue"><span class="sym fill">error</span>Overdue</span>
+      <span class="chip c-missed"><span class="sym fill">cancel</span>Missed</span>
+    </div>
+  </div>
+</div>
+
+<h2>Typography</h2>
+<p class="prose muted">Two anchors: Montserrat 18 / 400 for everything you read, Raleway 48 / 200 for the one header a screen gets. The rest of the Material 3 scale is derived from those. Raleway stays at or above 24 sp and steps up to weight 300 under 34 sp, because ExtraLight strokes lose contrast when small. Fonts are bundled in <code>res/font</code>, not downloaded.</p>
+
+<div style="margin-top:8px">
+  <div class="spec"><div class="meta"><b>displayLarge</b>Raleway · 48 / 56 · 200<br>Screen title, welcome header</div><div class="sample" style="font-family:var(--display);font-size:48px;font-weight:200;line-height:56px">Good morning</div></div>
+  <div class="spec"><div class="meta"><b>displayMedium</b>Raleway · 40 / 48 · 200<br>Time on the reminder screen</div><div class="sample" style="font-family:var(--display);font-size:40px;font-weight:200;line-height:48px;font-variant-numeric:tabular-nums">08:00</div></div>
+  <div class="spec"><div class="meta"><b>displaySmall</b>Raleway · 34 / 42 · 200<br>Section openers</div><div class="sample" style="font-family:var(--display);font-size:34px;font-weight:200;line-height:42px">This week</div></div>
+  <div class="spec"><div class="meta"><b>headlineLarge</b>Raleway · 32 / 40 · 300<br>Secondary screen titles</div><div class="sample" style="font-family:var(--display);font-size:32px;font-weight:300;line-height:40px">Add medicine</div></div>
+  <div class="spec"><div class="meta"><b>headlineMedium</b>Raleway · 28 / 36 · 300<br>Dialog and sheet titles</div><div class="sample" style="font-family:var(--display);font-size:28px;font-weight:300;line-height:36px">Delete Ibuprofen?</div></div>
+  <div class="spec"><div class="meta"><b>headlineSmall</b>Raleway · 24 / 32 · 300<br>Group headers</div><div class="sample" style="font-family:var(--display);font-size:24px;font-weight:300;line-height:32px">Active</div></div>
+  <div class="spec"><div class="meta"><b>titleLarge</b>Montserrat · 22 / 30 · 500<br>App bar title, dose time</div><div class="sample" style="font-size:22px;font-weight:500;line-height:30px">Schedule editor</div></div>
+  <div class="spec"><div class="meta"><b>titleMedium</b>Montserrat · 18 / 26 · 600<br>Medicine name on a tile</div><div class="sample" style="font-size:18px;font-weight:600;line-height:26px">Metformin</div></div>
+  <div class="spec"><div class="meta"><b>bodyLarge · default</b>Montserrat · 18 / 28 · 400<br>All running text</div><div class="sample" style="font-size:18px;font-weight:400;line-height:28px">Take 40 mg of your medicine 'Ibuprofen', on 08:00. Swiping the reminder away counts as "Not yet".</div></div>
+  <div class="spec"><div class="meta"><b>bodyMedium</b>Montserrat · 16 / 24 · 400<br>Schedule descriptions</div><div class="sample" style="font-size:16px;font-weight:400;line-height:24px">40 mg every 12 hours from 08:00</div></div>
+  <div class="spec"><div class="meta"><b>bodySmall</b>Montserrat · 14 / 20 · 400<br>Timestamps, helper text</div><div class="sample" style="font-size:14px;font-weight:400;line-height:20px">Taken today at 08:04</div></div>
+  <div class="spec"><div class="meta"><b>labelLarge</b>Montserrat · 16 / 22 · 600<br>Buttons, notification actions</div><div class="sample" style="font-size:16px;font-weight:600;line-height:22px;letter-spacing:.02em">I took it</div></div>
+  <div class="spec"><div class="meta"><b>labelMedium</b>Montserrat · 14 / 20 · 600<br>Chips, navigation labels</div><div class="sample" style="font-size:14px;font-weight:600;line-height:20px;letter-spacing:.03em">Medicines</div></div>
+</div>
+
+<h2>Shape and spacing</h2>
+<div class="grid g2" style="margin-top:20px">
+  <div>
+    <h3 style="margin-top:0">Corner radii</h3>
+    <div class="shapes">
+      <div class="shape" style="border-radius:4px">4 · fields</div>
+      <div class="shape" style="border-radius:8px">8 · chips</div>
+      <div class="shape" style="border-radius:12px">12 · menus</div>
+      <div class="shape" style="border-radius:16px">16 · tiles</div>
+      <div class="shape" style="border-radius:28px">28 · sheets</div>
+      <div class="shape" style="border-radius:999px;width:140px;height:48px">full · buttons</div>
+    </div>
+  </div>
+  <div>
+    <h3 style="margin-top:0">4 dp grid</h3>
+    <div class="spaces">
+      <div class="space"><i style="width:4px;height:4px"></i>4</div>
+      <div class="space"><i style="width:8px;height:8px"></i>8</div>
+      <div class="space"><i style="width:12px;height:12px"></i>12</div>
+      <div class="space"><i style="width:16px;height:16px"></i>16 · screen edge</div>
+      <div class="space"><i style="width:24px;height:24px"></i>24</div>
+      <div class="space"><i style="width:32px;height:32px"></i>32</div>
+      <div class="space"><i style="width:48px;height:48px"></i>48 · min target</div>
+    </div>
+    <p class="small muted" style="margin-top:14px">Tonal elevation instead of shadows. Tiles are pure white on Mint White in light mode and a lighter tier on Deep Moss in dark. Only the FAB and dialogs cast a shadow.</p>
+  </div>
+</div>
+
+<h2>Screens</h2>
+<p class="prose muted">Home, as specified in the welcome screen and reminder proposals: display title, an attention banner that appears only when reminders cannot be delivered, dose tiles with a state stripe, a large add button and the three-item navigation bar.</p>
+
+<div class="phones" style="margin-top:24px">
+  <div class="phone theme-light">
+    <div class="bar"><span>08:12</span><span>▮▮▮ 100 %</span></div>
+    <div class="screen">
+      <h1>Today</h1>
+      <div class="date">Friday 11 September</div>
+      <div class="banner">
+        <span class="sym">notifications_off</span>
+        <div><p>Reminders can't be delivered reliably. Allow notifications so Pillsner can tell you when a dose is due.</p><button>Open settings</button></div>
+      </div>
+      <div class="tile" style="--stripe:var(--error-container)">
+        <div class="name">Metformin</div><div class="time">07:30</div>
+        <div class="amt">500 mg</div>
+        <span class="chip c-overdue"><span class="sym fill">error</span>Overdue</span>
+      </div>
+      <div class="tile" style="--stripe:var(--secondary-container)">
+        <div class="name">Ibuprofen</div><div class="time">08:00</div>
+        <div class="amt">40 mg</div>
+        <span class="chip c-due"><span class="sym">schedule</span>Due</span>
+      </div>
+      <div class="tile" style="--stripe:var(--primary-container)">
+        <div class="name">Vitamin D</div><div class="time">08:00</div>
+        <div class="amt">1 tablet</div>
+        <span class="chip c-taken"><span class="sym fill">check_circle</span>Taken at 08:04</span>
+      </div>
+      <div class="fab"><span class="sym">add</span></div>
+    </div>
+    <div class="nav">
+      <div class="sel"><span class="ind"><span class="sym fill">home</span></span>Home</div>
+      <div><span class="ind"><span class="sym">medication</span></span>Medicines</div>
+      <div><span class="ind"><span class="sym">settings</span></span>Settings</div>
+    </div>
+  </div>
+
+  <div class="phone theme-dark">
+    <div class="bar"><span>22:47</span><span>▮▮▯ 62 %</span></div>
+    <div class="screen">
+      <h1>Today</h1>
+      <div class="date">Friday 11 September</div>
+      <div class="tile" style="--stripe:var(--secondary-container)">
+        <div class="name">Metformin</div><div class="time">23:00</div>
+        <div class="amt">500 mg</div>
+        <span class="chip c-due"><span class="sym">schedule</span>Due</span>
+      </div>
+      <div class="tile" style="--stripe:var(--tertiary-container)">
+        <div class="name">Melatonin</div><div class="time">22:30</div>
+        <div class="amt">2 mg</div>
+        <span class="chip c-snoozed"><span class="sym">snooze</span>Snoozed until 22:45</span>
+      </div>
+      <div class="tile" style="--stripe:var(--sc-highest)">
+        <div class="name">Ibuprofen</div><div class="time">20:00</div>
+        <div class="amt">40 mg</div>
+        <span class="chip c-skipped"><span class="sym">do_not_disturb_on</span>Skipped</span>
+      </div>
+      <div class="tile" style="--stripe:var(--primary-container)">
+        <div class="name">Vitamin D</div><div class="time">08:00</div>
+        <div class="amt">1 tablet</div>
+        <span class="chip c-taken"><span class="sym fill">check_circle</span>Taken at 08:04</span>
+      </div>
+      <div class="fab"><span class="sym">add</span></div>
+    </div>
+    <div class="nav">
+      <div class="sel"><span class="ind"><span class="sym fill">home</span></span>Home</div>
+      <div><span class="ind"><span class="sym">medication</span></span>Medicines</div>
+      <div><span class="ind"><span class="sym">settings</span></span>Settings</div>
+    </div>
+  </div>
+</div>
+
+<h3>Medicines, and the reminder</h3>
+<p class="prose muted">The medicine overview with an inactive section, and the reminder shown two ways: as the system notification with its fixed action order, and as a full-screen reminder should a later change add one. "Not going to" is outlined and neutral: skipping is a choice, not a danger.</p>
+<div class="phones" style="margin-top:24px">
+  <div class="phone theme-light">
+    <div class="bar"><span>08:12</span><span>▮▮▮ 100 %</span></div>
+    <div class="screen">
+      <h1>Medicines</h1>
+      <div class="section-h">Active</div>
+      <div class="tile plain">
+        <div class="name">Ibuprofen</div><div></div>
+        <div class="lines">40 mg every 12 hours from 08:00<br>20 mg once a day on Sat, Sun</div>
+      </div>
+      <div class="tile plain">
+        <div class="name">Metformin</div><div></div>
+        <div class="lines">500 mg twice a day</div>
+      </div>
+      <div class="tile plain">
+        <div class="name">Paracetamol</div><div></div>
+        <div class="lines">As needed · 500 mg</div>
+      </div>
+      <div class="section-h">Inactive</div>
+      <div class="tile plain inactive">
+        <div class="name">Amoxicillin</div><span class="chip c-skipped" style="margin:0;height:28px">Inactive</span>
+        <div class="lines">500 mg three times a day</div>
+      </div>
+      <div class="fab"><span class="sym">add</span></div>
+    </div>
+    <div class="nav">
+      <div><span class="ind"><span class="sym">home</span></span>Home</div>
+      <div class="sel"><span class="ind"><span class="sym fill">medication</span></span>Medicines</div>
+      <div><span class="ind"><span class="sym">settings</span></span>Settings</div>
+    </div>
+  </div>
+
+  <div class="phone theme-dark">
+    <div class="bar"><span>08:00</span><span>▮▮▮ 91 %</span></div>
+    <div class="screen fullscreen" style="padding-bottom:16px">
+      <div class="notif">
+        <div class="head"><span class="dot"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="4" width="10" height="4" rx="2" fill="#fff" transform="rotate(-35 6 6)"/></svg></span><span class="app">Pillsner</span><span>· now</span></div>
+        <div class="title">Ibuprofen</div>
+        <div class="text">Take 40 mg of your medicine 'Ibuprofen', on 08:00</div>
+        <div class="acts"><span>I took it</span><span>Not yet</span><span>Not going to</span></div>
+      </div>
+      <div style="height:24px"></div>
+      <div class="t">08:00</div>
+      <div class="m">Ibuprofen</div>
+      <div class="a">40 mg · due now</div>
+      <div class="btnstack">
+        <button class="btn filled tall full"><span class="sym fill" style="font-size:22px">check_circle</span>I took it</button>
+        <button class="btn tonal full"><span class="sym" style="font-size:22px">snooze</span>Not yet</button>
+        <button class="btn outlined full">Not going to</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>Components</h2>
+<div class="grid g2" style="margin-top:20px">
+  <div class="panel theme-light">
+    <h4>Buttons · light</h4>
+    <div class="btnrow">
+      <button class="btn filled">Save</button>
+      <button class="btn tonal">Edit</button>
+      <button class="btn outlined">Cancel</button>
+      <button class="btn text">Learn more</button>
+      <button class="btn danger">Delete medicine</button>
+    </div>
+    <p class="small muted" style="margin:14px 0 0">Filled for the one positive action. Destructive red appears only inside a confirmation dialog.</p>
+  </div>
+  <div class="panel theme-dark">
+    <h4>Buttons · dark</h4>
+    <div class="btnrow">
+      <button class="btn filled">Save</button>
+      <button class="btn tonal">Edit</button>
+      <button class="btn outlined">Cancel</button>
+      <button class="btn text">Learn more</button>
+      <button class="btn danger">Delete medicine</button>
+    </div>
+    <p class="small muted" style="margin:14px 0 0">Minimum height 48 dp, 56 dp for the primary confirm on dose surfaces.</p>
+  </div>
+  <div class="panel theme-light">
+    <h4>Form fields · light</h4>
+    <div style="display:grid;gap:22px">
+      <div class="field"><label>Name</label>Ibuprofen</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field"><label>Default dose</label>40</div>
+        <div class="field" style="display:flex;justify-content:space-between"><label>Unit</label>mg <span class="sym" style="font-size:20px">arrow_drop_down</span></div>
+      </div>
+      <div>
+        <div class="field err"><label>Use until</label>1 Sep 2026</div>
+        <div class="help err">Must be on or after the "used since" date, 11 Sep 2026.</div>
+      </div>
+      <div>
+        <div class="small muted" style="margin-bottom:8px">Weekdays</div>
+        <div class="weekdays"><span class="wd on">Mon</span><span class="wd">Tue</span><span class="wd on">Wed</span><span class="wd">Thu</span><span class="wd on">Fri</span><span class="wd">Sat</span><span class="wd">Sun</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel theme-dark">
+    <h4>Empty state · dark</h4>
+    <div class="empty">
+      <span class="sym">medication</span>
+      <h3>Nothing due right now</h3>
+      <p style="margin:0">Your next dose will appear here.</p>
+    </div>
+    <div style="display:grid;gap:8px;margin-top:8px">
+      <div class="small muted">Dialog</div>
+      <div style="background:var(--sc-high);border-radius:28px;padding:24px">
+        <div style="font-family:var(--display);font-size:28px;font-weight:300;line-height:1.3">Delete Amoxicillin?</div>
+        <p style="margin:12px 0 20px;font-size:16px">Its history stays. You can't undo this.</p>
+        <div class="btnrow" style="justify-content:flex-end"><button class="btn text">Cancel</button><button class="btn danger">Delete</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>Do and don't</h2>
+<div class="tablewrap" style="margin-top:20px">
+<table class="dd">
+  <thead><tr><th>Do</th><th>Don't</th></tr></thead>
+  <tbody>
+    <tr><td>Use displayLarge once per screen, for the title</td><td>Stack several Raleway headers on one screen</td></tr>
+    <tr><td>Put the confirm action at the bottom, full width, 56 dp</td><td>Hide confirm behind a menu or a swipe</td></tr>
+    <tr><td>Show state with stripe, icon and label</td><td>Rely on colour alone</td></tr>
+    <tr><td>Use errorContainer for overdue and missed</td><td>Use red to make a heading "stand out"</td></tr>
+    <tr><td>Read colours from MaterialTheme.colorScheme</td><td>Write a hex literal in a screen</td></tr>
+    <tr><td>Bundle fonts in res/font</td><td>Use downloadable fonts</td></tr>
+    <tr><td>Let text wrap at large font sizes</td><td>Truncate anything but the app bar title</td></tr>
+    <tr><td>Follow the system light/dark setting</td><td>Add a theme toggle without a proposal</td></tr>
+    <tr><td>Keep dynamic colour off</td><td>Call dynamicLightColorScheme</td></tr>
+  </tbody>
+</table>
+</div>
+
+<footer>
+  <p class="small muted prose">Implementation: <code>ui/theme/Color.kt</code>, <code>Type.kt</code>, <code>Shape.kt</code>, <code>Dimens.kt</code>, <code>IntakeStatusColors.kt</code> and <code>Theme.kt</code>, wrapped once in <code>MainActivity</code> as <code>PillsnerTheme</code> with <code>isSystemInDarkTheme()</code> and no dynamic-colour parameter. Full tables and rules in <code>docs/design-system.md</code>.</p>
+</footer>
+</div>
+</body>
+</html>

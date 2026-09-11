@@ -98,7 +98,7 @@ A vector drawable `ic_pillsner_logo.xml` (simple pill shape in the primary colou
 
 ### D10. Theme
 
-Material 3 with dynamic colour on Android 12+ and a static fallback palette. Light and dark supported from the start. Typography uses the Material defaults; no custom fonts in this change.
+Material 3 with the static light and dark colour schemes from `docs/design-system.md` section 2.2, following the system setting. Dynamic colour is off (design system principle 5). Typography is `PillsnerTypography` with bundled Montserrat and Raleway (section 3); the theme layer is built with the `pillsner-theme` skill.
 
 ### D11. Build configuration
 
@@ -110,7 +110,7 @@ Gradle Kotlin DSL, version catalog in `src/gradle/libs.versions.toml`, Compose B
 - [`amount` as a pre-formatted string leaks presentation into the domain] → Accepted for now to avoid inventing the medication model early. Tracked as an open question; the Room/medication change will replace it with a typed quantity.
 - [Manual DI grows unwieldy as features are added] → The single `AppContainer` keeps the swap cost to one file. Revisit when a change needs scoped or lazily created dependencies.
 - [Placeholder Medicines and Settings screens ship in a build] → Acceptable in early development; both display a title so the navigation is testable. They are not user-visible until a release is tagged.
-- [Dynamic colour makes the tile styling look different per device] → Intended Material 3 behaviour. Screenshot tests, if added, run against the static fallback palette.
+- [Brand colours look wrong on some devices] → Dynamic colour is off, so the palette is identical everywhere. Screenshot tests, if added, run against both static schemes.
 
 ## Migration Plan
 

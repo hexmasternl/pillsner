@@ -9,7 +9,7 @@
 
 ## 2. Theme and assets
 
-- [ ] 2.1 Create `ui/theme` with `PillsnerTheme`: Material 3, dynamic colour on Android 12+, static light and dark fallback palettes, default typography
+- [ ] 2.1 Create `ui/theme` with `PillsnerTheme` using the `pillsner-theme` skill: static light and dark schemes from `docs/design-system.md`, no dynamic colour, bundled Montserrat and Raleway fonts, `PillsnerTypography`, `PillsnerShapes`, `Spacing`
 - [ ] 2.2 Add the placeholder vector logo `ic_pillsner_logo.xml` and an adaptive launcher icon derived from it
 - [ ] 2.3 Add string resources: app name/title, bottom navigation labels (Home, Medicines, Settings), placeholder screen titles, empty-state message, logo content description, and "Tomorrow" day label
 

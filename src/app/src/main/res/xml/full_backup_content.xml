@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pre-API 31 Auto Backup rules. Mirrors data_extraction_rules.xml so the app lock's DataStore
+    file (design D4) is excluded on every supported Android version.
+-->
+<full-backup-content>
+    <exclude domain="file" path="datastore/applock.preferences_pb" />
+</full-backup-content>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug-only manifest merge. `androidx.compose.ui:ui-test-manifest` already declares a bare
+    `ComponentActivity` for `createAndroidComposeRule<ComponentActivity>()`; this adds the
+    `FragmentActivity` some Compose UI tests need instead (app-login design D6: `BiometricPrompt`
+    requires a `FragmentActivity` host, so any test exercising it needs one too).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="androidx.fragment.app.FragmentActivity"
+            android:exported="false" />
+    </application>
+</manifest>

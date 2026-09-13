@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Pillsner</string>
+    <string name="app_title">Pillsner</string>
+    <string name="logo_content_description">Pillsner logo</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_medicines">Medicines</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Placeholder screens -->
+    <string name="medicines_title">Medicines</string>
+    <string name="settings_title">Settings</string>
+
+    <!-- Home: empty state -->
+    <string name="home_empty_title">Nothing due right now</string>
+    <string name="home_empty_hint">Your next dose will appear here.</string>
+
+    <!-- Dose tile -->
+    <string name="day_tomorrow">Tomorrow</string>
+    <!-- Medication name, amount, status label, time. Example: "Ibuprofen, 1 tablet, Due at 20:00" -->
+    <string name="dose_tile_description">%1$s, %2$s, %3$s at %4$s</string>
+    <!-- Same, followed by the day. Example: "Ibuprofen, 1 tablet, Due at 08:00 Tomorrow" -->
+    <string name="dose_tile_description_with_day">%1$s, %2$s, %3$s at %4$s %5$s</string>
+
+    <!-- Intake status labels (design system section 2.3) -->
+    <string name="dose_status_due">Due</string>
+    <string name="dose_status_taken">Taken</string>
+    <string name="dose_status_snoozed">Snoozed</string>
+    <string name="dose_status_skipped">Skipped</string>
+    <string name="dose_status_overdue">Overdue</string>
+    <string name="dose_status_missed">Missed</string>
+
+    <!-- Shared actions -->
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- App lock: unlock screen -->
+    <string name="applock_unlock_title">Enter your PIN</string>
+    <string name="applock_wrong_pin_message">That PIN doesn\'t match. Try again.</string>
+    <!-- %d: whole seconds remaining -->
+    <plurals name="applock_cooldown_message">
+        <item quantity="one">Too many wrong attempts. Try again in %d second.</item>
+        <item quantity="other">Too many wrong attempts. Try again in %d seconds.</item>
+    </plurals>
+    <string name="applock_use_biometrics">Use biometrics</string>
+    <string name="applock_use_pin">Use PIN</string>
+    <string name="applock_biometric_prompt_title">Unlock Pillsner</string>
+
+    <!-- App lock: recovery -->
+    <string name="applock_recovery_title">PIN can\'t be checked</string>
+    <string name="applock_recovery_explanation">Something changed on this device and the app lock can no longer check your PIN. Confirm your device screen lock to reset it, then set it up again.</string>
+    <string name="applock_reset_action">Reset app lock</string>
+
+    <!-- App lock: keypad -->
+    <string name="applock_keypad_submit">Continue</string>
+    <string name="applock_keypad_backspace">Delete last digit</string>
+    <!-- %1$d: digits entered so far, %2$d: PIN length -->
+    <string name="applock_pin_dots_description">PIN entry, digit %1$d of %2$d</string>
+
+    <!-- App lock: PIN setup -->
+    <string name="applock_setup_choose_title">Choose a PIN</string>
+    <string name="applock_setup_confirm_title">Confirm your PIN</string>
+    <string name="applock_setup_choose_instruction">Choose a PIN to protect Pillsner.</string>
+    <string name="applock_setup_confirm_instruction">Enter the same PIN again to confirm it.</string>
+    <string name="applock_setup_length_hint">Use 4 to 6 digits.</string>
+    <string name="applock_setup_mismatch_message">Those PINs didn\'t match. Choose a PIN and enter it again.</string>
+
+    <!-- App lock: Security section -->
+    <string name="applock_security_header">Security</string>
+    <string name="applock_protect_with_pin_title">Protect with PIN</string>
+    <string name="applock_protect_with_pin_supporting">Require a PIN to open Pillsner.</string>
+    <string name="applock_biometric_title">Unlock with biometrics</string>
+    <string name="applock_biometric_supporting">Use your fingerprint or face instead of your PIN.</string>
+    <string name="applock_biometric_disabled_no_pin">Turn on Protect with PIN to use this.</string>
+    <string name="applock_biometric_disabled_not_enrolled">No biometric is set up on this device.</string>
+    <string name="applock_screenshot_note">Screenshots and the recent apps preview are hidden while the app lock is on.</string>
+    <string name="applock_disable_dialog_title">Enter your PIN to turn off the app lock</string>
+
+    <!-- Medicines overview -->
+    <string name="medicines_section_active">Active</string>
+    <string name="medicines_section_inactive">Inactive</string>
+    <string name="medicines_empty_title">No medicines yet</string>
+    <string name="medicines_empty_hint">Tap + to add your first medicine.</string>
+    <string name="medicines_active_empty_title">No active medicines</string>
+    <string name="medicines_active_empty_hint">Tap + to add one.</string>
+    <string name="medicines_add_content_description">Add medicine</string>
+    <string name="medicine_inactive_label">Inactive</string>
+
+    <!-- Add medicine -->
+    <string name="medication_form_title_add">Add medicine</string>
+    <string name="medication_form_title_details">Medicine details</string>
+
+    <!-- Schedule descriptions (app-medicine-add design D2). Lower case: each one is prefixed
+         with the amount through schedule_with_amount. -->
+    <!-- %1$s: the amount, %2$s: the frequency. Example: "40 mg twice a day" -->
+    <string name="schedule_with_amount">%1$s %2$s</string>
+    <string name="schedule_once_a_day">once a day</string>
+    <string name="schedule_twice_a_day">twice a day</string>
+    <!-- %d: how many times a day, always 3 or more -->
+    <string name="schedule_n_times_a_day">%d times a day</string>
+    <!-- %s: the days, either a list such as "Mon, Wed, Fri" or the word for weekdays -->
+    <string name="schedule_once_a_day_on_days">once a day on %s</string>
+    <string name="schedule_twice_a_day_on_days">twice a day on %s</string>
+    <!-- %1$d: how many times a day, always 3 or more. %2$s: the days -->
+    <string name="schedule_n_times_a_day_on_days">%1$d times a day on %2$s</string>
+    <!-- Substituted for the day list when the days are exactly Monday to Friday -->
+    <string name="schedule_days_weekdays">weekdays</string>
+    <string name="schedule_once_every_other_day">once every other day</string>
+    <string name="schedule_twice_every_other_day">twice every other day</string>
+    <!-- %d: how many times, always 3 or more -->
+    <string name="schedule_n_times_every_other_day">%d times every other day</string>
+    <!-- %d: the interval in days, always 3 or more -->
+    <string name="schedule_once_every_n_days">once every %d days</string>
+    <string name="schedule_twice_every_n_days">twice every %d days</string>
+    <!-- %1$d: how many times, always 3 or more. %2$d: the interval in days -->
+    <string name="schedule_n_times_every_n_days">%1$d times every %2$d days</string>
+    <!-- %d: the interval in hours -->
+    <string name="schedule_every_n_hours">every %d hours</string>
+    <string name="schedule_as_needed">as needed</string>
+    <!-- Separator between short day names, for example "Mon, Wed, Fri" -->
+    <string name="list_separator">", "</string>
+
+    <!-- Dose units. %s is the already formatted amount, for example "2.5" or "40". -->
+    <plurals name="dose_unit_milligram">
+        <item quantity="one">%s mg</item>
+        <item quantity="other">%s mg</item>
+    </plurals>
+    <plurals name="dose_unit_gram">
+        <item quantity="one">%s g</item>
+        <item quantity="other">%s g</item>
+    </plurals>
+    <plurals name="dose_unit_microgram">
+        <item quantity="one">%s mcg</item>
+        <item quantity="other">%s mcg</item>
+    </plurals>
+    <plurals name="dose_unit_millilitre">
+        <item quantity="one">%s ml</item>
+        <item quantity="other">%s ml</item>
+    </plurals>
+    <plurals name="dose_unit_tablet">
+        <item quantity="one">%s tablet</item>
+        <item quantity="other">%s tablets</item>
+    </plurals>
+    <plurals name="dose_unit_capsule">
+        <item quantity="one">%s capsule</item>
+        <item quantity="other">%s capsules</item>
+    </plurals>
+    <plurals name="dose_unit_drop">
+        <item quantity="one">%s drop</item>
+        <item quantity="other">%s drops</item>
+    </plurals>
+    <plurals name="dose_unit_puff">
+        <item quantity="one">%s puff</item>
+        <item quantity="other">%s puffs</item>
+    </plurals>
+    <plurals name="dose_unit_unit">
+        <item quantity="one">%s unit</item>
+        <item quantity="other">%s units</item>
+    </plurals>
+
+    <!-- Dose unit labels for the unit picker -->
+    <string name="dose_unit_label_milligram">mg</string>
+    <string name="dose_unit_label_gram">g</string>
+    <string name="dose_unit_label_microgram">mcg</string>
+    <string name="dose_unit_label_millilitre">ml</string>
+    <string name="dose_unit_label_tablet">tablet</string>
+    <string name="dose_unit_label_capsule">capsule</string>
+    <string name="dose_unit_label_drop">drop</string>
+    <string name="dose_unit_label_puff">puff</string>
+    <string name="dose_unit_label_unit">unit</string>
+
+    <!-- Shared actions -->
+    <string name="action_save">Save</string>
+    <string name="action_done">Done</string>
+    <string name="action_ok">OK</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_discard">Discard</string>
+    <string name="action_keep_editing">Keep editing</string>
+    <string name="action_pick_date">Pick a date</string>
+
+    <!-- Add medicine form -->
+    <string name="medicine_field_name">Name</string>
+    <string name="medicine_field_default_dose">Default dose</string>
+    <string name="medicine_field_unit">Unit</string>
+    <string name="medicine_field_used_since">Used since</string>
+    <string name="medicine_field_use_until">Use until</string>
+    <string name="medicine_field_prescribed_by">Prescribed by</string>
+    <string name="medicine_schedules_header">Schedules</string>
+    <string name="medicine_add_schedule">Add schedule</string>
+    <string name="medicine_no_schedules">No schedules yet. This medicine will be listed as taken when needed.</string>
+    <string name="schedule_remove_content_description">Remove schedule</string>
+    <string name="medicine_save_failed">Could not save this medicine. Try again.</string>
+
+    <!-- Add medicine form: validation -->
+    <string name="medicine_error_name_required">Enter a name.</string>
+    <string name="medicine_error_dose_required">Enter an amount.</string>
+    <string name="medicine_error_dose_not_a_number">Enter the amount as a number.</string>
+    <string name="medicine_error_dose_not_positive">Enter an amount greater than zero.</string>
+    <string name="medicine_error_use_until_before_used_since">Must be on or after the used since date.</string>
+
+    <!-- Discard a draft -->
+    <string name="medicine_discard_title">Discard this medicine?</string>
+    <string name="medicine_discard_body">Everything you entered will be lost.</string>
+
+    <!-- Prescriber -->
+    <string name="prescriber_general_practitioner">General practitioner</string>
+    <string name="prescriber_specialist">Specialist</string>
+    <string name="prescriber_pharmacist">Pharmacist</string>
+    <string name="prescriber_self">Self</string>
+    <string name="prescriber_other">Other</string>
+
+    <!-- Schedule editor -->
+    <string name="schedule_editor_add_title">Add schedule</string>
+    <string name="schedule_editor_edit_title">Edit schedule</string>
+    <string name="schedule_field_amount">Amount</string>
+    <string name="schedule_field_interval_hours">Interval</string>
+    <string name="schedule_field_first_dose">First dose</string>
+    <string name="schedule_pattern_every_n_days">Every N days</string>
+    <string name="schedule_pattern_weekdays">Weekdays</string>
+    <string name="schedule_pattern_every_n_hours">Every N hours</string>
+    <string name="schedule_interval_every_day">Every day</string>
+    <string name="schedule_interval_every_other_day">Every other day</string>
+    <!-- %d: the interval in days, always 3 or more -->
+    <string name="schedule_interval_every_n_days">Every %d days</string>
+    <string name="schedule_interval_decrease">Fewer days between doses</string>
+    <string name="schedule_interval_increase">More days between doses</string>
+    <string name="schedule_add_time">Add time</string>
+    <string name="schedule_pick_time">Pick a time</string>
+    <string name="schedule_remove_time_content_description">Remove time</string>
+    <!-- %d: the interval in hours -->
+    <string name="schedule_hours_value">%d hours</string>
+    <!-- %s: the dose times of one day, for example "08:00, 20:00" -->
+    <string name="schedule_daily_times">Doses at %s</string>
+    <string name="schedule_all_seven_days_hint">All seven days is every day. Use Every N days instead.</string>
+    <string name="schedule_preview_placeholder">Fill in the schedule to see how it will read.</string>
+    <string name="schedule_duplicate_time">That time is already in the list.</string>
+
+    <!-- Schedule editor: validation -->
+    <string name="schedule_error_times_required">Add at least one time.</string>
+    <string name="schedule_error_days_required">Select at least one day.</string>
+    <string name="schedule_error_all_seven_days">Select fewer than seven days, or use Every N days.</string>
+
+    <!-- Reminder notification (design system section 8.8) -->
+    <string name="reminder_channel_name">Medicine reminders</string>
+    <string name="reminder_channel_description">Tells you when a dose is due, and lets you answer straight from the notification.</string>
+    <!-- %1$s: the amount, %2$s: the medicine name, %3$s: the scheduled time -->
+    <string name="reminder_text">Take %1$s of your medicine \'%2$s\', on %3$s</string>
+    <!-- %1$s: the time, %2$s: the day, for a dose that is not due today -->
+    <string name="reminder_time_with_day">%1$s %2$s</string>
+    <string name="reminder_public_title">Time for your medicine</string>
+    <string name="reminder_action_took_it">I took it</string>
+    <string name="reminder_action_not_yet">Not yet</string>
+    <string name="reminder_action_not_going_to">Not going to</string>
+    <plurals name="reminder_group_summary">
+        <item quantity="one">%d medicine due</item>
+        <item quantity="other">%d medicines due</item>
+    </plurals>
+
+    <!-- Home: reminders cannot be delivered (design system section 8.9) -->
+    <string name="reminder_banner_notifications_denied">Pillsner cannot show reminders because notifications are turned off.</string>
+    <string name="reminder_banner_inexact_alarms">Reminders may arrive up to ten minutes late because exact alarms are turned off.</string>
+    <string name="reminder_banner_open_settings">Open settings</string>
+
+    <!-- Starting and stopping a medicine from the overview -->
+    <string name="medicines_action_deactivate">Deactivate</string>
+    <string name="medicines_action_activate">Activate</string>
+    <string name="medicines_update_failed">Could not update medicine</string>
+
+    <!-- Medicine details (the form in edit mode) -->
+    <string name="medication_form_active">Active</string>
+    <string name="medication_form_active_supporting">Inactive medicines are not reminded</string>
+    <string name="medication_form_open_failed">Could not open medicine</string>
+    <string name="medicines_tile_open_details">Open medicine details</string>
+</resources>

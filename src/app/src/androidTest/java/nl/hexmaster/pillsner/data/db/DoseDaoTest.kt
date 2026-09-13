@@ -1,0 +1,187 @@
+package nl.hexmaster.pillsner.data.db
+
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDate
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import nl.hexmaster.pillsner.data.RoomDoseRepository
+import nl.hexmaster.pillsner.data.RoomMedicationRepository
+import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.IntakeOutcome
+import nl.hexmaster.pillsner.domain.model.MedicationId
+import nl.hexmaster.pillsner.domain.model.NewMedication
+import nl.hexmaster.pillsner.domain.model.PlannedDose
+import nl.hexmaster.pillsner.domain.model.Prescriber
+import nl.hexmaster.pillsner.domain.model.Quantity
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+
+/** Spec: dose-records storage and medication-persistence schema version 2. */
+@RunWith(AndroidJUnit4::class)
+class DoseDaoTest {
+
+    private lateinit var database: PillsnerDatabase
+    private lateinit var doses: RoomDoseRepository
+    private lateinit var medications: RoomMedicationRepository
+
+    private val today: LocalDate = LocalDate.of(2026, 9, 14)
+    private val morning: Instant = Instant.parse("2026-09-14T06:00:00Z")
+    private val evening: Instant = Instant.parse("2026-09-14T18:00:00Z")
+    private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
+
+    @Before
+    fun setUp() {
+        val context: Context = ApplicationProvider.getApplicationContext()
+        database = Room.inMemoryDatabaseBuilder(context, PillsnerDatabase::class.java).build()
+        doses = RoomDoseRepository(database.doseDao())
+        medications = RoomMedicationRepository(database.medicationDao())
+    }
+
+    @After
+    fun tearDown() {
+        database.close()
+    }
+
+    @Test
+    fun aPlannedDose_roundTripsWithItsSnapshot() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning, Quantity.of("2.5", DoseUnit.MILLILITRE))))
+
+        val stored = doses.pending().single()
+        assertEquals(id, stored.medicationId)
+        assertEquals("Ibuprofen", stored.medicationName)
+        assertEquals(Quantity.of("2.5", DoseUnit.MILLILITRE), stored.amount)
+        assertEquals(BigDecimal("2.5"), stored.amount.value)
+        assertEquals(morning, stored.scheduledAt)
+        assertTrue(stored.isPending)
+    }
+
+    @Test
+    fun insertingTheSamePlannedDoseTwice_changesNothing() = runBlocking {
+        val id = medications.add(medication())
+
+        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)))
+
+        assertEquals(1, doses.pending().size)
+    }
+
+    @Test
+    fun recordingAnOutcome_takesTheDoseOutOfPendingAndClearsItsSnooze() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+        val dose = doses.pending().single()
+        doses.setSnooze(dose.id, morning.plusSeconds(900))
+
+        doses.recordIntake(dose.id, IntakeOutcome.TAKEN, morning.plusSeconds(60))
+
+        assertEquals(emptyList<Any>(), doses.pending())
+        val stored = checkNotNull(doses.get(dose.id))
+        assertEquals(IntakeOutcome.TAKEN, stored.intake?.outcome)
+        assertEquals(morning.plusSeconds(60), stored.intake?.recordedAt)
+        assertNull(stored.snoozedUntil)
+    }
+
+    @Test
+    fun deletingTheMedication_leavesTheDoseWithoutLosingItsHistory() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+
+        // Nothing in the app deletes a medicine; the nullable reference is what would keep the
+        // history readable if a row ever did vanish, so it is exercised through raw SQL.
+        database.openHelper.writableDatabase.execSQL("DELETE FROM medications WHERE id = ${id.value}")
+
+        val stored = doses.pending().single()
+        assertNull(stored.medicationId)
+        assertEquals("Ibuprofen", stored.medicationName)
+        assertEquals(mg40, stored.amount)
+    }
+
+    @Test
+    fun withdrawingPlannedDoses_leavesRemindedAndAnsweredOnesAlone() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(
+            listOf(planned(id, morning), planned(id, evening), planned(id, evening.plusSeconds(3600))),
+        )
+        val all = doses.pending()
+        doses.setFirstReminded(all[0].id, morning)
+        doses.recordIntake(all[1].id, IntakeOutcome.SKIPPED, evening)
+
+        doses.deletePlannedNotIn(
+            from = morning.minusSeconds(86_400),
+            to = evening.plusSeconds(86_400),
+            keep = emptyList(),
+        )
+
+        // The reminded one survives; the answered one is not pending; the merely planned one is gone.
+        assertEquals(listOf(morning), doses.pending().map { it.scheduledAt })
+        assertEquals(IntakeOutcome.SKIPPED, doses.get(all[1].id)?.intake?.outcome)
+    }
+
+    @Test
+    fun withdrawingPlannedDoses_keepsTheOnesStillCalledFor() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+
+        doses.deletePlannedNotIn(
+            from = morning.minusSeconds(86_400),
+            to = evening.plusSeconds(86_400),
+            keep = listOf(evening),
+        )
+
+        assertEquals(listOf(evening), doses.pending().map { it.scheduledAt })
+    }
+
+    @Test
+    fun theNextDoseOfAMedicine_isFound() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+
+        assertEquals(evening, doses.nextScheduledAtAfter(id, morning))
+        assertNull(doses.nextScheduledAtAfter(id, evening))
+    }
+
+    @Test
+    fun thePendingStream_reEmitsWhenADoseIsAdded() = runBlocking {
+        val id = medications.add(medication())
+        assertEquals(emptyList<Any>(), doses.observePending().first())
+
+        doses.insertPlanned(listOf(planned(id, morning)))
+
+        assertEquals(listOf(morning), doses.observePending().first().map { it.scheduledAt })
+    }
+
+    @Test
+    fun pendingDosesComeBackSoonestFirst() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, evening), planned(id, morning)))
+
+        assertEquals(listOf(morning, evening), doses.pending().map { it.scheduledAt })
+    }
+
+    private fun medication() = NewMedication(
+        name = "Ibuprofen",
+        defaultDose = mg40,
+        usedSince = today,
+        useUntil = null,
+        prescribedBy = Prescriber.GENERAL_PRACTITIONER,
+        schedules = emptyList(),
+    )
+
+    private fun planned(id: MedicationId, at: Instant, amount: Quantity = mg40) = PlannedDose(
+        medicationId = id,
+        medicationName = "Ibuprofen",
+        amount = amount,
+        scheduledAt = at,
+    )
+}

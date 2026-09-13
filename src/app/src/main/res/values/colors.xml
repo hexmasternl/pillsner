@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Brand hues from docs/design-system.md section 2.1, for resources that cannot read the Compose
+    theme: the launcher icon, the placeholder logo drawable and the activity window background.
+    Kotlin code never reads these; composables use MaterialTheme.colorScheme. Keep in step with
+    ui/theme/Color.kt.
+-->
+<resources>
+    <color name="pillsner_green">#1B7F5C</color>
+    <color name="pillsner_blue">#2D6DA8</color>
+    <color name="pillsner_white">#FFFFFF</color>
+    <color name="mint_white">#F9FBFA</color>
+    <color name="deep_moss">#101413</color>
+</resources>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Reminders, and nothing else. There is deliberately no INTERNET permission: nothing about a
+        user's medication ever leaves the device.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Reserved for apps whose core function is alarms or reminders, which Pillsner's is. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Android 12 only; from 13 the permission above replaces it. -->
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <!-- A reboot clears every alarm, so the app has to set its own again. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:name=".PillsnerApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Pillsner"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/full_backup_content">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Pillsner">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- The app's single alarm. Only AlarmManager sends this, so it is not exported. -->
+        <receiver
+            android:name=".data.reminders.ReminderAlarmReceiver"
+            android:exported="false" />
+
+        <!-- The three answers, and the swipe that counts as "Not yet". -->
+        <receiver
+            android:name=".data.reminders.ReminderActionReceiver"
+            android:exported="false" />
+
+        <!--
+            Exported because the system sends these broadcasts; each action is protected by the
+            platform, so no other app can deliver them.
+        -->
+        <receiver
+            android:name=".data.reminders.SystemEventsReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

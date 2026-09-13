@@ -1,0 +1,15 @@
+<!--
+    The status bar small icon: a capsule, white on transparent. Android tints a notification's
+    small icon itself and ignores anything but the alpha channel, so this is a single solid path
+    (docs/design-system.md section 8.8).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960"
+    android:tint="#FFFFFFFF">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M256,760Q173,760 116.5,703.5Q60,647 60,564Q60,524 75.5,487.5Q91,451 119,423L423,119Q451,91 487.5,75.5Q524,60 564,60Q647,60 703.5,116.5Q760,173 760,256Q760,296 744.5,332.5Q729,369 701,397L397,701Q369,729 332.5,744.5Q296,760 256,760ZM256,680Q279,680 301,671Q323,662 340,645L472,513L307,348L175,480Q158,497 149,519Q140,541 140,564Q140,613 174,646.5Q208,680 256,680ZM528,457L645,340Q662,323 671,301Q680,279 680,256Q680,207 646,173.5Q612,140 564,140Q541,140 519,149Q497,158 480,175L363,292L528,457Z"/>
+</vector>

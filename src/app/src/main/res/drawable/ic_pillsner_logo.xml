@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Placeholder product mark (docs/design-system.md section 7): a rounded capsule split across its
+    middle, green half up and to the left, blue half down and to the right, on a white circle.
+    Replace this file when the final artwork lands; no code references its geometry.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <path
+        android:name="circle"
+        android:fillColor="@color/pillsner_white"
+        android:pathData="M50,0 A50,50 0 1 1 50,100 A50,50 0 1 1 50,0 Z" />
+    <group
+        android:name="capsule"
+        android:pivotX="50"
+        android:pivotY="50"
+        android:rotation="-45">
+        <path
+            android:name="capsule_green"
+            android:fillColor="@color/pillsner_green"
+            android:pathData="M50,36 L36,36 A14,14 0 0 0 36,64 L50,64 Z" />
+        <path
+            android:name="capsule_blue"
+            android:fillColor="@color/pillsner_blue"
+            android:pathData="M50,36 L64,36 A14,14 0 0 1 64,64 L50,64 Z" />
+    </group>
+</vector>

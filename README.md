@@ -24,14 +24,21 @@ Pillsner is built around exactly those needs and nothing more.
 The following capabilities define the scope of the app. Items are being delivered incrementally through the change proposals in the `openspec` folder.
 
 **Medication management**
-- Add a medication with a name, dosage, form (tablet, capsule, drops, and so on) and optional notes.
-- Edit, pause or archive a medication without losing its history.
+- A medicine overview listing what you take, split into active and inactive medicines, each with a plain-language description of its schedule, and a large add button to enter a new one. Swipe a tile sideways to activate or deactivate that medicine; nothing is ever deleted.
+- Add a medication with a name, a default dose and its unit (mg, ml, tablet, drop, and so on), the dates you take it between, and who prescribed it.
+- Give a medicine as many schedules as it needs, each with its own amount: 40 mg every 12 hours on top of 20 mg once a day at the weekend.
+- Tap a medicine to open it and change anything: its name, its dose, its dates, who prescribed it, its schedules, and whether you are currently taking it.
+- **A medicine is never deleted.** Stopping one deactivates it; the medicine, its schedules and every dose it ever produced stay on your device. Editing a medicine never rewrites what you already took: doses you have answered keep the name and amount they were taken under, and only what is still ahead of you follows the change.
 - Track remaining stock and get a heads-up when a refill is due.
 
 **Schedules and reminders**
 - Flexible schedules: fixed times of day, every N hours, specific weekdays, or as-needed medication without a schedule.
-- Reliable local notifications that fire on time, including when the device is dozing.
-- Snooze a reminder for a short while, or skip a dose deliberately and have that recorded as a skip rather than a miss.
+- Reliable local notifications that fire on the exact minute, including when the device is dozing, and that survive a reboot, an app update, a clock change and a move to another time zone.
+- Answer a reminder in one tap, without opening the app: **I took it**, **Not yet** (a 15-minute snooze) or **Not going to**. A dose you never answer becomes missed when the next one is due, or 24 hours later, whichever comes first.
+- The same reminder, with the same three answers, appears on a paired Wear OS watch.
+
+**Home**
+- A welcome screen showing your upcoming doses, soonest first, so you can see at a glance what needs taking next.
 
 **Intake tracking**
 - Confirm a dose straight from the notification or from the app.
@@ -40,6 +47,18 @@ The following capabilities define the scope of the app. Items are being delivere
 
 **Privacy by default**
 - All data lives on the device. There is no account, no cloud sync and no analytics unless explicitly added and clearly disclosed in a future release.
+- An optional app lock protects the app with a PIN and, once set up, biometric unlock. Screenshots and the recent apps thumbnail are hidden while it is on.
+- On the lock screen a reminder can show only "Time for your medicine", never the name or the amount, whenever your phone is set to hide sensitive notifications.
+
+## Permissions
+
+Pillsner asks for as little as it can, and for nothing that sends data anywhere. It declares **no internet permission at all**.
+
+| Permission | Why |
+| --- | --- |
+| `POST_NOTIFICATIONS` | A reminder is a notification. Without it Pillsner cannot remind you of anything, and the Home screen says so. |
+| `USE_EXACT_ALARM` (Android 13+), `SCHEDULE_EXACT_ALARM` (Android 12) | A dose due at 08:00 has to be announced at 08:00. Android reserves exact alarms for apps whose core function is alarms or reminders; that is exactly what Pillsner is. Without it reminders fall back to a ten-minute window and the Home screen warns you. |
+| `RECEIVE_BOOT_COMPLETED` | Restarting the phone clears every pending alarm, so Pillsner has to set its own again. |
 
 ## Technology
 
@@ -53,7 +72,8 @@ Pillsner is a native Android application written in Kotlin.
 | Architecture | Single-activity, MVVM style with unidirectional data flow |
 | Persistence | Room (SQLite) on the device |
 | Scheduling | Android alarm and notification APIs for exact, reliable reminders |
-| Build system | Gradle with the Kotlin DSL |
+| Design | `docs/design-system.md`: brand colour schemes for light and dark, bundled Montserrat and Raleway, Material 3 tokens; no dynamic colour |
+| Build system | Gradle with the Kotlin DSL, versions pinned in a version catalog (see Toolchain below) |
 | IDE | Android Studio (latest stable) |
 
 Any change to this table should go through the spec-driven workflow described below, so that the reasoning is recorded alongside the decision.
@@ -73,9 +93,37 @@ Any change to this table should go through the spec-driven workflow described be
 
 ### Prerequisites
 
-- Android Studio, latest stable release, with the Android SDK installed.
-- A JDK compatible with the Android Gradle Plugin version used by the project (Android Studio bundles a suitable one).
+- Android Studio, latest stable release, with the Android SDK installed (SDK Platform 37 and Build Tools 36.0.0).
+- JDK 21. Android Studio bundles it; on the command line, point `JAVA_HOME` at a JDK 21 installation.
 - An Android device or emulator. Because the app schedules exact alarms and posts notifications, testing on a physical device gives the most realistic picture of reminder reliability.
+
+### Toolchain
+
+The project pins every tool and library version in `src/gradle/libs.versions.toml`. The policy is: the newest stable release of each, or the newest long-term-support release where the tool has one, never a pre-release. The baseline below was set on 11 September 2026 by the `app-welcome-screen` change and is re-checked whenever a change touches the catalog.
+
+| Component | Version |
+| --- | --- |
+| JDK (Gradle runtime and JVM toolchain) | 21 (LTS) |
+| Gradle wrapper | 9.7.1 |
+| Android Gradle Plugin | 9.4.0 |
+| Kotlin (with Compose compiler and serialization plugins) | 2.4.20 |
+| KSP | 2.3.12 |
+| `compileSdk` / `targetSdk` | 37 (Android 17) |
+| `minSdk` | 26 (phone), 30 (Wear OS) |
+| Jetpack Compose BOM | 2026.09.00 (Compose UI/Foundation/Runtime 1.12.1, Material 3 1.4.0) |
+| AndroidX Navigation Compose | 2.10.1 |
+| AndroidX Lifecycle | 2.11.0 |
+| AndroidX Activity Compose | 1.13.0 |
+| AndroidX Core | 1.19.0 |
+| Room | 2.8.5 |
+| DataStore Preferences | 1.2.1 |
+| Biometric | 1.1.0 |
+| Fragment (host required by Biometric's `BiometricPrompt`) | 1.9.0 |
+| Wear Compose (Material 3, Foundation) | 1.6.2 |
+| Play services Wearable | 20.0.1 |
+| kotlinx-coroutines / kotlinx-serialization | 1.11.0 / 1.11.0 |
+
+Libraries below Room in this table arrive with later changes and are listed so the baseline is visible in one place.
 
 ### Building and running
 

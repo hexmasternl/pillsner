@@ -1,5 +1,6 @@
 package nl.hexmaster.pillsner
 
+import android.content.Context
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
@@ -15,6 +16,7 @@ import nl.hexmaster.pillsner.applock.ui.AppLockViewModel
 import nl.hexmaster.pillsner.applock.ui.BiometricAuthenticator
 import nl.hexmaster.pillsner.di.AppContainer
 import nl.hexmaster.pillsner.ui.PillsnerApp
+import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 
 /**
@@ -29,6 +31,15 @@ import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 class MainActivity : FragmentActivity() {
 
     private val container: AppContainer by lazy { (application as PillsnerApplication).container }
+
+    /**
+     * Everything on screen reads its strings from here, so this is where the app's own language
+     * is put in front of the phone's (app-settings-language design D3).
+     */
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(AppLocale.wrap(base))
+    }
+
     private val appLockViewModel: AppLockViewModel by viewModels { container.viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {

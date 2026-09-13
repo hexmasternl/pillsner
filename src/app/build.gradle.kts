@@ -21,6 +21,10 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // The two languages the app ships. Strips every other locale from library resources, and
+        // makes the fallback chain exactly values-nl to values (English).
+        resourceConfigurations += listOf("en", "nl")
     }
 
     buildTypes {
@@ -50,6 +54,18 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    lint {
+        lintConfig = file("lint.xml")
+    }
+
+    bundle {
+        language {
+            // Both languages ship in the base install. Play would otherwise deliver only the one
+            // the phone is set to, and the in-app language picker offers the other.
+            enableSplit = false
+        }
     }
 
     testOptions {

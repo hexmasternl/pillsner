@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App -->
-    <string name="app_name">Pillsner</string>
-    <string name="app_title">Pillsner</string>
+    <string name="app_name" translatable="false">Pillsner</string>
+    <string name="app_title" translatable="false">Pillsner</string>
     <string name="logo_content_description">Pillsner logo</string>
 
     <!-- Navigation -->
@@ -274,4 +274,10 @@
     <string name="medication_form_active_supporting">Inactive medicines are not reminded</string>
     <string name="medication_form_open_failed">Could not open medicine</string>
     <string name="medicines_tile_open_details">Open medicine details</string>
+
+    <!-- Settings: language -->
+    <string name="settings_language_header">Language</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_system_default">System default</string>
+    <string name="settings_language_restart_notice">Restart Pillsner to apply the new language</string>
 </resources>

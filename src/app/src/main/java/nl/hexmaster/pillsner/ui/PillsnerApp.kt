@@ -53,6 +53,7 @@ import nl.hexmaster.pillsner.ui.navigation.Settings
 import nl.hexmaster.pillsner.ui.navigation.TopLevelDestination
 import nl.hexmaster.pillsner.ui.navigation.topLevelDestinations
 import nl.hexmaster.pillsner.ui.settings.SettingsScreen
+import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 
 /**
  * The app's root composable. Gains the app lock's root gate here (app-login design D1): the
@@ -195,7 +196,11 @@ private fun PillsnerAppContent(
             )
             composable<Settings> {
                 val appLockUiState by appLockViewModel.uiState.collectAsStateWithLifecycle()
+                val languageViewModel: LanguageSectionViewModel = viewModel(factory = viewModelFactory)
+                val languageState by languageViewModel.state.collectAsStateWithLifecycle()
                 SettingsScreen(
+                    languageState = languageState,
+                    onLanguageSelected = languageViewModel::onLanguageSelected,
                     appLockUiState = appLockUiState,
                     appLockEvents = appLockViewModel.eventFlow,
                     onSecuritySectionAppeared = appLockViewModel::refreshBiometricAvailability,

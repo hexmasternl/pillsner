@@ -45,6 +45,10 @@ The following capabilities define the scope of the app. Items are being delivere
 - A daily overview showing what is due, what is taken, what was skipped and what was missed.
 - A history view so you or a caregiver can see adherence over time.
 
+**Language**
+- Pillsner is available in English and Dutch, and follows your phone's language on its own. You can override it in Settings; the new language appears the next time you start the app, and Pillsner says so until you do.
+- Everything follows the chosen language, not only the screens: dates, times, weekday names, decimal separators, how names are sorted, and the reminder that arrives while the app is closed.
+
 **Privacy by default**
 - All data lives on the device. There is no account, no cloud sync and no analytics unless explicitly added and clearly disclosed in a future release.
 - An optional app lock protects the app with a PIN and, once set up, biometric unlock. Screenshots and the recent apps thumbnail are hidden while it is on.

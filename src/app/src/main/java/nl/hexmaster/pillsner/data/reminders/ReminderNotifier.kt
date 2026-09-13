@@ -10,6 +10,7 @@ import nl.hexmaster.pillsner.MainActivity
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.ui.home.DayLabel
+import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.home.hasNotificationPermission
 import nl.hexmaster.pillsner.ui.home.UpcomingDoseTimeFormatter
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
@@ -28,11 +29,13 @@ import nl.hexmaster.pillsner.ui.theme.PillsnerNotificationColor
  */
 class ReminderNotifier(
     context: Context,
-    private val quantityFormatter: QuantityFormatter = QuantityFormatter(context.applicationContext),
+    private val quantityFormatter: QuantityFormatter = QuantityFormatter(AppLocale.wrap(context.applicationContext)),
     private val timeFormatter: UpcomingDoseTimeFormatter = UpcomingDoseTimeFormatter(),
 ) {
 
-    private val appContext = context.applicationContext
+    // A receiver has no activity to inherit a configuration from, so the notification would
+    // otherwise be posted in the phone's language rather than the app's.
+    private val appContext = AppLocale.wrap(context.applicationContext)
     private val notificationManager = NotificationManagerCompat.from(appContext)
 
     /**

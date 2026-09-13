@@ -63,15 +63,19 @@ Pressing back on Medicines or Settings SHALL return to the welcome screen. Press
 - **THEN** the activity finishes
 
 ### Requirement: Placeholder Medicines and Settings destinations
-The Medicines destination SHALL display the medicine overview screen. Until its own change delivers content, the Settings destination SHALL display its title from a string resource so that navigation is observable and testable.
+The Medicines destination SHALL display the medicine overview screen. The Settings destination SHALL display the settings screen: a scrolling list of sections under the title "Settings", with the Language section first. Other changes add their sections beneath it.
 
 #### Scenario: Medicines shows the overview
 - **WHEN** the Medicines destination is shown
 - **THEN** the medicine overview screen is displayed with its add button
 
-#### Scenario: Settings placeholder
+#### Scenario: Settings shows sections
 - **WHEN** the Settings destination is shown
-- **THEN** a screen with the title "Settings" is displayed
+- **THEN** a screen titled "Settings" is displayed whose first section is "Language" with the language dropdown
+
+#### Scenario: Sections scroll at large font
+- **WHEN** the system font scale is at maximum and the settings screen has more than one section
+- **THEN** every section is reachable by scrolling and no text is clipped
 
 ### Requirement: Navigation items are accessible
 Each bottom navigation item SHALL be operable with a screen reader and MUST expose its label and selected state.

@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    De Nederlandse vertaling. De woordenlijst uit CLAUDE.md wordt overal aangehouden:
+    medicijn, schema, dosis, inname, herinnering, uitstellen.
+-->
+<resources>
+    <!-- Navigatie -->
+    <string name="logo_content_description">Pillsner-logo</string>
+    <string name="nav_home">Start</string>
+    <string name="nav_medicines">Medicijnen</string>
+    <string name="nav_settings">Instellingen</string>
+    <string name="medicines_title">Medicijnen</string>
+    <string name="settings_title">Instellingen</string>
+
+    <!-- Start: lege lijst -->
+    <string name="home_empty_title">Nu is er niets aan de beurt</string>
+    <string name="home_empty_hint">Je volgende dosis verschijnt hier.</string>
+
+    <!-- Dosistegel -->
+    <string name="day_tomorrow">Morgen</string>
+    <string name="dose_tile_description">%1$s, %2$s, %3$s om %4$s</string>
+    <string name="dose_tile_description_with_day">%1$s, %2$s, %3$s om %4$s %5$s</string>
+
+    <!-- Status van een dosis -->
+    <string name="dose_status_due">Aan de beurt</string>
+    <string name="dose_status_taken">Ingenomen</string>
+    <string name="dose_status_snoozed">Uitgesteld</string>
+    <string name="dose_status_skipped">Overgeslagen</string>
+    <string name="dose_status_overdue">Te laat</string>
+    <string name="dose_status_missed">Gemist</string>
+
+    <!-- Gedeelde acties -->
+    <string name="action_back">Terug</string>
+    <string name="action_cancel">Annuleren</string>
+    <string name="action_save">Opslaan</string>
+    <string name="action_done">Klaar</string>
+    <string name="action_ok">OK</string>
+    <string name="action_clear">Wissen</string>
+    <string name="action_discard">Weggooien</string>
+    <string name="action_keep_editing">Verder bewerken</string>
+    <string name="action_pick_date">Kies een datum</string>
+
+    <!-- Appvergrendeling: ontgrendelen -->
+    <string name="applock_unlock_title">Voer je pincode in</string>
+    <string name="applock_wrong_pin_message">Die pincode klopt niet. Probeer het opnieuw.</string>
+    <plurals name="applock_cooldown_message">
+        <item quantity="one">Te veel mislukte pogingen. Probeer het over %d seconde opnieuw.</item>
+        <item quantity="other">Te veel mislukte pogingen. Probeer het over %d seconden opnieuw.</item>
+    </plurals>
+    <string name="applock_use_biometrics">Gebruik biometrie</string>
+    <string name="applock_use_pin">Gebruik pincode</string>
+    <string name="applock_biometric_prompt_title">Pillsner ontgrendelen</string>
+
+    <!-- Appvergrendeling: herstel -->
+    <string name="applock_recovery_title">Pincode kan niet worden gecontroleerd</string>
+    <string name="applock_recovery_explanation">Er is iets veranderd op dit apparaat, waardoor de appvergrendeling je pincode niet meer kan controleren. Bevestig je schermvergrendeling om hem opnieuw in te stellen.</string>
+    <string name="applock_reset_action">Appvergrendeling opnieuw instellen</string>
+
+    <!-- Appvergrendeling: toetsenblok -->
+    <string name="applock_keypad_submit">Doorgaan</string>
+    <string name="applock_keypad_backspace">Laatste cijfer wissen</string>
+    <string name="applock_pin_dots_description">Pincode, cijfer %1$d van %2$d</string>
+
+    <!-- Appvergrendeling: pincode instellen -->
+    <string name="applock_setup_choose_title">Kies een pincode</string>
+    <string name="applock_setup_confirm_title">Bevestig je pincode</string>
+    <string name="applock_setup_choose_instruction">Kies een pincode om Pillsner te beschermen.</string>
+    <string name="applock_setup_confirm_instruction">Voer dezelfde pincode nog een keer in ter bevestiging.</string>
+    <string name="applock_setup_length_hint">Gebruik 4 tot 6 cijfers.</string>
+    <string name="applock_setup_mismatch_message">Die pincodes kwamen niet overeen. Kies een pincode en voer hem opnieuw in.</string>
+
+    <!-- Appvergrendeling: onderdeel Beveiliging -->
+    <string name="applock_security_header">Beveiliging</string>
+    <string name="applock_protect_with_pin_title">Beschermen met pincode</string>
+    <string name="applock_protect_with_pin_supporting">Vraag een pincode om Pillsner te openen.</string>
+    <string name="applock_biometric_title">Ontgrendelen met biometrie</string>
+    <string name="applock_biometric_supporting">Gebruik je vingerafdruk of gezicht in plaats van je pincode.</string>
+    <string name="applock_biometric_disabled_no_pin">Zet Beschermen met pincode aan om dit te gebruiken.</string>
+    <string name="applock_biometric_disabled_not_enrolled">Op dit apparaat is geen biometrie ingesteld.</string>
+    <string name="applock_screenshot_note">Schermafbeeldingen en het overzicht van recente apps zijn verborgen zolang de appvergrendeling aanstaat.</string>
+    <string name="applock_disable_dialog_title">Voer je pincode in om de appvergrendeling uit te zetten</string>
+
+    <!-- Medicijnoverzicht -->
+    <string name="medicines_section_active">Actief</string>
+    <string name="medicines_section_inactive">Niet actief</string>
+    <string name="medicines_empty_title">Nog geen medicijnen</string>
+    <string name="medicines_empty_hint">Tik op + om je eerste medicijn toe te voegen.</string>
+    <string name="medicines_active_empty_title">Geen actieve medicijnen</string>
+    <string name="medicines_active_empty_hint">Tik op + om er een toe te voegen.</string>
+    <string name="medicines_add_content_description">Medicijn toevoegen</string>
+    <string name="medicine_inactive_label">Niet actief</string>
+    <string name="medicines_action_deactivate">Stopzetten</string>
+    <string name="medicines_action_activate">Hervatten</string>
+    <string name="medicines_update_failed">Medicijn kon niet worden bijgewerkt</string>
+    <string name="medicines_tile_open_details">Medicijngegevens openen</string>
+
+    <!-- Schemabeschrijvingen. Kleine letter: er komt altijd een hoeveelheid voor. -->
+    <string name="schedule_with_amount">%1$s %2$s</string>
+    <string name="schedule_once_a_day">één keer per dag</string>
+    <string name="schedule_twice_a_day">twee keer per dag</string>
+    <string name="schedule_n_times_a_day">%d keer per dag</string>
+    <string name="schedule_once_a_day_on_days">één keer per dag op %s</string>
+    <string name="schedule_twice_a_day_on_days">twee keer per dag op %s</string>
+    <string name="schedule_n_times_a_day_on_days">%1$d keer per dag op %2$s</string>
+    <string name="schedule_days_weekdays">doordeweekse dagen</string>
+    <string name="schedule_once_every_other_day">één keer per twee dagen</string>
+    <string name="schedule_twice_every_other_day">twee keer per twee dagen</string>
+    <string name="schedule_n_times_every_other_day">%d keer per twee dagen</string>
+    <string name="schedule_once_every_n_days">één keer per %d dagen</string>
+    <string name="schedule_twice_every_n_days">twee keer per %d dagen</string>
+    <string name="schedule_n_times_every_n_days">%1$d keer per %2$d dagen</string>
+    <string name="schedule_every_n_hours">elke %d uur</string>
+    <string name="schedule_as_needed">zo nodig</string>
+    <string name="list_separator">", "</string>
+
+    <!-- Eenheden. %s is de al opgemaakte hoeveelheid, bijvoorbeeld "2,5" of "40". -->
+    <plurals name="dose_unit_milligram">
+        <item quantity="one">%s mg</item>
+        <item quantity="other">%s mg</item>
+    </plurals>
+    <plurals name="dose_unit_gram">
+        <item quantity="one">%s g</item>
+        <item quantity="other">%s g</item>
+    </plurals>
+    <plurals name="dose_unit_microgram">
+        <item quantity="one">%s mcg</item>
+        <item quantity="other">%s mcg</item>
+    </plurals>
+    <plurals name="dose_unit_millilitre">
+        <item quantity="one">%s ml</item>
+        <item quantity="other">%s ml</item>
+    </plurals>
+    <plurals name="dose_unit_tablet">
+        <item quantity="one">%s tablet</item>
+        <item quantity="other">%s tabletten</item>
+    </plurals>
+    <plurals name="dose_unit_capsule">
+        <item quantity="one">%s capsule</item>
+        <item quantity="other">%s capsules</item>
+    </plurals>
+    <plurals name="dose_unit_drop">
+        <item quantity="one">%s druppel</item>
+        <item quantity="other">%s druppels</item>
+    </plurals>
+    <plurals name="dose_unit_puff">
+        <item quantity="one">%s pufje</item>
+        <item quantity="other">%s pufjes</item>
+    </plurals>
+    <plurals name="dose_unit_unit">
+        <item quantity="one">%s eenheid</item>
+        <item quantity="other">%s eenheden</item>
+    </plurals>
+
+    <!-- Eenheden in de keuzelijst -->
+    <string name="dose_unit_label_milligram">mg</string>
+    <string name="dose_unit_label_gram">g</string>
+    <string name="dose_unit_label_microgram">mcg</string>
+    <string name="dose_unit_label_millilitre">ml</string>
+    <string name="dose_unit_label_tablet">tablet</string>
+    <string name="dose_unit_label_capsule">capsule</string>
+    <string name="dose_unit_label_drop">druppel</string>
+    <string name="dose_unit_label_puff">pufje</string>
+    <string name="dose_unit_label_unit">eenheid</string>
+
+    <!-- Medicijnformulier -->
+    <string name="medication_form_title_add">Medicijn toevoegen</string>
+    <string name="medication_form_title_details">Medicijngegevens</string>
+    <string name="medicine_field_name">Naam</string>
+    <string name="medicine_field_default_dose">Standaarddosis</string>
+    <string name="medicine_field_unit">Eenheid</string>
+    <string name="medicine_field_used_since">In gebruik sinds</string>
+    <string name="medicine_field_use_until">Gebruiken tot</string>
+    <string name="medicine_field_prescribed_by">Voorgeschreven door</string>
+    <string name="medicine_schedules_header">Schema\'s</string>
+    <string name="medicine_add_schedule">Schema toevoegen</string>
+    <string name="medicine_no_schedules">Nog geen schema\'s. Dit medicijn staat dan in de lijst als zo nodig.</string>
+    <string name="schedule_remove_content_description">Schema verwijderen</string>
+    <string name="medicine_save_failed">Dit medicijn kon niet worden opgeslagen. Probeer het opnieuw.</string>
+    <string name="medication_form_active">Actief</string>
+    <string name="medication_form_active_supporting">Voor niet-actieve medicijnen komt geen herinnering</string>
+    <string name="medication_form_open_failed">Medicijn kon niet worden geopend</string>
+
+    <!-- Medicijnformulier: controles -->
+    <string name="medicine_error_name_required">Vul een naam in.</string>
+    <string name="medicine_error_dose_required">Vul een hoeveelheid in.</string>
+    <string name="medicine_error_dose_not_a_number">Vul de hoeveelheid als getal in.</string>
+    <string name="medicine_error_dose_not_positive">Vul een hoeveelheid groter dan nul in.</string>
+    <string name="medicine_error_use_until_before_used_since">Moet op of na de datum van ingebruikname liggen.</string>
+
+    <!-- Een concept weggooien -->
+    <string name="medicine_discard_title">Dit medicijn weggooien?</string>
+    <string name="medicine_discard_body">Alles wat je hebt ingevuld gaat verloren.</string>
+
+    <!-- Voorschrijver -->
+    <string name="prescriber_general_practitioner">Huisarts</string>
+    <string name="prescriber_specialist">Specialist</string>
+    <string name="prescriber_pharmacist">Apotheker</string>
+    <string name="prescriber_self">Zelf</string>
+    <string name="prescriber_other">Anders</string>
+
+    <!-- Schema bewerken -->
+    <string name="schedule_editor_add_title">Schema toevoegen</string>
+    <string name="schedule_editor_edit_title">Schema bewerken</string>
+    <string name="schedule_field_amount">Hoeveelheid</string>
+    <string name="schedule_field_interval_hours">Interval</string>
+    <string name="schedule_field_first_dose">Eerste dosis</string>
+    <string name="schedule_pattern_every_n_days">Om de zoveel dagen</string>
+    <string name="schedule_pattern_weekdays">Vaste dagen</string>
+    <string name="schedule_pattern_every_n_hours">Om de zoveel uur</string>
+    <string name="schedule_interval_every_day">Elke dag</string>
+    <string name="schedule_interval_every_other_day">Om de dag</string>
+    <string name="schedule_interval_every_n_days">Elke %d dagen</string>
+    <string name="schedule_interval_decrease">Minder dagen tussen doses</string>
+    <string name="schedule_interval_increase">Meer dagen tussen doses</string>
+    <string name="schedule_add_time">Tijd toevoegen</string>
+    <string name="schedule_pick_time">Kies een tijd</string>
+    <string name="schedule_remove_time_content_description">Tijd verwijderen</string>
+    <string name="schedule_hours_value">%d uur</string>
+    <string name="schedule_daily_times">Doses om %s</string>
+    <string name="schedule_all_seven_days_hint">Alle zeven dagen is elke dag. Kies dan Om de zoveel dagen.</string>
+    <string name="schedule_preview_placeholder">Vul het schema in om te zien hoe het komt te staan.</string>
+    <string name="schedule_duplicate_time">Die tijd staat al in de lijst.</string>
+
+    <!-- Schema bewerken: controles -->
+    <string name="schedule_error_times_required">Voeg minstens één tijd toe.</string>
+    <string name="schedule_error_days_required">Kies minstens één dag.</string>
+    <string name="schedule_error_all_seven_days">Kies minder dan zeven dagen, of gebruik Om de zoveel dagen.</string>
+
+    <!-- Herinnering -->
+    <string name="reminder_channel_name">Herinneringen voor medicijnen</string>
+    <string name="reminder_channel_description">Laat weten wanneer een dosis aan de beurt is, en je kunt meteen vanuit de melding antwoorden.</string>
+    <string name="reminder_text">Neem %1$s van je medicijn \'%2$s\', om %3$s</string>
+    <string name="reminder_time_with_day">%1$s %2$s</string>
+    <string name="reminder_public_title">Tijd voor je medicijn</string>
+    <string name="reminder_action_took_it">Ingenomen</string>
+    <string name="reminder_action_not_yet">Nog niet</string>
+    <string name="reminder_action_not_going_to">Sla ik over</string>
+    <plurals name="reminder_group_summary">
+        <item quantity="one">%d medicijn aan de beurt</item>
+        <item quantity="other">%d medicijnen aan de beurt</item>
+    </plurals>
+
+    <!-- Start: herinneringen kunnen niet worden bezorgd -->
+    <string name="reminder_banner_notifications_denied">Pillsner kan geen herinneringen tonen omdat meldingen uitstaan.</string>
+    <string name="reminder_banner_inexact_alarms">Herinneringen kunnen tot tien minuten te laat komen omdat exacte alarmen uitstaan.</string>
+    <string name="reminder_banner_open_settings">Instellingen openen</string>
+
+    <!-- Instellingen: taal -->
+    <string name="settings_language_header">Taal</string>
+    <string name="settings_language_label">Taal</string>
+    <string name="settings_language_system_default">Systeemtaal</string>
+    <string name="settings_language_restart_notice">Start Pillsner opnieuw om de nieuwe taal te gebruiken</string>
+</resources>

@@ -34,11 +34,13 @@ import nl.hexmaster.pillsner.data.reminders.ReminderAlarmScheduler
 import nl.hexmaster.pillsner.data.reminders.ReminderCoordinator
 import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
+import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.domain.intake.RecordIntake
 import nl.hexmaster.pillsner.domain.intake.SnoozeDose
 import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
+import nl.hexmaster.pillsner.domain.repository.LanguageRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
 import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
@@ -47,9 +49,11 @@ import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
+import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
+import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 
 /**
  * The app's single dependency injection mechanism: manual constructor injection through one
@@ -98,6 +102,8 @@ class AppContainer(
 
     private val recordIntakeUseCase = RecordIntake(this.doseRepository, clock)
     private val snoozeDoseUseCase = SnoozeDose(this.doseRepository, markMissedDoses, clock)
+
+    val languageRepository: LanguageRepository = DataStoreLanguageRepository(applicationContext)
 
     val reminderPreferences = ReminderPreferences(applicationContext)
     val reminderAlarmScheduler = ReminderAlarmScheduler(applicationContext)
@@ -159,6 +165,7 @@ class AppContainer(
             )
         }
         initializer { MedicinesViewModel(this@AppContainer.medicationRepository) }
+        initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }
         initializer {
             MedicationFormViewModel(
                 repository = this@AppContainer.medicationRepository,

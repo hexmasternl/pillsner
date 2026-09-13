@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import kotlinx.serialization.Serializable
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.applock.ui.PinSetupMode
 
 /** The welcome screen; start destination. */
 @Serializable
@@ -40,9 +41,15 @@ data class EditSchedule(val index: Int? = null)
 @Serializable
 data object Settings
 
-/** The PIN setup flow, reached from the Security section (app-login design D10). Not top-level. */
+/**
+ * The PIN flow, reached from the Security section (app-login design D10). Not top-level.
+ *
+ * @property mode whether it sets the first PIN or replaces the current one (app-settings-security
+ * D2). One screen, two entrances: the "Protect with PIN" switch opens it to set up, the
+ * "Change PIN" row opens it to change, once the identity check has passed.
+ */
 @Serializable
-data object PinSetup
+data class PinSetup(val mode: PinSetupMode = PinSetupMode.SET_UP)
 
 /**
  * One item of the bottom navigation bar or rail (docs/design-system.md section 8.6).

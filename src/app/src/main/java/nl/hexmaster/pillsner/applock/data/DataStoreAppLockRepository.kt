@@ -48,6 +48,17 @@ class DataStoreAppLockRepository(
         }
     }
 
+    override suspend fun replaceCredential(credential: PinCredential) {
+        dataStore.edit { prefs ->
+            // One edit: the PIN is never half-replaced, whatever happens between here and the next
+            // line (design D2). The enabled and biometric flags are deliberately left alone.
+            prefs[SALT] = credential.salt.toBase64()
+            prefs[VERIFIER] = credential.verifier.toBase64()
+            prefs[CONSECUTIVE_FAILURES] = 0
+            prefs.remove(COOLDOWN_ENDS_AT_MILLIS)
+        }
+    }
+
     override suspend fun clearCredential() {
         dataStore.edit { prefs ->
             prefs.clear()

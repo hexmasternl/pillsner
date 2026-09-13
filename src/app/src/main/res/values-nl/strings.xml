@@ -78,7 +78,25 @@
     <string name="applock_biometric_disabled_no_pin">Zet Beschermen met pincode aan om dit te gebruiken.</string>
     <string name="applock_biometric_disabled_not_enrolled">Op dit apparaat is geen biometrie ingesteld.</string>
     <string name="applock_screenshot_note">Schermafbeeldingen en het overzicht van recente apps zijn verborgen zolang de appvergrendeling aanstaat.</string>
-    <string name="applock_disable_dialog_title">Voer je pincode in om de appvergrendeling uit te zetten</string>
+    <string name="applock_change_pin_title">Pincode wijzigen</string>
+    <string name="applock_change_pin_supporting">Kies een nieuwe pincode voor de appvergrendeling.</string>
+
+    <!-- Identiteitscontrole voor een beveiligingswijziging -->
+    <string name="applock_verify_change_pin_title">Bevestig dat jij het bent om je pincode te wijzigen</string>
+    <string name="applock_verify_disable_biometrics_title">Bevestig dat jij het bent om ontgrendelen met biometrie uit te zetten</string>
+    <string name="applock_verify_disable_lock_title">Bevestig dat jij het bent om de appvergrendeling uit te zetten</string>
+    <string name="applock_verify_biometric_instruction">Gebruik je vingerafdruk of gezicht om te bevestigen.</string>
+    <string name="applock_verify_pin_instruction">Voer je huidige pincode in ter bevestiging.</string>
+    <string name="applock_biometrics_off_message">Ontgrendelen met biometrie uitgezet</string>
+    <string name="applock_lock_disabled_message">Appvergrendeling uitgezet</string>
+
+    <!-- Pincode wijzigen -->
+    <string name="applock_change_choose_title">Kies een nieuwe pincode</string>
+    <string name="applock_change_confirm_title">Bevestig je nieuwe pincode</string>
+    <string name="applock_change_choose_instruction">Kies een nieuwe pincode om Pillsner te beschermen.</string>
+    <string name="applock_change_confirm_instruction">Voer dezelfde nieuwe pincode nog een keer in ter bevestiging.</string>
+    <string name="applock_change_same_pin_message">Kies een pincode die verschilt van je huidige pincode.</string>
+    <string name="applock_pin_changed_message">Pincode gewijzigd</string>
 
     <!-- Medicijnoverzicht -->
     <string name="medicines_section_active">Actief</string>

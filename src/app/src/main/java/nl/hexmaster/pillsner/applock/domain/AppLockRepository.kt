@@ -28,6 +28,12 @@ interface AppLockRepository {
     /** Enables the lock with [credential], starting with no failures and no cooldown. */
     suspend fun storeCredential(credential: PinCredential)
 
+    /**
+     * Replaces the PIN in place: a new salt and verifier, and the failure count and cooldown reset,
+     * all in one write. The lock stays on and the biometric preference is kept (design D2).
+     */
+    suspend fun replaceCredential(credential: PinCredential)
+
     /** Disables the lock: clears the credential, the biometric preference and the failure count. */
     suspend fun clearCredential()
 

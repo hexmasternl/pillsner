@@ -7,14 +7,19 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -30,13 +35,20 @@ import nl.hexmaster.pillsner.applock.domain.BiometricStatus
 import nl.hexmaster.pillsner.applock.ui.AppLockEvent
 import nl.hexmaster.pillsner.applock.ui.AppLockUiState
 import nl.hexmaster.pillsner.applock.ui.BiometricResult
+import nl.hexmaster.pillsner.applock.ui.SecurityEffect
 import nl.hexmaster.pillsner.applock.ui.SecuritySection
+import nl.hexmaster.pillsner.applock.ui.VerifyIdentityCallbacks
 import nl.hexmaster.pillsner.domain.model.AppLanguage
 import nl.hexmaster.pillsner.ui.navigation.NavigationTestTags
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSection
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionState
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Spacing
+
+/** Stable tags for the Settings screen itself. */
+object SettingsScreenTestTags {
+    const val SNACKBAR = "settings_snackbar"
+}
 
 /**
  * The Settings destination: a list of sections (design D5, and app-login D10).
@@ -51,53 +63,86 @@ fun SettingsScreen(
     onLanguageSelected: (AppLanguage) -> Unit,
     appLockUiState: AppLockUiState,
     appLockEvents: Flow<AppLockEvent>,
+    securityEffects: Flow<SecurityEffect>,
     onSecuritySectionAppeared: () -> Unit,
     onEnablePinLockRequested: () -> Unit,
-    onDisableLockPinSubmitted: (String) -> Unit,
-    onBiometricToggle: (Boolean) -> Unit,
+    onLockDisableRequested: () -> Unit,
+    onChangePinTapped: () -> Unit,
+    onStartPinChange: () -> Unit,
+    onBiometricEnabled: () -> Unit,
+    onBiometricDisableRequested: () -> Unit,
+    verifyCallbacks: VerifyIdentityCallbacks,
     authenticateWithBiometric: suspend () -> BiometricResult,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(
-        modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        val isWide = maxWidth >= Spacing.contentMaxWidth
-        val sidePadding = if (isWide) Spacing.screenEdgeWide else Spacing.screenEdge
+    val snackbarHostState = remember { SnackbarHostState() }
+    val pinChanged = stringResource(R.string.applock_pin_changed_message)
+    val biometricsOff = stringResource(R.string.applock_biometrics_off_message)
+    val lockDisabled = stringResource(R.string.applock_lock_disabled_message)
 
-        LazyColumn(
-            modifier = Modifier
+    LaunchedEffect(securityEffects) {
+        securityEffects.collect { effect ->
+            when (effect) {
+                SecurityEffect.StartPinChange -> onStartPinChange()
+                SecurityEffect.PinChanged -> snackbarHostState.showSnackbar(pinChanged)
+                SecurityEffect.BiometricsTurnedOff -> snackbarHostState.showSnackbar(biometricsOff)
+                SecurityEffect.LockDisabled -> snackbarHostState.showSnackbar(lockDisabled)
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.surface,
+        snackbarHost = {
+            SnackbarHost(snackbarHostState, Modifier.testTag(SettingsScreenTestTags.SNACKBAR))
+        },
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+    ) { innerPadding ->
+        BoxWithConstraints(
+            Modifier
                 .fillMaxSize()
-                .widthIn(max = Spacing.contentMaxWidth),
-            contentPadding = PaddingValues(start = sidePadding, end = sidePadding, bottom = Spacing.xxl),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            item(key = "title") {
-                Text(
-                    text = stringResource(R.string.settings_title),
-                    style = MaterialTheme.typography.displayLarge,
-                    modifier = Modifier
-                        .semantics { heading() }
-                        .testTag(NavigationTestTags.SETTINGS_TITLE),
-                )
-            }
+            val isWide = maxWidth >= Spacing.contentMaxWidth
+            val sidePadding = if (isWide) Spacing.screenEdgeWide else Spacing.screenEdge
 
-            item(key = "language") {
-                LanguageSection(state = languageState, onLanguageSelected = onLanguageSelected)
-            }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = Spacing.contentMaxWidth),
+                contentPadding = PaddingValues(start = sidePadding, end = sidePadding, bottom = Spacing.xxl),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+            ) {
+                item(key = "title") {
+                    Text(
+                        text = stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.displayLarge,
+                        modifier = Modifier
+                            .semantics { heading() }
+                            .testTag(NavigationTestTags.SETTINGS_TITLE),
+                    )
+                }
 
-            item(key = "security") {
-                SecuritySection(
-                    uiState = appLockUiState,
-                    events = appLockEvents,
-                    onScreenAppeared = onSecuritySectionAppeared,
-                    onEnablePinLockRequested = onEnablePinLockRequested,
-                    onDisableLockPinSubmitted = onDisableLockPinSubmitted,
-                    onBiometricToggle = onBiometricToggle,
-                    authenticateWithBiometric = authenticateWithBiometric,
-                )
+                item(key = "language") {
+                    LanguageSection(state = languageState, onLanguageSelected = onLanguageSelected)
+                }
+
+                item(key = "security") {
+                    SecuritySection(
+                        uiState = appLockUiState,
+                        events = appLockEvents,
+                        onScreenAppeared = onSecuritySectionAppeared,
+                        onEnablePinLockRequested = onEnablePinLockRequested,
+                        onLockDisableRequested = onLockDisableRequested,
+                        onChangePinTapped = onChangePinTapped,
+                        onBiometricEnabled = onBiometricEnabled,
+                        onBiometricDisableRequested = onBiometricDisableRequested,
+                        verifyCallbacks = verifyCallbacks,
+                        authenticateWithBiometric = authenticateWithBiometric,
+                    )
+                }
             }
         }
     }
@@ -120,10 +165,15 @@ private fun SettingsScreenPreview() {
                     biometricStatus = BiometricStatus.Available,
                 ),
                 appLockEvents = emptyFlow(),
+                securityEffects = emptyFlow(),
                 onSecuritySectionAppeared = {},
                 onEnablePinLockRequested = {},
-                onDisableLockPinSubmitted = {},
-                onBiometricToggle = {},
+                onLockDisableRequested = {},
+                onChangePinTapped = {},
+                onStartPinChange = {},
+                onBiometricEnabled = {},
+                onBiometricDisableRequested = {},
+                verifyCallbacks = VerifyIdentityCallbacks({}, {}, {}, {}, {}),
                 authenticateWithBiometric = { BiometricResult.Cancelled },
             )
         }

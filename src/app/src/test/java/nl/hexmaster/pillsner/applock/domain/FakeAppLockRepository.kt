@@ -22,6 +22,14 @@ class FakeAppLockRepository(
         )
     }
 
+    override suspend fun replaceCredential(credential: PinCredential) {
+        state.value = state.value.copy(
+            credential = credential,
+            consecutiveFailures = 0,
+            cooldownEndsAt = null,
+        )
+    }
+
     override suspend fun clearCredential() {
         state.value = AppLockSettings()
     }

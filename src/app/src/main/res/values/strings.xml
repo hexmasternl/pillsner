@@ -77,7 +77,25 @@
     <string name="applock_biometric_disabled_no_pin">Turn on Protect with PIN to use this.</string>
     <string name="applock_biometric_disabled_not_enrolled">No biometric is set up on this device.</string>
     <string name="applock_screenshot_note">Screenshots and the recent apps preview are hidden while the app lock is on.</string>
-    <string name="applock_disable_dialog_title">Enter your PIN to turn off the app lock</string>
+    <string name="applock_change_pin_title">Change PIN</string>
+    <string name="applock_change_pin_supporting">Choose a new PIN for the app lock.</string>
+
+    <!-- Identity check before a security change -->
+    <string name="applock_verify_change_pin_title">Confirm it\'s you to change your PIN</string>
+    <string name="applock_verify_disable_biometrics_title">Confirm it\'s you to turn off biometric unlock</string>
+    <string name="applock_verify_disable_lock_title">Confirm it\'s you to turn off the app lock</string>
+    <string name="applock_verify_biometric_instruction">Use your fingerprint or face to confirm.</string>
+    <string name="applock_verify_pin_instruction">Enter your current PIN to confirm.</string>
+    <string name="applock_biometrics_off_message">Biometric unlock turned off</string>
+    <string name="applock_lock_disabled_message">App lock turned off</string>
+
+    <!-- Changing the PIN -->
+    <string name="applock_change_choose_title">Choose a new PIN</string>
+    <string name="applock_change_confirm_title">Confirm your new PIN</string>
+    <string name="applock_change_choose_instruction">Choose a new PIN to protect Pillsner.</string>
+    <string name="applock_change_confirm_instruction">Enter the same new PIN again to confirm it.</string>
+    <string name="applock_change_same_pin_message">Choose a PIN that differs from your current one.</string>
+    <string name="applock_pin_changed_message">PIN changed</string>
 
     <!-- Medicines overview -->
     <string name="medicines_section_active">Active</string>

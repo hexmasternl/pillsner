@@ -13,20 +13,26 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.applock.domain.AppLockStateHolder
 import nl.hexmaster.pillsner.applock.domain.BiometricStatus
-import nl.hexmaster.pillsner.applock.domain.DisablePinLock
+import nl.hexmaster.pillsner.applock.domain.ChangePin
+import nl.hexmaster.pillsner.applock.domain.DisableLock
 import nl.hexmaster.pillsner.applock.domain.EnablePinLock
 import nl.hexmaster.pillsner.applock.domain.FakeAppLockRepository
 import nl.hexmaster.pillsner.applock.domain.FakeBiometricAvailability
 import nl.hexmaster.pillsner.applock.domain.FakePinVerifier
+import nl.hexmaster.pillsner.applock.domain.IsCurrentPin
 import nl.hexmaster.pillsner.applock.domain.LockState
 import nl.hexmaster.pillsner.applock.domain.Pin
 import nl.hexmaster.pillsner.applock.domain.RegisterFailedAttempt
-import nl.hexmaster.pillsner.applock.domain.ResetLockAfterRecovery
+import nl.hexmaster.pillsner.applock.domain.SecurityAction
 import nl.hexmaster.pillsner.applock.domain.SetBiometricUnlock
 import nl.hexmaster.pillsner.applock.domain.UnlockWithPin
+import nl.hexmaster.pillsner.applock.domain.VerifyIdentity
+import nl.hexmaster.pillsner.applock.domain.VerifyIdentityRequest
+import nl.hexmaster.pillsner.applock.domain.VerifyIdentityState
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -68,10 +74,12 @@ class AppLockViewModelTest {
             repository = repository,
             biometricAvailability = biometricAvailability,
             enablePinLock = EnablePinLock(repository, verifier),
-            disablePinLock = DisablePinLock(repository, verifier, registerFailedAttempt, clock),
+            disableLock = DisableLock(repository),
             unlockWithPin = UnlockWithPin(repository, verifier, registerFailedAttempt, clock),
             setBiometricUnlock = SetBiometricUnlock(repository),
-            resetLockAfterRecovery = ResetLockAfterRecovery(repository),
+            verifyIdentity = VerifyIdentity(repository, verifier, registerFailedAttempt, clock),
+            changePin = ChangePin(repository, verifier),
+            isCurrentPin = IsCurrentPin(repository, verifier),
             clock = clock,
         )
         viewModelStore.put("appLock", viewModel)
@@ -160,5 +168,171 @@ class AppLockViewModelTest {
 
         assertEquals(LockState.Recovering, viewModel.uiState.value.lockState)
         assertFalse(viewModel.uiState.value.shouldPromptBiometricNow)
+    }
+
+    // --- The identity check before a Security change (app-settings-security D7) ----------------
+
+    private val pin = requireNotNull(Pin.of("1234"))
+
+    private suspend fun unlockedWithLock(biometricEnabled: Boolean = true): AppLockViewModel {
+        repository.storeCredential(verifier.create(pin))
+        repository.setBiometricEnabled(biometricEnabled)
+        stateHolder.set(LockState.Unlocked)
+        return buildViewModel()
+    }
+
+    @Test
+    fun `changing the pin starts with the biometric prompt when the user has one`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val effects = mutableListOf<SecurityEffect>()
+        backgroundScope.launch { viewModel.securityEffects.collect { effects += it } }
+
+        viewModel.onChangePinTapped()
+
+        assertEquals(
+            VerifyIdentityState.AwaitingBiometric(VerifyIdentityRequest(SecurityAction.CHANGE_PIN, true)),
+            viewModel.uiState.value.verify,
+        )
+        assertTrue("Nothing happens before the user identifies", effects.isEmpty())
+    }
+
+    @Test
+    fun `turning biometrics off waits for the check and leaves the switch alone meanwhile`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.onBiometricDisableRequested()
+
+        assertEquals(
+            VerifyIdentityState.AwaitingBiometric(VerifyIdentityRequest(SecurityAction.DISABLE_BIOMETRICS, true)),
+            viewModel.uiState.value.verify,
+        )
+        assertTrue(repository.settings.value.biometricEnabled)
+    }
+
+    @Test
+    fun `turning biometrics on needs no check of its own`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock(biometricEnabled = false)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.onBiometricEnabled()
+
+        assertTrue(repository.settings.value.biometricEnabled)
+        assertEquals(VerifyIdentityState.Idle, viewModel.uiState.value.verify)
+    }
+
+    @Test
+    fun `turning the lock off asks for the pin even when a biometric is available`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        viewModel.onLockDisableRequested()
+
+        assertEquals(
+            VerifyIdentityState.AwaitingPin(VerifyIdentityRequest(SecurityAction.DISABLE_LOCK, false)),
+            viewModel.uiState.value.verify,
+        )
+    }
+
+    @Test
+    fun `the current pin turns the lock off and leaves nothing behind`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val effects = mutableListOf<SecurityEffect>()
+        backgroundScope.launch { viewModel.securityEffects.collect { effects += it } }
+        viewModel.onLockDisableRequested()
+
+        viewModel.onVerifyPinSubmitted("1234")
+
+        assertEquals(LockState.Disabled, viewModel.uiState.value.lockState)
+        assertFalse(repository.settings.value.enabled)
+        assertNull(repository.settings.value.credential)
+        assertEquals(listOf(SecurityEffect.LockDisabled), effects)
+    }
+
+    @Test
+    fun `a wrong pin in the check keeps it open and counts the failure`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        viewModel.onLockDisableRequested()
+
+        viewModel.onVerifyPinSubmitted("9999")
+
+        assertTrue(viewModel.uiState.value.verify is VerifyIdentityState.AwaitingPin)
+        assertTrue(repository.settings.value.enabled)
+        assertEquals(1, repository.settings.value.consecutiveFailures)
+    }
+
+    @Test
+    fun `passing the check authorises one action and no more`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val effects = mutableListOf<SecurityEffect>()
+        backgroundScope.launch { viewModel.securityEffects.collect { effects += it } }
+        viewModel.onBiometricDisableRequested()
+
+        viewModel.onVerifyBiometricResult(BiometricResult.Success)
+
+        assertFalse(repository.settings.value.biometricEnabled)
+        assertEquals(listOf(SecurityEffect.BiometricsTurnedOff), effects)
+        assertEquals(
+            "The next sensitive change needs its own check",
+            VerifyIdentityState.Idle,
+            viewModel.uiState.value.verify,
+        )
+    }
+
+    @Test
+    fun `passing the check for change pin only opens the flow`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val effects = mutableListOf<SecurityEffect>()
+        backgroundScope.launch { viewModel.securityEffects.collect { effects += it } }
+        viewModel.onChangePinTapped()
+
+        viewModel.onVerifyBiometricResult(BiometricResult.Success)
+
+        assertEquals(listOf(SecurityEffect.StartPinChange), effects)
+        assertTrue("Nothing is changed until the new PIN is confirmed", verifier.verify(pin, requireNotNull(repository.settings.value.credential)))
+    }
+
+    @Test
+    fun `confirming a new pin replaces it and says so`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        val effects = mutableListOf<SecurityEffect>()
+        backgroundScope.launch { viewModel.securityEffects.collect { effects += it } }
+
+        viewModel.onNewPinConfirmed("5678")
+
+        val credential = requireNotNull(repository.settings.value.credential)
+        assertTrue(verifier.verify(requireNotNull(Pin.of("5678")), credential))
+        assertTrue(repository.settings.value.enabled)
+        assertEquals(listOf(SecurityEffect.PinChanged), effects)
+    }
+
+    @Test
+    fun `a check open when the app relocks is abandoned`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        viewModel.onChangePinTapped()
+
+        stateHolder.set(LockState.Locked())
+
+        assertEquals(VerifyIdentityState.Idle, viewModel.uiState.value.verify)
+        assertTrue(repository.settings.value.enabled)
+    }
+
+    @Test
+    fun `dismissing the check changes nothing`() = runTest(dispatcher) {
+        val viewModel = unlockedWithLock()
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        viewModel.onBiometricDisableRequested()
+
+        viewModel.onVerifyDismissed()
+
+        assertEquals(VerifyIdentityState.Idle, viewModel.uiState.value.verify)
+        assertTrue(repository.settings.value.biometricEnabled)
     }
 }

@@ -56,6 +56,71 @@ class PinSetupScreenTest {
     }
 
     @Test
+    fun changingThePinIsTheSameTwoStepsWithNewWording() {
+        var confirmedPin: String? = null
+        composeRule.setContent {
+            PinSetupScreen(
+                onBack = {},
+                onPinConfirmed = { confirmedPin = it },
+                mode = PinSetupMode.CHANGE,
+                isPinInUse = { it == "1234" },
+            )
+        }
+
+        composeRule.onNodeWithText("Choose a new PIN").assertIsDisplayed()
+        enter("5678")
+        composeRule.onNodeWithText("Continue").performClick()
+        composeRule.onNodeWithText("Confirm your new PIN").assertIsDisplayed()
+
+        enter("5678")
+        composeRule.onNodeWithText("Continue").performClick()
+
+        assert(confirmedPin == "5678") { "Expected 5678 but was $confirmedPin" }
+    }
+
+    @Test
+    fun thePinAlreadyInUseIsRefusedAtTheFirstStep() {
+        var confirmedPin: String? = null
+        composeRule.setContent {
+            PinSetupScreen(
+                onBack = {},
+                onPinConfirmed = { confirmedPin = it },
+                mode = PinSetupMode.CHANGE,
+                isPinInUse = { it == "1234" },
+            )
+        }
+
+        enter("1234")
+        composeRule.onNodeWithText("Continue").performClick()
+
+        composeRule.onNodeWithText("Choose a PIN that differs from your current one.").assertIsDisplayed()
+        composeRule.onNodeWithText("Choose a new PIN").assertIsDisplayed()
+        assert(confirmedPin == null)
+    }
+
+    @Test
+    fun aMismatchWhileChangingLeavesTheCurrentPinAlone() {
+        var confirmedPin: String? = null
+        composeRule.setContent {
+            PinSetupScreen(
+                onBack = {},
+                onPinConfirmed = { confirmedPin = it },
+                mode = PinSetupMode.CHANGE,
+                isPinInUse = { it == "1234" },
+            )
+        }
+
+        enter("5678")
+        composeRule.onNodeWithText("Continue").performClick()
+        enter("5679")
+        composeRule.onNodeWithText("Continue").performClick()
+
+        composeRule.onNodeWithText("Those PINs didn't match. Choose a PIN and enter it again.").assertIsDisplayed()
+        composeRule.onNodeWithText("Choose a new PIN").assertIsDisplayed()
+        assert(confirmedPin == null)
+    }
+
+    @Test
     fun tooFewDigitsIsRejected() {
         composeRule.setContent {
             PinSetupScreen(onBack = {}, onPinConfirmed = {})

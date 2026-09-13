@@ -17,14 +17,16 @@ import nl.hexmaster.pillsner.applock.data.LockOnBackgroundObserver
 import nl.hexmaster.pillsner.applock.domain.AppLockRepository
 import nl.hexmaster.pillsner.applock.domain.AppLockStateHolder
 import nl.hexmaster.pillsner.applock.domain.BiometricAvailability
-import nl.hexmaster.pillsner.applock.domain.DisablePinLock
+import nl.hexmaster.pillsner.applock.domain.ChangePin
+import nl.hexmaster.pillsner.applock.domain.DisableLock
 import nl.hexmaster.pillsner.applock.domain.EnablePinLock
+import nl.hexmaster.pillsner.applock.domain.IsCurrentPin
 import nl.hexmaster.pillsner.applock.domain.PinVerifier
 import nl.hexmaster.pillsner.applock.domain.RegisterFailedAttempt
-import nl.hexmaster.pillsner.applock.domain.ResetLockAfterRecovery
 import nl.hexmaster.pillsner.applock.domain.ResolveInitialLockState
 import nl.hexmaster.pillsner.applock.domain.SetBiometricUnlock
 import nl.hexmaster.pillsner.applock.domain.UnlockWithPin
+import nl.hexmaster.pillsner.applock.domain.VerifyIdentity
 import nl.hexmaster.pillsner.applock.ui.AppLockViewModel
 import nl.hexmaster.pillsner.data.RoomDoseRepository
 import nl.hexmaster.pillsner.data.RoomMedicationRepository
@@ -139,10 +141,12 @@ class AppContainer(
     private val resolveInitialLockState = ResolveInitialLockState(appLockRepository, pinVerifier)
     private val registerFailedAttempt = RegisterFailedAttempt(appLockRepository, clock)
     private val enablePinLock = EnablePinLock(appLockRepository, pinVerifier)
-    private val disablePinLock = DisablePinLock(appLockRepository, pinVerifier, registerFailedAttempt, clock)
+    private val disableLock = DisableLock(appLockRepository)
     private val unlockWithPin = UnlockWithPin(appLockRepository, pinVerifier, registerFailedAttempt, clock)
     private val setBiometricUnlock = SetBiometricUnlock(appLockRepository)
-    private val resetLockAfterRecovery = ResetLockAfterRecovery(appLockRepository)
+    private val verifyIdentity = VerifyIdentity(appLockRepository, pinVerifier, registerFailedAttempt, clock)
+    private val changePin = ChangePin(appLockRepository, pinVerifier)
+    private val isCurrentPin = IsCurrentPin(appLockRepository, pinVerifier)
 
     /** Registered on `ProcessLifecycleOwner` by `PillsnerApplication` (design D2). */
     val lockOnBackgroundObserver = LockOnBackgroundObserver(appLockRepository, appLockStateHolder, appLockScope)
@@ -180,10 +184,12 @@ class AppContainer(
                 repository = appLockRepository,
                 biometricAvailability = biometricAvailability,
                 enablePinLock = enablePinLock,
-                disablePinLock = disablePinLock,
+                disableLock = disableLock,
                 unlockWithPin = unlockWithPin,
                 setBiometricUnlock = setBiometricUnlock,
-                resetLockAfterRecovery = resetLockAfterRecovery,
+                verifyIdentity = verifyIdentity,
+                changePin = changePin,
+                isCurrentPin = isCurrentPin,
                 clock = clock,
             )
         }

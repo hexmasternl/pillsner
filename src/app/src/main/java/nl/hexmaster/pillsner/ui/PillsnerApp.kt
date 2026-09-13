@@ -30,11 +30,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import nl.hexmaster.pillsner.applock.domain.LockState
 import nl.hexmaster.pillsner.applock.ui.AppLockViewModel
 import nl.hexmaster.pillsner.applock.ui.BiometricAuthenticator
+import nl.hexmaster.pillsner.applock.ui.PinSetupMode
 import nl.hexmaster.pillsner.applock.ui.PinSetupScreen
 import nl.hexmaster.pillsner.applock.ui.UnlockScreen
+import nl.hexmaster.pillsner.applock.ui.VerifyIdentityCallbacks
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.home.NotificationPermissionEffect
 import nl.hexmaster.pillsner.ui.home.openReminderSettings
@@ -203,20 +206,37 @@ private fun PillsnerAppContent(
                     onLanguageSelected = languageViewModel::onLanguageSelected,
                     appLockUiState = appLockUiState,
                     appLockEvents = appLockViewModel.eventFlow,
+                    securityEffects = appLockViewModel.securityEffects,
                     onSecuritySectionAppeared = appLockViewModel::refreshBiometricAvailability,
-                    onEnablePinLockRequested = { navController.navigate(PinSetup) },
-                    onDisableLockPinSubmitted = appLockViewModel::onDisableLockPinSubmitted,
-                    onBiometricToggle = appLockViewModel::onBiometricToggle,
+                    onEnablePinLockRequested = { navController.navigate(PinSetup()) },
+                    onLockDisableRequested = appLockViewModel::onLockDisableRequested,
+                    onChangePinTapped = appLockViewModel::onChangePinTapped,
+                    onStartPinChange = { navController.navigate(PinSetup(PinSetupMode.CHANGE)) },
+                    onBiometricEnabled = appLockViewModel::onBiometricEnabled,
+                    onBiometricDisableRequested = appLockViewModel::onBiometricDisableRequested,
+                    verifyCallbacks = VerifyIdentityCallbacks(
+                        onBiometricResult = appLockViewModel::onVerifyBiometricResult,
+                        onPinSubmitted = appLockViewModel::onVerifyPinSubmitted,
+                        onUsePin = appLockViewModel::onVerifyUsePin,
+                        onUseBiometrics = appLockViewModel::onVerifyUseBiometrics,
+                        onDismissed = appLockViewModel::onVerifyDismissed,
+                    ),
                     authenticateWithBiometric = biometricAuthenticator::authenticateWithBiometric,
                 )
             }
-            composable<PinSetup> {
+            composable<PinSetup> { backStackEntry ->
+                val mode = backStackEntry.toRoute<PinSetup>().mode
                 PinSetupScreen(
                     onBack = { navController.popBackStack() },
                     onPinConfirmed = { pin ->
-                        appLockViewModel.onPinLockEnabled(pin)
+                        when (mode) {
+                            PinSetupMode.SET_UP -> appLockViewModel.onPinLockEnabled(pin)
+                            PinSetupMode.CHANGE -> appLockViewModel.onNewPinConfirmed(pin)
+                        }
                         navController.popBackStack()
                     },
+                    mode = mode,
+                    isPinInUse = appLockViewModel::isPinInUse,
                 )
             }
         }

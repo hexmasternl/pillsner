@@ -1,24 +1,23 @@
 package nl.hexmaster.pillsner.applock.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import kotlinx.coroutines.flow.Flow
@@ -27,21 +26,34 @@ import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.applock.domain.BiometricStatus
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
+import nl.hexmaster.pillsner.ui.theme.Sizes
 import nl.hexmaster.pillsner.ui.theme.Spacing
 
-private const val MAX_PIN_LENGTH = 6
-private const val MIN_PIN_LENGTH = 4
-
-/** Stable tags for the Security section's switches, for semantics tests. */
+/** Stable tags for the Security section's rows, for semantics tests. */
 object SecuritySectionTestTags {
     const val PROTECT_WITH_PIN_SWITCH = "applock_protect_with_pin_switch"
     const val BIOMETRIC_SWITCH = "applock_biometric_switch"
+    const val CHANGE_PIN_ROW = "applock_change_pin_row"
 }
 
 /**
- * The Security section of the Settings screen (design D10, task 6.3): "Protect with PIN" and
- * "Unlock with biometrics" as switch rows, sharing the same failed-attempt cooldown as the unlock
- * screen (design D7) through [uiState] and [events].
+ * What the identity check reports back. Grouped so the Settings screen passes one thing down
+ * instead of five lambdas that only ever travel together.
+ */
+data class VerifyIdentityCallbacks(
+    val onBiometricResult: (BiometricResult) -> Unit,
+    val onPinSubmitted: (String) -> Unit,
+    val onUsePin: () -> Unit,
+    val onUseBiometrics: () -> Unit,
+    val onDismissed: () -> Unit,
+)
+
+/**
+ * The Security section of the Settings screen (app-login design D10, app-settings-security D3):
+ * "Protect with PIN", "Change PIN" while the lock is on, and "Unlock with biometrics".
+ *
+ * Both switches are bound to the persisted state, never to a local one, so a check that is still
+ * running or was cancelled can never leave a switch showing something that was not saved.
  */
 @Composable
 fun SecuritySection(
@@ -49,14 +61,16 @@ fun SecuritySection(
     events: Flow<AppLockEvent>,
     onScreenAppeared: () -> Unit,
     onEnablePinLockRequested: () -> Unit,
-    onDisableLockPinSubmitted: (String) -> Unit,
-    onBiometricToggle: (Boolean) -> Unit,
+    onLockDisableRequested: () -> Unit,
+    onChangePinTapped: () -> Unit,
+    onBiometricEnabled: () -> Unit,
+    onBiometricDisableRequested: () -> Unit,
+    verifyCallbacks: VerifyIdentityCallbacks,
     authenticateWithBiometric: suspend () -> BiometricResult,
     modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) { onScreenAppeared() }
 
-    var showDisableDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val biometricEligible = uiState.pinLockEnabled && uiState.biometricStatus == BiometricStatus.Available
 
@@ -73,12 +87,35 @@ fun SecuritySection(
                 Switch(
                     checked = uiState.pinLockEnabled,
                     onCheckedChange = { checked ->
-                        if (checked) onEnablePinLockRequested() else showDisableDialog = true
+                        if (checked) onEnablePinLockRequested() else onLockDisableRequested()
                     },
                     modifier = Modifier.testTag(SecuritySectionTestTags.PROTECT_WITH_PIN_SWITCH),
                 )
             },
         )
+
+        if (uiState.pinLockEnabled) {
+            ListItem(
+                headlineContent = {
+                    Text(
+                        text = stringResource(R.string.applock_change_pin_title),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                },
+                supportingContent = { Text(stringResource(R.string.applock_change_pin_supporting)) },
+                trailingContent = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_chevron_right),
+                        contentDescription = null,
+                        modifier = Modifier.size(Sizes.iconDefault),
+                    )
+                },
+                modifier = Modifier
+                    .heightIn(min = Sizes.minTouchTarget)
+                    .clickable(role = Role.Button, onClick = onChangePinTapped)
+                    .testTag(SecuritySectionTestTags.CHANGE_PIN_ROW),
+            )
+        }
 
         ListItem(
             headlineContent = { Text(stringResource(R.string.applock_biometric_title)) },
@@ -99,11 +136,13 @@ fun SecuritySection(
                     enabled = biometricEligible,
                     onCheckedChange = { checked ->
                         if (checked) {
+                            // Turning it on proves both things at once: who the user is, and that
+                            // the enrolled biometric actually works (design D6).
                             scope.launch {
-                                if (authenticateWithBiometric() is BiometricResult.Success) onBiometricToggle(true)
+                                if (authenticateWithBiometric() is BiometricResult.Success) onBiometricEnabled()
                             }
                         } else {
-                            onBiometricToggle(false)
+                            onBiometricDisableRequested()
                         }
                     },
                     modifier = Modifier.testTag(SecuritySectionTestTags.BIOMETRIC_SWITCH),
@@ -119,87 +158,17 @@ fun SecuritySection(
         )
     }
 
-    if (showDisableDialog) {
-        DisableLockDialog(
-            cooldownRemainingSeconds = uiState.cooldownRemainingSeconds,
-            events = events,
-            onDismiss = { showDisableDialog = false },
-            onPinSubmitted = onDisableLockPinSubmitted,
-        )
-    }
-
-    // The shared disable-lock dialog above always closes itself once the lock actually turns off.
-    LaunchedEffect(uiState.pinLockEnabled) {
-        if (!uiState.pinLockEnabled) showDisableDialog = false
-    }
-}
-
-@Composable
-private fun DisableLockDialog(
-    cooldownRemainingSeconds: Long,
-    events: Flow<AppLockEvent>,
-    onDismiss: () -> Unit,
-    onPinSubmitted: (String) -> Unit,
-) {
-    var enteredPin by remember { mutableStateOf("") }
-    var wrongPinShown by remember { mutableStateOf(false) }
-    val cooldownActive = cooldownRemainingSeconds > 0
-
-    LaunchedEffect(Unit) {
-        events.collect { event ->
-            if (event is AppLockEvent.WrongPin) {
-                wrongPinShown = true
-                enteredPin = ""
-            }
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.applock_disable_dialog_title), style = MaterialTheme.typography.headlineMedium)
-        },
-        text = {
-            Column {
-                if (wrongPinShown || cooldownActive) {
-                    ErrorMessage(
-                        text = if (cooldownActive) {
-                            pluralStringResource(
-                                R.plurals.applock_cooldown_message,
-                                cooldownRemainingSeconds.toInt(),
-                                cooldownRemainingSeconds.toInt(),
-                            )
-                        } else {
-                            stringResource(R.string.applock_wrong_pin_message)
-                        },
-                    )
-                }
-                PinKeypad(
-                    enteredLength = enteredPin.length,
-                    maxLength = MAX_PIN_LENGTH,
-                    enabled = !cooldownActive,
-                    submitEnabled = !cooldownActive && enteredPin.length >= MIN_PIN_LENGTH,
-                    onDigit = { digit ->
-                        if (enteredPin.length < MAX_PIN_LENGTH) {
-                            wrongPinShown = false
-                            enteredPin += digit
-                        }
-                    },
-                    onBackspace = {
-                        wrongPinShown = false
-                        enteredPin = enteredPin.dropLast(1)
-                    },
-                    onSubmit = {
-                        onPinSubmitted(enteredPin)
-                        enteredPin = ""
-                    },
-                )
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-        },
+    VerifyIdentityDialog(
+        state = uiState.verify,
+        cooldownRemainingSeconds = uiState.cooldownRemainingSeconds,
+        events = events,
+        biometricAvailable = uiState.biometricEnabled && uiState.biometricStatus == BiometricStatus.Available,
+        authenticateWithBiometric = authenticateWithBiometric,
+        onBiometricResult = verifyCallbacks.onBiometricResult,
+        onPinSubmitted = verifyCallbacks.onPinSubmitted,
+        onUsePin = verifyCallbacks.onUsePin,
+        onUseBiometrics = verifyCallbacks.onUseBiometrics,
+        onDismiss = verifyCallbacks.onDismissed,
     )
 }
 
@@ -212,8 +181,11 @@ private fun SecuritySectionPreview() {
             events = emptyFlow(),
             onScreenAppeared = {},
             onEnablePinLockRequested = {},
-            onDisableLockPinSubmitted = {},
-            onBiometricToggle = {},
+            onLockDisableRequested = {},
+            onChangePinTapped = {},
+            onBiometricEnabled = {},
+            onBiometricDisableRequested = {},
+            verifyCallbacks = NoVerifyCallbacks,
             authenticateWithBiometric = { BiometricResult.Cancelled },
         )
     }
@@ -228,9 +200,14 @@ private fun SecuritySectionLargeFontPreview() {
             events = emptyFlow(),
             onScreenAppeared = {},
             onEnablePinLockRequested = {},
-            onDisableLockPinSubmitted = {},
-            onBiometricToggle = {},
+            onLockDisableRequested = {},
+            onChangePinTapped = {},
+            onBiometricEnabled = {},
+            onBiometricDisableRequested = {},
+            verifyCallbacks = NoVerifyCallbacks,
             authenticateWithBiometric = { BiometricResult.Cancelled },
         )
     }
 }
+
+private val NoVerifyCallbacks = VerifyIdentityCallbacks({}, {}, {}, {}, {})

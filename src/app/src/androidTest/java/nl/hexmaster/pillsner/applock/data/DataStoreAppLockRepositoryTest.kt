@@ -5,6 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.applock.domain.PinCredential
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -21,6 +22,15 @@ class DataStoreAppLockRepositoryTest {
 
     @Before
     fun clearPersistedState() = runBlocking {
+        repository.clearCredential()
+    }
+
+    /**
+     * This is the app's own "applock" file, not a test double: a credential left behind here locks
+     * the app for every later test in the run, which then sees the unlock screen instead of content.
+     */
+    @After
+    fun leaveTheLockOff() = runBlocking {
         repository.clearCredential()
     }
 
@@ -48,6 +58,23 @@ class DataStoreAppLockRepositoryTest {
         assertFalse(settings.enabled)
         assertFalse(settings.biometricEnabled)
         assertNull(settings.credential)
+    }
+
+    @Test
+    fun replacingTheCredentialKeepsTheLockAndClearsTheFailures() = runBlocking {
+        repository.storeCredential(PinCredential(salt = byteArrayOf(1), verifier = byteArrayOf(2)))
+        repository.setBiometricEnabled(true)
+        repository.recordFailedAttempt(5, java.time.Instant.now().plusSeconds(30))
+        val replacement = PinCredential(salt = byteArrayOf(9, 9), verifier = byteArrayOf(8, 8))
+
+        repository.replaceCredential(replacement)
+
+        val settings = repository.settings.first()
+        assertEquals(replacement, settings.credential)
+        assertTrue("Changing the PIN is not starting over", settings.enabled)
+        assertTrue(settings.biometricEnabled)
+        assertEquals(0, settings.consecutiveFailures)
+        assertNull(settings.cooldownEndsAt)
     }
 
     @Test

@@ -19,7 +19,7 @@
 
 ## 4. Identity check UI
 
-- [ ] 4.1 Build `VerifyIdentityDialog`: purpose-specific title, `AwaitingBiometric` content with "Use PIN", `AwaitingPin` content with `PinKeypad`, live-region error, cooldown countdown that disables the keypad, optional "Use biometrics" control, and a Cancel action; scrollable content for large fonts
+- [ ] 4.1 Build `VerifyIdentityDialog` with the `pillsner-ui-build` skill as an `AlertDialog` per design system 8.12: purpose-specific `headlineMedium` title, `AwaitingBiometric` content with a "Use PIN" `FilledTonalButton`, `AwaitingPin` content with `PinKeypad`, `error`-role live-region message with icon, cooldown countdown that disables the keypad, optional "Use biometrics" `FilledTonalButton`, and a Cancel `TextButton`; scrollable content for large fonts; `@PreviewLightDark` and `fontScale = 2f` previews
 - [ ] 4.2 Launch the biometric prompt through `BiometricAuthenticator` exactly once on entering `AwaitingBiometric`, and route its result to the view model
 - [ ] 4.3 Extend `SecurityViewModel` (or create it if the section had no dedicated view model) with `verify` state, the events from the design, dispatch of `Verified` by purpose, a one-shot navigation effect for `CHANGE_PIN`, one-shot messages, and reset of `verify` to Idle when `LockState` becomes Locked
 - [ ] 4.4 Replace `app-login`'s disable confirm dialog with `VerifyIdentityDialog` configured with biometrics refused; keep its behaviour and move its tests
@@ -27,7 +27,7 @@
 
 ## 5. Security section and Change PIN
 
-- [ ] 5.1 Add the "Change PIN" row to `SecuritySection` between the two switches, visible only when the lock is enabled, with button semantics and a chevron
+- [ ] 5.1 Add the "Change PIN" row to `SecuritySection` between the two switches as a `ListItem` (`titleSmall` headline, bundled `chevron_right` trailing icon, at least `Sizes.minTouchTarget` tall), visible only when the lock is enabled, with button semantics
 - [ ] 5.2 Wire "Change PIN" → identity check (`CHANGE_PIN`, biometrics allowed) → navigation to `PinSetup(CHANGE)`
 - [ ] 5.3 Wire turning "Unlock with biometrics" off → identity check (`DISABLE_BIOMETRICS`, biometrics allowed) → `SetBiometricUnlock(false)`; keep the switch bound to persisted state so it does not move until saved
 - [ ] 5.4 Add `PinSetupMode` (SET_UP, CHANGE) as a route argument to `PinSetupScreen`; in CHANGE mode use the new titles, reject a first-step PIN that verifies against the current credential, and call `ChangePin` on confirmation
@@ -40,6 +40,7 @@
 
 - [ ] 6.1 Run `./gradlew test` and `./gradlew lint` from `src/`; fix failures and report results verbatim
 - [ ] 6.2 Run `./gradlew connectedAndroidTest` for the DataStore and Keystore tests
+- [ ] 6.2a Run the `pillsner-ui-review` skill over `applock/ui`; resolve every finding or list the remaining ones with a reason
 - [ ] 6.3 Manual test on a device with a biometric enrolled: change PIN via biometric identification, change PIN via PIN identification, old PIN rejected on the unlock screen, turn biometrics off via biometric and via PIN, disable lock shows PIN only, background during the check and during change PIN leaves settings unchanged, TalkBack announces the Change PIN row and check errors
 - [ ] 6.4 Update `README.md`: the app lock line mentions changing the PIN and re-identification for lock changes
 - [ ] 6.5 Review against `CLAUDE.md`: no Android imports in `applock/domain`, strings in resources, no PIN or credential logged, no new dependencies

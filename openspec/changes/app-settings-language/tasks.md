@@ -1,7 +1,7 @@
 ## 1. Preconditions and build setup
 
-- [ ] 1.1 Verify the `app-welcome-screen` shell exists (`PillsnerApplication`, `MainActivity`, `PillsnerApp`, `Settings` route, `AppContainer`); check whether `app-login` has already created a Settings screen or a DataStore dependency, and adapt the tasks below to what exists
-- [ ] 1.2 Add `androidx.datastore:datastore-preferences` to the version catalog and app module if absent
+- [ ] 1.1 Verify the `app-welcome-screen` shell exists (`PillsnerApplication`, `MainActivity`, `PillsnerApp`, `Settings` route, `AppContainer`, `ui/theme`); stop if it does not, since this change creates no scaffold. Check whether `app-login` has already created the Settings sections list or a DataStore dependency, and adapt the tasks below to what exists
+- [ ] 1.2 Add `androidx.datastore:datastore-preferences` 1.2.1 (or the newest stable at apply time) to the version catalog and app module if absent
 - [ ] 1.3 Add `resourceConfigurations += listOf("en", "nl")` to the app module's default config
 - [ ] 1.4 Add `lint.xml` with `MissingTranslation` and `ExtraTranslation` at error severity and reference it from the app module's lint options
 
@@ -30,10 +30,10 @@
 
 ## 5. Settings screen and Language section
 
-- [ ] 5.1 Replace the Settings placeholder with `SettingsScreen`: title from resources, `LazyColumn` of section composables, Language section first; if `app-login` already created the screen, insert the Language section above Security
+- [ ] 5.1 Replace the Settings placeholder with `SettingsScreen` using the `pillsner-ui-build` skill: `displayLarge` title with `heading()` semantics, `LazyColumn` (`Spacing.screenEdge`, `Spacing.contentMaxWidth` cap, `Spacing.xl` between sections) of section composables with `headlineSmall` headers, Language section first; if `app-login` already created the screen, insert the Language section above Security
 - [ ] 5.2 Create `LanguageSectionState` and `LanguageSectionViewModel` combining the stored language with `AppLocale.inEffect` into `selected`, `options` and `restartRequired`; `onLanguageSelected` writes through the repository
-- [ ] 5.3 Create `LanguageSection` with an `ExposedDropdownMenuBox` labelled "Language", options from the state (System default translated, native names from a non-translatable array), and the warning row with icon, error colour and polite live region
-- [ ] 5.4 Add English strings: settings title, Language section header, dropdown label, "System default", restart warning; add the non-translatable native-name array
+- [ ] 5.3 Create `LanguageSection` with an `ExposedDropdownMenuBox` on an `OutlinedTextField` labelled "Language", options from the state (System default translated, native names from a non-translatable array), and the restart notice row per design D6 (`info` icon, `bodyMedium`, `secondaryContainer` / `onSecondaryContainer`, `shapes.small`, polite live region; no `error` colour); `@PreviewLightDark` and `fontScale = 2f` previews
+- [ ] 5.4 Add English strings: settings title, Language section header, dropdown label, "System default", restart notice; add the non-translatable native-name array
 - [ ] 5.5 Register `LanguageSectionViewModel` in the shared view model factory
 - [ ] 5.6 Unit tests for the view model: default state, selection persists and updates `selected`, `restartRequired` true when stored differs from in-effect, false after selecting the in-effect language
 - [ ] 5.7 Compose tests: dropdown shows current selection, options in order, selecting Dutch shows the warning, re-selecting the in-effect language hides it, screen scrolls at maximum font scale
@@ -50,7 +50,8 @@
 
 - [ ] 7.1 Run `./gradlew test` and `./gradlew lint` from `src/`; fix failures and report results verbatim
 - [ ] 7.2 Run `./gradlew connectedAndroidTest` for the DataStore and locale tests
-- [ ] 7.3 Manual test cases documented in the change: phone in Dutch with nothing stored starts Dutch; phone in German starts English; select Dutch on an English phone shows the warning, restart applies Dutch, warning gone; with System default, change phone language and confirm the app follows; Dutch at maximum font scale on the welcome, overview, add and settings screens; startup time not measurably affected by the blocking read on a low-end device
+- [ ] 7.2a Run the `pillsner-ui-review` skill over `ui/settings`; resolve every finding or list the remaining ones with a reason
+- [ ] 7.3 Manual test cases documented in the change: phone in Dutch with nothing stored starts Dutch; phone in German starts English; select Dutch on an English phone shows the notice, restart applies Dutch, notice gone; with System default, change phone language and confirm the app follows; Dutch at 200 percent font scale on the welcome, overview, add and settings screens with no truncated navigation label; startup time not measurably affected by the blocking read on a low-end device
 - [ ] 7.4 Update `README.md` "Features" with English and Dutch support following the phone language by default
 - [ ] 7.5 Review against `CLAUDE.md`: no `android.*` in domain, strings in resources, single DI mechanism, version catalog, no new third-party dependencies
 - [ ] 7.6 Confirm archive order: `app-welcome-screen`, `app-medicine-overview`, then this change

@@ -6,9 +6,9 @@
 
 ## 2. Build setup
 
-- [ ] 2.1 Add to `gradle/libs.versions.toml`: `play-services-wearable`, `wear-compose-material3`, `wear-compose-foundation`, `wear-tooling-preview`, `kotlinx-serialization-json`, pinned to exact versions
-- [ ] 2.2 Create the `:shared` module (`kotlin("jvm")` plus the serialization plugin) and include it in `settings.gradle.kts`
-- [ ] 2.3 Create the `:wear` module: Android application plugin, Kotlin Android, Kotlin Compose plugin, `applicationId` identical to `:app`, `minSdk` 30, `compileSdk`/`targetSdk` matching `:app`, the same Compose BOM, dependencies on `:shared`, Wear Compose Material 3 and foundation, Play services Wearable, lifecycle view model; include it in `settings.gradle.kts`
+- [ ] 2.1 Add to `gradle/libs.versions.toml`, after re-checking the release pages for newer stable versions: `play-services-wearable` 20.0.1, `wear-compose-material3` 1.6.2, `wear-compose-foundation` 1.6.2, `wear-compose-ui-tooling` 1.6.2, `wear-tooling-preview` 1.0.0; confirm `kotlinx-serialization-json` is present from the scaffold; record the versions actually used in design D9
+- [ ] 2.2 Create the `:shared` module (`kotlin("jvm")` with the JDK 21 toolchain plus the serialization plugin) and include it in `settings.gradle.kts`
+- [ ] 2.3 Create the `:wear` module: Android application plugin, Kotlin Android, Kotlin Compose plugin, `applicationId` identical to `:app`, `minSdk` 30, `compileSdk`/`targetSdk` 37 matching `:app`, the same Compose BOM, dependencies on `:shared`, Wear Compose Material 3 and foundation, Play services Wearable, lifecycle view model; include it in `settings.gradle.kts`
 - [ ] 2.4 Share the debug signing config between `:app` and `:wear` so debug builds pair on emulators; document release signing expectations in the README build section without committing any keystore
 - [ ] 2.5 Add `play-services-wearable` to `:app`; confirm neither manifest declares the internet permission
 
@@ -41,9 +41,9 @@
 ## 7. Watch UI
 
 - [ ] 7.1 Add wear string resources in `values/` and `values-nl/`: app name, header "Next 6 hours", empty state "No medicines scheduled for the upcoming 6 hours", "Tomorrow" prefix, footer "Phone not connected", footer "Open Pillsner on your phone to sync", entry content description template; enable the `MissingTranslation` error for the module
-- [ ] 7.2 Create `wear/.../ui/theme` with a Wear Material 3 theme using the phone's static palette
+- [ ] 7.2 Create `wear/.../ui/theme` with a Wear Material 3 `ColorScheme` from the design system's dark palette (section 2.2 dark column, the only hex literals in the module), an intake status colour mapping per section 2.3 (due `secondaryContainer`, overdue `errorContainer`), and Wear Material 3 default typography and shapes; no dynamic colour
 - [ ] 7.3 Create `wear/.../ui/LocalizedContent.kt` that derives a configuration context from the payload language tag (or the system locale when absent) and provides it to the content
-- [ ] 7.4 Create `wear/.../ui/DoseCard.kt`: name, amount and time (with tomorrow indication), one merged semantics node, minimum 48 dp height
+- [ ] 7.4 Create `wear/.../ui/DoseCard.kt`: name, amount and time (with tomorrow indication), status icon and colour per section 2.3 (due or overdue), one merged semantics node, minimum 48 dp height
 - [ ] 7.5 Create `wear/.../ui/UpcomingDosesScreen.kt`: `AppScaffold` with `TimeText`, `ScreenScaffold`, `TransformingLazyColumn` with header, cards or empty state, and the footer item when the phone is disconnected; rotary scrolling enabled; test tags for header, cards, empty state and footer
 - [ ] 7.6 Create `MainActivity` and `WearApp` wiring the view model from `WearContainer`; add previews for round and square screens for the list, the empty state and the disconnected state
 - [ ] 7.7 Confirm the wear manifest declares the watch feature, `standalone = false`, the listener service, and does not set the notification bridge mode

@@ -4,7 +4,7 @@
 
 This change adds Change PIN and a re-identification step for PIN and biometric changes. The threat is the same casual one `app-login` defends against: someone holding the phone while Pillsner is unlocked. The check proves the person changing the lock is the one who can open it.
 
-Constraints from `CLAUDE.md`: domain logic without Android dependencies, Compose with Material 3, strings in resources, accessibility for the keypad and messages, no new dependencies without a reason, never log PINs or credentials.
+Constraints from `CLAUDE.md`: domain logic without Android dependencies, Compose with Material 3, strings in resources, accessibility for the keypad and messages, no new dependencies without a reason, never log PINs or credentials, every visual decision from `docs/design-system.md` tokens (dialogs per section 8.12, list rows and buttons per 8.4) checked with `pillsner-ui-review`.
 
 ## Goals / Non-Goals
 
@@ -63,7 +63,7 @@ class ChangePin(repository: AppLockRepository, verifier: PinVerifier) {
 Rows, in order, inside the existing `SecuritySection`:
 
 1. **Protect with PIN** switch (existing).
-2. **Change PIN** row with a chevron, shown only when the lock is enabled. Tap → identity check (`CHANGE_PIN`, biometrics allowed) → on `Verified`, navigate to `PinSetup(CHANGE)` → on success, snackbar "PIN changed".
+2. **Change PIN** row: a `ListItem` with `titleSmall` headline, the bundled `chevron_right` icon as trailing content (`contentDescription = null`, the row itself has button semantics), at least `Sizes.minTouchTarget` tall, shown only when the lock is enabled. Tap → identity check (`CHANGE_PIN`, biometrics allowed) → on `Verified`, navigate to `PinSetup(CHANGE)` → on success, snackbar "PIN changed".
 3. **Unlock with biometrics** switch (existing). Turning **on** → existing single biometric prompt, unchanged. Turning **off** → identity check (`DISABLE_BIOMETRICS`, biometrics allowed) → on `Verified`, `SetBiometricUnlock(false)`. The switch does not move until verification succeeds.
 4. Helper text (existing).
 
@@ -73,11 +73,12 @@ The switches are controlled components bound to persisted state, so a pending or
 
 ### D4. `VerifyIdentityDialog` composable
 
-A Material 3 `AlertDialog` (full-width on phones) titled by purpose: "Confirm it's you to change your PIN", "... to turn off biometric unlock", "... to turn off the app lock". Content by state:
+A Material 3 `AlertDialog` per design system 8.12 (full-width on phones, `headlineMedium` title, `bodyLarge` body, at most two actions) titled by purpose: "Confirm it's you to change your PIN", "... to turn off biometric unlock", "... to turn off the app lock". Content by state:
 
-- `AwaitingBiometric`: a short line "Use your fingerprint or face" and a "Use PIN" button; the biometric prompt is launched once on entering the state via `BiometricAuthenticator` from the activity, the same wrapper the unlock screen uses.
-- `AwaitingPin`: `PinKeypad` with masked entry, wrong-PIN error in a polite live region, cooldown countdown that disables the keypad and shows remaining time (from the injected `Clock`), and, when biometrics are allowed and available, a "Use biometrics" button to go back to `AwaitingBiometric`.
-- Dismiss (back, outside tap, Cancel) → `Idle`, nothing changes.
+- `AwaitingBiometric`: a short `bodyLarge` line "Use your fingerprint or face" and a "Use PIN" `FilledTonalButton`; the biometric prompt is launched once on entering the state via `BiometricAuthenticator` from the activity, the same wrapper the unlock screen uses.
+- `AwaitingPin`: `PinKeypad` with masked entry, wrong-PIN error in the `error` role with icon and a polite live region (a validation error, allowed by 2.4), cooldown countdown that disables the keypad and shows remaining time (from the injected `Clock`), and, when biometrics are allowed and available, a "Use biometrics" `FilledTonalButton` to go back to `AwaitingBiometric`.
+- Dismiss (back, outside tap, Cancel as a `TextButton`) → `Idle`, nothing changes. None of the three purposes is destructive in the design system's sense (data is not deleted), so the dialog uses no `error` colour beyond the wrong-PIN message.
+- The dialog content scrolls so the keypad keeps `Sizes.minTouchTarget` keys at 200 percent font scale; `@PreviewLightDark` and `fontScale = 2f` previews are shipped.
 
 The dialog owns no logic: it renders `VerifyIdentityState` and sends events to `SecurityViewModel`.
 

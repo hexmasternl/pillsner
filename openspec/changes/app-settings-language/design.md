@@ -4,7 +4,7 @@ The shell from `app-welcome-screen` has a title-only Settings destination. `app-
 
 The product owner's rules: English and Dutch now, more later; a dropdown on Settings; a restart warning on change; stored language wins, else the phone's default if supported, else English.
 
-Constraints from `CLAUDE.md`: strings in resources and translation from the start, single DI mechanism, first-party dependencies, domain layer free of Android classes, no network.
+Constraints from `CLAUDE.md`: strings in resources and translation from the start, single DI mechanism, first-party dependencies, domain layer free of Android classes, no network, every visual decision from `docs/design-system.md` tokens checked with `pillsner-ui-review`. The project scaffold and version catalog come from `app-welcome-screen`; this change only adds DataStore to the catalog if `app-login` has not already.
 
 ## Goals / Non-Goals
 
@@ -71,13 +71,13 @@ When the phone language changes, Android recreates the activity with a new confi
 
 ### D5. Settings screen structure
 
-`SettingsScreen` becomes a `LazyColumn` of section composables, each with a `labelLarge` header. This change adds `LanguageSection` as the first section. `app-login`'s `SecuritySection` follows it. Each section is a self-contained composable with its own view model or state so sections can be added by future changes without touching each other.
+`SettingsScreen` becomes a `LazyColumn` (`Spacing.screenEdge` side padding, `Spacing.contentMaxWidth` cap) with the title "Settings" in `displayLarge` with `heading()` semantics (a top-level destination has no app bar, design system 8.7) followed by section composables, each with a `headlineSmall` header (group headers, section 3.2) and `Spacing.xl` between sections. This change adds `LanguageSection` as the first section. `app-login`'s `SecuritySection` follows it; if `app-login` was applied first and already created this structure, the Language section is inserted above Security. Each section is a self-contained composable with its own view model or state so sections can be added by future changes without touching each other.
 
 ### D6. Language section UI and the restart warning
 
-- An `ExposedDropdownMenuBox` (read-only text field with menu) labelled "Language". Options, in order: "System default" (translated), then each supported language by its native name: "English", "Nederlands". Native names are literals in a non-translatable array resource, not translated strings.
+- An `ExposedDropdownMenuBox` (read-only `OutlinedTextField` per design system 8.11 with menu) labelled "Language". Options, in order: "System default" (translated), then each supported language by its native name: "English", "Nederlands". Native names are literals in a non-translatable array resource, not translated strings.
 - Selecting an option calls `viewModel.onLanguageSelected` which writes through `LanguageRepository` immediately.
-- Beneath the dropdown, when `stored != inEffect`, a warning row (warning icon plus text "Restart Pillsner to apply the new language") in `MaterialTheme.colorScheme.error`. `inEffect` is the language resolved at process start, exposed by `AppLocale`. After a restart the two match and the warning disappears. Choosing back the language that is in effect also hides it. The warning row has `liveRegion = LiveRegionMode.Polite` so TalkBack announces it when it appears.
+- Beneath the dropdown, when `stored != inEffect`, a restart notice row: the `info` icon and the text "Restart Pillsner to apply the new language" in `bodyMedium`, on a `secondaryContainer` surface in `shapes.small` with `onSecondaryContainer` content. Design system section 2.4 reserves the `error` role for things that are wrong (overdue doses, undeliverable reminders, destructive confirmations, empty stock, validation errors); a pending restart is information, and blue means information. `inEffect` is the language resolved at process start, exposed by `AppLocale`. After a restart the two match and the notice disappears. Choosing back the language that is in effect also hides it. The notice row has `liveRegion = LiveRegionMode.Polite` so TalkBack announces it when it appears. The spec keeps calling it a "warning" for its behaviour; its colour is informational.
 
 ```kotlin
 data class LanguageSectionState(
@@ -124,7 +124,7 @@ lint.xml                                 MissingTranslation, ExtraTranslation = 
 - [Translations drift or are machine-quality] → Lint enforces completeness, not quality. Dutch copy in this change is written by hand and reviewed by the product owner, who is a native speaker. Wording follows the glossary: medicijn, dosis, inname, herinnering, schema.
 - [Three unarchived changes with chained navigation deltas] → Archive order documented in the proposal and tasks; if `app-login` lands first with its own Settings screen, task 4.1 adapts by inserting the Language section rather than creating the screen.
 - [Warning hides if the user toggles away and back before restart] → Correct by design: the setting equals the language in effect, so no restart is needed.
-- [Dutch strings are longer than English] → Tiles, the bottom bar labels and the notification text are checked at maximum font scale in Dutch in the manual test; bottom bar labels use `maxLines = 1` with ellipsis and short Dutch labels (Home, Medicijnen, Instellingen).
+- [Dutch strings are longer than English] → Tiles, the navigation labels and the notification text are checked at 200 percent font scale in Dutch in the manual test. Design system section 10 forbids truncation anywhere but the app bar title, so navigation labels are kept short (Home, Medicijnen, Instellingen) and verified to fit without `maxLines = 1` or ellipsis; a label that does not fit is reworded, not clipped.
 
 ## Migration Plan
 

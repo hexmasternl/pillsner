@@ -19,17 +19,30 @@
 
 ## 4. Tests
 
-- [ ] 4.1 Unit test the split function: "Pillsner" splits into "Pills" / "ner"; a title without "ner" yields the whole string as the lead and an empty accent; a title that is exactly "ner" yields a non-empty lead rather than an empty one.
-- [ ] 4.2 Extend the Compose test for the welcome screen to assert the header exposes exactly one node whose text is "Pillsner".
-- [ ] 4.3 Run the unit test task from `src/` and report the result verbatim.
-- [ ] 4.4 Run lint from `src/` and report the result verbatim. Instrumented tests are only needed for task 4.2's assertion; run them if the environment allows, and say so plainly if it does not.
+- [x] 4.1 Unit test the split function: "Pillsner" splits into "Pills" / "ner"; a title without "ner" yields the whole string as the lead and an empty accent; a title that is exactly "ner" yields a non-empty lead rather than an empty one.
+- [x] 4.2 Extend the Compose test for the welcome screen to assert the header exposes exactly one node whose text is "Pillsner".
+- [x] 4.3 Run the unit test task from `src/` and report the result verbatim.
+- [x] 4.4 Run lint from `src/` and report the result verbatim. Instrumented tests are only needed for task 4.2's assertion; run them if the environment allows, and say so plainly if it does not.
 
 ## 5. Design system
 
-- [ ] 5.1 Add a short "Wordmark" subsection to `docs/design-system.md` under section 2 or 8: the split, the two colour roles, the single-node rule, the minimum type role, and where the composable lives.
-- [ ] 5.2 Mirror the same entry in `docs/design-system.html` so the two stay in step.
+- [x] 5.1 Add a short "Wordmark" subsection to `docs/design-system.md` under section 2 or 8: the split, the two colour roles, the single-node rule, the minimum type role, and where the composable lives.
+- [x] 5.2 Mirror the same entry in `docs/design-system.html` so the two stay in step.
 
 ## 6. Review
 
-- [ ] 6.1 Run the `pillsner-ui-review` skill over the new and changed files and fix anything it reports.
-- [ ] 6.2 Confirm every scenario in `specs/welcome-screen/spec.md` is covered by a test or a documented visual check, and list which covers which.
+- [x] 6.1 Run the `pillsner-ui-review` skill over the new and changed files and fix anything it reports.
+- [x] 6.2 Confirm every scenario in `specs/welcome-screen/spec.md` is covered by a test or a documented visual check, and list which covers which.
+
+## Scenario coverage
+
+| Scenario (specs/welcome-screen/spec.md) | Covered by |
+| --- | --- |
+| Header visible on launch | `WelcomeScreenTest.header_showsLogoAndTitleWithHeadingSemantics` (instrumented) |
+| Title is split into two colours | `PillsnerWordmarkTest.lightScheme_drawsPillsInSecondaryAndNerInPrimary` (instrumented, asserts the span ranges and their colour roles) |
+| Both schemes | `PillsnerWordmarkTest.darkScheme_drawsPillsInSecondaryAndNerInPrimary` (instrumented), plus `@PreviewLightDark` on the wordmark and the header |
+| Logo has an accessible description | `WelcomeScreenTest.header_showsLogoAndTitleWithHeadingSemantics` (instrumented) |
+| Title is one node for accessibility and tests | `PillsnerWordmarkTest.wordmarkIsASingleNodeReadingTheWholeName` and the count assertions in `WelcomeScreenTest.header_showsLogoAndTitleWithHeadingSemantics` (instrumented) |
+| Title resource does not contain the accent fragment | `PillsnerWordmarkTest` unit tests `titleWithoutAccentFragment_isAllLead`, `titleThatIsOnlyTheAccentFragment_keepsANonEmptyLead`, `emptyTitle_doesNotSplit`, `repeatedFragment_splitsAtTheLastOccurrence` |
+
+Verification run on 14 September 2026: unit 275 tests / 0 failures, lint clean, instrumented 175 tests / 0 failures on pixel_7 API 36.

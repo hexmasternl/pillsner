@@ -1,0 +1,135 @@
+name: Release to Google Play
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      track:
+        description: Play track to publish to
+        type: choice
+        options: [internal, alpha, beta, production]
+        default: internal
+      version:
+        description: Version, without the leading v (for example 1.2.3)
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, sign and upload
+    runs-on: ubuntu-latest
+    environment: google-play # pauses here for the reviewer configured in Part 7
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Work out the version
+        id: version
+        working-directory: .
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_TRACK: ${{ inputs.track }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION="$INPUT_VERSION"
+            TRACK="$INPUT_TRACK"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+            TRACK="internal"
+          fi
+          case "$VERSION" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::Version $VERSION is not major.minor.patch" ; exit 1 ;;
+          esac
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          BASE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+          {
+            echo "name=$VERSION"
+            echo "code=$BASE"
+            echo "track=$TRACK"
+          } >> "$GITHUB_OUTPUT"
+          echo "Publishing $VERSION (base $BASE) to $TRACK" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Validate the Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install the pinned SDK components
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+
+      - name: Unit tests
+        run: ./gradlew test
+
+      - name: Lint
+        run: ./gradlew lint
+
+      - name: Restore the upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          test -s "$RUNNER_TEMP/upload.jks"
+
+      - name: Build both bundles
+        env:
+          PILLSNER_KEYSTORE_PATH: ${{ runner.temp }}/upload.jks
+          PILLSNER_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          PILLSNER_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          PILLSNER_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+          PILLSNER_VERSION_CODE: ${{ steps.version.outputs.code }}
+          PILLSNER_VERSION_NAME: ${{ steps.version.outputs.name }}
+        run: ./gradlew :app:bundleRelease :wear:bundleRelease
+
+      - name: Confirm both bundles are signed
+        run: |
+          jarsigner -verify app/build/outputs/bundle/release/app-release.aab
+          jarsigner -verify wear/build/outputs/bundle/release/wear-release.aab
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: nl.hexmaster.pillsner
+          # Paths are relative to the repository root: uses-steps ignore defaults.run
+          releaseFiles: |
+            src/app/build/outputs/bundle/release/app-release.aab
+            src/wear/build/outputs/bundle/release/wear-release.aab
+          track: ${{ steps.version.outputs.track }}
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
+          changesNotSentForReview: false
+
+      - name: Keep the bundles as build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pillsner-${{ steps.version.outputs.name }}
+          path: |
+            src/app/build/outputs/bundle/release/app-release.aab
+            src/wear/build/outputs/bundle/release/wear-release.aab
+          retention-days: 7

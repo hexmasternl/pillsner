@@ -385,13 +385,22 @@
     <string name="usage_history_taken_label">Taken</string>
     <string name="usage_status_unanswered">Not answered yet</string>
     <!-- %1$s: the category, for example Taken. %2$d: how many doses. -->
-    <string name="usage_legend_row_description">%1$s: %2$d doses</string>
+    <plurals name="usage_legend_row_description">
+        <item quantity="one">%1$s: %2$d dose</item>
+        <item quantity="other">%1$s: %2$d doses</item>
+    </plurals>
     <string name="usage_history_by_day">By day</string>
     <string name="usage_history_by_week">By week</string>
     <!-- %1$s: the day, for example 9 September. %2$d: doses taken. %3$d: doses scheduled. -->
-    <string name="usage_history_bar_day">%1$s, %2$d of %3$d doses taken</string>
+    <plurals name="usage_history_bar_day">
+        <item quantity="one">%1$s, %2$d of %3$d dose taken</item>
+        <item quantity="other">%1$s, %2$d of %3$d doses taken</item>
+    </plurals>
     <!-- %1$s: the day the week starts on. %2$d: doses taken. %3$d: doses scheduled. -->
-    <string name="usage_history_bar_week">Week of %1$s, %2$d of %3$d doses taken</string>
+    <plurals name="usage_history_bar_week">
+        <item quantity="one">Week of %1$s, %2$d of %3$d dose taken</item>
+        <item quantity="other">Week of %1$s, %2$d of %3$d doses taken</item>
+    </plurals>
     <!-- %1$s: the day. -->
     <string name="usage_history_bar_day_empty">%1$s, no doses scheduled</string>
     <!-- %1$s: the day the week starts on. -->

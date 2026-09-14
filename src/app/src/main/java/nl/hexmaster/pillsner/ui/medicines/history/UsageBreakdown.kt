@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -116,7 +117,7 @@ fun UsageBreakdown(history: UsageHistory, modifier: Modifier = Modifier) {
 private fun UsageLegendRow(category: UsageCategory, count: Int, modifier: Modifier = Modifier) {
     val colors = intakeStatusColors(category.status)
     val label = stringResource(category.labelRes)
-    val description = stringResource(R.string.usage_legend_row_description, label, count)
+    val description = pluralStringResource(R.plurals.usage_legend_row_description, count, label, count)
 
     Row(
         modifier

@@ -142,7 +142,7 @@ class MedicineHistoryScreenTest {
         showScreen(doses = threeTakenOfFourThisWeek())
 
         // Monday 14 September holds one dose, taken.
-        composeRule.onNode(hasContentDescription("${today.format(longDate)}, 1 of 1 doses taken"))
+        composeRule.onNode(hasContentDescription("${today.format(longDate)}, 1 of 1 dose taken"))
             .assertIsDisplayed()
         // Tuesday 8 September, the first day of the window, holds none.
         composeRule.onNode(

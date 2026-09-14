@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -155,8 +156,9 @@ private fun UsageBucket.spokenDescription(format: DateTimeFormatter): String {
     return when {
         scheduled == 0 && isWeek -> stringResource(R.string.usage_history_bar_week_empty, date)
         scheduled == 0 -> stringResource(R.string.usage_history_bar_day_empty, date)
-        isWeek -> stringResource(R.string.usage_history_bar_week, date, taken, scheduled)
-        else -> stringResource(R.string.usage_history_bar_day, date, taken, scheduled)
+        // The scheduled total is what the sentence counts, so it is what chooses the plural form.
+        isWeek -> pluralStringResource(R.plurals.usage_history_bar_week, scheduled, date, taken, scheduled)
+        else -> pluralStringResource(R.plurals.usage_history_bar_day, scheduled, date, taken, scheduled)
     }
 }
 

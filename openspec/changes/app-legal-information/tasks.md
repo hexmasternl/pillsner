@@ -23,10 +23,10 @@
 
 ## 4. Data layer
 
-- [ ] 4.1 Add `data/settings/DataStoreLegalRepository.kt` storing the two versions and the acceptance instant in the existing general `settingsDataStore`, mirroring `DataStoreLanguageRepository`.
-- [ ] 4.2 Write acceptance as a single `edit` of all three keys so a version can never be stored without a time.
-- [ ] 4.3 Read a missing or partial record as no acceptance.
-- [ ] 4.4 Test the repository: nothing stored reads as null; an acceptance round-trips with the same versions and instant; a record missing the instant reads as null.
+- [x] 4.1 Add `data/settings/DataStoreLegalRepository.kt` storing the two versions and the acceptance instant in the existing general `settingsDataStore`, mirroring `DataStoreLanguageRepository`.
+- [x] 4.2 Write acceptance as a single `edit` of all three keys so a version can never be stored without a time.
+- [x] 4.3 Read a missing or partial record as no acceptance.
+- [x] 4.4 Test the repository: nothing stored reads as null; an acceptance round-trips with the same versions and instant; a record missing the instant reads as null.
 - [ ] 4.5 Register `LegalRepository` and `IsLegalAccepted` in `di/AppContainer.kt` and register `LegalViewModel` in its `viewModelFactory`.
 
 ## 5. Shared document rendering

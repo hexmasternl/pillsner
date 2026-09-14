@@ -78,6 +78,13 @@ The publisher runs inside the existing `ReminderCoordinator` scope (application-
 
 *Privacy:* the Data Layer moves items over the Bluetooth or local Wi-Fi link between paired devices; Wear OS removed the cloud relay for data items. Neither module declares `INTERNET`. Still, medicine names now exist on a second device, in Play services storage, which is why the README says so. The task list includes verifying the no-cloud property against the current Play services documentation before archiving.
 
+**Verified on 13 September 2026** against the current Wear OS documentation:
+
+- *Sync data items with the Data Layer API* (`developer.android.com/training/wearables/data/data-items`) states that "the Data Layer API can only send messages and synchronize data with Android phones or Wear OS watches", and directs apps that want to reach a network to *Communicate directly over a network* instead. The Data Layer is therefore not a path to a server.
+- *Sync persistent data* (`developer.android.com/training/wearables/data/sync`) describes the transport as the Bluetooth link between the paired devices, and says assets are for sharing "large binary objects over the Bluetooth transport".
+
+Neither page describes a cloud relay for data items, and the merged manifests of both modules were checked after adding the dependency: `:app` declares only the four permissions it already had, `:wear` declares none. Play services Wearable adds no `INTERNET` or `ACCESS_NETWORK_STATE` permission of its own.
+
 ### D4. Watch side: reading, listening, waking
 
 `UpcomingDosesRepository` (watch, data layer) exposes `Flow<SyncedDoses?>`:

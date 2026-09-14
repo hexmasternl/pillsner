@@ -121,10 +121,10 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: nl.hexmaster.pillsner
-          # Paths are relative to the repository root: uses-steps ignore defaults.run
-          releaseFiles: |
-            src/app/build/outputs/bundle/release/app-release.aab
-            src/wear/build/outputs/bundle/release/wear-release.aab
+          # Paths are relative to the repository root: uses-steps ignore defaults.run. The action
+          # splits releaseFiles on commas only, so both paths go on one line - a YAML block
+          # scalar would arrive as a single pattern containing a newline and match nothing.
+          releaseFiles: src/app/build/outputs/bundle/release/app-release.aab,src/wear/build/outputs/bundle/release/wear-release.aab
           track: ${{ steps.version.outputs.track }}
           status: completed
           whatsNewDirectory: distribution/whatsnew

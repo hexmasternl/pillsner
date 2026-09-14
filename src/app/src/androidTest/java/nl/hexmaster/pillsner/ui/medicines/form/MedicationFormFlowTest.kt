@@ -29,6 +29,7 @@ import nl.hexmaster.pillsner.ui.PillsnerApp
 import nl.hexmaster.pillsner.ui.medicines.MedicinesScreenTestTags
 import nl.hexmaster.pillsner.ui.medicines.schedule.ScheduleEditorTestTags
 import nl.hexmaster.pillsner.ui.navigation.NavigationTestTags
+import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceFixture
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -57,6 +58,9 @@ class MedicationFormFlowTest {
         val container = AppContainer(composeRule.activity, medicationRepository = repository)
         val appLockViewModel =
             container.viewModelFactory.create(AppLockViewModel::class.java, CreationExtras.Empty)
+        // The add button is gated on the legal documents (app-legal-information design D5); these
+        // tests are about navigation, so they start from a user who has already accepted.
+        LegalAcceptanceFixture.accept(container)
         val biometricAuthenticator = BiometricAuthenticator(composeRule.activity)
         composeRule.setContent {
             navController = TestNavHostController(LocalContext.current).apply {
@@ -67,6 +71,7 @@ class MedicationFormFlowTest {
                     viewModelFactory = container.viewModelFactory,
                     appLockViewModel = appLockViewModel,
                     biometricAuthenticator = biometricAuthenticator,
+                    appInfo = container.appInfo,
                     navController = navController,
                 )
             }

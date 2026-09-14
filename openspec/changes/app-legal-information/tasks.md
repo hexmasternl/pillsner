@@ -65,19 +65,19 @@
 
 - [x] 9.1 Collect the accepted flag from `LegalViewModel` at the `NavHost` level in `PillsnerApp.kt`.
 - [x] 9.2 Change the Medicines screen's `onAddMedicine` to navigate to `MedicationFormGraph()` when accepted and to `AcceptLegal` when not, deciding at the moment of the tap.
-- [ ] 9.3 Leave the tile-tap route into the form in edit mode untouched, and confirm by test that it is never gated.
+- [x] 9.3 Leave the tile-tap route into the form in edit mode untouched, and confirm by test that it is never gated.
 
 ## 10. Tests
 
-- [ ] 10.1 Compose semantics test: the Legal section shows both rows and the right status line for never-accepted, accepted, and accepted-but-revised.
-- [ ] 10.2 Compose semantics test: the document screen shows the requested document's headings as headings, with its version and effective date.
-- [ ] 10.3 Compose semantics test: the accept button is disabled with a hint before scrolling and enabled after scrolling to the end, and enabled immediately when the content fits.
-- [ ] 10.4 Navigation test: the add button opens the acceptance screen when unaccepted and the form directly when accepted.
-- [ ] 10.5 Navigation test: accepting reaches the form, and back from the untouched form returns to Medicines without passing through the acceptance screen.
-- [ ] 10.6 Navigation test: backing out of the acceptance screen records nothing and adds no medicine.
-- [ ] 10.7 Navigation test: after a version bump with an older acceptance stored, tapping an existing medicine tile opens the form in edit mode with no gate.
-- [ ] 10.8 Test that the Terms of Service opened from the acceptance screen returns to it with its scroll position intact.
-- [ ] 10.9 Test that the document screen restores the same document after process death.
+- [x] 10.1 Compose semantics test: the Legal section shows both rows and the right status line for never-accepted, accepted, and accepted-but-revised.
+- [x] 10.2 Compose semantics test: the document screen shows the requested document's headings as headings, with its version and effective date.
+- [x] 10.3 Compose semantics test: the accept button is disabled with a hint before scrolling and enabled after scrolling to the end, and enabled immediately when the content fits.
+- [x] 10.4 Navigation test: the add button opens the acceptance screen when unaccepted and the form directly when accepted.
+- [x] 10.5 Navigation test: accepting reaches the form, and back from the untouched form returns to Medicines without passing through the acceptance screen.
+- [x] 10.6 Navigation test: backing out of the acceptance screen records nothing and adds no medicine.
+- [x] 10.7 Navigation test: after a version bump with an older acceptance stored, tapping an existing medicine tile opens the form in edit mode with no gate.
+- [x] 10.8 Test that the Terms of Service opened from the acceptance screen returns to it with its scroll position intact.
+- [x] 10.9 Test that the document screen restores the same document after process death.
 
 ## 11. Verification and documentation
 

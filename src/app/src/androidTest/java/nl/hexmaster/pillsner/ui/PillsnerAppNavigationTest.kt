@@ -1,12 +1,17 @@
 package nl.hexmaster.pillsner.ui
 
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.navigation.compose.ComposeNavigator
@@ -20,6 +25,9 @@ import nl.hexmaster.pillsner.ui.home.WelcomeScreenTestTags
 import nl.hexmaster.pillsner.ui.medicines.MedicinesScreenTestTags
 import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormTestTags
 import nl.hexmaster.pillsner.ui.navigation.NavigationTestTags
+import nl.hexmaster.pillsner.ui.settings.about.AboutScreenTestTags
+import nl.hexmaster.pillsner.ui.settings.about.AboutSectionTestTags
+import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceFixture
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -50,6 +58,9 @@ class PillsnerAppNavigationTest {
         val container = AppContainer(composeRule.activity)
         appLockViewModel =
             container.viewModelFactory.create(AppLockViewModel::class.java, CreationExtras.Empty)
+        // The add button is gated on the legal documents (app-legal-information design D5); these
+        // tests are about navigation, so they start from a user who has already accepted.
+        LegalAcceptanceFixture.accept(container)
         val biometricAuthenticator = BiometricAuthenticator(composeRule.activity)
         composeRule.setContent {
             navController = TestNavHostController(LocalContext.current).apply {
@@ -60,6 +71,7 @@ class PillsnerAppNavigationTest {
                     viewModelFactory = container.viewModelFactory,
                     appLockViewModel = appLockViewModel,
                     biometricAuthenticator = biometricAuthenticator,
+                    appInfo = container.appInfo,
                     navController = navController,
                 )
             }
@@ -153,6 +165,73 @@ class PillsnerAppNavigationTest {
 
         composeRule.onNodeWithTag(NavigationTestTags.MEDICINES_TITLE).assertIsDisplayed()
         composeRule.onNodeWithTag(NavigationTestTags.MEDICINES).assertIsSelected()
+    }
+
+    /** Settings' About row is the last thing in its list, so it has to be scrolled to. */
+    private fun openAboutFromSettings() {
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNode(hasScrollAction())
+            .performScrollToNode(hasTestTag(AboutSectionTestTags.ABOUT_ROW))
+        composeRule.onNodeWithTag(AboutSectionTestTags.ABOUT_ROW).performClick()
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun tapAboutOnSettings_showsAboutAndHidesTheBottomBar() {
+        openAboutFromSettings()
+
+        composeRule.onNodeWithTag(AboutScreenTestTags.TITLE).assertIsDisplayed()
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).assertDoesNotExist()
+        composeRule.onNodeWithTag(NavigationTestTags.HOME).assertDoesNotExist()
+        composeRule.onNodeWithTag(NavigationTestTags.MEDICINES).assertDoesNotExist()
+    }
+
+    @Test
+    fun backFromAbout_returnsToSettingsWithTheBottomBarVisible() {
+        openAboutFromSettings()
+
+        composeRule.onNodeWithTag(AboutScreenTestTags.BACK).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS_TITLE).assertIsDisplayed()
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).assertIsSelected()
+    }
+
+    @Test
+    fun systemBackFromAbout_returnsToSettings() {
+        openAboutFromSettings()
+
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS_TITLE).assertIsDisplayed()
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).assertIsSelected()
+    }
+
+    @Test
+    fun backTwiceFromAbout_reachesHome() {
+        openAboutFromSettings()
+
+        repeat(2) {
+            composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+            composeRule.waitForIdle()
+        }
+
+        composeRule.onNodeWithTag(WelcomeScreenTestTags.HEADER).assertIsDisplayed()
+        composeRule.onNodeWithTag(NavigationTestTags.HOME).assertIsSelected()
+    }
+
+    @Test
+    fun aboutIsNotANavigationItem() {
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).performClick()
+        composeRule.waitForIdle()
+
+        // The bar still shows exactly the three top-level destinations.
+        composeRule.onNodeWithTag(NavigationTestTags.HOME).assertIsDisplayed()
+        composeRule.onNodeWithTag(NavigationTestTags.MEDICINES).assertIsDisplayed()
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).assertIsDisplayed()
+        composeRule.onAllNodesWithTag(AboutScreenTestTags.TITLE).assertCountEquals(0)
     }
 
     @Test

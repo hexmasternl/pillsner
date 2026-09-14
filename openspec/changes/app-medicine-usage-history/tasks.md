@@ -24,10 +24,10 @@
 
 ## 4. Strings, drawables and theme tokens
 
-- [ ] 4.1 Add `ic_more_vert.xml` and `ic_history.xml` as Material Symbols Rounded 24 dp vectors in `app/src/main/res/drawable/`, matching the style of the existing icons.
-- [ ] 4.2 Add `Sizes.usageChartHeight = 96.dp` and the breakdown bar height to `ui/theme/Dimens.kt` with a comment pointing at design D5. Add no other new dimension.
-- [ ] 4.3 Add every new key of design D10 to `values/strings.xml`, grouped under a "Medicine usage history" comment, with placeholder comments on the formatted ones.
-- [ ] 4.4 Add the Dutch translations to `values-nl/strings.xml` and confirm `TranslationCompletenessTest` passes.
+- [x] 4.1 Add `ic_more_vert.xml` and `ic_history.xml` as Material Symbols Rounded 24 dp vectors in `app/src/main/res/drawable/`, matching the style of the existing icons.
+- [x] 4.2 Add `Sizes.usageChartHeight = 96.dp` and the breakdown bar height to `ui/theme/Dimens.kt` with a comment pointing at design D5. Add no other new dimension.
+- [x] 4.3 Add every new key of design D10 to `values/strings.xml`, grouped under a "Medicine usage history" comment, with placeholder comments on the formatted ones.
+- [x] 4.4 Add the Dutch translations to `values-nl/strings.xml` and confirm `TranslationCompletenessTest` passes.
 
 ## 5. Usage history screen
 

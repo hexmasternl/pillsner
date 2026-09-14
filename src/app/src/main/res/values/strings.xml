@@ -372,4 +372,30 @@
     <string name="about_application_id_label">Application id</string>
     <string name="about_author_label">Author</string>
     <string name="about_author" translatable="false">Eduard Keilholz</string>
+
+    <!-- Medicine usage history -->
+    <string name="usage_history_title">Usage history</string>
+    <string name="usage_history_menu_item">Usage history</string>
+    <string name="action_more_options">More options</string>
+    <string name="usage_period_week">1 week</string>
+    <string name="usage_period_month">1 month</string>
+    <string name="usage_period_three_months">3 months</string>
+    <string name="usage_history_adherence_caption">of the doses so far were taken</string>
+    <string name="usage_history_scheduled_label">Scheduled</string>
+    <string name="usage_history_taken_label">Taken</string>
+    <string name="usage_status_unanswered">Not answered yet</string>
+    <string name="usage_history_by_day">By day</string>
+    <string name="usage_history_by_week">By week</string>
+    <!-- %1$s: the day, for example 9 September. %2$d: doses taken. %3$d: doses scheduled. -->
+    <string name="usage_history_bar_day">%1$s, %2$d of %3$d doses taken</string>
+    <!-- %1$s: the day the week starts on. %2$d: doses taken. %3$d: doses scheduled. -->
+    <string name="usage_history_bar_week">Week of %1$s, %2$d of %3$d doses taken</string>
+    <!-- %1$s: the day. -->
+    <string name="usage_history_bar_day_empty">%1$s, no doses scheduled</string>
+    <!-- %1$s: the day the week starts on. -->
+    <string name="usage_history_bar_week_empty">Week of %1$s, no doses scheduled</string>
+    <!-- %1$s: the date this medicine has records from. -->
+    <string name="usage_history_records_start">Records for this medicine start on %1$s.</string>
+    <string name="usage_history_empty_title">Nothing recorded for this period</string>
+    <string name="usage_history_empty_hint">Try a longer period, or come back once a few doses have passed.</string>
 </resources>

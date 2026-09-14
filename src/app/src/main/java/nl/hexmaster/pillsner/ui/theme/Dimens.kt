@@ -46,4 +46,14 @@ object Sizes {
 
     /** Border width of an empty (not yet entered) PIN dot. */
     val pinDotStroke = 2.dp
+
+    /**
+     * The usage chart's fixed height (app-medicine-usage-history design D5). Tall enough for the
+     * shortest bar of a fourteen-bar period to still read, short enough that the summary above it
+     * and the legend below it stay on one screen at 100 % font scale.
+     */
+    val usageChartHeight = 96.dp
+
+    /** The proportional outcome bar above the usage legend (design D5, D6 item 4). */
+    val usageBreakdownBarHeight = 12.dp
 }

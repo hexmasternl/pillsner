@@ -90,7 +90,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install the pinned SDK components
-        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+        # Since Android moved to minor SDK releases, platform packages carry the minor version: there
+        # is no bare "platforms;android-37". compileSdk 37 with no compileSdkMinor resolves to 37.0.
+        run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
 
       - name: Restore the upload keystore
         env:

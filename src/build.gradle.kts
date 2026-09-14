@@ -4,6 +4,9 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    // Declared here so the :shared module resolves one Kotlin version; AGP already carries the
+    // Kotlin plugin on the classpath, and a version request in a subproject conflicts with it.
+    alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.room) apply false

@@ -10,6 +10,8 @@ jdk = "21"
 compileSdk = "37"
 targetSdk = "37"
 minSdk = "26"
+# Wear OS 3 and later. The watch app is a companion to the phone app, not a standalone.
+wearMinSdk = "30"
 buildTools = "36.0.0"
 
 # AndroidX and Compose
@@ -22,6 +24,12 @@ biometric = "1.1.0"
 datastore = "1.2.1"
 room = "2.8.5"
 fragment = "1.9.0"
+
+# Wear OS (app-wearable-support design D9). Newest stable on 13 September 2026: Wear Compose 1.7.0
+# is still a release candidate, so 1.6.2 stands; play-services-wearable 20.0.1 is the newest.
+wearCompose = "1.6.2"
+wearToolingPreview = "1.0.0"
+playServicesWearable = "20.0.1"
 
 # Kotlin libraries
 coroutines = "1.11.0"
@@ -63,10 +71,20 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 
+# Wear OS: the watch UI, and the only supported phone-to-watch transport.
+androidx-wear-compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "wearCompose" }
+androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "wearCompose" }
+androidx-wear-compose-ui-tooling = { group = "androidx.wear.compose", name = "compose-ui-tooling", version.ref = "wearCompose" }
+androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
+play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
+
 # Kotlin libraries
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+# Turns the Play services Task API into suspend functions, so the Data Layer reads like the rest
+# of the codebase rather than like callbacks.
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -78,6 +96,9 @@ androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espres
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+# The :shared contract module is plain Kotlin, so it needs the Kotlin JVM plugin; AGP 9 compiles
+# Kotlin in the Android modules itself.
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 # KSP is the only supported annotation processor for Room with Kotlin (app-medicine-add design D9).

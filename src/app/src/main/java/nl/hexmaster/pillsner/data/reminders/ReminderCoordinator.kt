@@ -14,6 +14,7 @@ import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
+import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
 
 /** Why the app woke up. Only ever logged, never shown. */
@@ -48,6 +49,9 @@ class ReminderCoordinator(
     private val scheduler: ReminderAlarmScheduler,
     private val clock: Clock = Clock.systemDefaultZone(),
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    // Null when this build has no watch to talk to, which is the ordinary case on a phone
+    // without Play services (app-wearable-support design D3).
+    private val doseSyncPublisher: DoseSyncPublisher? = null,
 ) {
 
     // One wake at a time: an alarm and an answer from a notification can arrive in the same second.
@@ -55,6 +59,7 @@ class ReminderCoordinator(
 
     /** Starts reacting to medicines being added, changed or deactivated. */
     fun start() {
+        doseSyncPublisher?.start(scope)
         scope.launch {
             medicationRepository.observeAll().collect { onWake(WakeReason.MEDICATIONS_CHANGED) }
         }
@@ -93,6 +98,10 @@ class ReminderCoordinator(
                 Log.d(TAG, "Wake for $reason did not complete: ${error::class.simpleName}")
             } finally {
                 rescheduleNextWake()
+                // The wake has just settled what is still to be taken, so this is the moment the
+                // watch should hear about it. It is also every app start, which is when a new
+                // language takes effect, so the watch follows the phone without its own trigger.
+                doseSyncPublisher?.publishNow()
             }
         }
     }

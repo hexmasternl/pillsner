@@ -22,3 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Pillsner"
 include(":app")
+include(":shared")
+include(":wear")

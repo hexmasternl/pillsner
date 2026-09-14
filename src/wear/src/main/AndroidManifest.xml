@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        A watch app, and a companion one: it shows what the phone app sends and nothing else.
+        No permissions at all — the Data Layer needs none, and as on the phone there is
+        deliberately no INTERNET permission.
+    -->
+    <uses-feature android:name="android.hardware.type.watch" />
+
+    <application
+        android:name=".PillsnerWearApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PillsnerWear">
+
+        <!-- Not standalone: without the phone app there is nothing to show. -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="false" />
+
+        <!--
+            No com.google.android.wearable.notificationBridgeMode here, deliberately: leaving it
+            unset keeps the phone's reminder notifications bridging to the watch with their three
+            answers, which is still the only way to answer a dose (design D8).
+        -->
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.PillsnerWear">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Lets Play services start this app when a new list arrives while it is closed, so the
+            item is persisted and the screen has it the moment it opens. Exported because Play
+            services is the caller.
+        -->
+        <service
+            android:name=".data.WearDataListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/pillsner/upcoming-doses" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

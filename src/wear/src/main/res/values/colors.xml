@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Only for resources that cannot read the Compose theme: the launcher icon and the window
+    background behind the first frame. Watch surfaces are always dark (design D6), so the window
+    background is the design system's dark surface. Composables use MaterialTheme.colorScheme.
+-->
+<resources>
+    <color name="pillsner_green">#1B7F5C</color>
+    <color name="pillsner_blue">#2D6DA8</color>
+    <color name="pillsner_white">#FFFFFF</color>
+    <color name="deep_moss">#101413</color>
+</resources>

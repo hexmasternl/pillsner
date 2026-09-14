@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A string that reaches a Dutch user in English is a defect, not a nuisance: someone reading a
+    medication reminder should read it in their own language. So a missing or stray translation
+    fails the build rather than producing a warning nobody reads.
+-->
+<lint>
+    <issue id="MissingTranslation" severity="error" />
+    <issue id="ExtraTranslation" severity="error" />
+</lint>

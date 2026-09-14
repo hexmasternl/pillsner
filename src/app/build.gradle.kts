@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -7,6 +8,25 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
 }
+
+// Signing material comes from src/keystore.properties on a developer machine and from environment
+// variables in CI. Neither is committed; see docs/publishing-to-google-play.md.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+fun signingValue(property: String, environmentVariable: String): String? =
+    keystoreProperties.getProperty(property)
+        ?: providers.environmentVariable(environmentVariable).orNull
+
+val keystorePath: String? = signingValue("storeFile", "PILLSNER_KEYSTORE_PATH")
+
+// One number decides the version code of both applications; see Part 5 of the publishing guide.
+val versionCodeBase: Int =
+    providers.environmentVariable("PILLSNER_VERSION_CODE").orNull?.toInt() ?: 1
+val releaseVersionName: String =
+    providers.environmentVariable("PILLSNER_VERSION_NAME").orNull ?: "0.1.0"
 
 android {
     namespace = "nl.hexmaster.pillsner"
@@ -17,11 +37,12 @@ android {
         applicationId = "nl.hexmaster.pillsner"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "0.1.0"
+
+        // The phone application takes the even slot; the watch takes the one above it.
+        versionCode = versionCodeBase * 10
+        versionName = releaseVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
         // The two languages the app ships. Strips every other locale from library resources, and
         // makes the fallback chain exactly values-nl to values (English).
         resourceConfigurations += listOf("en", "nl")
@@ -29,6 +50,7 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

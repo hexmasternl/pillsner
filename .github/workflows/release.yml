@@ -67,12 +67,25 @@ jobs:
           fi
           BASE=$(( MAJOR * 1000000 + MINOR * 10000 + PATCH ))
           TRACK="${INPUT_TRACK:-internal}"
+          # Play keeps Wear OS releases on their own form factor track, named "wear:" plus the
+          # default track name; the internal testing track is called "qa" there, not "internal".
+          # Closed testing tracks are named after the track created in Play Console, so "alpha"
+          # has no automatic equivalent - fail here rather than half-publish.
+          case "$TRACK" in
+            internal)   WEAR_TRACK="wear:qa" ;;
+            beta)       WEAR_TRACK="wear:beta" ;;
+            production) WEAR_TRACK="wear:production" ;;
+            *)
+              echo "::error::No Wear OS track maps to '$TRACK'. Closed testing tracks are named wear:<your track name>; set it explicitly before publishing to $TRACK."
+              exit 1 ;;
+          esac
           {
             echo "name=$NAME"
             echo "code=$BASE"
             echo "track=$TRACK"
+            echo "wearTrack=$WEAR_TRACK"
           } >> "$GITHUB_OUTPUT"
-          echo "Publishing $NAME (phone ${BASE}0, watch ${BASE}1) to $TRACK" >> "$GITHUB_STEP_SUMMARY"
+          echo "Publishing $NAME (phone ${BASE}0 to $TRACK, watch ${BASE}1 to $WEAR_TRACK)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -116,16 +129,27 @@ jobs:
           jarsigner -verify app/build/outputs/bundle/release/app-release.aab
           jarsigner -verify wear/build/outputs/bundle/release/wear-release.aab
 
-      - name: Upload to Google Play
+      # The phone and the watch bundle cannot share a release: Play rejects any artifact that
+      # requires android.hardware.type.watch on a phone track. Each goes to its own track, in its
+      # own edit. Paths are relative to the repository root - uses-steps ignore defaults.run.
+      - name: Upload the phone bundle to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: nl.hexmaster.pillsner
-          # Paths are relative to the repository root: uses-steps ignore defaults.run. The action
-          # splits releaseFiles on commas only, so both paths go on one line - a YAML block
-          # scalar would arrive as a single pattern containing a newline and match nothing.
-          releaseFiles: src/app/build/outputs/bundle/release/app-release.aab,src/wear/build/outputs/bundle/release/wear-release.aab
-          track: ${{ steps.version.outputs.track }}
+          releaseFiles: src/app/build/outputs/bundle/release/app-release.aab
+          tracks: ${{ steps.version.outputs.track }}
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
+          changesNotSentForReview: false
+
+      - name: Upload the watch bundle to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: nl.hexmaster.pillsner
+          releaseFiles: src/wear/build/outputs/bundle/release/wear-release.aab
+          tracks: ${{ steps.version.outputs.wearTrack }}
           status: completed
           whatsNewDirectory: distribution/whatsnew
           changesNotSentForReview: false
@@ -138,13 +162,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.name }}
           TRACK: ${{ steps.version.outputs.track }}
+          WEAR_TRACK: ${{ steps.version.outputs.wearTrack }}
           CODE: ${{ steps.version.outputs.code }}
         run: |
           gh release create "v$VERSION" \
             --title "Pillsner $VERSION" \
             --target "$GITHUB_SHA" \
             --generate-notes \
-            --notes "Published to the Play **$TRACK** track. Phone version code ${CODE}0, watch version code ${CODE}1." \
+            --notes "Phone version code ${CODE}0 published to the Play **$TRACK** track, watch version code ${CODE}1 to **$WEAR_TRACK**." \
             src/app/build/outputs/bundle/release/app-release.aab \
             src/wear/build/outputs/bundle/release/wear-release.aab
 

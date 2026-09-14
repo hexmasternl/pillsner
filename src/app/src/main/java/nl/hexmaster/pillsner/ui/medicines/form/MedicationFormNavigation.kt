@@ -15,9 +15,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryEffect
+import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryScreen
+import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
 import nl.hexmaster.pillsner.ui.medicines.schedule.ScheduleEditorScreen
 import nl.hexmaster.pillsner.ui.navigation.MedicationForm
 import nl.hexmaster.pillsner.ui.navigation.MedicationFormGraph
+import nl.hexmaster.pillsner.ui.navigation.MedicineHistory
 import nl.hexmaster.pillsner.ui.navigation.EditSchedule
 
 /**
@@ -72,6 +76,35 @@ fun NavGraphBuilder.medicationFormGraph(
                 },
                 onKeepEditing = viewModel::onDiscardDialogDismissed,
                 snackbarHostState = snackbarHostState,
+                onOpenUsageHistory = {
+                    // Navigating forward is not leaving the form, so the discard dialog stays out
+                    // of it and the draft waits on the back stack.
+                    (uiState.mode as? MedicationFormMode.Edit)
+                        ?.let { navController.navigate(MedicineHistory(it.id.value)) }
+                },
+            )
+        }
+
+        composable<MedicineHistory> {
+            // Its own view model, not the flow's: nothing the history does can reach the draft.
+            val viewModel: MedicineHistoryViewModel = viewModel(factory = viewModelFactory)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(viewModel) {
+                viewModel.effects.collect { effect ->
+                    when (effect) {
+                        MedicineHistoryEffect.OpenFailed -> {
+                            onOpenFailed()
+                            navController.popBackStack()
+                        }
+                    }
+                }
+            }
+
+            MedicineHistoryScreen(
+                uiState = uiState,
+                onPeriodSelected = viewModel::onPeriodSelected,
+                onBack = { navController.popBackStack() },
             )
         }
 

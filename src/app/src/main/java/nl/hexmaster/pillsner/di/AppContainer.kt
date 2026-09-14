@@ -42,6 +42,7 @@ import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
+import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.intake.RecordIntake
 import nl.hexmaster.pillsner.domain.intake.SnoozeDose
 import nl.hexmaster.pillsner.domain.legal.IsLegalAccepted
@@ -64,6 +65,7 @@ import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
+import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
 
@@ -105,6 +107,9 @@ class AppContainer(
 
     val upcomingDosesRepository: UpcomingDosesRepository =
         upcomingDosesRepository ?: RoomUpcomingDosesRepository(this.doseRepository, clock)
+
+    /** Turns a medicine's stored doses into its usage history (app-medicine-usage-history D3). */
+    private val summariseUsageHistory = SummariseUsageHistory(clock)
 
     // --- Reminders (app-medicine-alarm design D5, D7, D10) ---------------------------------
 
@@ -206,6 +211,15 @@ class AppContainer(
                 repository = this@AppContainer.medicationRepository,
                 savedStateHandle = createSavedStateHandle(),
                 amountParser = AmountParser(),
+                clock = clock,
+            )
+        }
+        initializer {
+            MedicineHistoryViewModel(
+                medicationRepository = this@AppContainer.medicationRepository,
+                doseRepository = this@AppContainer.doseRepository,
+                summarise = summariseUsageHistory,
+                savedStateHandle = createSavedStateHandle(),
                 clock = clock,
             )
         }

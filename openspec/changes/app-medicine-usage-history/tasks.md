@@ -31,21 +31,21 @@
 
 ## 5. Usage history screen
 
-- [ ] 5.1 Add `ui/medicines/history/MedicineHistoryUiState.kt`: the medicine name, the selected period, the `UsageHistory`, a loading flag, and an `OpenFailed` effect.
-- [ ] 5.2 Add `ui/medicines/history/MedicineHistoryViewModel.kt` per design D9: identifier and period from the `SavedStateHandle`, medicine loaded once for its name, `flatMapLatest` from the fixed window onto `observeHistoryFor`, summarised into state with `stateIn(WhileSubscribed)`. Log the open failure without the medicine name or any amount.
-- [ ] 5.3 Add `ui/medicines/history/UsageBreakdown.kt`: the proportional bar and the legend of design D6 item 4, colours through `intakeStatusColors`, every row carrying an icon, a label and a count.
-- [ ] 5.4 Add `ui/medicines/history/UsageChart.kt` per design D5: equal-weight columns, stacked bottom-up taken/skipped/unanswered/missed, heights relative to the largest bucket, `small` clip with an `outlineVariant` border, first and last bucket dates beneath, one semantics node per bar with the full description.
-- [ ] 5.5 Add `ui/medicines/history/MedicineHistoryScreen.kt` per design D6: top app bar, medicine name heading, segmented period row, summary card, breakdown, chart card, records-start note, and the 8.10 empty state with the period row still visible. Every colour, size and text style from a token; no inline string.
-- [ ] 5.6 Add `@PreviewLightDark` previews for the screen (a full week, a sparse three months, the empty state) and for the chart and the breakdown on their own.
-- [ ] 5.7 Register `MedicineHistoryViewModel` in `AppContainer.viewModelFactory` with the summariser and the clock.
+- [x] 5.1 Add `ui/medicines/history/MedicineHistoryUiState.kt`: the medicine name, the selected period, the `UsageHistory`, a loading flag, and an `OpenFailed` effect.
+- [x] 5.2 Add `ui/medicines/history/MedicineHistoryViewModel.kt` per design D9: identifier and period from the `SavedStateHandle`, medicine loaded once for its name, `flatMapLatest` from the fixed window onto `observeHistoryFor`, summarised into state with `stateIn(WhileSubscribed)`. Log the open failure without the medicine name or any amount.
+- [x] 5.3 Add `ui/medicines/history/UsageBreakdown.kt`: the proportional bar and the legend of design D6 item 4, colours through `intakeStatusColors`, every row carrying an icon, a label and a count.
+- [x] 5.4 Add `ui/medicines/history/UsageChart.kt` per design D5: equal-weight columns, stacked bottom-up taken/skipped/unanswered/missed, heights relative to the largest bucket, `small` clip with an `outlineVariant` border, first and last bucket dates beneath, one semantics node per bar with the full description.
+- [x] 5.5 Add `ui/medicines/history/MedicineHistoryScreen.kt` per design D6: top app bar, medicine name heading, segmented period row, summary card, breakdown, chart card, records-start note, and the 8.10 empty state with the period row still visible. Every colour, size and text style from a token; no inline string.
+- [x] 5.6 Add `@PreviewLightDark` previews for the screen (a full week, a sparse three months, the empty state) and for the chart and the breakdown on their own.
+- [x] 5.7 Register `MedicineHistoryViewModel` in `AppContainer.viewModelFactory` with the summariser and the clock.
 
 ## 6. Entry point and navigation
 
-- [ ] 6.1 Add `@Serializable data class MedicineHistory(val medicationId: Long)` to `ui/navigation/Routes.kt`.
-- [ ] 6.2 Add the overflow action and its one-item `DropdownMenu` to `MedicationFormScreen`'s top bar per design D8, shown only when `uiState.showsActiveSwitch`, with a test tag for the action and the item, and a content description on the action.
-- [ ] 6.3 Register `composable<MedicineHistory>` inside the `navigation<MedicationFormGraph>` block in `MedicationFormNavigation.kt`, taking the view model from its own entry, and wire the menu item to navigate to it with the open medicine's identifier.
-- [ ] 6.4 Handle the `OpenFailed` effect by popping back and showing the existing "Could not open medicine" message.
-- [ ] 6.5 Confirm `PillsnerApp` hides the bottom navigation on the new destination without changing anything there.
+- [x] 6.1 Add `@Serializable data class MedicineHistory(val medicationId: Long)` to `ui/navigation/Routes.kt`.
+- [x] 6.2 Add the overflow action and its one-item `DropdownMenu` to `MedicationFormScreen`'s top bar per design D8, shown only when `uiState.showsActiveSwitch`, with a test tag for the action and the item, and a content description on the action.
+- [x] 6.3 Register `composable<MedicineHistory>` inside the `navigation<MedicationFormGraph>` block in `MedicationFormNavigation.kt`, taking the view model from its own entry, and wire the menu item to navigate to it with the open medicine's identifier.
+- [x] 6.4 Handle the `OpenFailed` effect by popping back and showing the existing "Could not open medicine" message.
+- [x] 6.5 Confirm `PillsnerApp` hides the bottom navigation on the new destination without changing anything there.
 
 ## 7. UI tests
 

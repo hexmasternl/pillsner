@@ -384,6 +384,8 @@
     <string name="usage_history_scheduled_label">Scheduled</string>
     <string name="usage_history_taken_label">Taken</string>
     <string name="usage_status_unanswered">Not answered yet</string>
+    <!-- %1$s: the category, for example Taken. %2$d: how many doses. -->
+    <string name="usage_legend_row_description">%1$s: %2$d doses</string>
     <string name="usage_history_by_day">By day</string>
     <string name="usage_history_by_week">By week</string>
     <!-- %1$s: the day, for example 9 September. %2$d: doses taken. %3$d: doses scheduled. -->

@@ -38,6 +38,18 @@ data object MedicationForm
 @Serializable
 data class EditSchedule(val index: Int? = null)
 
+/**
+ * One medicine's usage history (app-medicine-usage-history design D7). Registered inside
+ * [MedicationFormGraph] rather than beside it: the history only exists as something you opened
+ * from a medicine you have open, so leaving the flow takes it off the back stack too, and back
+ * returns to the form with its draft, unsaved edits included. Not a top-level destination.
+ *
+ * @property medicationId the medicine whose record this is. It travels in the route, so process
+ * death restores the right history with nothing to rebuild.
+ */
+@Serializable
+data class MedicineHistory(val medicationId: Long)
+
 /** Placeholder until the settings changes land. */
 @Serializable
 data object Settings

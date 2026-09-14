@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -72,6 +74,8 @@ object MedicationFormTestTags {
     const val SAVE = "add_medication_save"
     const val LOADING = "medication_form_loading"
     const val ACTIVE_SWITCH = "medication_form_active_switch"
+    const val OVERFLOW = "medication_form_overflow"
+    const val USAGE_HISTORY = "medication_form_usage_history"
 }
 
 /**
@@ -101,6 +105,7 @@ fun MedicationFormScreen(
     onKeepEditing: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    onOpenUsageHistory: () -> Unit = {},
 ) {
     val formatter = rememberScheduleDescriptionFormatter()
     var prescriberMenuExpanded by remember { mutableStateOf(false) }
@@ -134,10 +139,17 @@ fun MedicationFormScreen(
                         )
                     }
                 },
+                actions = {
+                    // Only on a saved medicine: an unsaved one has no history to look at.
+                    if (uiState.showsActiveSwitch) {
+                        OverflowMenu(onOpenUsageHistory = onOpenUsageHistory)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                     navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface,
                 ),
             )
         },
@@ -306,6 +318,40 @@ fun MedicationFormScreen(
 
     if (uiState.showDiscardDialog) {
         DiscardDialog(onDiscard = onDiscard, onKeepEditing = onKeepEditing)
+    }
+}
+
+/**
+ * The details screen's secondary actions (design D8). Exactly one item, and nothing destructive
+ * will ever join it: the medicine-details spec forbids a delete, remove or archive action anywhere
+ * on this screen, its menus included.
+ */
+@Composable
+private fun OverflowMenu(onOpenUsageHistory: () -> Unit, modifier: Modifier = Modifier) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier) {
+        IconButton(
+            onClick = { expanded = true },
+            modifier = Modifier
+                .sizeIn(minWidth = Sizes.minTouchTarget, minHeight = Sizes.minTouchTarget)
+                .testTag(MedicationFormTestTags.OVERFLOW),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_more_vert),
+                contentDescription = stringResource(R.string.action_more_options),
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.usage_history_menu_item)) },
+                onClick = {
+                    expanded = false
+                    onOpenUsageHistory()
+                },
+                modifier = Modifier.testTag(MedicationFormTestTags.USAGE_HISTORY),
+            )
+        }
     }
 }
 

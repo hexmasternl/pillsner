@@ -60,8 +60,8 @@
 
 ## 8. Design review and verification
 
-- [ ] 8.1 Run the `pillsner-ui-review` skill over `ui/medicines/history/` and the changed top bar; fix every violation it reports.
-- [ ] 8.2 Check the screen by eye at 100 %, 150 % and 200 % font scale in both themes: nothing truncates, the chart still reads, the whole screen scrolls.
-- [ ] 8.3 Run the unit tests and lint from `src/`; report any failure verbatim.
+- [x] 8.1 Run the `pillsner-ui-review` skill over `ui/medicines/history/` and the changed top bar; fix every violation it reports.
+- [x] 8.2 Check the screen by eye at 100 %, 150 % and 200 % font scale in both themes: nothing truncates, the chart still reads, the whole screen scrolls.
+- [x] 8.3 Run the unit tests and lint from `src/`; report any failure verbatim.
 - [ ] 8.4 Run the instrumented tests, since the DAO and the navigation graph changed.
-- [ ] 8.5 Re-read the three spec files and confirm every requirement has a test or a documented manual check behind it.
+- [x] 8.5 Re-read the three spec files and confirm every requirement has a test or a documented manual check behind it.

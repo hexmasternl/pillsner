@@ -11,6 +11,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -85,7 +86,8 @@ class MedicineHistoryScreenTest {
         composeRule.onNodeWithTag(MedicineHistoryTestTags.SCHEDULED).assertIsDisplayed()
         composeRule.onNodeWithTag(MedicineHistoryTestTags.TAKEN).assertIsDisplayed()
         composeRule.onNodeWithText("Scheduled").assertIsDisplayed()
-        composeRule.onNodeWithText("Taken").assertIsDisplayed()
+        // "Taken" twice on purpose: the count above, and the legend row for the same category.
+        composeRule.onAllNodesWithText("Taken").assertCountEquals(2)
     }
 
     @Test
@@ -150,6 +152,30 @@ class MedicineHistoryScreenTest {
         ).assertIsDisplayed()
     }
 
+    @Test
+    fun aWeeklyBarNamesTheWeekItStartsOn() {
+        showScreen(doses = threeTakenOfFourThisWeek())
+
+        composeRule.onNodeWithTag(period(UsagePeriod.THREE_MONTHS)).performClick()
+
+        // Thursday, Friday and Saturday all sit in the week that opened on Monday 7 September:
+        // two of those three were taken.
+        composeRule.onNode(
+            hasContentDescription("Week of ${today.minusDays(7).format(longDate)}, 2 of 3 doses taken"),
+        ).assertIsDisplayed()
+    }
+
+    @Test
+    fun theLegendLeavesOutTheCategoriesThePeriodHasNoneOf() {
+        showScreen(doses = threeTakenOfFourThisWeek())
+
+        // Three taken and one missed, no skipped and nothing still unanswered.
+        composeRule.onNodeWithTag(row(UsageCategory.TAKEN)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag(row(UsageCategory.MISSED)).performScrollTo().assertIsDisplayed()
+        composeRule.onAllNodesWithTag(row(UsageCategory.SKIPPED)).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(row(UsageCategory.UNANSWERED)).assertCountEquals(0)
+    }
+
     // --- Fixtures -------------------------------------------------------------------------
 
     /** Four doses this week: three taken, one missed. The first day of the window holds none. */
@@ -179,6 +205,8 @@ class MedicineHistoryScreenTest {
         ZonedDateTime.of(date, LocalTime.of(8, 0), amsterdam).toInstant()
 
     private fun period(period: UsagePeriod) = MedicineHistoryTestTags.PERIOD_PREFIX + period.name
+
+    private fun row(category: UsageCategory) = UsageBreakdownTestTags.ROW_PREFIX + category.name
 
     /**
      * The screen with its period held here, so tapping a segment recomputes the record the same way

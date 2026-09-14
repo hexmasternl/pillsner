@@ -312,7 +312,8 @@ fun UsagePeriod.labelRes(): Int = when (this) {
 }
 
 @PreviewLightDark
-@Preview(name = "Large font", fontScale = 2f)
+@Preview(name = "Larger font", fontScale = 1.5f)
+@Preview(name = "Largest font", fontScale = 2f)
 @Composable
 private fun MedicineHistoryFullWeekPreview() {
     PillsnerTheme {

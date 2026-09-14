@@ -2,8 +2,11 @@ package nl.hexmaster.pillsner.ui.medicines.form
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -15,6 +18,7 @@ import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
+import nl.hexmaster.pillsner.ui.theme.Sizes
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +48,16 @@ class MedicineHistoryMenuTest {
         composeRule.onNodeWithTag(MedicationFormTestTags.OVERFLOW).assertIsDisplayed().performClick()
 
         composeRule.onAllNodesWithTag(MedicationFormTestTags.USAGE_HISTORY).assertCountEquals(1)
+    }
+
+    @Test
+    fun theOverflowActionIsATouchTargetWithASpokenLabel() {
+        showForm(detailsState())
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.OVERFLOW)
+            .assertContentDescriptionEquals("More options")
+            .assertWidthIsAtLeast(Sizes.minTouchTarget)
+            .assertHeightIsAtLeast(Sizes.minTouchTarget)
     }
 
     @Test

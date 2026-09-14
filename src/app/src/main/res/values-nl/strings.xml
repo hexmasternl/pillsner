@@ -268,4 +268,64 @@
     <string name="settings_language_label">Taal</string>
     <string name="settings_language_system_default">Systeemtaal</string>
     <string name="settings_language_restart_notice">Start Pillsner opnieuw om de nieuwe taal te gebruiken</string>
+
+    <!-- Instellingen: juridisch -->
+    <string name="legal_section_header">Juridisch</string>
+    <string name="legal_row_disclaimer">Disclaimer</string>
+    <string name="legal_row_terms">Gebruiksvoorwaarden</string>
+    <string name="legal_status_not_accepted">Nog niet aanvaard</string>
+    <!-- %1$s: de datum waarop de gebruiker heeft aanvaard -->
+    <string name="legal_status_accepted">Aanvaard op %1$s</string>
+    <!-- %1$s: de datum waarop de gebruiker een oudere versie heeft aanvaard -->
+    <string name="legal_status_revised">Aanvaard op %1$s — deze documenten zijn sindsdien gewijzigd</string>
+
+    <!-- Een juridisch document op een eigen scherm -->
+    <string name="legal_disclaimer_title">Disclaimer</string>
+    <string name="legal_terms_title">Gebruiksvoorwaarden</string>
+    <!-- %1$d: de versie van het document, %2$s: de datum waarop die van kracht werd -->
+    <string name="legal_document_version">Versie %1$d · %2$s</string>
+
+    <!-- Het aanvaardingsscherm, getoond voordat het eerste medicijn wordt toegevoegd -->
+    <string name="legal_accept_title">Voordat je een medicijn toevoegt</string>
+    <string name="legal_accept_scroll_hint">Lees de disclaimer helemaal door om verder te gaan</string>
+    <string name="legal_accept_terms_link">Lees de gebruiksvoorwaarden</string>
+    <string name="legal_accept_button">Ik begrijp het en aanvaard</string>
+    <string name="legal_accept_now_enabled">Je kunt nu aanvaarden</string>
+
+    <!-- De disclaimer, versie 1 -->
+    <string name="legal_disclaimer_s1_heading">Pillsner is een geheugensteun, geen arts</string>
+    <string name="legal_disclaimer_s1_p1">Pillsner helpt je te onthouden dat je je medicijnen moet innemen. Het is geen medisch hulpmiddel en geeft geen medisch advies. Het controleert niet of een medicijn bij je past, of een dosis veilig is, of dat twee medicijnen samengaan.</string>
+    <string name="legal_disclaimer_s1_p2">Alles wat Pillsner je laat zien, heb je zelf ingevoerd. De app weet niets van je recept, je aandoening of je behandeling.</string>
+    <string name="legal_disclaimer_s2_heading">Jij bepaalt wat je inneemt</string>
+    <string name="legal_disclaimer_s2_p1">Jij bepaalt, samen met de arts of apotheker die je medicijnen heeft voorgeschreven, welk medicijn je inneemt, hoeveel, hoe vaak en op welke tijden. Pillsner herhaalt alleen het schema dat je zelf hebt ingevoerd.</string>
+    <string name="legal_disclaimer_s2_p2">Komt een herinnering van Pillsner niet overeen met je recept, volg dan je recept en pas het schema in de app aan.</string>
+    <string name="legal_disclaimer_s3_heading">Een herinnering kan te laat komen of uitblijven</string>
+    <string name="legal_disclaimer_s3_p1">Pillsner kan niet beloven dat een herinnering je bereikt. Je telefoon kan uitstaan, leeg zijn, op stil staan, in een focusstand of niet-storen-stand staan, of het systeem kan de app vertragen of stoppen om stroom te sparen. Daar heeft de app geen invloed op.</string>
+    <string name="legal_disclaimer_s3_p2">Vertrouw daarom niet alleen op Pillsner om je medicijnen in te nemen. Houd vast aan wat verder voor je werkt: een vaste routine, een medicijndoos, een tweede wekker, of iemand die je helpt.</string>
+    <string name="legal_disclaimer_s4_heading">Waarvoor wij niet verantwoordelijk zijn</string>
+    <string name="legal_disclaimer_s4_p1">Pillsner, uitgever Eduard Keilholz en de mensen die de app ontwikkelen kunnen niet verantwoordelijk worden gehouden voor een dosis die je bent vergeten, te laat, dubbel of verkeerd hebt ingenomen, of er nu wel of geen herinnering is aangekomen.</string>
+    <string name="legal_disclaimer_s4_p2">Hetzelfde geldt voor schade, verlies of kosten die voortkomen uit het gebruik van de app, of uit het niet kunnen gebruiken ervan.</string>
+    <string name="legal_disclaimer_s5_heading">Bij wie je moet zijn</string>
+    <string name="legal_disclaimer_s5_p1">Vragen over je medicijnen, je dosis of je schema stel je aan je arts of je apotheker. Zij kennen jouw situatie; de app niet.</string>
+    <string name="legal_disclaimer_s5_p2">Bel bij een noodgeval, of als je denkt te veel te hebben ingenomen, direct het alarmnummer of een vergiftigingeninformatiecentrum. Wacht niet op de app.</string>
+
+    <!-- De gebruiksvoorwaarden, versie 1 -->
+    <string name="legal_terms_s1_heading">Je gebruiksrecht op Pillsner</string>
+    <string name="legal_terms_s1_p1">Eduard Keilholz geeft je een persoonlijk, niet-exclusief en herroepbaar recht om Pillsner te gebruiken op apparaten die van jou zijn, voor eigen gebruik. Je mag de app niet verkopen, verhuren of verder verspreiden, en niet als de jouwe presenteren.</string>
+    <string name="legal_terms_s1_p2">Dit gebruiksrecht loopt zolang je je aan deze voorwaarden houdt. Je kunt het op elk moment beëindigen door de app van je apparaat te verwijderen.</string>
+    <string name="legal_terms_s2_heading">Geleverd zoals hij is</string>
+    <string name="legal_terms_s2_p1">Pillsner wordt geleverd “zoals hij is” en “zoals beschikbaar”, zonder enige garantie, uitdrukkelijk of stilzwijgend. Er wordt niet beloofd dat de app foutloos is, dat hij geschikt is voor een bepaald doel, of dat hij zonder onderbreking blijft werken.</string>
+    <string name="legal_terms_s2_p2">In het bijzonder wordt niet beloofd dat een herinnering wordt bezorgd, of op tijd wordt bezorgd. De disclaimer zegt wat dat in de praktijk betekent.</string>
+    <string name="legal_terms_s3_heading">Beperking van aansprakelijkheid</string>
+    <string name="legal_terms_s3_p1">Voor zover de wet dat toestaat zijn Eduard Keilholz en de mensen die Pillsner ontwikkelen niet aansprakelijk voor schade, verlies of kosten die voortkomen uit je gebruik van de app, uit een herinnering die niet of te laat aankwam, of uit gegevens die verloren zijn gegaan.</string>
+    <string name="legal_terms_s3_p2">Niets in deze voorwaarden sluit aansprakelijkheid uit of beperkt die, wanneer die volgens de wet niet mag worden uitgesloten of beperkt, waaronder aansprakelijkheid voor overlijden of persoonlijk letsel door opzet of grove nalatigheid.</string>
+    <string name="legal_terms_s4_heading">Je gegevens blijven op je apparaat</string>
+    <string name="legal_terms_s4_p1">Alles wat je in Pillsner invoert — je medicijnen, je schema’s en wat je hebt ingenomen — wordt op je eigen apparaat bewaard. Pillsner stuurt daar niets van weg, en Eduard Keilholz heeft er geen toegang toe en kan het niet voor je terughalen.</string>
+    <string name="legal_terms_s4_p2">Een back-up maken is je eigen verantwoordelijkheid. Verwijder je de app, zet je je apparaat terug naar de fabrieksinstellingen of raak je hem kwijt, dan gaan je gegevens mee.</string>
+    <string name="legal_terms_s5_heading">Wijzigingen in deze voorwaarden</string>
+    <string name="legal_terms_s5_p1">Deze voorwaarden en de disclaimer kunnen worden herzien, bijvoorbeeld als de app verandert of als de wet verandert. Elk document heeft een versienummer en een datum, die je altijd in Instellingen kunt teruglezen.</string>
+    <string name="legal_terms_s5_p2">Is een van beide documenten herzien, dan wordt je gevraagd het opnieuw te lezen en te aanvaarden voordat je je volgende medicijn toevoegt. Wat je al hebt ingevoerd blijft staan, en je herinneringen blijven werken.</string>
+    <string name="legal_terms_s6_heading">Toepasselijk recht</string>
+    <string name="legal_terms_s6_p1">Pillsner wordt uitgegeven en ontwikkeld door Eduard Keilholz, in Nederland. Op deze voorwaarden, en op elk geschil dat daaruit voortkomt, is Nederlands recht van toepassing.</string>
+    <string name="legal_terms_s6_p2">Blijkt een deel van deze voorwaarden geen stand te houden, dan blijft de rest van kracht.</string>
 </resources>

@@ -1,15 +1,15 @@
 ## 1. Groundwork
 
-- [ ] 1.1 Verify the project scaffold exists (`src/` Gradle project, `app` module, `AppContainer`, `PillsnerTheme`, `SettingsScreen`, `PillsnerApp`) and stop if it does not — this change creates no part of it.
-- [ ] 1.2 Confirm the debug build, unit tests and lint pass before any change, so a later failure is known to belong to this work.
+- [x] 1.1 Verify the project scaffold exists (`src/` Gradle project, `app` module, `AppContainer`, `PillsnerTheme`, `SettingsScreen`, `PillsnerApp`) and stop if it does not — this change creates no part of it.
+- [x] 1.2 Confirm the debug build, unit tests and lint pass before any change, so a later failure is known to belong to this work.
 
 ## 2. The legal text
 
-- [ ] 2.1 Draft the English Disclaimer as headed sections covering all five points of the "What the Disclaimer says" requirement, in plain language, short enough to read in one sitting.
-- [ ] 2.2 Draft the English Terms of Service as headed sections covering licence, "as is" and no warranty, limitation of liability with the unexcludable-liability note, data on the device and backups, revision and re-acceptance, and Dutch governing law with Eduard Keilholz named as publisher and developer.
-- [ ] 2.3 Add both documents to `values/strings.xml` as one key per heading and one per paragraph, named `legal_disclaimer_s<n>_heading` / `legal_disclaimer_s<n>_p<m>` and `legal_terms_s<n>_…`.
-- [ ] 2.4 Translate both documents into Dutch in `values-nl/strings.xml`, keeping "Pillsner" and "Eduard Keilholz" untranslated.
-- [ ] 2.5 Add the remaining English and Dutch strings: the two document titles, the Legal section header and its two row labels, the three acceptance-status lines, the acceptance screen title, its scroll hint, its terms link and its accept label, and the version-and-date line.
+- [x] 2.1 Draft the English Disclaimer as headed sections covering all five points of the "What the Disclaimer says" requirement, in plain language, short enough to read in one sitting.
+- [x] 2.2 Draft the English Terms of Service as headed sections covering licence, "as is" and no warranty, limitation of liability with the unexcludable-liability note, data on the device and backups, revision and re-acceptance, and Dutch governing law with Eduard Keilholz named as publisher and developer.
+- [x] 2.3 Add both documents to `values/strings.xml` as one key per heading and one per paragraph, named `legal_disclaimer_s<n>_heading` / `legal_disclaimer_s<n>_p<m>` and `legal_terms_s<n>_…`.
+- [x] 2.4 Translate both documents into Dutch in `values-nl/strings.xml`, keeping "Pillsner" and "Eduard Keilholz" untranslated.
+- [x] 2.5 Add the remaining English and Dutch strings: the two document titles, the Legal section header and its two row labels, the three acceptance-status lines, the acceptance screen title, its scroll hint, its terms link and its accept label, and the version-and-date line.
 
 ## 3. Domain layer
 

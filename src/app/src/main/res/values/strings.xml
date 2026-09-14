@@ -298,4 +298,64 @@
     <string name="settings_language_label">Language</string>
     <string name="settings_language_system_default">System default</string>
     <string name="settings_language_restart_notice">Restart Pillsner to apply the new language</string>
+
+    <!-- Settings: legal -->
+    <string name="legal_section_header">Legal</string>
+    <string name="legal_row_disclaimer">Disclaimer</string>
+    <string name="legal_row_terms">Terms of Service</string>
+    <string name="legal_status_not_accepted">Not yet accepted</string>
+    <!-- %1$s: the date the user accepted -->
+    <string name="legal_status_accepted">Accepted on %1$s</string>
+    <!-- %1$s: the date the user accepted an older version of the documents -->
+    <string name="legal_status_revised">Accepted on %1$s — these documents have changed since</string>
+
+    <!-- A legal document on its own screen -->
+    <string name="legal_disclaimer_title">Disclaimer</string>
+    <string name="legal_terms_title">Terms of Service</string>
+    <!-- %1$d: the document version, %2$s: the date it took effect -->
+    <string name="legal_document_version">Version %1$d · %2$s</string>
+
+    <!-- The acceptance screen, shown before the first medicine is added -->
+    <string name="legal_accept_title">Before you add a medicine</string>
+    <string name="legal_accept_scroll_hint">Read the disclaimer to the end to continue</string>
+    <string name="legal_accept_terms_link">Read the Terms of Service</string>
+    <string name="legal_accept_button">I understand and accept</string>
+    <string name="legal_accept_now_enabled">You can now accept</string>
+
+    <!-- The Disclaimer, version 1 -->
+    <string name="legal_disclaimer_s1_heading">Pillsner is a reminder, not a doctor</string>
+    <string name="legal_disclaimer_s1_p1">Pillsner helps you remember to take your medication. It is not a medical device, and it gives no medical advice. It does not check whether a medicine is right for you, whether a dose is safe, or whether two medicines go together.</string>
+    <string name="legal_disclaimer_s1_p2">Everything Pillsner shows you is what you entered yourself. It knows nothing of your prescription, your condition or your treatment.</string>
+    <string name="legal_disclaimer_s2_heading">You decide what you take</string>
+    <string name="legal_disclaimer_s2_p1">You, together with the doctor or pharmacist who prescribed your medication, decide which medicine you take, how much of it, how often and at what times. Pillsner only repeats the schedule you gave it.</string>
+    <string name="legal_disclaimer_s2_p2">If what Pillsner reminds you of does not match your prescription, follow your prescription and correct the schedule in the app.</string>
+    <string name="legal_disclaimer_s3_heading">A reminder may be late, or may not arrive</string>
+    <string name="legal_disclaimer_s3_p1">Pillsner cannot promise that a reminder reaches you. Your phone may be switched off, out of battery, silenced, in a focus or do-not-disturb mode, or the system may delay or stop the app to save power. None of that is within the app’s control.</string>
+    <string name="legal_disclaimer_s3_p2">Do not rely on Pillsner as the only thing reminding you to take your medication. Keep whatever else works for you: a fixed routine, a pill box, a second alarm, or someone who helps you.</string>
+    <string name="legal_disclaimer_s4_heading">What we are not responsible for</string>
+    <string name="legal_disclaimer_s4_p1">Neither Pillsner, its publisher Eduard Keilholz, nor the people who develop it can be held responsible for a dose that is missed, taken late, taken twice or taken wrongly, whether or not a reminder arrived.</string>
+    <string name="legal_disclaimer_s4_p2">The same applies to any harm, loss or cost arising from using the app, or from being unable to use it.</string>
+    <string name="legal_disclaimer_s5_heading">Who to ask</string>
+    <string name="legal_disclaimer_s5_p1">Questions about your medication, your dose or your schedule go to your doctor or your pharmacist. They know your situation; the app does not.</string>
+    <string name="legal_disclaimer_s5_p2">In an emergency, or if you think you have taken too much, contact the emergency services or a poisons information centre straight away. Do not wait for the app.</string>
+
+    <!-- The Terms of Service, version 1 -->
+    <string name="legal_terms_s1_heading">Your licence to use Pillsner</string>
+    <string name="legal_terms_s1_p1">Eduard Keilholz grants you a personal, non-exclusive, revocable licence to use Pillsner on devices you control, for your own use. You may not sell, rent out or redistribute the app, and you may not present it as your own.</string>
+    <string name="legal_terms_s1_p2">This licence lasts as long as you keep to these terms. You may end it at any time by removing the app from your device.</string>
+    <string name="legal_terms_s2_heading">Provided as is</string>
+    <string name="legal_terms_s2_p1">Pillsner is provided “as is” and “as available”, without warranty of any kind, whether stated or implied. There is no promise that the app is free of faults, that it is fit for a particular purpose, or that it will keep working without interruption.</string>
+    <string name="legal_terms_s2_p2">In particular, there is no promise that a reminder will be delivered, or delivered on time. The Disclaimer says what that means in practice.</string>
+    <string name="legal_terms_s3_heading">Limitation of liability</string>
+    <string name="legal_terms_s3_p1">As far as the law permits, Eduard Keilholz and the people who develop Pillsner are not liable for any damage, loss or cost arising from your use of the app, from a reminder that did not arrive or arrived late, or from data that was lost.</string>
+    <string name="legal_terms_s3_p2">Nothing in these terms excludes or limits liability that may not lawfully be excluded or limited, including liability for death or personal injury caused by intent or gross negligence.</string>
+    <string name="legal_terms_s4_heading">Your data stays on your device</string>
+    <string name="legal_terms_s4_p1">Everything you enter in Pillsner — your medicines, your schedules and what you recorded taking — is stored on your own device. Pillsner sends none of it anywhere, and Eduard Keilholz has no access to it and cannot recover it for you.</string>
+    <string name="legal_terms_s4_p2">Keeping a backup is your own responsibility. If you remove the app, reset your device or lose it, your data goes with it.</string>
+    <string name="legal_terms_s5_heading">Changes to these terms</string>
+    <string name="legal_terms_s5_p1">These terms and the Disclaimer may be revised, for instance when the app changes or the law does. Each document carries a version number and a date, which you can always read in Settings.</string>
+    <string name="legal_terms_s5_p2">When either document has been revised, you are asked to read and accept it again before you add your next medicine. What you already entered stays as it is, and your reminders keep working.</string>
+    <string name="legal_terms_s6_heading">Applicable law</string>
+    <string name="legal_terms_s6_p1">Pillsner is published and developed by Eduard Keilholz, in the Netherlands. These terms, and any dispute arising from them, are governed by the law of the Netherlands.</string>
+    <string name="legal_terms_s6_p2">If a part of these terms turns out not to hold, the rest stays in force.</string>
 </resources>

@@ -13,13 +13,13 @@
 
 ## 3. Domain layer
 
-- [ ] 3.1 Add `domain/legal/LegalDocument.kt` with `LegalDocumentId`, `TextRef`, `LegalSection` and `LegalDocument` — no Android imports.
-- [ ] 3.2 Add `domain/legal/LegalAcceptance.kt` holding the two accepted versions and the moment of acceptance.
-- [ ] 3.3 Add `domain/legal/CurrentLegalDocuments.kt` declaring both documents, their sections in order, their versions (both 1) and their effective dates in one place.
-- [ ] 3.4 Add `domain/repository/LegalRepository.kt` with `observeAcceptance(): Flow<LegalAcceptance?>` and `suspend fun accept(disclaimerVersion: Int, termsVersion: Int)`.
-- [ ] 3.5 Add `domain/legal/IsLegalAccepted.kt` returning a `Flow<Boolean>` that is true only when a record exists and both stored versions are at least the current versions.
-- [ ] 3.6 Unit-test `IsLegalAccepted` for: no record, both current, disclaimer stale, terms stale, both stale, and both newer than the installed build.
-- [ ] 3.7 Unit-test that both documents are present, have at least one section, carry version 1 and an effective date, and that no document holds prose.
+- [x] 3.1 Add `domain/legal/LegalDocument.kt` with `LegalDocumentId`, `TextRef`, `LegalSection` and `LegalDocument` — no Android imports.
+- [x] 3.2 Add `domain/legal/LegalAcceptance.kt` holding the two accepted versions and the moment of acceptance.
+- [x] 3.3 Add `domain/legal/CurrentLegalDocuments.kt` declaring both documents, their sections in order, their versions (both 1) and their effective dates in one place.
+- [x] 3.4 Add `domain/repository/LegalRepository.kt` with `observeAcceptance(): Flow<LegalAcceptance?>` and `suspend fun accept(disclaimerVersion: Int, termsVersion: Int)`.
+- [x] 3.5 Add `domain/legal/IsLegalAccepted.kt` returning a `Flow<Boolean>` that is true only when a record exists and both stored versions are at least the current versions.
+- [x] 3.6 Unit-test `IsLegalAccepted` for: no record, both current, disclaimer stale, terms stale, both stale, and both newer than the installed build.
+- [x] 3.7 Unit-test that both documents are present, have at least one section, carry version 1 and an effective date, and that no document holds prose.
 
 ## 4. Data layer
 

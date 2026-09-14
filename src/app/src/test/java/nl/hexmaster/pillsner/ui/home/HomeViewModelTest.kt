@@ -149,6 +149,17 @@ class HomeViewModelTest {
         assertEquals(IntakeStatus.Snoozed, snoozed.status(now))
     }
 
+    @Test
+    fun `a renamed medicine reaches the tile without the screen being reopened`() = runTest(dispatcher) {
+        repository.emit(listOf(dose(id = 1, hoursFromNow = 2)))
+        val viewModel = collecting()
+        assertEquals("Medicine 1", viewModel.uiState.value.upcomingDoses.single().medicationName)
+
+        repository.emit(listOf(dose(id = 1, hoursFromNow = 2).copy(medicationName = "Ibuprofen 400")))
+
+        assertEquals("Ibuprofen 400", viewModel.uiState.value.upcomingDoses.single().medicationName)
+    }
+
     private fun kotlinx.coroutines.test.TestScope.collecting(): HomeViewModel {
         val viewModel = HomeViewModel(repository, clock = clock)
         backgroundScope.launch { viewModel.uiState.collect {} }

@@ -16,8 +16,9 @@ import nl.hexmaster.pillsner.domain.repository.DoseRepository
 
 /**
  * A [DoseRepository] held in memory, with the same rules as the Room one: planned inserts ignore a
- * dose that is already there, and only unanswered, un-reminded doses can be withdrawn. Used by the
- * unit tests of the scheduling use cases and by Compose previews.
+ * dose that is already there, a pending dose's name and amount follow its medicine, and a dose is
+ * withdrawn only when its own medicine no longer plans its moment. Used by the unit tests of the
+ * scheduling use cases and by Compose previews.
  */
 class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository {
 
@@ -52,17 +53,45 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
         }
     }
 
-    override suspend fun deletePlannedNotIn(from: Instant, to: Instant, keep: Collection<Instant>) {
-        val kept = keep.toSet()
-        doses.update { current ->
-            current.filterNot { dose ->
-                dose.isPending &&
-                    dose.firstRemindedAt == null &&
-                    !dose.scheduledAt.isBefore(from) &&
-                    dose.scheduledAt.isBefore(to) &&
-                    dose.scheduledAt !in kept
+    override suspend fun refreshSnapshots(doses: List<PlannedDose>) {
+        val bySlot = doses.associateBy { it.medicationId to it.scheduledAt }
+        this.doses.update { current ->
+            current.map { dose ->
+                val planned = bySlot[dose.medicationId to dose.scheduledAt]
+                if (planned == null || !dose.isPending) {
+                    dose
+                } else {
+                    dose.copy(medicationName = planned.medicationName, amount = planned.amount)
+                }
             }
         }
+    }
+
+    override suspend fun withdrawPlanned(
+        from: Instant,
+        to: Instant,
+        planned: Map<MedicationId, List<Instant>>,
+        includeReminded: Boolean,
+    ): List<DoseId> {
+        val moments = planned.mapValues { (_, at) -> at.toSet() }
+
+        val withdrawn = doses.value.filter { dose ->
+            val medicationId = dose.medicationId
+            dose.isPending &&
+                (includeReminded || dose.firstRemindedAt == null) &&
+                !dose.scheduledAt.isBefore(from) &&
+                dose.scheduledAt.isBefore(to) &&
+                // A dose whose medicine is gone belongs to no plan and is left alone.
+                medicationId != null &&
+                medicationId in moments &&
+                dose.scheduledAt !in moments.getValue(medicationId)
+        }
+
+        if (withdrawn.isEmpty()) return emptyList()
+
+        val ids = withdrawn.map { it.id }.toSet()
+        doses.update { current -> current.filterNot { it.id in ids } }
+        return withdrawn.map { it.id }
     }
 
     override suspend fun recordIntake(id: DoseId, outcome: IntakeOutcome, at: Instant) {

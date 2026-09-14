@@ -117,15 +117,38 @@ class DoseDaoTest {
         doses.setFirstReminded(all[0].id, morning)
         doses.recordIntake(all[1].id, IntakeOutcome.SKIPPED, evening)
 
-        doses.deletePlannedNotIn(
+        val withdrawn = doses.withdrawPlanned(
             from = morning.minusSeconds(86_400),
             to = evening.plusSeconds(86_400),
-            keep = emptyList(),
+            planned = mapOf(id to emptyList()),
+            includeReminded = false,
         )
 
         // The reminded one survives; the answered one is not pending; the merely planned one is gone.
         assertEquals(listOf(morning), doses.pending().map { it.scheduledAt })
         assertEquals(IntakeOutcome.SKIPPED, doses.get(all[1].id)?.intake?.outcome)
+        assertEquals(listOf(all[2].id), withdrawn)
+    }
+
+    @Test
+    fun withdrawingPlannedDoses_takesARemindedOneWhenTheUserChangedTheMedicine() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        val all = doses.pending()
+        doses.setFirstReminded(all[0].id, morning)
+        doses.recordIntake(all[1].id, IntakeOutcome.TAKEN, evening)
+
+        val withdrawn = doses.withdrawPlanned(
+            from = morning.minusSeconds(86_400),
+            to = evening.plusSeconds(86_400),
+            planned = mapOf(id to emptyList()),
+            includeReminded = true,
+        )
+
+        // The reminded one goes; the answered one is history and stays under either mode.
+        assertEquals(listOf(all[0].id), withdrawn)
+        assertEquals(emptyList<Instant>(), doses.pending().map { it.scheduledAt })
+        assertEquals(IntakeOutcome.TAKEN, doses.get(all[1].id)?.intake?.outcome)
     }
 
     @Test
@@ -133,13 +156,76 @@ class DoseDaoTest {
         val id = medications.add(medication())
         doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
 
-        doses.deletePlannedNotIn(
+        doses.withdrawPlanned(
             from = morning.minusSeconds(86_400),
             to = evening.plusSeconds(86_400),
-            keep = listOf(evening),
+            planned = mapOf(id to listOf(evening)),
+            includeReminded = false,
         )
 
         assertEquals(listOf(evening), doses.pending().map { it.scheduledAt })
+    }
+
+    @Test
+    fun withdrawingPlannedDoses_matchesOnTheMedicineAndNotOnTheMomentAlone() = runBlocking {
+        val moved = medications.add(medication())
+        val unchanged = medications.add(medication())
+        doses.insertPlanned(listOf(planned(moved, morning), planned(unchanged, morning)))
+
+        // One medicine moves off the morning; the other still takes its dose then.
+        doses.withdrawPlanned(
+            from = morning.minusSeconds(86_400),
+            to = evening.plusSeconds(86_400),
+            planned = mapOf(moved to listOf(evening), unchanged to listOf(morning)),
+            includeReminded = false,
+        )
+
+        assertEquals(
+            listOf(unchanged to morning),
+            doses.pending().map { it.medicationId to it.scheduledAt },
+        )
+    }
+
+    @Test
+    fun withdrawingPlannedDoses_neverTakesADoseWhoseMedicineIsGone() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+        // The reference goes null, as in deletingTheMedication_leavesTheDoseWithoutLosingItsHistory.
+        database.openHelper.writableDatabase.execSQL("DELETE FROM medications WHERE id = ${id.value}")
+
+        val withdrawn = doses.withdrawPlanned(
+            from = morning.minusSeconds(86_400),
+            to = evening.plusSeconds(86_400),
+            planned = mapOf(id to emptyList()),
+            includeReminded = true,
+        )
+
+        assertEquals(emptyList<Any>(), withdrawn)
+        assertEquals(listOf(morning), doses.pending().map { it.scheduledAt })
+    }
+
+    @Test
+    fun refreshingSnapshots_updatesAPendingDoseAndLeavesAnAnsweredOneAlone() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        val answered = doses.pending().first { it.scheduledAt == morning }
+        doses.recordIntake(answered.id, IntakeOutcome.TAKEN, morning)
+
+        val renamed = Quantity.of("1", DoseUnit.TABLET)
+        doses.refreshSnapshots(
+            listOf(
+                PlannedDose(id, "Ibuprofen 400", renamed, morning),
+                PlannedDose(id, "Ibuprofen 400", renamed, evening),
+            ),
+        )
+
+        val stillPending = doses.pending().single()
+        assertEquals("Ibuprofen 400", stillPending.medicationName)
+        assertEquals(renamed, stillPending.amount)
+
+        val history = doses.get(answered.id)!!
+        assertEquals("Ibuprofen", history.medicationName)
+        assertEquals(mg40, history.amount)
     }
 
     @Test
@@ -159,6 +245,18 @@ class DoseDaoTest {
         doses.insertPlanned(listOf(planned(id, morning)))
 
         assertEquals(listOf(morning), doses.observePending().first().map { it.scheduledAt })
+    }
+
+    @Test
+    fun thePendingStream_reEmitsWhenASnapshotIsRefreshed() = runBlocking {
+        // This is what carries a rename to the Home screen while the user is looking at it.
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+        assertEquals("Ibuprofen", doses.observePending().first().single().medicationName)
+
+        doses.refreshSnapshots(listOf(PlannedDose(id, "Ibuprofen 400", mg40, morning)))
+
+        assertEquals("Ibuprofen 400", doses.observePending().first().single().medicationName)
     }
 
     @Test

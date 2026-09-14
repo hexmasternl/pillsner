@@ -33,12 +33,40 @@ interface DoseRepository {
     suspend fun insertPlanned(doses: List<PlannedDose>)
 
     /**
-     * Removes planned doses scheduled within [from]..[to] that are not in [keep], have no recorded
-     * outcome and have never been reminded about. This is how a schedule edit, a deactivation or a
-     * time zone change drops the doses that should no longer happen, without ever discarding a
-     * dose the user has already seen or answered.
+     * Brings the name and amount of the pending doses matching [doses] up to date with the medicine
+     * each one belongs to.
+     *
+     * A dose keeps a copy of its medicine's name and amount so that it stays readable once the
+     * medicine is gone, but while the dose is still pending that copy must follow the medicine:
+     * a screen or a reminder naming a medicine the user has just renamed is wrong. A dose that has
+     * an outcome is the user's record of what happened and is never changed.
      */
-    suspend fun deletePlannedNotIn(from: Instant, to: Instant, keep: Collection<Instant>)
+    suspend fun refreshSnapshots(doses: List<PlannedDose>)
+
+    /**
+     * Withdraws the pending doses scheduled within `[from, to)` that the medicines' schedules no
+     * longer call for, and returns the ones it withdrew.
+     *
+     * [planned] holds every known medicine, mapped to the moments it now plans inside the window;
+     * a medicine that plans nothing — deactivated, without schedules, or outside the days it is
+     * used — maps to an empty list and loses all of its pending doses in the window. A dose is
+     * matched against **its own** medicine's moments, so another medicine planning a dose at the
+     * same instant never keeps it alive.
+     *
+     * [includeReminded] says whether a dose the user has already been reminded about may go. It is
+     * true only when this follows a change the user made to a medicine: they have just said they no
+     * longer take it then, so an outstanding reminder for it is wrong. It is false for a clock
+     * change, a time-zone change, a reboot or an ordinary wake, where a dose the user has already
+     * been told about keeps its moment.
+     *
+     * A dose with an outcome is never withdrawn, under either mode.
+     */
+    suspend fun withdrawPlanned(
+        from: Instant,
+        to: Instant,
+        planned: Map<MedicationId, List<Instant>>,
+        includeReminded: Boolean,
+    ): List<DoseId>
 
     /** Records the outcome of one dose and clears any snooze on it. */
     suspend fun recordIntake(id: DoseId, outcome: IntakeOutcome, at: Instant)

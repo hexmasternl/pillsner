@@ -80,7 +80,16 @@ class ReminderCoordinator(
                 withTimeout(WAKE_TIMEOUT_MILLIS) {
                     markMissedDoses().forEach { notifier.cancel(it) }
 
-                    refreshPlannedDoses()
+                    // Only a change the user made may withdraw a dose they have already been
+                    // reminded about: they have just said they no longer take it then. A clock or
+                    // time-zone move must leave such a dose exactly where it is.
+                    val withdrawn = refreshPlannedDoses(
+                        afterUserEdit = reason == WakeReason.MEDICATIONS_CHANGED,
+                    )
+                    // A withdrawn dose no longer exists, so a notification for it would offer
+                    // answers that resolve to nothing. Cancelling one that was never shown is a
+                    // no-op, so there is no need to ask first.
+                    withdrawn.forEach { notifier.cancel(it) }
 
                     val due = dueDoses()
                     due.forEach { dose ->

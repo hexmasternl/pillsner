@@ -106,6 +106,9 @@ Any change to this table should go through the spec-driven workflow described be
 | `src/shared/` | Plain Kotlin: the phone-to-watch sync contract, so both apps compile against one wire format. |
 | `openspec/` | Spec-driven planning: `specs/` holds the agreed behaviour of the app, `changes/` holds in-progress change proposals, and `changes/archive/` holds completed ones. |
 | `docs/` | The design system (`design-system.md`) and its visual companion (`design-system.html`): colours, typography, components and accessibility rules for the app. |
+| `.github/workflows/` | `ci.yml` tests, lints and assembles every pull request; `release.yml` builds, signs and publishes both bundles to Google Play on every push to `main`, then tags the commit and creates the GitHub release. |
+| `distribution/whatsnew/` | Play release notes, one plain-text file per listing language. Update them in the change that earns them. |
+| `GitVersion.yml` | How the release version is derived: every commit on `main` bumps the patch, and the tag written by a successful release becomes the next baseline. |
 | `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, plus the design agent and UI skills that enforce the design system. |
 | `CLAUDE.md` | Working instructions for AI coding assistants contributing to this repository. |
 | `LICENSE` | MIT license. |

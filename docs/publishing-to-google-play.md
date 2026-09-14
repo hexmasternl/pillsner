@@ -221,6 +221,10 @@ keyAlias=pillsner-upload
 keyPassword=...
 ```
 
+Use forward slashes in `storeFile`, even on Windows. A `.properties` file is read by Java's
+`Properties.load`, which treats a backslash as an escape character, so `C:\keys\upload.jks`
+parses as `C:keysupload.jks` and the build then fails to find the keystore.
+
 The Gradle code in the next part reads this file when it exists and falls back to environment
 variables when it does not, so the same build script serves your laptop and the pipeline.
 
@@ -376,24 +380,51 @@ Play enforces three rules, and the scheme above satisfies all of them:
    a release you later halted. Version codes are spent, never reused.
 3. The version code is an integer below 2,100,000,000.
 
-Derive `base` from the git tag so it is monotonic and traceable. For a tag `v1.2.3`:
+`base` comes from the version GitVersion works out at the start of the release run, so it is
+monotonic and traceable without anyone deciding a number. For version `1.2.3`:
 
 ```
-base = major * 10000 + minor * 100 + patch
-     = 1 * 10000 + 2 * 100 + 3
-     = 10203
+base = major * 1000000 + minor * 10000 + patch
+     = 1 * 1000000 + 2 * 10000 + 3
+     = 1020003
 
-phone versionCode = 102030
-watch versionCode = 102031
+phone versionCode = 10200030
+watch versionCode = 10200031
 versionName       = "1.2.3"
 ```
 
-This survives up to 99 patches and 99 minors per major, and leaves eight spare slots per release in
-case a third form factor ever appears. The release workflow computes it from the tag, so the only
-thing you ever decide by hand is the tag itself.
+This holds up to 9,999 patches per minor and 99 minors per major, and leaves eight spare slots per
+release in case a third form factor ever appears. The patch width matters: `main` runs in
+GitVersion's ContinuousDeployment mode, so **every commit on `main` bumps the patch**, and a
+two-digit patch would run out inside a year. The workflow fails loudly if a version ever falls
+outside the scheme rather than shipping a code that goes backwards.
 
 Do **not** derive the version code from `github.run_number`. It resets if the workflow file is
 renamed, and a version code that goes backwards is a release you cannot publish.
+
+### Where the version comes from: `GitVersion.yml`
+
+```yaml
+workflow: GitHubFlow/v1
+
+tag-prefix: '[vV]?'
+
+branches:
+  main:
+    regex: ^main$
+    deployment-mode: ContinuousDeployment
+    increment: Patch
+```
+
+ContinuousDeployment in GitVersion 6 is what GitVersion 5 called Mainline: every commit on `main`
+gets its own version, with no pre-release label, so every build off `main` is publishable.
+
+The loop closes because the release workflow tags each successful upload `vMAJOR.MINOR.PATCH`.
+GitVersion reads those tags back as its baseline, so the numbering continues from what actually
+shipped rather than from a count of commits.
+
+To move to a new minor or major, say so in the commit that earns it — `+semver: minor` or
+`+semver: major` anywhere in the message — or tag the commit yourself before pushing.
 
 ---
 
@@ -531,8 +562,16 @@ touches Play.
 
 **Produces:** `.github/workflows/ci.yml` and `.github/workflows/release.yml`.
 
-Two workflows, cleanly separated: one that runs on every change and never touches Play, and one that
-runs on a tag and does.
+Two workflows, cleanly separated by job rather than by trigger:
+
+- **`ci.yml` proves the code is good.** Tests, lint, a debug assembly. It guards pull requests and
+  never touches Play.
+- **`release.yml` ships it.** Compile, bundle, sign, upload, tag. No tests — a commit that reaches
+  `main` has already been through `ci.yml` on its pull request, and running the suite a second time
+  only adds minutes between merging and shipping.
+
+That split is deliberate. If you want the release run to be gated on the tests as well, the honest
+fix is to require the CI check in the branch protection rule for `main`, not to duplicate the suite.
 
 Note that the Gradle project root is `src`, not the repository root. The `run` steps handle that with
 `defaults.run.working-directory`, but **`uses:` steps ignore that setting** — any path passed to an
@@ -609,8 +648,9 @@ jobs:
 ```
 
 `CLAUDE.md` asks that unit tests and lint pass before any task is declared done — this is that rule,
-enforced. Instrumented tests are deliberately *not* here: they need an emulator, which roughly
-quadruples the run time. Add a separate scheduled workflow using
+enforced. Make it stick by requiring this check in the branch protection rule for `main`, so no pull
+request can merge without it. Instrumented tests are deliberately *not* here: they need an emulator,
+which roughly quadruples the run time. Add a separate scheduled workflow using
 `reactivecircus/android-emulator-runner` if you want `connectedAndroidTest` on a cadence — the
 alarm-scheduling and Room migration tests are the ones that earn the wait.
 
@@ -621,7 +661,7 @@ name: Release to Google Play
 
 on:
   push:
-    tags: [ "v*.*.*" ]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       track:
@@ -629,12 +669,9 @@ on:
         type: choice
         options: [ internal, alpha, beta, production ]
         default: internal
-      version:
-        description: Version, without the leading v (for example 1.2.3)
-        required: true
 
 permissions:
-  contents: read
+  contents: write          # needed to create the tag and the GitHub release at the end
 
 concurrency:
   group: release
@@ -652,60 +689,45 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0              # GitVersion needs the full history and every tag
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3
+        with:
+          versionSpec: "6.x"
 
       - name: Work out the version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yml
+
+      - name: Derive the Play version code
         id: version
         working-directory: .
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          INPUT_VERSION: ${{ inputs.version }}
+          MAJOR: ${{ steps.gitversion.outputs.major }}
+          MINOR: ${{ steps.gitversion.outputs.minor }}
+          PATCH: ${{ steps.gitversion.outputs.patch }}
+          NAME: ${{ steps.gitversion.outputs.majorMinorPatch }}
           INPUT_TRACK: ${{ inputs.track }}
         run: |
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            VERSION="$INPUT_VERSION"
-            TRACK="$INPUT_TRACK"
-          else
-            VERSION="${GITHUB_REF_NAME#v}"
-            TRACK="internal"
+          if [ "$MINOR" -gt 99 ] || [ "$PATCH" -gt 9999 ] || [ "$MAJOR" -gt 209 ]; then
+            echo "::error::Version $NAME does not fit the version code scheme"
+            exit 1
           fi
-          case "$VERSION" in
-            [0-9]*.[0-9]*.[0-9]*) ;;
-            *) echo "::error::Version $VERSION is not major.minor.patch" ; exit 1 ;;
-          esac
-          MAJOR=$(echo "$VERSION" | cut -d. -f1)
-          MINOR=$(echo "$VERSION" | cut -d. -f2)
-          PATCH=$(echo "$VERSION" | cut -d. -f3)
-          BASE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+          BASE=$(( MAJOR * 1000000 + MINOR * 10000 + PATCH ))
+          TRACK="${INPUT_TRACK:-internal}"
           {
-            echo "name=$VERSION"
+            echo "name=$NAME"
             echo "code=$BASE"
             echo "track=$TRACK"
           } >> "$GITHUB_OUTPUT"
-          echo "Publishing $VERSION (base $BASE) to $TRACK" >> "$GITHUB_STEP_SUMMARY"
+          echo "Publishing $NAME (phone ${BASE}0, watch ${BASE}1) to $TRACK" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Validate the Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v4
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Set up the Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install the pinned SDK components
-        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
-
-      - name: Unit tests
-        run: ./gradlew test
-
-      - name: Lint
-        run: ./gradlew lint
+      # ... JDK, Gradle wrapper validation, Gradle, Android SDK, pinned SDK components ...
 
       - name: Restore the upload keystore
         env:
@@ -730,6 +752,7 @@ jobs:
           jarsigner -verify wear/build/outputs/bundle/release/wear-release.aab
 
       - name: Upload to Google Play
+        id: upload
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -743,19 +766,40 @@ jobs:
           whatsNewDirectory: distribution/whatsnew
           changesNotSentForReview: false
 
-      - name: Keep the bundles as build artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pillsner-${{ steps.version.outputs.name }}
-          path: |
-            src/app/build/outputs/bundle/release/app-release.aab
+      - name: Tag the commit and create the GitHub release
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.name }}
+          TRACK: ${{ steps.version.outputs.track }}
+          CODE: ${{ steps.version.outputs.code }}
+        run: |
+          gh release create "v$VERSION" \
+            --title "Pillsner $VERSION" \
+            --target "$GITHUB_SHA" \
+            --generate-notes \
+            --notes "Published to the Play **$TRACK** track. Phone version code ${CODE}0, watch version code ${CODE}1." \
+            src/app/build/outputs/bundle/release/app-release.aab \
             src/wear/build/outputs/bundle/release/wear-release.aab
-          retention-days: 90
 ```
+
+The file in the repository is the authority; the listing above elides the five toolchain steps
+between the version and the keystore, which are identical to the ones in `ci.yml`.
 
 ### 8.3 Things worth knowing about that workflow
 
+- **The version is worked out once, at the start of the run.** Every later step reads
+  `steps.version.outputs`, so the bundles, the Play release, the tag and the GitHub release all carry
+  the same number by construction. See [Part 5](#part-5--version-codes-for-two-modules).
+- **The GitHub release is created last, and only on success.** It comes *after* Play has accepted the
+  upload, so a release in GitHub always means a release in the store — never a tag for a build that
+  never shipped. Both `.aab` files are attached to it.
+- **`contents: write` is the only extra permission.** `gh release create` needs it to push the tag.
+  It uses the automatic `github.token`; no personal access token is involved.
+- **The tag feeds the next run.** GitVersion reads `vMAJOR.MINOR.PATCH` back as its baseline, so the
+  two halves form one loop: tags come out of releases, versions come out of tags.
+- **No tests here.** They belong to the pull request, enforced by branch protection. A release run
+  that re-ran them would be testing a commit that has already been tested.
 - **Both bundles go up in one call.** `releaseFiles` takes a list, and the action puts every file in
   a single Play release. Uploading them in two separate steps would create two releases, the second
   of which supersedes the first — and the watch app would quietly vanish.
@@ -771,19 +815,19 @@ jobs:
   you are still getting the workflow right, then inspect the draft in the Play Console before
   promoting anything. For a staged production rollout, use `status: inProgress` together with
   `userFraction: 0.1`.
-- **Tag pushes always go to `internal`.** Production is reachable only through a deliberate
+- **Pushes to `main` always go to `internal`.** Production is reachable only through a deliberate
   `workflow_dispatch` with `track: production`, which also passes through the environment approval.
   Make the dangerous thing require a decision.
 
 ### 8.4 Cutting a release
 
-```powershell
-git tag -a v1.0.0 -m "Pillsner 1.0.0"
-git push origin v1.0.0
-```
+Merge to `main`. That is the whole procedure: every commit on `main` is a release candidate, gets its
+own version, waits for the `google-play` environment approval, and lands on the internal track with a
+matching GitHub release behind it.
 
-The workflow runs, waits for your approval, and the build appears on the internal track within a few
-minutes. Widening the audience is then a button in the Play Console, or another `workflow_dispatch`.
+Widening the audience is then a button in the Play Console, or a `workflow_dispatch` run with a
+different track. To move the version to a new minor or major, put `+semver: minor` or `+semver: major`
+in the commit message of the change that earns it.
 
 ---
 
@@ -1136,7 +1180,7 @@ Fixes for reminders arriving late after a time zone change.
 
 Keeping these in the repository means the release notes are reviewed in the same pull request as the
 change they describe, and the pipeline never has to ask a human what changed. Update them as part of
-the change, not as an afterthought at tag time.
+the change, not as an afterthought at release time.
 
 ---
 
@@ -1159,7 +1203,7 @@ the change, not as an afterthought at tag time.
 | `The current user has insufficient permissions to perform the requested operation` | The service account has no app-level permission, or the grant has not propagated. Part 6.3, then wait up to 24 hours. |
 | `404 ... Package not found: nl.hexmaster.pillsner` | No bundle has ever been uploaded to this app entry. Do the manual first upload, Part 9. |
 | `Only releases with status draft may be created on draft app` | The app has never been published on any track. Either complete the first rollout by hand, or set `status: draft` in the workflow until it has. |
-| `APK specifies a version code that has already been used` | Version codes are spent once. Tag a higher version. |
+| `APK specifies a version code that has already been used` | Version codes are spent once. GitVersion normally prevents this; it happens if a run is replayed on a commit that already shipped. Push a new commit, or move the version on with `+semver: minor`. |
 | `Version code N has already been used` on the Wear bundle only | Both modules resolved the same `versionCodeBase` but the `* 10 + 1` line is missing from `src/wear/build.gradle.kts`. |
 | `Changes cannot be sent for review automatically` | Some App content form is incomplete, or another release is already in review. Finish Part 11, or set `changesNotSentForReview: true` and submit from the Console. |
 
@@ -1170,7 +1214,7 @@ the change, not as an afterthought at tag time.
 | CI fails at configuration with `SDK location not found` | `local.properties` is correctly gitignored and absent on the runner; `android-actions/setup-android@v3` sets `ANDROID_HOME`. Make sure that step runs before any Gradle step. |
 | `Failed to install the following SDK components: platforms;android-37` | Licences not accepted, or the component genuinely is not published yet. The explicit `sdkmanager` step accepts licences via the setup action. |
 | Configuration cache reports `undeclared build input: environment variable` | Something is reading `System.getenv` at configuration time. Use `providers.environmentVariable(...)` as in Part 4. |
-| The release build succeeds but the app crashes only in release | R8 removed something reflective. Add a keep rule to `src/app/proguard-rules.pro`, and test a release build locally before tagging: `.\gradlew.bat :app:installRelease`. |
+| The release build succeeds but the app crashes only in release | R8 removed something reflective. Add a keep rule to `src/app/proguard-rules.pro`, and test a release build locally before merging: `.\gradlew.bat :app:installRelease`. |
 | Room migration tests pass locally, fail in CI | Schema JSON under `src/app/schemas` was not committed. It must be, for every version. |
 
 ### Policy
@@ -1268,7 +1312,8 @@ not maintained together:
   all three.
 - The **privacy policy** exists as in-app text and as a hosted page. A change to one is a change to
   both, in the same release.
-- The **version code scheme** is described here and implemented in two `build.gradle.kts` files.
+- The **version code scheme** is described here, implemented in `.github/workflows/release.yml`,
+  configured in `GitVersion.yml` and consumed by two `build.gradle.kts` files.
 
 Anything in this document that changes app behaviour — adding a dependency, changing `targetSdk`,
 adding a permission, publishing a privacy policy page — goes through the OpenSpec workflow like any

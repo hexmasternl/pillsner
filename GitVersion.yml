@@ -1,0 +1,19 @@
+# GitVersion 6 configuration. Drives the version name and the Play version codes of both
+# bundles; see docs/publishing-to-google-play.md, Part 5.
+#
+# main runs in ContinuousDeployment mode (GitVersion 5 called this Mainline): every commit on
+# main gets its own version, with no pre-release label, so every release build is publishable
+# and every version code is higher than the one before it.
+#
+# The release workflow tags each successful upload with vMAJOR.MINOR.PATCH. GitVersion reads
+# those tags back as the baseline, so the numbering continues from what actually shipped.
+# To move to a new minor or major, tag the commit yourself or use a +semver: bump message.
+workflow: GitHubFlow/v1
+
+tag-prefix: '[vV]?'
+
+branches:
+  main:
+    regex: ^main$
+    deployment-mode: ContinuousDeployment
+    increment: Patch

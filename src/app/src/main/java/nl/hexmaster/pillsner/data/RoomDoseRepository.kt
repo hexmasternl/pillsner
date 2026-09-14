@@ -35,8 +35,55 @@ class RoomDoseRepository(
         dao.insertIgnore(doses.map { it.toEntity() })
     }
 
-    override suspend fun deletePlannedNotIn(from: Instant, to: Instant, keep: Collection<Instant>) {
-        dao.deletePlannedNotIn(from, to, keep)
+    override suspend fun refreshSnapshots(doses: List<PlannedDose>) {
+        doses.forEach {
+            dao.refreshSnapshot(
+                medicationId = it.medicationId.value,
+                scheduledAt = it.scheduledAt,
+                name = it.medicationName,
+                amountValue = it.amount.value,
+                amountUnit = it.amount.unit.name,
+            )
+        }
+    }
+
+    override suspend fun withdrawPlanned(
+        from: Instant,
+        to: Instant,
+        planned: Map<MedicationId, List<Instant>>,
+        includeReminded: Boolean,
+    ): List<DoseId> {
+        val (scheduled, unscheduled) = planned.entries.partition { it.value.isNotEmpty() }
+
+        // Read the ids first, then delete them: a delete cannot say what it removed, and the
+        // coordinator needs the list to take down the notifications for them.
+        val ids = buildList {
+            scheduled.forEach { (medicationId, moments) ->
+                addAll(
+                    dao.plannedNoLongerScheduled(
+                        medicationId = medicationId.value,
+                        from = from,
+                        to = to,
+                        keep = moments,
+                        includeReminded = includeReminded,
+                    ),
+                )
+            }
+            if (unscheduled.isNotEmpty()) {
+                addAll(
+                    dao.plannedForUnscheduledMedications(
+                        medicationIds = unscheduled.map { it.key.value },
+                        from = from,
+                        to = to,
+                        includeReminded = includeReminded,
+                    ),
+                )
+            }
+        }
+
+        if (ids.isEmpty()) return emptyList()
+        dao.deleteByIds(ids)
+        return ids.map(::DoseId)
     }
 
     override suspend fun recordIntake(id: DoseId, outcome: IntakeOutcome, at: Instant) {

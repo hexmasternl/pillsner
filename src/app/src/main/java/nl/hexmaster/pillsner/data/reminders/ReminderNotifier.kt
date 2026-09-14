@@ -9,6 +9,7 @@ import androidx.core.app.NotificationManagerCompat
 import nl.hexmaster.pillsner.MainActivity
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.domain.model.Dose
+import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.ui.home.DayLabel
 import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.home.hasNotificationPermission
@@ -90,7 +91,16 @@ class ReminderNotifier(
 
     /** Takes down the reminder for one dose, and the group summary when it was the last one. */
     fun cancel(dose: Dose, remainingDue: Int = 0) {
-        notificationManager.cancel(dose.notificationId())
+        cancel(dose.id, remainingDue)
+    }
+
+    /**
+     * The same, by identifier, for a dose that is already gone. A dose withdrawn because the user
+     * changed its schedule cannot be loaded any more, and cancelling a notification that was never
+     * shown does nothing, so the caller need not know which is which.
+     */
+    fun cancel(id: DoseId, remainingDue: Int = 0) {
+        notificationManager.cancel(id.notificationId())
         if (remainingDue <= 1) notificationManager.cancel(SUMMARY_ID)
     }
 
@@ -170,6 +180,8 @@ class ReminderNotifier(
         const val TOOK_IT_ACTION_INDEX = 0
 
         /** Notification ids come from the dose id, so a dose has exactly one notification. */
-        fun Dose.notificationId(): Int = id.value.toInt()
+        fun DoseId.notificationId(): Int = value.toInt()
+
+        fun Dose.notificationId(): Int = id.notificationId()
     }
 }

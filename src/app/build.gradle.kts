@@ -48,6 +48,19 @@ android {
         resourceConfigurations += listOf("en", "nl")
     }
 
+    signingConfigs {
+        // Only created when signing material is present, so a plain local `bundleRelease` still
+        // produces an (unsigned) artifact instead of failing the configuration phase.
+        if (keystorePath != null) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = signingValue("storePassword", "PILLSNER_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "PILLSNER_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "PILLSNER_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.findByName("release")

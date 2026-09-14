@@ -54,6 +54,9 @@ android {
 
     buildFeatures {
         compose = true
+        // Generates BuildConfig, so the version and the application id the About screen reports
+        // come from the build rather than from text kept in step by hand (app-about-screen D2).
+        buildConfig = true
     }
 
     lint {

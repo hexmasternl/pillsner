@@ -328,4 +328,17 @@
     <string name="legal_terms_s6_heading">Toepasselijk recht</string>
     <string name="legal_terms_s6_p1">Pillsner wordt uitgegeven en ontwikkeld door Eduard Keilholz, in Nederland. Op deze voorwaarden, en op elk geschil dat daaruit voortkomt, is Nederlands recht van toepassing.</string>
     <string name="legal_terms_s6_p2">Blijkt een deel van deze voorwaarden geen stand te houden, dan blijft de rest van kracht.</string>
+
+    <!-- Over-sectie in Instellingen, en het Over-scherm -->
+    <string name="about_header">Over</string>
+    <string name="about_row_title">Over Pillsner</string>
+    <!-- %1$s: versienaam, bijvoorbeeld 0.1.0. %2$d: versiecode. -->
+    <string name="about_version_summary">Versie %1$s (%2$d)</string>
+    <string name="about_title">Over</string>
+    <string name="about_name_origin">De naam is een samentrekking van twee Engelse woorden: Pills en Partner. Dat is wat de app wil zijn — een partner die je doses onthoudt, zodat jij dat niet hoeft.</string>
+    <!-- %1$s: versienaam. %2$d: versiecode. De rij heet al "Versie". -->
+    <string name="about_version_value">%1$s (%2$d)</string>
+    <string name="about_version_label">Versie</string>
+    <string name="about_application_id_label">App-id</string>
+    <string name="about_author_label">Auteur</string>
 </resources>

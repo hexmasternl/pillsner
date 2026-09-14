@@ -30,6 +30,7 @@ private fun PillsnerAppPreview() {
             viewModelFactory = container.viewModelFactory,
             appLockViewModel = appLockViewModel,
             biometricAuthenticator = biometricAuthenticator,
+            appInfo = container.appInfo,
         )
     }
 }

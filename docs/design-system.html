@@ -360,6 +360,23 @@
   <div class="spec"><div class="meta"><b>labelMedium</b>Montserrat · 14 / 20 · 600<br>Chips, navigation labels</div><div class="sample" style="font-size:14px;font-weight:600;line-height:20px;letter-spacing:.03em">Medicines</div></div>
 </div>
 
+
+<h2>Wordmark</h2>
+<p class="prose muted">The name blends <b>Pills</b> and Part<b>ner</b>, and the wordmark shows it: <code>Pills</code> in <code>secondary</code>, <code>ner</code> in <code>primary</code>, in both themes. One word, no gap, one type role, one weight &mdash; a colour split, not two words.</p>
+
+<div class="grid g2" style="margin-top:20px">
+  <div class="theme-light" style="background:var(--surface);color:var(--on-surface);border-radius:16px;padding:32px;text-align:center">
+    <div style="font-family:var(--display);font-size:48px;font-weight:200;line-height:56px"><span style="color:var(--secondary)">Pills</span><span style="color:var(--primary)">ner</span></div>
+    <div style="font-size:14px;color:var(--on-surface-variant);margin-top:12px">Light &middot; displayLarge</div>
+  </div>
+  <div class="theme-dark" style="background:var(--surface);color:var(--on-surface);border-radius:16px;padding:32px;text-align:center">
+    <div style="font-family:var(--display);font-size:48px;font-weight:200;line-height:56px"><span style="color:var(--secondary)">Pills</span><span style="color:var(--primary)">ner</span></div>
+    <div style="font-size:14px;color:var(--on-surface-variant);margin-top:12px">Dark &middot; displayLarge</div>
+  </div>
+</div>
+
+<p class="prose muted" style="margin-top:16px">It is one text node built from a single annotated string, so a screen reader, text selection and a test matcher all see the whole word &ldquo;Pillsner&rdquo;, never <code>Pills</code> and <code>ner</code> separately. The colouring is decoration and carries no meaning. It stays at <code>displayLarge</code> or, at smallest, <code>headlineSmall</code>, because Raleway 200 is never used under 24&nbsp;sp. It lives once in <code>ui/components/PillsnerWordmark.kt</code> and is derived from the <code>app_title</code> string resource.</p>
+
 <h2>Shape and spacing</h2>
 <div class="grid g2" style="margin-top:20px">
   <div>

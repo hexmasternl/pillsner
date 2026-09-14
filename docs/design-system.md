@@ -290,6 +290,18 @@ Centered in the remaining space. Outlined 64 dp icon in `onSurfaceVariant`, `hea
 
 `AlertDialog` for confirmations, `headlineMedium` title, `bodyLarge` body, at most two actions. `ModalBottomSheet` for pickers and editors that need more room, on `surfaceContainerHigh`, `extraLarge` top corners, with a drag handle.
 
+### 8.13 Wordmark
+
+The app name is a blend of **Pills** and Part**ner**, and the wordmark shows it. `Pills` is drawn in `secondary`, `ner` in `primary`, in both schemes. Rules:
+
+- One word, no gap. The fragments sit flush against each other, at one type role and one weight. It is a colour split, not two words.
+- One text node. Built as a single `Text` over an `AnnotatedString` with a `SpanStyle` per fragment, so TalkBack, text selection and test matchers all see the single word "Pillsner". Never a `Row` of two `Text`s.
+- Decoration only. The colouring carries no meaning, so nothing is lost when it is not perceived.
+- `displayLarge` by default, and never below `headlineSmall`: the display roles use Raleway at weight 200, which section 3.3 forbids under 24 sp.
+- The name comes from the `app_title` string resource and the split is derived from it. A title that does not end in `ner` is drawn whole in `secondary`.
+
+Implemented once, in `ui/components/PillsnerWordmark.kt`. Every surface that shows the name uses it; no screen re-implements the split.
+
 ---
 
 ## 9. Motion

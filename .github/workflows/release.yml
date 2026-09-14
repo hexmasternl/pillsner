@@ -115,6 +115,7 @@ jobs:
           test -s "$RUNNER_TEMP/upload.jks"
 
       - name: Build both bundles
+        id: build
         env:
           PILLSNER_KEYSTORE_PATH: ${{ runner.temp }}/upload.jks
           PILLSNER_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
@@ -137,6 +138,7 @@ jobs:
       # then the release is sent for review once from the Play Console. It can go back to
       # false after the first review has completed.
       - name: Upload the phone bundle to Google Play
+        id: upload_phone
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -148,6 +150,7 @@ jobs:
           changesNotSentForReview: true
 
       - name: Upload the watch bundle to Google Play
+        id: upload_watch
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -159,8 +162,10 @@ jobs:
           changesNotSentForReview: true
 
       - name: Tag the commit and create the GitHub release
-        # Only once Play has accepted the upload, so a release in GitHub always means a release
-        # in the store — never a tag for a build that never shipped.
+        # Runs whether or not Play accepted the bundles, so a build that produced signed bundles is
+        # always tagged and downloadable from GitHub. The notes say what actually reached the store,
+        # so a tag never implies a store release that did not happen.
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -168,14 +173,35 @@ jobs:
           TRACK: ${{ steps.version.outputs.track }}
           WEAR_TRACK: ${{ steps.version.outputs.wearTrack }}
           CODE: ${{ steps.version.outputs.code }}
+          PHONE_OUTCOME: ${{ steps.upload_phone.outcome }}
+          WATCH_OUTCOME: ${{ steps.upload_watch.outcome }}
         run: |
-          gh release create "v$VERSION" \
-            --title "Pillsner $VERSION" \
-            --target "$GITHUB_SHA" \
-            --generate-notes \
-            --notes "Phone version code ${CODE}0 published to the Play **$TRACK** track, watch version code ${CODE}1 to **$WEAR_TRACK**." \
-            src/app/build/outputs/bundle/release/app-release.aab \
-            src/wear/build/outputs/bundle/release/wear-release.aab
+          describe() {
+            case "$1" in
+              success) echo "published to the Play **$2** track" ;;
+              failure) echo "NOT published: the upload to **$2** failed" ;;
+              skipped) echo "NOT published: the upload to **$2** never ran" ;;
+              *) echo "upload to **$2** ended as '$1'" ;;
+            esac
+          }
+          NOTES="Phone version code ${CODE}0 $(describe "$PHONE_OUTCOME" "$TRACK"). Watch version code ${CODE}1 $(describe "$WATCH_OUTCOME" "$WEAR_TRACK")."
+          PHONE_AAB=src/app/build/outputs/bundle/release/app-release.aab
+          WATCH_AAB=src/wear/build/outputs/bundle/release/wear-release.aab
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            # A rerun on the same commit: refresh the one release rather than failing on a tag
+            # that already exists.
+            echo "Release v$VERSION already exists; updating its notes and assets."
+            gh release edit "v$VERSION" --notes "$NOTES"
+            gh release upload "v$VERSION" "$PHONE_AAB" "$WATCH_AAB" --clobber
+          else
+            gh release create "v$VERSION" \
+              --title "Pillsner $VERSION" \
+              --target "$GITHUB_SHA" \
+              --generate-notes \
+              --notes "$NOTES" \
+              "$PHONE_AAB" \
+              "$WATCH_AAB"
+          fi
 
       - name: Keep the bundles as build artifacts
         if: always()

@@ -82,6 +82,18 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
             .filter { it.medicationId == medicationId && it.scheduledAt.isAfter(after) }
             .minOfOrNull { it.scheduledAt }
 
+    override fun observeHistoryFor(medicationId: MedicationId, from: Instant, to: Instant): Flow<List<Dose>> =
+        doses.map { all ->
+            all.filter {
+                it.medicationId == medicationId &&
+                    !it.scheduledAt.isBefore(from) &&
+                    it.scheduledAt.isBefore(to)
+            }.sortedBy { it.scheduledAt }
+        }
+
+    override suspend fun earliestScheduledAt(medicationId: MedicationId): Instant? =
+        doses.value.filter { it.medicationId == medicationId }.minOfOrNull { it.scheduledAt }
+
     /** Everything stored, answered doses included, for assertions. */
     fun all(): List<Dose> = doses.value.sortedBy { it.scheduledAt }
 

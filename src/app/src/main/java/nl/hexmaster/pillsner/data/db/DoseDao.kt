@@ -69,6 +69,24 @@ interface DoseDao {
     )
     suspend fun nextScheduledAtAfter(medicationId: Long, after: Instant): Instant?
 
+    /**
+     * One medicine's record over a window, answered and unanswered doses alike, served by the
+     * `(medication_id, scheduled_at)` index the planner already needs (app-medicine-usage-history
+     * design D1). Nothing here writes.
+     */
+    @Query(
+        """
+        SELECT * FROM doses
+        WHERE medication_id = :medicationId AND scheduled_at >= :from AND scheduled_at < :to
+        ORDER BY scheduled_at ASC
+        """,
+    )
+    fun observeHistoryFor(medicationId: Long, from: Instant, to: Instant): Flow<List<DoseEntity>>
+
+    /** The oldest moment this medicine has a stored dose for, or null when it has none. */
+    @Query("SELECT MIN(scheduled_at) FROM doses WHERE medication_id = :medicationId")
+    suspend fun earliestScheduledAt(medicationId: Long): Instant?
+
     /** Only for tests and for the debug preview data; production never removes a dose. */
     @Query("DELETE FROM doses")
     suspend fun deleteAll()

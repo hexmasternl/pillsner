@@ -54,6 +54,12 @@ class RoomDoseRepository(
     override suspend fun nextScheduledAtAfter(medicationId: MedicationId, after: Instant): Instant? =
         dao.nextScheduledAtAfter(medicationId.value, after)
 
+    override fun observeHistoryFor(medicationId: MedicationId, from: Instant, to: Instant): Flow<List<Dose>> =
+        dao.observeHistoryFor(medicationId.value, from, to).map { rows -> rows.map { it.toDomain() } }
+
+    override suspend fun earliestScheduledAt(medicationId: MedicationId): Instant? =
+        dao.earliestScheduledAt(medicationId.value)
+
     private companion object {
         /**
          * The planning window never reaches beyond tomorrow, so "everything pending" and

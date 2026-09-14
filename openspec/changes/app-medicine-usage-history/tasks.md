@@ -16,11 +16,11 @@
 
 ## 3. Data layer
 
-- [ ] 3.1 Add `observeHistoryFor(medicationId, from, to): Flow<List<Dose>>` and `earliestScheduledAt(medicationId): Instant?` to `domain/repository/DoseRepository.kt`, with KDoc saying both are read-only and that history is never withdrawn.
-- [ ] 3.2 Add the two queries of design D1 to `data/db/DoseDao.kt`. Verify no `DoseEntity` change is needed and that `PillsnerDatabase`'s version and migration list stay untouched.
-- [ ] 3.3 Implement both in `data/RoomDoseRepository.kt` and in `data/InMemoryDoseRepository.kt`.
-- [ ] 3.4 Add DAO tests in `DoseDaoTest`: the range query returns only the given medicine's doses inside the range, in scheduled order, including answered and unanswered ones; `earliestScheduledAt` returns the oldest moment and null for a medicine with no doses.
-- [ ] 3.5 Confirm `PillsnerDatabaseMigrationTest` still passes unchanged, proving no schema change slipped in.
+- [x] 3.1 Add `observeHistoryFor(medicationId, from, to): Flow<List<Dose>>` and `earliestScheduledAt(medicationId): Instant?` to `domain/repository/DoseRepository.kt`, with KDoc saying both are read-only and that history is never withdrawn.
+- [x] 3.2 Add the two queries of design D1 to `data/db/DoseDao.kt`. Verify no `DoseEntity` change is needed and that `PillsnerDatabase`'s version and migration list stay untouched.
+- [x] 3.3 Implement both in `data/RoomDoseRepository.kt` and in `data/InMemoryDoseRepository.kt`.
+- [x] 3.4 Add DAO tests in `DoseDaoTest`: the range query returns only the given medicine's doses inside the range, in scheduled order, including answered and unanswered ones; `earliestScheduledAt` returns the oldest moment and null for a medicine with no doses.
+- [x] 3.5 Confirm `PillsnerDatabaseMigrationTest` still passes unchanged, proving no schema change slipped in.
 
 ## 4. Strings, drawables and theme tokens
 

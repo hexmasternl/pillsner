@@ -169,6 +169,41 @@ class DoseDaoTest {
         assertEquals(listOf(morning, evening), doses.pending().map { it.scheduledAt })
     }
 
+    @Test
+    fun theHistoryOfOneMedicine_holdsOnlyItsOwnDosesInsideTheRange() = runBlocking {
+        val mine = medications.add(medication())
+        val other = medications.add(medication())
+        val earlier = morning.minusSeconds(86_400)
+        val later = evening.plusSeconds(86_400)
+        doses.insertPlanned(
+            listOf(
+                planned(mine, earlier),
+                planned(mine, morning),
+                planned(mine, evening),
+                planned(mine, later),
+                planned(other, morning),
+            ),
+        )
+        // One answered and one still unanswered, so both kinds have to come back.
+        doses.recordIntake(doses.pending().first { it.scheduledAt == morning && it.medicationId == mine }.id, IntakeOutcome.TAKEN, morning)
+
+        val history = doses.observeHistoryFor(mine, morning, later).first()
+
+        assertEquals(listOf(morning, evening), history.map { it.scheduledAt })
+        assertEquals(IntakeOutcome.TAKEN, history[0].intake?.outcome)
+        assertNull(history[1].intake)
+    }
+
+    @Test
+    fun theEarliestRecordedMoment_isTheOldestStoredDose() = runBlocking {
+        val id = medications.add(medication())
+        val withoutDoses = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, evening), planned(id, morning)))
+
+        assertEquals(morning, doses.earliestScheduledAt(id))
+        assertNull(doses.earliestScheduledAt(withoutDoses))
+    }
+
     private fun medication() = NewMedication(
         name = "Ibuprofen",
         defaultDose = mg40,

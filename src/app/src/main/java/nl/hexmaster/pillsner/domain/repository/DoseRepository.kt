@@ -54,4 +54,18 @@ interface DoseRepository {
      * the stored window. Used to decide when an unanswered dose is superseded.
      */
     suspend fun nextScheduledAtAfter(medicationId: MedicationId, after: Instant): Instant?
+
+    /**
+     * Every stored dose of [medicationId] scheduled in `[from, to)`, oldest first, answered and
+     * unanswered alike. Read-only: nothing here changes a dose, and history is never withdrawn, so
+     * what comes back is what happened. Re-emits when an outcome is recorded while it is collected.
+     */
+    fun observeHistoryFor(medicationId: MedicationId, from: Instant, to: Instant): Flow<List<Dose>>
+
+    /**
+     * The moment of [medicationId]'s oldest stored dose, or null when it has none. Read-only, and
+     * the honest answer to "how far back do the records reach": an empty stretch inside a window is
+     * a medicine taken rarely, not a record that is missing.
+     */
+    suspend fun earliestScheduledAt(medicationId: MedicationId): Instant?
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Window-level theme only: it paints the dark surface behind the first Compose frame. Every
+        visible thing is styled by PillsnerWearTheme in Compose.
+    -->
+    <style name="Theme.PillsnerWear" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowBackground">@color/deep_moss</item>
+    </style>
+</resources>

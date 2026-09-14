@@ -6,7 +6,7 @@ The `app-medicine-alarm` design rejected a Wear OS companion app because the bri
 
 `app-settings-language` makes the phone app render in a user-chosen language (English or Dutch) independent of the system, including notifications built in receivers, through a localised context. The watch must follow the same language or the user sees a Dutch phone and an English watch.
 
-Constraints from `CLAUDE.md`: Kotlin, Compose, MVVM, no network permission, no third-party SDKs without a named reason and README disclosure, strings in resources, accessibility, no logging of names or doses, dependencies in the single version catalog, small files.
+Constraints from `CLAUDE.md`: Kotlin, Compose, MVVM, no network permission, no third-party SDKs without a named reason and README disclosure, strings in resources, accessibility, no logging of names or doses, dependencies in the single version catalog created by `app-welcome-screen`, small files, brand colours and intake state colours from `docs/design-system.md` on the watch as well (the phone's type scale and spacing tokens do not transfer to a round watch screen; Wear Material 3 supplies those).
 
 ## Goals / Non-Goals
 
@@ -78,6 +78,13 @@ The publisher runs inside the existing `ReminderCoordinator` scope (application-
 
 *Privacy:* the Data Layer moves items over the Bluetooth or local Wi-Fi link between paired devices; Wear OS removed the cloud relay for data items. Neither module declares `INTERNET`. Still, medicine names now exist on a second device, in Play services storage, which is why the README says so. The task list includes verifying the no-cloud property against the current Play services documentation before archiving.
 
+**Verified on 13 September 2026** against the current Wear OS documentation:
+
+- *Sync data items with the Data Layer API* (`developer.android.com/training/wearables/data/data-items`) states that "the Data Layer API can only send messages and synchronize data with Android phones or Wear OS watches", and directs apps that want to reach a network to *Communicate directly over a network* instead. The Data Layer is therefore not a path to a server.
+- *Sync persistent data* (`developer.android.com/training/wearables/data/sync`) describes the transport as the Bluetooth link between the paired devices, and says assets are for sharing "large binary objects over the Bluetooth transport".
+
+Neither page describes a cloud relay for data items, and the merged manifests of both modules were checked after adding the dependency: `:app` declares only the four permissions it already had, `:wear` declares none. Play services Wearable adds no `INTERNET` or `ACCESS_NETWORK_STATE` permission of its own.
+
 ### D4. Watch side: reading, listening, waking
 
 `UpcomingDosesRepository` (watch, data layer) exposes `Flow<SyncedDoses?>`:
@@ -118,6 +125,8 @@ data class WatchDoseEntry(val doseId: Long, val name: String, val amountText: St
 
 The layout follows Wear guidelines: padding for round screens from the scaffold, `TransformingLazyColumn` scaling and fading, rotary input supported by the column, minimum 48 dp card height, text at the Wear typography scale so the system font size setting applies.
 
+**Theme on the watch.** The `:wear` module has its own small `ui/theme` with a Wear Material 3 `ColorScheme` built from the design system's dark column (section 2.2: watch surfaces are always dark, so `primary` `#8CD8B0`, `secondary` `#A2C9FF`, `tertiary` `#83D4E0`, `error` `#FFB4AB`, `surface` `#101413` and their containers), the only file in that module with hex literals. Overdue pending doses use `errorContainer` / `onErrorContainer` with the `error` icon, due doses `secondaryContainer` with `schedule`, exactly as section 2.3 maps them, so the wrist shows the same states as the phone. Typography and shapes stay the Wear Material 3 defaults: the design system's Montserrat and Raleway scale is designed for phone screens, and bundling another megabyte of fonts on a watch buys nothing. Icons are Material Symbols Rounded bundled as vector drawables.
+
 *Alternative considered:* `ScalingLazyColumn` from Wear Compose foundation. The Material 3 `TransformingLazyColumn` is the current recommendation and comes with the M3 components; both are first-party.
 
 ### D7. Language on the watch
@@ -132,7 +141,7 @@ The watch manifest does **not** set `com.google.android.wearable.notificationBri
 
 ### D9. Dependencies and build
 
-Version catalog additions: `playServicesWearable`, `wearComposeMaterial3`, `wearComposeFoundation`, `wearToolingPreview`, `kotlinxSerializationJson`; the `:wear` module uses the same Compose BOM and Kotlin Compose plugin as `:app`. `:shared` applies `kotlin("jvm")` and the serialization plugin. `:wear` manifest: `<uses-feature android:name="android.hardware.type.watch" />`, `<meta-data android:name="com.google.android.wearable.standalone" android:value="false" />`, the listener service, no permissions except none (the Data Layer needs none).
+Version catalog additions, at the newest stable versions on 11 September 2026 and re-checked at apply time: `com.google.android.gms:play-services-wearable` 20.0.1 (April 2026; carries a fix recommended for apps targeting API 37), `androidx.wear.compose:compose-material3` and `compose-foundation` 1.6.2 (May 2026; 1.7.0 is still a release candidate), `androidx.wear.compose:compose-ui-tooling` 1.6.2, `androidx.wear:wear-tooling-preview` 1.0.0; `kotlinx-serialization-json` is already in the catalog at 1.11.0 from `app-welcome-screen`. The `:wear` module uses the same Compose BOM (2026.08.00), Kotlin (2.4.20) and Kotlin Compose plugin as `:app`, with `compileSdk` and `targetSdk` 37 and `minSdk` 30. `:shared` applies `kotlin("jvm")` with the JDK 21 toolchain and the serialization plugin. `:wear` manifest: `<uses-feature android:name="android.hardware.type.watch" />`, `<meta-data android:name="com.google.android.wearable.standalone" android:value="false" />`, the listener service, no permissions except none (the Data Layer needs none).
 
 *Why Play services Wearable is justified:* it is the only API for phone-to-watch communication on Wear OS; there is no AndroidX equivalent. It is Google's SDK, not a third-party analytics or network SDK, and it is used solely for the paired-device link.
 

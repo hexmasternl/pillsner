@@ -81,7 +81,8 @@ These are the intended choices. Deviations must be justified in a change proposa
 
 **Dependencies**
 - Prefer AndroidX and Kotlin first-party libraries. Add a third-party library only when it removes meaningful complexity, and name the reason in the proposal.
-- Keep dependency versions in a single version catalog.
+- Keep dependency versions in a single version catalog. The baseline (JDK 21, Gradle 9.7.1, AGP 9.4.0, Kotlin 2.4.20, Compose BOM 2026.09.00, SDK 37 and the AndroidX versions) is recorded in the `app-welcome-screen` design and mirrored in the README's Toolchain table; pick the newest stable release of each, never a pre-release, and bump versions deliberately inside a change, keeping both places in step.
+- The project scaffold (Gradle project, wrapper, catalog, `app` module, manifest, `MainActivity`, `AppContainer`, theme) is created by `app-welcome-screen` only. Every other change verifies the scaffold exists and stops if it does not; none recreates any part of it.
 
 ## Coding style
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon layer: the capsule as a single silhouette; the system supplies the colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-45">
+        <path
+            android:fillColor="@color/pillsner_white"
+            android:pathData="M42,40 L66,40 A14,14 0 0 1 66,68 L42,68 A14,14 0 0 1 42,40 Z" />
+    </group>
+</vector>

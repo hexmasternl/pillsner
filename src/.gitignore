@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+
+# Local configuration (SDK location, machine-specific properties)
+local.properties
+
+# IDE metadata
+.idea/
+*.iml
+.vscode/
+captures/
+
+# Signing material: never commit
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Eclipse/Buildship output for the plain Kotlin modules
+bin/
+
+# Native build output
+.externalNativeBuild/
+.cxx/
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db

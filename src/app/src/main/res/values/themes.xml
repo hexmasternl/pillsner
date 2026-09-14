@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Window-level theme only. It paints the surface colour behind the first Compose frame and
+        removes the framework action bar; everything visible is styled by PillsnerTheme in Compose.
+    -->
+    <style name="Theme.Pillsner" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/mint_white</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

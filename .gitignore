@@ -1,0 +1,15 @@
+# Signing material: never commit.
+# The keys folder holds the upload keystore used to sign release builds. Losing it is bad;
+# publishing it is worse, because anyone holding it can ship an update as if they were us.
+keys/
+
+# The same material, wherever else it lands. src/.gitignore repeats these for the Gradle project;
+# these catch anything outside it.
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Misc
+.DS_Store
+Thumbs.db

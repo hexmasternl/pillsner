@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Every language under its own name, in the order of SupportedLanguages.all, so that someone
+        who cannot read the language the app is currently in can still find theirs. Never
+        translated: "Nederlands" is "Nederlands" in every language.
+    -->
+    <string-array name="language_names" translatable="false">
+        <item>English</item>
+        <item>Nederlands</item>
+    </string-array>
+</resources>

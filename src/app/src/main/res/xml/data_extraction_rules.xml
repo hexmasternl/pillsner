@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    API 31+ backup and transfer rules. The app lock's DataStore file is device-bound (design D4):
+    its verifier can only be checked with a key that never leaves this device's Keystore, so
+    restoring it elsewhere would only produce an unusable lock. Excluding it means a restore always
+    yields the lock disabled, which app-login's design treats as the correct behaviour.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="files/datastore/applock.preferences_pb" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="files/datastore/applock.preferences_pb" />
+    </device-transfer>
+</data-extraction-rules>

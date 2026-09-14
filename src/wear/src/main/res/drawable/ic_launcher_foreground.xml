@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive icon foreground: the placeholder capsule mark inside the 72 dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/pillsner_white"
+        android:pathData="M54,24 A30,30 0 1 1 54,84 A30,30 0 1 1 54,24 Z" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-45">
+        <path
+            android:fillColor="@color/pillsner_green"
+            android:pathData="M54,45.5 L45.5,45.5 A8.5,8.5 0 0 0 45.5,62.5 L54,62.5 Z" />
+        <path
+            android:fillColor="@color/pillsner_blue"
+            android:pathData="M54,45.5 L62.5,45.5 A8.5,8.5 0 0 1 62.5,62.5 L54,62.5 Z" />
+    </group>
+</vector>

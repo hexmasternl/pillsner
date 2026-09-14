@@ -41,6 +41,9 @@ class WelcomeScreenTest {
 
         composeRule.onNodeWithTag(WelcomeScreenTestTags.HEADER).assertIsDisplayed()
         composeRule.onNode(hasText("Pillsner") and isHeading()).assertIsDisplayed()
+        // The two-colour wordmark must stay one node: TalkBack and text matchers see "Pillsner", not "Pills" + "ner".
+        composeRule.onAllNodes(hasText("Pillsner")).assertCountEquals(1)
+        composeRule.onAllNodes(hasText("Pills", substring = false)).assertCountEquals(0)
         composeRule.onNode(hasContentDescription("Pillsner logo")).assertIsDisplayed()
     }
 

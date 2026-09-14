@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,9 +17,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.ui.components.PillsnerWordmark
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Sizes
 import nl.hexmaster.pillsner.ui.theme.Spacing
@@ -29,7 +27,8 @@ import nl.hexmaster.pillsner.ui.theme.Spacing
 /**
  * Logo and app title at the top of the welcome screen (docs/design-system.md sections 3.3, 8.7):
  * Home has no app bar, the title is the screen's single `displayLarge` and it is centred. The mark
- * is a painter parameter so the final artwork replaces the drawable without touching this code.
+ * is a painter parameter so the final artwork replaces the drawable without touching this code. The
+ * title is the two-colour [PillsnerWordmark], which owns its own type role and colours.
  */
 @Composable
 fun WelcomeHeader(
@@ -49,12 +48,7 @@ fun WelcomeHeader(
             modifier = Modifier.size(Sizes.logoHeader),
         )
         Spacer(Modifier.height(Spacing.md))
-        Text(
-            text = stringResource(R.string.app_title),
-            style = MaterialTheme.typography.displayLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.semantics { heading() },
-        )
+        PillsnerWordmark(modifier = Modifier.semantics { heading() })
     }
 }
 

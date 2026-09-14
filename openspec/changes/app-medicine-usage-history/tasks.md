@@ -49,14 +49,14 @@
 
 ## 7. UI tests
 
-- [ ] 7.1 Compose test: the overflow action is absent in add mode, present in edit mode, and its menu holds exactly one item.
-- [ ] 7.2 Extend `NoMedicineDeletionTest` to open the overflow menu and assert that no delete, remove or archive action exists in it.
-- [ ] 7.3 Compose test: the history screen shows the medicine name, the title, the three segments with "1 week" selected, and the scheduled, taken and adherence figures for a known fixture.
-- [ ] 7.4 Compose test: selecting "3 months" recomputes the figures and the chart; the selection survives rotation.
-- [ ] 7.5 Compose test: the empty state appears when nothing is scheduled and the segments remain tappable; widening the period replaces it with the figures.
-- [ ] 7.6 Compose test: the records-start note appears when the medicine is younger than the period and not otherwise.
-- [ ] 7.7 Compose test: each bar's content description reads the bucket and the "n of m taken" counts, including the no-doses-scheduled wording.
-- [ ] 7.8 Navigation test: open the history from the details overflow, press back, and assert the form is shown with an earlier edit still present and no discard dialog.
+- [x] 7.1 Compose test: the overflow action is absent in add mode, present in edit mode, and its menu holds exactly one item.
+- [x] 7.2 Extend `NoMedicineDeletionTest` to open the overflow menu and assert that no delete, remove or archive action exists in it.
+- [x] 7.3 Compose test: the history screen shows the medicine name, the title, the three segments with "1 week" selected, and the scheduled, taken and adherence figures for a known fixture.
+- [x] 7.4 Compose test: selecting "3 months" recomputes the figures and the chart; the selection survives rotation.
+- [x] 7.5 Compose test: the empty state appears when nothing is scheduled and the segments remain tappable; widening the period replaces it with the figures.
+- [x] 7.6 Compose test: the records-start note appears when the medicine is younger than the period and not otherwise.
+- [x] 7.7 Compose test: each bar's content description reads the bucket and the "n of m taken" counts, including the no-doses-scheduled wording.
+- [x] 7.8 Navigation test: open the history from the details overflow, press back, and assert the form is shown with an earlier edit still present and no discard dialog.
 
 ## 8. Design review and verification
 

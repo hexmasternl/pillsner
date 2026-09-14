@@ -3,8 +3,11 @@ package nl.hexmaster.pillsner.ui.medicines.form
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.LocalDate
 import nl.hexmaster.pillsner.domain.model.DoseUnit
@@ -29,7 +32,30 @@ class NoMedicineDeletionTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun theOverflowMenuOffersNoWayToRemoveAMedicine() {
+        showDetailsScreen()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.OVERFLOW).performClick()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.USAGE_HISTORY).assertIsDisplayed()
+        listOf("Delete", "Archive", "Remove medicine").forEach { word ->
+            composeRule.onAllNodesWithText(word, substring = true, ignoreCase = true)
+                .assertCountEquals(0)
+        }
+    }
+
+    @Test
     fun theDetailsScreenOffersNoWayToRemoveAMedicine() {
+        showDetailsScreen()
+
+        // "Remove schedule" is allowed: a schedule is not the medicine.
+        listOf("Delete", "Archive", "Remove medicine").forEach { word ->
+            composeRule.onAllNodesWithText(word, substring = true, ignoreCase = true)
+                .assertCountEquals(0)
+        }
+    }
+
+    private fun showDetailsScreen() {
         composeRule.setContent {
             PillsnerTheme {
                 MedicationFormScreen(
@@ -64,12 +90,6 @@ class NoMedicineDeletionTest {
                     snackbarHostState = remember { SnackbarHostState() },
                 )
             }
-        }
-
-        // "Remove schedule" is allowed: a schedule is not the medicine.
-        listOf("Delete", "Archive", "Remove medicine").forEach { word ->
-            composeRule.onAllNodesWithText(word, substring = true, ignoreCase = true)
-                .assertCountEquals(0)
         }
     }
 }

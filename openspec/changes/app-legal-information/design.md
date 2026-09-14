@@ -40,6 +40,7 @@ enum class LegalDocumentId { DISCLAIMER, TERMS }
 
 data class LegalDocument(
     val id: LegalDocumentId,
+    val title: TextRef,
     val version: Int,
     val effectiveDate: LocalDate,
     val sections: List<LegalSection>,
@@ -49,6 +50,8 @@ data class LegalSection(val heading: TextRef, val paragraphs: List<TextRef>)
 ```
 
 `TextRef` is a plain `value class TextRef(val resourceId: Int)` — an `Int` identifier, not a framework type, so the domain stays Android-free while the UI resolves it with `stringResource`. The domain never holds prose.
+
+`title` was added during implementation: the document screen's app bar (D7) and the Settings rows both need the document's name, and carrying it as one more `TextRef` keeps that decision beside the version it belongs to rather than in a `when` in the UI. It holds an identifier like every other field, so the "no prose in the domain" rule is untouched.
 
 Versions are integers, starting at 1 for both documents, declared in one place (`domain/legal/CurrentLegalDocuments.kt`) next to the effective dates. Bumping a version is a one-line edit beside the text it describes, which is the only way it will actually happen when the text changes.
 

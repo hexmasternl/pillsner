@@ -1,14 +1,14 @@
 package nl.hexmaster.pillsner.ui
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -22,6 +22,7 @@ import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
 import androidx.navigation.toRoute
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -63,7 +64,18 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class LegalGateNavigationTest {
 
-    @get:Rule
+    // Home asks for the notification permission on a fresh install, and the system dialog that
+    // follows covers the app, so every gesture after it fails with an empty semantics tree.
+    // Granting it up front keeps this test about the gate and nothing else.
+    @get:Rule(order = 0)
+    val notificationPermission: GrantPermissionRule =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            GrantPermissionRule.grant(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            GrantPermissionRule.grant()
+        }
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<FragmentActivity>()
 
     private val metoprolol = Medication(

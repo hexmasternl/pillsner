@@ -37,6 +37,12 @@ The following capabilities define the scope of the app. Items are being delivere
 - Answer a reminder in one tap, without opening the app: **I took it**, **Not yet** (a 15-minute snooze) or **Not going to**. A dose you never answer becomes missed when the next one is due, or 24 hours later, whichever comes first.
 - The same reminder, with the same three answers, appears on a paired Wear OS watch.
 
+**On your wrist**
+- A Wear OS watch app showing what you have to take in the next six hours, soonest first, with the name, the amount and the time. A dose whose time has passed and that you have not answered stays at the top, because it is still to be taken.
+- Nothing scheduled in those six hours says so plainly, and a watch that cannot reach your phone says that too, so a stale list is never mistaken for a live one.
+- The watch app only shows. Answering a dose stays where it was: the reminder notification on the watch, or the phone.
+- It reads in the language the phone app is set to, not the watch's own.
+
 **Home**
 - A welcome screen showing your upcoming doses, soonest first, so you can see at a glance what needs taking next.
 
@@ -49,8 +55,13 @@ The following capabilities define the scope of the app. Items are being delivere
 - Pillsner is available in English and Dutch, and follows your phone's language on its own. You can override it in Settings; the new language appears the next time you start the app, and Pillsner says so until you do.
 - Everything follows the chosen language, not only the screens: dates, times, weekday names, decimal separators, how names are sorted, and the reminder that arrives while the app is closed.
 
+**What Pillsner is, stated plainly**
+- Before you add your first medicine, Pillsner shows you a disclaimer and asks you to accept it and the terms of service. It says what the app is not: not a medical device, not a source of medical advice, and not something to rely on as your only reminder, because a phone can be off, silent or out of battery.
+- Both documents stay readable from Settings, together with the date you accepted them. They are versioned; if either is revised, you are asked again before you add your next medicine. Nothing you already have is ever blocked: existing medicines, reminders and recording a dose keep working.
+
 **Privacy by default**
 - All data lives on the device. There is no account, no cloud sync and no analytics unless explicitly added and clearly disclosed in a future release.
+- With the watch app installed, the names, amounts and times of the doses you still have to take also travel to your watch. They go over the direct Bluetooth or local network link between the two paired devices, through Google Play services, which stores them on the watch; nothing goes to a server, and neither app asks for internet access. Uninstalling the watch app removes them.
 - An optional app lock protects the app with a PIN and, once set up, biometric unlock. Screenshots and the recent apps thumbnail are hidden while it is on.
 - You can change your PIN in Settings without turning the lock off. Changing the PIN, turning biometric unlock off and turning the lock off each ask you to confirm it is you first — with your fingerprint or face where you have one, and with the PIN itself for turning the lock off. Each confirmation is good for that one change.
 - On the lock screen a reminder can show only "Time for your medicine", never the name or the amount, whenever your phone is set to hide sensitive notifications.
@@ -77,6 +88,8 @@ Pillsner is a native Android application written in Kotlin.
 | Architecture | Single-activity, MVVM style with unidirectional data flow |
 | Persistence | Room (SQLite) on the device |
 | Scheduling | Android alarm and notification APIs for exact, reliable reminders |
+| Wearable | Wear OS companion app with Compose for Wear OS (Material 3 for Wear) |
+| Phone to watch sync | Wearable Data Layer (Google Play services), over the paired-device link only |
 | Design | `docs/design-system.md`: brand colour schemes for light and dark, bundled Montserrat and Raleway, Material 3 tokens; no dynamic colour |
 | Build system | Gradle with the Kotlin DSL, versions pinned in a version catalog (see Toolchain below) |
 | IDE | Android Studio (latest stable) |
@@ -87,7 +100,10 @@ Any change to this table should go through the spec-driven workflow described be
 
 | Path | Purpose |
 | --- | --- |
-| `src/` | The Android application. Open this folder as the project in Android Studio. |
+| `src/` | The Gradle project. Open this folder in Android Studio. |
+| `src/app/` | The phone application. |
+| `src/wear/` | The Wear OS companion application. It shares its application id and signing with the phone app, which is what lets the two talk. |
+| `src/shared/` | Plain Kotlin: the phone-to-watch sync contract, so both apps compile against one wire format. |
 | `openspec/` | Spec-driven planning: `specs/` holds the agreed behaviour of the app, `changes/` holds in-progress change proposals, and `changes/archive/` holds completed ones. |
 | `docs/` | The design system (`design-system.md`) and its visual companion (`design-system.html`): colours, typography, components and accessibility rules for the app. |
 | `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, plus the design agent and UI skills that enforce the design system. |
@@ -128,13 +144,15 @@ The project pins every tool and library version in `src/gradle/libs.versions.tom
 | Play services Wearable | 20.0.1 |
 | kotlinx-coroutines / kotlinx-serialization | 1.11.0 / 1.11.0 |
 
-Libraries below Room in this table arrive with later changes and are listed so the baseline is visible in one place.
+Every library in this table is now in use.
 
 ### Building and running
 
 1. Clone the repository.
 2. Open the `src` folder in Android Studio and let Gradle sync finish.
-3. Select a device or emulator and press Run.
+3. Select a device or emulator and press Run. The project has two applications: `app` for the phone and `wear` for the watch. To try the pair, run `app` on a phone or emulator and `wear` on a paired Wear OS one.
+
+The two applications share one application id and must be signed with the same certificate, or the Wearable Data Layer will not connect them. Debug builds do this on their own: both modules sign with the debug keystore Android Studio keeps in your `.android` folder. For a release build, sign both with the same key; no keystore or signing configuration is committed to this repository.
 
 From a terminal inside the `src` folder, the usual Gradle wrapper tasks apply: `assembleDebug` produces a debug build, `test` runs the unit tests, and `connectedAndroidTest` runs the instrumented tests on an attached device.
 

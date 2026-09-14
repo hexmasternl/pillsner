@@ -1,7 +1,6 @@
 package nl.hexmaster.pillsner.ui.settings.legal
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled

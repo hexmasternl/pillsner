@@ -109,6 +109,6 @@ class CurrentLegalDocumentsTest {
 
     private companion object {
         val QUOTE = Regex("\"")
-        val STRING_TYPE = Regex(":\s*String\b")
+        val STRING_TYPE = Regex(""":\s*String\b""")
     }
 }

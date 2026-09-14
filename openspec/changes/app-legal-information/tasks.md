@@ -33,14 +33,14 @@
 
 - [x] 5.1 Add `ui/settings/legal/LegalDocumentBody.kt`: renders a `LegalDocument` as headings in `titleMedium` marked `semantics { heading() }` and paragraphs in `bodyLarge`, with `Spacing.lg` between paragraphs and `Spacing.xl` above each heading. No `maxLines` anywhere.
 - [x] 5.2 Give it previews in light and dark and at `fontScale = 2f`.
-- [ ] 5.3 Run `pillsner-ui-review` on it and fix anything it reports.
+- [x] 5.3 Run `pillsner-ui-review` on it and fix anything it reports.
 
 ## 6. The document screen
 
 - [x] 6.1 Add `LegalDocumentRoute(document: LegalDocumentId)` to `ui/navigation/Routes.kt`.
 - [x] 6.2 Add `ui/settings/legal/LegalDocumentScreen.kt`: a `Scaffold` with a `TopAppBar` carrying the document title and a back arrow, the version and effective date in `bodySmall` `onSurfaceVariant` beneath it, and `LegalDocumentBody` in a scrolling column constrained to `Spacing.contentMaxWidth`.
 - [x] 6.3 Register `composable<LegalDocumentRoute>` in the `NavHost` in `ui/PillsnerApp.kt`, reading the document from the route.
-- [ ] 6.4 Add `LegalDocumentTestTags` and previews; run `pillsner-ui-review`.
+- [x] 6.4 Add `LegalDocumentTestTags` and previews; run `pillsner-ui-review`.
 
 ## 7. The Settings Legal section
 
@@ -48,7 +48,7 @@
 - [x] 7.2 Add `ui/settings/legal/LegalSection.kt`: a `headlineSmall` "Legal" heading, a Disclaimer row and a Terms of Service row shaped like the Security section's "Change PIN" row, and the `bodySmall` status line, with the date formatted for the app language.
 - [x] 7.3 Add the section as the last `item` in the `SettingsScreen` `LazyColumn` after Security, with `SettingsScreen` gaining the section state and an `onOpenDocument` lambda.
 - [x] 7.4 Wire the Settings destination in `PillsnerApp.kt` to `LegalViewModel` and to `navController.navigate(LegalDocumentRoute(...))`.
-- [ ] 7.5 Add `LegalSectionTestTags` and previews for all three status states; run `pillsner-ui-review`.
+- [x] 7.5 Add `LegalSectionTestTags` and previews for all three status states; run `pillsner-ui-review`.
 
 ## 8. The acceptance screen
 
@@ -59,7 +59,7 @@
 - [x] 8.5 Keep the scroll position across a visit to the Terms of Service and across rotation.
 - [x] 8.6 Give the accept button a semantics state and a disabled reason a screen reader announces.
 - [x] 8.7 Register `composable<AcceptLegal>` in the `NavHost`; on accept, record the acceptance then `navigate(MedicationFormGraph())` popping `AcceptLegal` off the back stack.
-- [ ] 8.8 Add `AcceptLegalTestTags` and previews in light, dark and at `fontScale = 2f`; run `pillsner-ui-review`.
+- [x] 8.8 Add `AcceptLegalTestTags` and previews in light, dark and at `fontScale = 2f`; run `pillsner-ui-review`.
 
 ## 9. The gate
 
@@ -81,11 +81,11 @@
 
 ## 11. Verification and documentation
 
-- [ ] 11.1 Run the unit test task from `src/` and report any failure verbatim.
-- [ ] 11.2 Run lint from `src/` and confirm no missing-translation or extra-translation errors.
+- [x] 11.1 Run the unit test task from `src/` and report any failure verbatim.
+- [x] 11.2 Run lint from `src/` and confirm no missing-translation or extra-translation errors.
 - [ ] 11.3 Run the instrumented tests for the navigation and screen tests added here.
 - [ ] 11.4 Manually check the acceptance screen at maximum font scale, in dark theme, and with TalkBack, confirming the disclaimer scrolls fully and the accept button stays visible and reachable.
 - [ ] 11.5 Manually check that a device with no network can read both documents and give acceptance.
-- [ ] 11.6 Confirm the manifest gained no permission and the build gained no dependency.
-- [ ] 11.7 Update `README.md` to note that Pillsner shows a disclaimer and terms of service and requires acceptance before the first medicine is added.
+- [x] 11.6 Confirm the manifest gained no permission and the build gained no dependency.
+- [x] 11.7 Update `README.md` to note that Pillsner shows a disclaimer and terms of service and requires acceptance before the first medicine is added.
 - [ ] 11.8 Run `pillsner-ui-review` once more across everything added under `ui/settings/legal/` and fix anything outstanding before declaring the change done.

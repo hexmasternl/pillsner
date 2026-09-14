@@ -19,6 +19,9 @@ captures/
 keystore.properties
 signing.properties
 
+# Eclipse/Buildship output for the plain Kotlin modules
+bin/
+
 # Native build output
 .externalNativeBuild/
 .cxx/

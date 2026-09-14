@@ -27,44 +27,44 @@
 - [x] 4.2 Write acceptance as a single `edit` of all three keys so a version can never be stored without a time.
 - [x] 4.3 Read a missing or partial record as no acceptance.
 - [x] 4.4 Test the repository: nothing stored reads as null; an acceptance round-trips with the same versions and instant; a record missing the instant reads as null.
-- [ ] 4.5 Register `LegalRepository` and `IsLegalAccepted` in `di/AppContainer.kt` and register `LegalViewModel` in its `viewModelFactory`.
+- [x] 4.5 Register `LegalRepository` and `IsLegalAccepted` in `di/AppContainer.kt` and register `LegalViewModel` in its `viewModelFactory`.
 
 ## 5. Shared document rendering
 
-- [ ] 5.1 Add `ui/settings/legal/LegalDocumentBody.kt`: renders a `LegalDocument` as headings in `titleMedium` marked `semantics { heading() }` and paragraphs in `bodyLarge`, with `Spacing.lg` between paragraphs and `Spacing.xl` above each heading. No `maxLines` anywhere.
-- [ ] 5.2 Give it previews in light and dark and at `fontScale = 2f`.
+- [x] 5.1 Add `ui/settings/legal/LegalDocumentBody.kt`: renders a `LegalDocument` as headings in `titleMedium` marked `semantics { heading() }` and paragraphs in `bodyLarge`, with `Spacing.lg` between paragraphs and `Spacing.xl` above each heading. No `maxLines` anywhere.
+- [x] 5.2 Give it previews in light and dark and at `fontScale = 2f`.
 - [ ] 5.3 Run `pillsner-ui-review` on it and fix anything it reports.
 
 ## 6. The document screen
 
-- [ ] 6.1 Add `LegalDocumentRoute(document: LegalDocumentId)` to `ui/navigation/Routes.kt`.
-- [ ] 6.2 Add `ui/settings/legal/LegalDocumentScreen.kt`: a `Scaffold` with a `TopAppBar` carrying the document title and a back arrow, the version and effective date in `bodySmall` `onSurfaceVariant` beneath it, and `LegalDocumentBody` in a scrolling column constrained to `Spacing.contentMaxWidth`.
-- [ ] 6.3 Register `composable<LegalDocumentRoute>` in the `NavHost` in `ui/PillsnerApp.kt`, reading the document from the route.
+- [x] 6.1 Add `LegalDocumentRoute(document: LegalDocumentId)` to `ui/navigation/Routes.kt`.
+- [x] 6.2 Add `ui/settings/legal/LegalDocumentScreen.kt`: a `Scaffold` with a `TopAppBar` carrying the document title and a back arrow, the version and effective date in `bodySmall` `onSurfaceVariant` beneath it, and `LegalDocumentBody` in a scrolling column constrained to `Spacing.contentMaxWidth`.
+- [x] 6.3 Register `composable<LegalDocumentRoute>` in the `NavHost` in `ui/PillsnerApp.kt`, reading the document from the route.
 - [ ] 6.4 Add `LegalDocumentTestTags` and previews; run `pillsner-ui-review`.
 
 ## 7. The Settings Legal section
 
-- [ ] 7.1 Add `ui/settings/legal/LegalViewModel.kt` exposing the acceptance state (accepted, accepted-but-revised with its date, or never accepted) and the accepted flag the gate reads, plus an `accept()` event.
-- [ ] 7.2 Add `ui/settings/legal/LegalSection.kt`: a `headlineSmall` "Legal" heading, a Disclaimer row and a Terms of Service row shaped like the Security section's "Change PIN" row, and the `bodySmall` status line, with the date formatted for the app language.
-- [ ] 7.3 Add the section as the last `item` in the `SettingsScreen` `LazyColumn` after Security, with `SettingsScreen` gaining the section state and an `onOpenDocument` lambda.
-- [ ] 7.4 Wire the Settings destination in `PillsnerApp.kt` to `LegalViewModel` and to `navController.navigate(LegalDocumentRoute(...))`.
+- [x] 7.1 Add `ui/settings/legal/LegalViewModel.kt` exposing the acceptance state (accepted, accepted-but-revised with its date, or never accepted) and the accepted flag the gate reads, plus an `accept()` event.
+- [x] 7.2 Add `ui/settings/legal/LegalSection.kt`: a `headlineSmall` "Legal" heading, a Disclaimer row and a Terms of Service row shaped like the Security section's "Change PIN" row, and the `bodySmall` status line, with the date formatted for the app language.
+- [x] 7.3 Add the section as the last `item` in the `SettingsScreen` `LazyColumn` after Security, with `SettingsScreen` gaining the section state and an `onOpenDocument` lambda.
+- [x] 7.4 Wire the Settings destination in `PillsnerApp.kt` to `LegalViewModel` and to `navController.navigate(LegalDocumentRoute(...))`.
 - [ ] 7.5 Add `LegalSectionTestTags` and previews for all three status states; run `pillsner-ui-review`.
 
 ## 8. The acceptance screen
 
-- [ ] 8.1 Add `AcceptLegal` to `ui/navigation/Routes.kt`.
-- [ ] 8.2 Add `ui/settings/legal/AcceptLegalScreen.kt`: a `TopAppBar` titled "Before you add a medicine" with a back arrow, the Disclaimer through `LegalDocumentBody` in a scrolling column, a `TextButton` opening the Terms of Service, and a full-width filled accept button at least 56 dp tall pinned below the scrolling content.
-- [ ] 8.3 Enable the accept button only once the scroll state has reached its end, and treat content that does not scroll as already at its end.
-- [ ] 8.4 Show the scroll hint beneath the disabled button and remove it when the button becomes enabled; announce the change with a live region.
-- [ ] 8.5 Keep the scroll position across a visit to the Terms of Service and across rotation.
-- [ ] 8.6 Give the accept button a semantics state and a disabled reason a screen reader announces.
-- [ ] 8.7 Register `composable<AcceptLegal>` in the `NavHost`; on accept, record the acceptance then `navigate(MedicationFormGraph())` popping `AcceptLegal` off the back stack.
+- [x] 8.1 Add `AcceptLegal` to `ui/navigation/Routes.kt`.
+- [x] 8.2 Add `ui/settings/legal/AcceptLegalScreen.kt`: a `TopAppBar` titled "Before you add a medicine" with a back arrow, the Disclaimer through `LegalDocumentBody` in a scrolling column, a `TextButton` opening the Terms of Service, and a full-width filled accept button at least 56 dp tall pinned below the scrolling content.
+- [x] 8.3 Enable the accept button only once the scroll state has reached its end, and treat content that does not scroll as already at its end.
+- [x] 8.4 Show the scroll hint beneath the disabled button and remove it when the button becomes enabled; announce the change with a live region.
+- [x] 8.5 Keep the scroll position across a visit to the Terms of Service and across rotation.
+- [x] 8.6 Give the accept button a semantics state and a disabled reason a screen reader announces.
+- [x] 8.7 Register `composable<AcceptLegal>` in the `NavHost`; on accept, record the acceptance then `navigate(MedicationFormGraph())` popping `AcceptLegal` off the back stack.
 - [ ] 8.8 Add `AcceptLegalTestTags` and previews in light, dark and at `fontScale = 2f`; run `pillsner-ui-review`.
 
 ## 9. The gate
 
-- [ ] 9.1 Collect the accepted flag from `LegalViewModel` at the `NavHost` level in `PillsnerApp.kt`.
-- [ ] 9.2 Change the Medicines screen's `onAddMedicine` to navigate to `MedicationFormGraph()` when accepted and to `AcceptLegal` when not, deciding at the moment of the tap.
+- [x] 9.1 Collect the accepted flag from `LegalViewModel` at the `NavHost` level in `PillsnerApp.kt`.
+- [x] 9.2 Change the Medicines screen's `onAddMedicine` to navigate to `MedicationFormGraph()` when accepted and to `AcceptLegal` when not, deciding at the moment of the tap.
 - [ ] 9.3 Leave the tile-tap route into the form in edit mode untouched, and confirm by test that it is never gated.
 
 ## 10. Tests

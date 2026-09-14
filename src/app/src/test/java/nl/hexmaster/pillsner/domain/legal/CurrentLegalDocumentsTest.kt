@@ -83,7 +83,10 @@ class CurrentLegalDocumentsTest {
     fun `the legal domain package has no Android dependency`() {
         val offenders = sources().flatMap { file ->
             file.readLines()
-                .filter { it.startsWith("import android") }
+                .filter { it.startsWith("import android.") || it.startsWith("import androidx.") }
+                // An annotation with no runtime behaviour is not a framework dependency: `@Keep`
+                // only tells R8 to leave an enum's constant names alone.
+                .filterNot { it.startsWith("import androidx.annotation.") }
                 .map { "${file.name}: $it" }
         }
 

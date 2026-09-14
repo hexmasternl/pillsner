@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import kotlinx.serialization.Serializable
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.applock.ui.PinSetupMode
+import nl.hexmaster.pillsner.domain.legal.LegalDocumentId
 
 /** The welcome screen; start destination. */
 @Serializable
@@ -42,6 +43,15 @@ data class EditSchedule(val index: Int? = null)
 data object Settings
 
 /**
+ * The About screen (app-about-screen design D6). A secondary destination, reached only from the
+ * About row on Settings, so it is not in [topLevelDestinations] and the navigation suite hides
+ * itself while it is shown. It carries no arguments: its content is the same for every process,
+ * so process death restores it with nothing to rebuild.
+ */
+@Serializable
+data object About
+
+/**
  * The PIN flow, reached from the Security section (app-login design D10). Not top-level.
  *
  * @property mode whether it sets the first PIN or replaces the current one (app-settings-security
@@ -50,6 +60,24 @@ data object Settings
  */
 @Serializable
 data class PinSetup(val mode: PinSetupMode = PinSetupMode.SET_UP)
+
+/**
+ * One legal document on its own screen, reached from the Legal section on Settings and from
+ * [AcceptLegal] (app-legal-information design D7). Not top-level.
+ *
+ * @property document which of the two to show. It travels in the route rather than in a view model,
+ * so process death restores the document the user was reading with nothing to rebuild.
+ */
+@Serializable
+data class LegalDocumentRoute(val document: LegalDocumentId)
+
+/**
+ * The legal acceptance screen, reached from the Medicines add button while the current documents
+ * are not accepted (design D5, D6). Not top-level. Accepting continues into
+ * [MedicationFormGraph] and takes this destination off the back stack; back returns to Medicines.
+ */
+@Serializable
+data object AcceptLegal
 
 /**
  * One item of the bottom navigation bar or rail (docs/design-system.md section 8.6).

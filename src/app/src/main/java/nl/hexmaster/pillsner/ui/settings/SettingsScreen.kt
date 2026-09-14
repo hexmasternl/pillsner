@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import nl.hexmaster.pillsner.R
@@ -38,10 +39,16 @@ import nl.hexmaster.pillsner.applock.ui.BiometricResult
 import nl.hexmaster.pillsner.applock.ui.SecurityEffect
 import nl.hexmaster.pillsner.applock.ui.SecuritySection
 import nl.hexmaster.pillsner.applock.ui.VerifyIdentityCallbacks
+import nl.hexmaster.pillsner.domain.legal.LegalDocumentId
+import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.domain.model.AppLanguage
 import nl.hexmaster.pillsner.ui.navigation.NavigationTestTags
+import nl.hexmaster.pillsner.ui.settings.about.AboutSection
+import nl.hexmaster.pillsner.ui.settings.about.PreviewAppInfo
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSection
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionState
+import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceState
+import nl.hexmaster.pillsner.ui.settings.legal.LegalSection
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Spacing
 
@@ -73,6 +80,10 @@ fun SettingsScreen(
     onBiometricDisableRequested: () -> Unit,
     verifyCallbacks: VerifyIdentityCallbacks,
     authenticateWithBiometric: suspend () -> BiometricResult,
+    legalState: LegalAcceptanceState,
+    onOpenLegalDocument: (LegalDocumentId) -> Unit,
+    appInfo: AppInfo,
+    onAboutTapped: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -143,6 +154,14 @@ fun SettingsScreen(
                         authenticateWithBiometric = authenticateWithBiometric,
                     )
                 }
+
+                item(key = "legal") {
+                    LegalSection(state = legalState, onOpenDocument = onOpenLegalDocument)
+                }
+
+                item(key = "about") {
+                    AboutSection(appInfo = appInfo, onAboutTapped = onAboutTapped)
+                }
             }
         }
     }
@@ -175,6 +194,10 @@ private fun SettingsScreenPreview() {
                 onBiometricDisableRequested = {},
                 verifyCallbacks = VerifyIdentityCallbacks({}, {}, {}, {}, {}),
                 authenticateWithBiometric = { BiometricResult.Cancelled },
+                legalState = LegalAcceptanceState.Accepted(LocalDate.of(2026, 9, 14)),
+                onOpenLegalDocument = {},
+                appInfo = PreviewAppInfo,
+                onAboutTapped = {},
             )
         }
     }

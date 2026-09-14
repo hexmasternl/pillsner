@@ -1,8 +1,13 @@
 package nl.hexmaster.pillsner.domain.legal
 
+import androidx.annotation.Keep
 import java.time.LocalDate
 
-/** Which of the two documents is meant. Also the route argument of the document screen. */
+/**
+ * Which of the two documents is meant. Also the route argument of the document screen, so it is
+ * kept from being renamed by R8 exactly as the app lock's setup mode is.
+ */
+@Keep
 enum class LegalDocumentId { DISCLAIMER, TERMS }
 
 /**

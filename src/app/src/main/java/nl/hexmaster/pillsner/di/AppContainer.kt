@@ -31,18 +31,26 @@ import nl.hexmaster.pillsner.applock.ui.AppLockViewModel
 import nl.hexmaster.pillsner.data.RoomDoseRepository
 import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.data.RoomUpcomingDosesRepository
+import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
 import nl.hexmaster.pillsner.data.reminders.ReminderAlarmScheduler
 import nl.hexmaster.pillsner.data.reminders.ReminderCoordinator
+import nl.hexmaster.pillsner.data.wear.DataLayerSyncTarget
+import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
+import nl.hexmaster.pillsner.data.wear.WearDataClientFactory
 import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
+import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
 import nl.hexmaster.pillsner.domain.intake.RecordIntake
 import nl.hexmaster.pillsner.domain.intake.SnoozeDose
+import nl.hexmaster.pillsner.domain.legal.IsLegalAccepted
+import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.LanguageRepository
+import nl.hexmaster.pillsner.domain.repository.LegalRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
 import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
@@ -52,10 +60,12 @@ import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.locale.AppLocale
+import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
+import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
 
 /**
  * The app's single dependency injection mechanism: manual constructor injection through one
@@ -82,6 +92,9 @@ class AppContainer(
 
     private val database: PillsnerDatabase by lazy { PillsnerDatabase.build(applicationContext) }
 
+    /** What the app says about itself on the About screen (app-about-screen design D1). */
+    val appInfo: AppInfo = BuildConfigAppInfoProvider.provide(applicationContext)
+
     // --- Medicines and doses ---------------------------------------------------------------
 
     val medicationRepository: MedicationRepository =
@@ -107,9 +120,25 @@ class AppContainer(
 
     val languageRepository: LanguageRepository = DataStoreLanguageRepository(applicationContext)
 
+    // --- Legal documents (app-legal-information design D3, D4) ------------------------------
+
+    val legalRepository: LegalRepository = DataStoreLegalRepository(applicationContext, clock)
+    private val isLegalAccepted = IsLegalAccepted(legalRepository)
+
     val reminderPreferences = ReminderPreferences(applicationContext)
     val reminderAlarmScheduler = ReminderAlarmScheduler(applicationContext)
     val reminderNotifier = ReminderNotifier(applicationContext)
+
+    // The watch, if there is one to talk to (app-wearable-support design D3). Amounts are written
+    // out here, under the app language, because the phone is the only side that knows the units.
+    private val wearSyncTarget = WearDataClientFactory.create(applicationContext)?.let(::DataLayerSyncTarget)
+    private val doseSyncPublisher = DoseSyncPublisher(
+        doseRepository = this.doseRepository,
+        target = wearSyncTarget,
+        amountText = QuantityFormatter(AppLocale.wrap(applicationContext), AppLocale.current)::format,
+        languageTag = { AppLocale.current.toLanguageTag() },
+        clock = clock,
+    )
 
     val reminderCoordinator = ReminderCoordinator(
         medicationRepository = this.medicationRepository,
@@ -121,6 +150,7 @@ class AppContainer(
         notifier = reminderNotifier,
         scheduler = reminderAlarmScheduler,
         clock = clock,
+        doseSyncPublisher = doseSyncPublisher,
     )
 
     /** Records an answer given from a notification. */
@@ -170,6 +200,7 @@ class AppContainer(
         }
         initializer { MedicinesViewModel(this@AppContainer.medicationRepository) }
         initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }
+        initializer { LegalViewModel(legalRepository, isLegalAccepted) }
         initializer {
             MedicationFormViewModel(
                 repository = this@AppContainer.medicationRepository,

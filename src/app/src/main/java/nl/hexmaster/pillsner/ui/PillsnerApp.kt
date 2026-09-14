@@ -38,6 +38,9 @@ import nl.hexmaster.pillsner.applock.ui.PinSetupMode
 import nl.hexmaster.pillsner.applock.ui.PinSetupScreen
 import nl.hexmaster.pillsner.applock.ui.UnlockScreen
 import nl.hexmaster.pillsner.applock.ui.VerifyIdentityCallbacks
+import nl.hexmaster.pillsner.domain.legal.CurrentLegalDocuments
+import nl.hexmaster.pillsner.domain.legal.LegalDocumentId
+import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.home.NotificationPermissionEffect
 import nl.hexmaster.pillsner.ui.home.openReminderSettings
@@ -48,6 +51,9 @@ import nl.hexmaster.pillsner.ui.medicines.MedicinesEffect
 import nl.hexmaster.pillsner.ui.medicines.MedicinesScreen
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.medicationFormGraph
+import nl.hexmaster.pillsner.ui.navigation.About
+import nl.hexmaster.pillsner.ui.navigation.AcceptLegal
+import nl.hexmaster.pillsner.ui.navigation.LegalDocumentRoute
 import nl.hexmaster.pillsner.ui.navigation.MedicationFormGraph
 import nl.hexmaster.pillsner.ui.navigation.Home
 import nl.hexmaster.pillsner.ui.navigation.Medicines
@@ -56,7 +62,11 @@ import nl.hexmaster.pillsner.ui.navigation.Settings
 import nl.hexmaster.pillsner.ui.navigation.TopLevelDestination
 import nl.hexmaster.pillsner.ui.navigation.topLevelDestinations
 import nl.hexmaster.pillsner.ui.settings.SettingsScreen
+import nl.hexmaster.pillsner.ui.settings.about.AboutScreen
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
+import nl.hexmaster.pillsner.ui.settings.legal.AcceptLegalScreen
+import nl.hexmaster.pillsner.ui.settings.legal.LegalDocumentScreen
+import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
 
 /**
  * The app's root composable. Gains the app lock's root gate here (app-login design D1): the
@@ -66,6 +76,8 @@ import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
  * content is ever reachable behind the lock.
  *
  * @param viewModelFactory creates view models from the app's `AppContainer`.
+ * @param appInfo what the build says about itself, shown on Settings and About. Passed down rather
+ * than held in a view model because it never changes (app-about-screen design D3).
  * @param navController injectable so tests can observe navigation; created above this gate so
  * navigation state survives a relock (design D1).
  */
@@ -74,6 +86,7 @@ fun PillsnerApp(
     viewModelFactory: ViewModelProvider.Factory,
     appLockViewModel: AppLockViewModel,
     biometricAuthenticator: BiometricAuthenticator,
+    appInfo: AppInfo,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
 ) {
@@ -100,6 +113,7 @@ fun PillsnerApp(
             viewModelFactory = viewModelFactory,
             appLockViewModel = appLockViewModel,
             biometricAuthenticator = biometricAuthenticator,
+            appInfo = appInfo,
             modifier = modifier,
             navController = navController,
         )
@@ -116,6 +130,7 @@ private fun PillsnerAppContent(
     viewModelFactory: ViewModelProvider.Factory,
     appLockViewModel: AppLockViewModel,
     biometricAuthenticator: BiometricAuthenticator,
+    appInfo: AppInfo,
     modifier: Modifier = Modifier,
     navController: NavHostController,
 ) {
@@ -132,6 +147,13 @@ private fun PillsnerAppContent(
     // The form flow closes itself when a medicine cannot be opened, so the message it wants to show
     // belongs to the screen the user lands back on.
     val overviewEffects = remember { MutableSharedFlow<MedicinesEffect>(extraBufferCapacity = 1) }
+
+    // The legal documents are read here rather than inside a destination (app-legal-information
+    // design D5): Settings shows the state of acceptance and the Medicines add button decides on
+    // it, so one view model at this level keeps both looking at the same answer, current at the
+    // moment of the tap.
+    val legalViewModel: LegalViewModel = viewModel(factory = viewModelFactory)
+    val legalState by legalViewModel.uiState.collectAsStateWithLifecycle()
 
     NavigationSuiteScaffold(
         modifier = modifier,
@@ -184,7 +206,15 @@ private fun PillsnerAppContent(
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 MedicinesScreen(
                     uiState = uiState,
-                    onAddMedicine = { navController.navigate(MedicationFormGraph()) },
+                    // The gate, and the whole of it (design D5): adding a medicine is the one thing
+                    // acceptance guards. Opening a medicine that already exists, below, is not.
+                    onAddMedicine = {
+                        if (legalState.accepted) {
+                            navController.navigate(MedicationFormGraph())
+                        } else {
+                            navController.navigate(AcceptLegal)
+                        }
+                    },
                     onSetActive = viewModel::onSetActive,
                     onOpenMedication = { id ->
                         navController.navigate(MedicationFormGraph(medicationId = id.value))
@@ -222,6 +252,37 @@ private fun PillsnerAppContent(
                         onDismissed = appLockViewModel::onVerifyDismissed,
                     ),
                     authenticateWithBiometric = biometricAuthenticator::authenticateWithBiometric,
+                    legalState = legalState.acceptance,
+                    onOpenLegalDocument = { navController.navigate(LegalDocumentRoute(it)) },
+                    appInfo = appInfo,
+                    onAboutTapped = { navController.navigate(About) },
+                )
+            }
+            composable<About> {
+                AboutScreen(appInfo = appInfo, onBack = { navController.popBackStack() })
+            }
+            composable<LegalDocumentRoute> { backStackEntry ->
+                val document = backStackEntry.toRoute<LegalDocumentRoute>().document
+                LegalDocumentScreen(
+                    document = CurrentLegalDocuments[document],
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable<AcceptLegal> {
+                AcceptLegalScreen(
+                    disclaimer = CurrentLegalDocuments.disclaimer,
+                    onBack = { navController.popBackStack() },
+                    onReadTerms = {
+                        navController.navigate(LegalDocumentRoute(LegalDocumentId.TERMS))
+                    },
+                    onAccept = {
+                        legalViewModel.accept()
+                        // The gate leaves the back stack as it is entered: back from the form
+                        // returns to Medicines, never into the acceptance screen again.
+                        navController.navigate(MedicationFormGraph()) {
+                            popUpTo<AcceptLegal> { inclusive = true }
+                        }
+                    },
                 )
             }
             composable<PinSetup> { backStackEntry ->

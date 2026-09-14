@@ -1,18 +1,18 @@
 ## 1. Scaffold check
 
-- [ ] 1.1 Confirm the Gradle project, the `app` module, `AppContainer`, the `ui/theme` package and the `ui/medicines/form` package all exist in `src/`. Stop and report if any of them does not; this change creates none of them.
-- [ ] 1.2 Confirm `docs/design-system.md` is the version this change was designed against and read sections 2.3, 3.2, 4, 5, 8.3, 8.7, 8.10 before writing any UI.
+- [x] 1.1 Confirm the Gradle project, the `app` module, `AppContainer`, the `ui/theme` package and the `ui/medicines/form` package all exist in `src/`. Stop and report if any of them does not; this change creates none of them.
+- [x] 1.2 Confirm `docs/design-system.md` is the version this change was designed against and read sections 2.3, 3.2, 4, 5, 8.3, 8.7, 8.10 before writing any UI.
 
 ## 2. Domain model and summariser
 
-- [ ] 2.1 Add `domain/model/UsageHistory.kt` with `UsagePeriod` (WEEK, MONTH, THREE_MONTHS), `UsageBucket` and `UsageHistory` exactly as design D3 lists them. No Android imports; KDoc the counting rules on each count.
-- [ ] 2.2 Give `UsagePeriod` a `window(today: LocalDate): ClosedRange<LocalDate>` following design D2: six days back, one month back plus a day, three months back plus a day.
-- [ ] 2.3 Add `domain/history/SummariseUsageHistory.kt`: takes the period, the doses in the window and the medicine's earliest recorded instant; returns `UsageHistory`. Implement the counting rules of D3 — future doses excluded, past doses with no outcome counted as unanswered, `scheduled` the sum of four, adherence absent when `scheduled` is zero.
-- [ ] 2.4 Implement bucketing per design D4: day buckets for WEEK, locale-week buckets for MONTH and THREE_MONTHS, the earliest bucket starting on the window's first day when it falls mid-week.
-- [ ] 2.5 Unit-test the window arithmetic: a plain week, a month ending on the 31st, three months across a leap day, and a window spanning a daylight-saving transition in both directions.
-- [ ] 2.6 Unit-test the counting rules: the four outcomes counted separately, a dose later today excluded, tomorrow excluded, the day before the window excluded, a skipped dose never counted as missed, adherence rounding (2 of 3 is 67 %), and zero scheduled yielding no adherence.
-- [ ] 2.7 Unit-test bucketing: seven buckets for a week with the last being today, week-aligned buckets for a month and three months with a partial first bucket, empty buckets preserved in place, and bucket totals summing to the period totals.
-- [ ] 2.8 Unit-test `recordsStartOn`: set when the earliest stored dose is later than the window's first day, null when the records reach further back, and null for a medicine with gaps but older records.
+- [x] 2.1 Add `domain/model/UsageHistory.kt` with `UsagePeriod` (WEEK, MONTH, THREE_MONTHS), `UsageBucket` and `UsageHistory` exactly as design D3 lists them. No Android imports; KDoc the counting rules on each count.
+- [x] 2.2 Give `UsagePeriod` a `window(today: LocalDate): ClosedRange<LocalDate>` following design D2: six days back, one month back plus a day, three months back plus a day.
+- [x] 2.3 Add `domain/history/SummariseUsageHistory.kt`: takes the period, the doses in the window and the medicine's earliest recorded instant; returns `UsageHistory`. Implement the counting rules of D3 — future doses excluded, past doses with no outcome counted as unanswered, `scheduled` the sum of four, adherence absent when `scheduled` is zero.
+- [x] 2.4 Implement bucketing per design D4: day buckets for WEEK, locale-week buckets for MONTH and THREE_MONTHS, the earliest bucket starting on the window's first day when it falls mid-week.
+- [x] 2.5 Unit-test the window arithmetic: a plain week, a month ending on the 31st, three months across a leap day, and a window spanning a daylight-saving transition in both directions.
+- [x] 2.6 Unit-test the counting rules: the four outcomes counted separately, a dose later today excluded, tomorrow excluded, the day before the window excluded, a skipped dose never counted as missed, adherence rounding (2 of 3 is 67 %), and zero scheduled yielding no adherence.
+- [x] 2.7 Unit-test bucketing: seven buckets for a week with the last being today, week-aligned buckets for a month and three months with a partial first bucket, empty buckets preserved in place, and bucket totals summing to the period totals.
+- [x] 2.8 Unit-test `recordsStartOn`: set when the earliest stored dose is later than the window's first day, null when the records reach further back, and null for a medicine with gaps but older records.
 
 ## 3. Data layer
 

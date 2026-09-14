@@ -13,7 +13,7 @@
     <string name="settings_title">Instellingen</string>
 
     <!-- Start: lege lijst -->
-    <string name="home_empty_title">Nu is er niets aan de beurt</string>
+    <string name="home_empty_title">Geen medicijnen gepland</string>
     <string name="home_empty_hint">Je volgende dosis verschijnt hier.</string>
 
     <!-- Dosistegel -->
@@ -22,7 +22,7 @@
     <string name="dose_tile_description_with_day">%1$s, %2$s, %3$s om %4$s %5$s</string>
 
     <!-- Status van een dosis -->
-    <string name="dose_status_due">Aan de beurt</string>
+    <string name="dose_status_due">Gepland</string>
     <string name="dose_status_taken">Ingenomen</string>
     <string name="dose_status_snoozed">Uitgesteld</string>
     <string name="dose_status_skipped">Overgeslagen</string>
@@ -335,7 +335,7 @@
     <!-- %1$s: versienaam, bijvoorbeeld 0.1.0. %2$d: versiecode. -->
     <string name="about_version_summary">Versie %1$s (%2$d)</string>
     <string name="about_title">Over</string>
-    <string name="about_name_origin">De naam is een samentrekking van twee Engelse woorden: Pills en Partner. Dat is wat de app wil zijn — een partner die je doses onthoudt, zodat jij dat niet hoeft.</string>
+    <string name="about_name_origin">De naam is een samenvoeging van twee Engelse woorden: Pills en Partner. Dat is wat de app wil zijn, een partner die je doses onthoudt, zodat jij dat niet hoeft.</string>
     <!-- %1$s: versienaam. %2$d: versiecode. De rij heet al "Versie". -->
     <string name="about_version_value">%1$s (%2$d)</string>
     <string name="about_version_label">Versie</string>

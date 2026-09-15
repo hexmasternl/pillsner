@@ -30,7 +30,7 @@ Build UI that a reviewer can pass against `docs/design-system.md` without discus
 | --- | --- |
 | A colour | `MaterialTheme.colorScheme.<role>`; for a dose status `intakeStatusColors(status)` |
 | A text style | `MaterialTheme.typography.<role>` from section 3.2. Default `bodyLarge`. Screen title `displayLarge`, once. Medicine name `titleMedium`. Dose time `titleLarge` with `fontFeatureSettings = "tnum"`. Button `labelLarge` (Material default). |
-| A corner | `MaterialTheme.shapes.large` for tiles and dialogs, `extraLarge` for sheets and the large FAB, `small` for chips; buttons keep their Material pill |
+| A corner | `MaterialTheme.shapes.large` for tiles and dialogs, `extraLarge` for sheets, `small` for chips; buttons keep their Material pill |
 | Space between things | `Spacing.xs/sm/md/lg/xl/xxl/xxxl`. Screen edge `Spacing.screenEdge`. Between tiles `Spacing.lg`. Below a screen title `Spacing.xl`. |
 | A size | `Sizes.minTouchTarget`, `Sizes.primaryActionHeight`, `Sizes.tileMinHeight`, `Sizes.stateStripeWidth`, `Sizes.statusChipHeight`, `Sizes.iconDefault`, `Sizes.iconEmptyState` |
 | A tile container | Light: `surfaceContainerLowest`; dark: `surfaceContainerHigh`. Use `CardDefaults.cardColors(containerColor = tileContainerColor())` from the reference. |

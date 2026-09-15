@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -114,7 +114,7 @@ fun MedicinesScreen(
         },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         floatingActionButton = {
-            LargeFloatingActionButton(
+            FloatingActionButton(
                 onClick = onAddMedicine,
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -147,7 +147,7 @@ fun MedicinesScreen(
                     start = sidePadding,
                     end = sidePadding,
                     // The last tile must clear the floating action button (section 5).
-                    bottom = Sizes.largeFab + Spacing.lg,
+                    bottom = Sizes.fab + Spacing.lg,
                 ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
             ) {

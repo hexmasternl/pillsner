@@ -36,7 +36,8 @@ object Sizes {
     /** Icon inside a status chip; the one size below iconDefault the design allows (section 8.3). */
     val iconChip = 18.dp
     val iconEmptyState = 64.dp
-    val largeFab = 96.dp
+    /** The standard Material FAB: large enough to find with a thumb, small enough not to cover a tile. */
+    val fab = 56.dp
 
     /** The product mark in the welcome header (section 8.7). */
     val logoHeader = 96.dp

@@ -148,8 +148,8 @@ Material 3 shape scale with slightly generous corners. Soft, not bubbly.
 | extraSmall | 4 dp | Text field corners, tooltips |
 | small | 8 dp | Chips, small containers |
 | medium | 12 dp | Menus, snackbars |
-| large | 16 dp | **Dose tiles and medicine tiles**, dialogs |
-| extraLarge | 28 dp | Bottom sheets, large FAB |
+| large | 16 dp | **Dose tiles and medicine tiles**, dialogs, the FAB |
+| extraLarge | 28 dp | Bottom sheets |
 | full | pill | Buttons, status chips, navigation indicator |
 
 Buttons are fully rounded so they read as tappable at a glance. Cards are 16 dp so several can stack without looking like a pile of pills.
@@ -250,7 +250,7 @@ Minimum height 48 dp; the primary confirm on reminder and dose surfaces is 56 dp
 
 ### 8.5 Floating action button
 
-`LargeFloatingActionButton`, `primaryContainer` / `onPrimaryContainer`, `add` icon, `contentDescription = "Add medicine"`. Bottom-end, 16 dp from edges, above the navigation bar.
+`FloatingActionButton` at its standard 56 dp - not the medium or large variant, which covered the last tile on a compact screen - `primaryContainer` / `onPrimaryContainer`, `add` icon, `contentDescription = "Add medicine"`. Bottom-end, 16 dp from edges, above the navigation bar.
 
 ### 8.6 Bottom navigation
 

@@ -257,7 +257,7 @@ object Sizes {
     val statusChipHeight = 28.dp
     val iconDefault = 24.dp
     val iconEmptyState = 64.dp
-    val largeFab = 96.dp
+    val fab = 56.dp
 }
 ```
 

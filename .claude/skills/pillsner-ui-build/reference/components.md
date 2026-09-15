@@ -142,10 +142,10 @@ Button(
 
 Order on any reminder surface is fixed: took it, not yet, not going to.
 
-## Large FAB (8.5)
+## FAB (8.5)
 
 ```kotlin
-LargeFloatingActionButton(
+FloatingActionButton(
     onClick = onAddMedicine,
     containerColor = MaterialTheme.colorScheme.primaryContainer,
     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -154,7 +154,7 @@ LargeFloatingActionButton(
 }
 ```
 
-Place it through `Scaffold(floatingActionButton = ...)`. Give the list `contentPadding = PaddingValues(bottom = Sizes.largeFab + Spacing.lg)`.
+Place it through `Scaffold(floatingActionButton = ...)`. Give the list `contentPadding = PaddingValues(bottom = Sizes.fab + Spacing.lg)`.
 
 ## Bottom navigation (8.6)
 

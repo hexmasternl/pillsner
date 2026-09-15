@@ -61,7 +61,7 @@ For each composable in scope, read it and answer these. Any "no" is a finding.
 - Does the content column cap at `Spacing.contentMaxWidth` on wide screens?
 
 **Components (8)**
-- Does each component match its recipe in 8.x: dose tile has a stripe, status chip has an icon, banner is `errorContainer` and only when reminders are undeliverable, FAB is large and `primaryContainer`, navigation has three labelled items?
+- Does each component match its recipe in 8.x: dose tile has a stripe, status chip has an icon, banner is `errorContainer` and only when reminders are undeliverable, FAB is the standard 56 dp size and `primaryContainer`, navigation has three labelled items?
 - Is the reminder action order took it, not yet, not going to?
 - Is the destructive button inside an `AlertDialog` only?
 

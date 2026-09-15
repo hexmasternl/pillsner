@@ -111,7 +111,10 @@ class AppResetEffectsTest {
     fun aReset_takesEveryPostedReminderDown() = runBlocking {
         val dose = seedDose()
         assertTrue("The reminder should be up first", notifier.show(dose, dueCount = 1))
-        assertTrue(isShowing(dose.id))
+        // `notify` hands the notification to the system and returns; it reaches
+        // `activeNotifications` a moment later, so the precondition is waited for rather than
+        // asserted on the spot.
+        assertTrue("The reminder should have reached the shade", waitUntilShowing(dose.id))
 
         eraseWith(refresh = { }).invoke()
 
@@ -219,6 +222,16 @@ class AppResetEffectsTest {
         )
     }
 
+    /** Polls for a notification to appear, for up to [TIMEOUT_MILLIS]. */
+    private fun waitUntilShowing(id: DoseId): Boolean {
+        val deadline = System.currentTimeMillis() + TIMEOUT_MILLIS
+        while (System.currentTimeMillis() < deadline) {
+            if (isShowing(id)) return true
+            Thread.sleep(POLL_MILLIS)
+        }
+        return false
+    }
+
     private fun isShowing(id: DoseId): Boolean =
         context.getSystemService(NotificationManager::class.java)
             .activeNotifications
@@ -226,6 +239,11 @@ class AppResetEffectsTest {
 
     private fun activeNotificationCount(): Int =
         context.getSystemService(NotificationManager::class.java).activeNotifications.size
+
+    private companion object {
+        const val TIMEOUT_MILLIS = 5_000L
+        const val POLL_MILLIS = 50L
+    }
 
     /** Records into the real device-protected store without waking the device. */
     private inner class SilentScheduler :

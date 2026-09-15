@@ -150,7 +150,7 @@ FloatingActionButton(
     containerColor = MaterialTheme.colorScheme.primaryContainer,
     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
 ) {
-    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.medicines_add), Modifier.size(36.dp))
+    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.medicines_add), Modifier.size(Sizes.iconDefault))
 }
 ```
 

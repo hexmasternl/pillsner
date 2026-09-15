@@ -22,12 +22,18 @@ object SchedulingTestSupport {
     fun at(date: LocalDate = today, hour: Int, minute: Int = 0, zone: ZoneId = amsterdam): Instant =
         ZonedDateTime.of(date, LocalTime.of(hour, minute), zone).toInstant()
 
+    /**
+     * [lastRemindedAt] defaults to [firstRemindedAt], which is what a dose announced once and never
+     * repeated looks like; a test about the repeat rule moves it on its own.
+     */
     fun dose(
         id: Long,
         scheduledAt: Instant,
         medicationId: Long? = 1L,
         firstRemindedAt: Instant? = null,
         snoozedUntil: Instant? = null,
+        lastRemindedAt: Instant? = firstRemindedAt,
+        reminderCount: Int = 0,
     ) = Dose(
         id = DoseId(id),
         medicationId = medicationId?.let(::MedicationId),
@@ -36,6 +42,8 @@ object SchedulingTestSupport {
         scheduledAt = scheduledAt,
         firstRemindedAt = firstRemindedAt,
         snoozedUntil = snoozedUntil,
+        lastRemindedAt = lastRemindedAt,
+        reminderCount = reminderCount,
     )
 
     fun repositoryWith(vararg doses: Dose) = InMemoryDoseRepository(doses.toList())

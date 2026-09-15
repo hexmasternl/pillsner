@@ -9,20 +9,33 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.PillsnerApplication
 
-/** The app's one alarm going off: hand straight to the coordinator (design D5). */
+/** One of the app's alarms going off: hand straight to the wake service (design D2, D4). */
 class ReminderAlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val coordinator = context.reminderCoordinator()
-        // Null when the receiver is driven directly rather than by a real broadcast, which is how
-        // the instrumented tests exercise it.
-        val pendingResult: PendingResult? = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                coordinator.onWake(WakeReason.ALARM)
-            } finally {
-                pendingResult?.finish()
-            }
+        handOffWake(context, WakeReason.ALARM)
+    }
+}
+
+/**
+ * Starts the wake, in the foreground service where the platform allows it.
+ *
+ * The service is the whole point of D4: ten seconds of receiver budget is not enough for a cold
+ * start that has to open the database. When the platform refuses the service — which it should not,
+ * for an exact alarm or a boot broadcast, but which is its call — the work falls back into the
+ * receiver's own budget, where the wake's retry is the backstop behind it.
+ */
+internal fun BroadcastReceiver.handOffWake(context: Context, reason: WakeReason) {
+    if (ReminderWakeService.startWake(context, reason)) return
+
+    // Null when the receiver is driven directly rather than by a real broadcast, which is how the
+    // instrumented tests exercise it.
+    val pendingResult: BroadcastReceiver.PendingResult? = goAsync()
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+        try {
+            context.reminderCoordinator().onWake(reason)
+        } finally {
+            pendingResult?.finish()
         }
     }
 }

@@ -71,14 +71,16 @@ fun Context.hasNotificationPermission(): Boolean =
  * The exact-alarm page exists only from Android 12; before that exact alarms need no permission at
  * all, so the banner never sends anyone there.
  */
-fun Context.openReminderSettings(notificationsAllowed: Boolean) {
+fun Context.openReminderSettings(problem: ReminderProblem?) {
     val exactAlarmSettingsExist = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val intent = if (!notificationsAllowed || !exactAlarmSettingsExist) {
-        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+    val intent = when {
+        problem == ReminderProblem.BATTERY_OPTIMISED -> backgroundRunIntent()
+        problem == ReminderProblem.INEXACT_ALARMS && exactAlarmSettingsExist ->
+            Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                .setData(Uri.fromParts("package", packageName, null))
+
+        else -> Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
             .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-    } else {
-        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-            .setData(Uri.fromParts("package", packageName, null))
     }
     startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }

@@ -138,11 +138,20 @@ interface DoseDao {
     @Query("UPDATE doses SET snoozed_until = :until, reminder_count = 0 WHERE id = :id")
     suspend fun setSnooze(id: Long, until: Instant?)
 
-    @Query("UPDATE doses SET first_reminded_at = :at WHERE id = :id")
-    suspend fun setFirstReminded(id: Long, at: Instant)
-
-    @Query("UPDATE doses SET reminder_count = reminder_count + 1 WHERE id = :id")
-    suspend fun incrementReminderCount(id: Long)
+    /**
+     * One posting of a reminder. `COALESCE` is what keeps the first moment first: it is the user's
+     * record of when they were told, and only the repeat anchor moves afterwards.
+     */
+    @Query(
+        """
+        UPDATE doses
+        SET first_reminded_at = COALESCE(first_reminded_at, :at),
+            last_reminded_at = :at,
+            reminder_count = reminder_count + :repeats
+        WHERE id = :id
+        """,
+    )
+    suspend fun recordReminded(id: Long, at: Instant, repeats: Int)
 
     @Query(
         """

@@ -37,11 +37,16 @@ object ReminderBannerTestTags {
  *
  * This is the one red surface the user does not ask for, and deliberately so: an app that quietly
  * fails to remind someone of their medicine is worse than one that admits it. It appears only when
- * notifications are off or exact alarms are unavailable.
+ * notifications are off, battery optimisation may stop the app running, or exact alarms are
+ * unavailable — and never more than one of them at once, because it holds one message and one
+ * button (design D6).
+ *
+ * @param actionLabel what the button says, since each problem is fixed on a different screen.
  */
 @Composable
 fun ReminderBanner(
     message: String,
+    actionLabel: String,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -71,7 +76,7 @@ fun ReminderBanner(
                         .heightIn(min = Sizes.minTouchTarget)
                         .testTag(ReminderBannerTestTags.ACTION),
                 ) {
-                    Text(stringResource(R.string.reminder_banner_open_settings))
+                    Text(actionLabel)
                 }
             }
         }
@@ -87,10 +92,18 @@ private fun ReminderBannerPreview() {
             Column(Modifier.padding(Spacing.lg), verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
                 ReminderBanner(
                     message = "Pillsner cannot show reminders because notifications are turned off.",
+                    actionLabel = "Open settings",
+                    onOpenSettings = {},
+                )
+                ReminderBanner(
+                    message = "Your phone may stop Pillsner from running, so a reminder can be " +
+                        "missed. Allow it to run in the background.",
+                    actionLabel = "Allow background use",
                     onOpenSettings = {},
                 )
                 ReminderBanner(
                     message = "Reminders may arrive up to ten minutes late because exact alarms are turned off.",
+                    actionLabel = "Open settings",
                     onOpenSettings = {},
                 )
             }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "709bc3577d7393cad19fe97527b1b2b4",
+    "identityHash": "090b7039771b5215ecb07dfc4548bacf",
     "entities": [
       {
         "tableName": "medications",
@@ -162,7 +162,7 @@
       },
       {
         "tableName": "doses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `medication_id` INTEGER, `medication_name` TEXT NOT NULL, `amount_value` TEXT NOT NULL, `amount_unit` TEXT NOT NULL, `scheduled_at` INTEGER NOT NULL, `outcome` TEXT, `recorded_at` INTEGER, `snoozed_until` INTEGER, `first_reminded_at` INTEGER, `reminder_count` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`medication_id`) REFERENCES `medications`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `medication_id` INTEGER, `medication_name` TEXT NOT NULL, `amount_value` TEXT NOT NULL, `amount_unit` TEXT NOT NULL, `scheduled_at` INTEGER NOT NULL, `outcome` TEXT, `recorded_at` INTEGER, `snoozed_until` INTEGER, `first_reminded_at` INTEGER, `last_reminded_at` INTEGER, `reminder_count` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`medication_id`) REFERENCES `medications`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -220,6 +220,11 @@
             "affinity": "INTEGER"
           },
           {
+            "fieldPath": "lastRemindedAt",
+            "columnName": "last_reminded_at",
+            "affinity": "INTEGER"
+          },
+          {
             "fieldPath": "reminderCount",
             "columnName": "reminder_count",
             "affinity": "INTEGER",
@@ -271,7 +276,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '709bc3577d7393cad19fe97527b1b2b4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '090b7039771b5215ecb07dfc4548bacf')"
     ]
   }
 }

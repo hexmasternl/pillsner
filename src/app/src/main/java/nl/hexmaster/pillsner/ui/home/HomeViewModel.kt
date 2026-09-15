@@ -34,6 +34,13 @@ class HomeViewModel(
     private val notificationsAllowed = MutableStateFlow(true)
 
     /**
+     * Set by the screen on every resume. The platform has no callback for the exemption, and the
+     * user grants it in a system dialog the app never sees the result of, so asking again when
+     * the screen comes back is the only way to know.
+     */
+    private val batteryExempt = MutableStateFlow(true)
+
+    /**
      * Whether the permission dialog should still be put in front of the user. Once it has been,
      * the banner takes over rather than asking again on every launch.
      */
@@ -45,12 +52,14 @@ class HomeViewModel(
         repository.observeUpcoming(limit = MAX_UPCOMING_DOSES),
         reminderReadiness,
         notificationsAllowed,
-    ) { doses, alarmsAreExact, notifications ->
+        batteryExempt,
+    ) { doses, alarmsAreExact, notifications, battery ->
         HomeUiState(
             upcomingDoses = doses.sortedBy { it.scheduledAt }.take(MAX_UPCOMING_DOSES),
             isLoading = false,
             notificationsAllowed = notifications,
             alarmsAreExact = alarmsAreExact,
+            batteryExempt = battery,
             now = clock.instant(),
         )
     }.stateIn(
@@ -67,6 +76,31 @@ class HomeViewModel(
     /** Records that the user has now been shown the permission dialog once. */
     fun onNotificationPermissionRequested() {
         viewModelScope.launch { preferences?.markNotificationPermissionRequested() }
+    }
+
+    /** Re-checked whenever the screen resumes, for the same reason as the notification answer. */
+    fun onBatteryOptimisationChecked(exempt: Boolean) {
+        batteryExempt.value = exempt
+    }
+
+    /**
+     * Whether to put the battery-exemption dialog in front of the user (design D6).
+     *
+     * Asked once, and only once there is something to protect: a phone with no upcoming dose has
+     * no reminder to lose, and asking for an exemption before the user has told the app what they
+     * take is a dialog without a reason. An upcoming dose is exactly the observable consequence of
+     * the first active medicine with a schedule being saved.
+     */
+    val shouldRequestBatteryExemption: StateFlow<Boolean> = combine(
+        preferences?.hasRequestedBatteryExemption ?: flowOf(true),
+        uiState,
+    ) { alreadyAsked, state ->
+        !alreadyAsked && !state.batteryExempt && state.upcomingDoses.isNotEmpty()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
+
+    /** Records that the user has now been asked for the exemption once. */
+    fun onBatteryExemptionRequested() {
+        viewModelScope.launch { preferences?.markBatteryExemptionRequested() }
     }
 
     companion object {

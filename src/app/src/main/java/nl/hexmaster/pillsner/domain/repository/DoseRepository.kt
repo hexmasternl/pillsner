@@ -79,16 +79,21 @@ interface DoseRepository {
      */
     suspend fun setSnooze(id: DoseId, until: Instant?)
 
-    /** Records that the user has now been told about this dose for the first time. */
-    suspend fun setFirstReminded(id: DoseId, at: Instant)
-
     /**
-     * Records that the reminder for this dose has been asked again, one repeat further along.
+     * Records that the reminder for this dose has just been posted, at [at].
      *
-     * Counted in storage rather than in memory because a repeat sequence outlives the process: the
-     * app is asleep between one repeat and the next, and may well be started fresh by the alarm.
+     * The first posting is also the moment the user was first told, which is a fact about the dose
+     * and is never rewritten afterwards. Every posting moves the anchor the repeat rule counts
+     * from, so the next ask is a quarter of an hour after the last one rather than after the first.
+     *
+     * @param countsAsRepeat true when this posting was the repeat rule asking again. A dose falling
+     *   due and a snooze running out are not repeats: the first starts the sequence and the second
+     *   restarts it, because the user has acknowledged the dose.
+     *
+     * Kept in storage rather than in memory because a repeat sequence outlives the process: the app
+     * is asleep between one ask and the next, and may well be started fresh by the alarm.
      */
-    suspend fun incrementReminderCount(id: DoseId)
+    suspend fun recordReminded(id: DoseId, at: Instant, countsAsRepeat: Boolean)
 
     /**
      * The moment of the next dose of [medicationId] after [after], or null when there is none in

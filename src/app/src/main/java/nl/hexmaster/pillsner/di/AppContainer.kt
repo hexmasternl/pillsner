@@ -38,8 +38,10 @@ import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.data.RoomUpcomingDosesRepository
 import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
+import nl.hexmaster.pillsner.data.reminders.AndroidBatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
 import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
+import nl.hexmaster.pillsner.data.reminders.BatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.ReminderAlarmScheduler
 import nl.hexmaster.pillsner.data.reminders.ReminderCoordinator
 import nl.hexmaster.pillsner.data.wear.DataLayerSyncTarget
@@ -65,7 +67,7 @@ import nl.hexmaster.pillsner.domain.repository.LegalRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.ThemeRepository
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
-import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
+import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
@@ -131,9 +133,9 @@ class AppContainer(
     private val markMissedDoses = MarkMissedDoses(this.doseRepository, clock)
     private val refreshPlannedDoses =
         RefreshPlannedDoses(this.medicationRepository, this.doseRepository, DoseGenerator(), clock)
-    private val dueDoses = DueDoses(this.doseRepository, clock)
-    private val computeNextWake =
-        ComputeNextWake(this.doseRepository, this.medicationRepository, markMissedDoses, clock)
+    private val dueDoses = DueDoses(this.doseRepository, markMissedDoses, clock)
+    private val computeWakeSchedule =
+        ComputeWakeSchedule(this.doseRepository, this.medicationRepository, markMissedDoses, clock)
 
     private val recordIntakeUseCase = RecordIntake(this.doseRepository, clock)
     private val snoozeDoseUseCase = SnoozeDose(this.doseRepository, markMissedDoses, clock)
@@ -182,10 +184,19 @@ class AppContainer(
      */
     val userUnlockState: UserUnlockState = AndroidUserUnlockState(applicationContext)
 
-    /** The alarm moment, mirrored where a locked boot can still read it (design D3). */
+    /** The armed alarms, mirrored where a locked boot can still read them (design D3, D8). */
     private val armedAlarmStore = ArmedAlarmStore(applicationContext)
     val reminderAlarmScheduler = ReminderAlarmScheduler(applicationContext, armedAlarmStore)
     val reminderNotifier = ReminderNotifier(applicationContext)
+
+    /**
+     * The third thing that can silently stop a reminder (design D6).
+     *
+     * Read rather than observed: the platform has no callback for it, so the Home screen asks
+     * again on every resume, exactly as it does for the notification permission.
+     */
+    val batteryOptimisationState: BatteryOptimisationState =
+        AndroidBatteryOptimisationState(applicationContext)
 
     // The watch, if there is one to talk to (app-wearable-support design D3). Amounts are written
     // out here, under the app language, because the phone is the only side that knows the units.
@@ -204,7 +215,7 @@ class AppContainer(
         refreshPlannedDoses = refreshPlannedDoses,
         markMissedDoses = markMissedDoses,
         dueDoses = dueDoses,
-        computeNextWake = computeNextWake,
+        computeWakeSchedule = computeWakeSchedule,
         notifier = reminderNotifier,
         scheduler = reminderAlarmScheduler,
         clock = clock,

@@ -12,6 +12,8 @@ import nl.hexmaster.pillsner.ui.theme.IntakeStatus
  *   before real data is known.
  * @property notificationsAllowed whether the user has allowed Pillsner to show notifications.
  * @property alarmsAreExact whether the platform lets reminders fire at the exact minute.
+ * @property batteryExempt whether Pillsner is out of battery optimisation, which is what lets it
+ *   act on an alarm rather than merely receive one.
  * @property now the moment the state was built, which is what decides whether a dose is overdue.
  */
 data class HomeUiState(
@@ -19,10 +21,40 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val notificationsAllowed: Boolean = true,
     val alarmsAreExact: Boolean = true,
+    val batteryExempt: Boolean = true,
     val now: Instant = Instant.EPOCH,
 ) {
+    /**
+     * The one thing standing between the user and a reliable reminder, or null when nothing is
+     * (design D6).
+     *
+     * Three things can stop a reminder and more than one can be wrong at a time, but the banner
+     * holds one message and one button. So they are ordered by how completely each one breaks the
+     * promise: denied notifications mean no reminder at all; battery optimisation means a reminder
+     * that may never be acted on; inexact alarms mean a reminder that is merely late. Fixing the
+     * first reveals the next.
+     */
+    val reminderProblem: ReminderProblem? get() = when {
+        !notificationsAllowed -> ReminderProblem.NOTIFICATIONS_DENIED
+        !batteryExempt -> ReminderProblem.BATTERY_OPTIMISED
+        !alarmsAreExact -> ReminderProblem.INEXACT_ALARMS
+        else -> null
+    }
+
     /** Reminders cannot be delivered as promised, so the Home screen has to say so. */
-    val remindersAreUnreliable: Boolean get() = !notificationsAllowed || !alarmsAreExact
+    val remindersAreUnreliable: Boolean get() = reminderProblem != null
+}
+
+/** What the Home banner is reporting, most severe first (design D6). */
+enum class ReminderProblem {
+    /** Pillsner may not post a notification, so a due dose is never announced. */
+    NOTIFICATIONS_DENIED,
+
+    /** The platform may stop Pillsner from running when its alarm goes off. */
+    BATTERY_OPTIMISED,
+
+    /** Reminders still arrive, but within a ten-minute window rather than on the minute. */
+    INEXACT_ALARMS,
 }
 
 /**

@@ -7,6 +7,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.data.reminders.ReminderChannels
+import nl.hexmaster.pillsner.data.reminders.ReminderWatchdog
 import nl.hexmaster.pillsner.data.reminders.WakeReason
 import nl.hexmaster.pillsner.di.AppContainer
 import nl.hexmaster.pillsner.ui.locale.AppLocale
@@ -57,6 +58,10 @@ class PillsnerApplication : Application() {
         // was gone.
         ReminderChannels.create(this)
         container.reminderCoordinator.start()
+        // The net under the alarms (reminder-delivery-reliability design D3). Unique work with
+        // KEEP, so a phone the user opens often still completes an interval; enqueuing is a
+        // handful of microseconds and does not touch the database.
+        ReminderWatchdog.enqueue(this)
         container.reminderCoordinator.requestWake(WakeReason.APP_START)
     }
 

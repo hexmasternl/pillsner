@@ -277,10 +277,17 @@
         <item quantity="other">%d medicines due</item>
     </plurals>
 
+    <!-- Wake service: the notification the platform requires while the app checks (design D4) -->
+    <string name="wake_channel_name">Checking your medicines</string>
+    <string name="wake_channel_description">Appears for a moment while Pillsner works out which doses are due. You can turn this off.</string>
+    <string name="wake_notification">Checking your medicines…</string>
+
     <!-- Home: reminders cannot be delivered (design system section 8.9) -->
     <string name="reminder_banner_notifications_denied">Pillsner cannot show reminders because notifications are turned off.</string>
     <string name="reminder_banner_inexact_alarms">Reminders may arrive up to ten minutes late because exact alarms are turned off.</string>
+    <string name="reminder_banner_battery_optimised">Your phone may stop Pillsner from running, so a reminder can be missed. Allow it to run in the background.</string>
     <string name="reminder_banner_open_settings">Open settings</string>
+    <string name="reminder_banner_allow_background">Allow background use</string>
 
     <!-- Starting and stopping a medicine from the overview -->
     <string name="medicines_action_deactivate">Deactivate</string>

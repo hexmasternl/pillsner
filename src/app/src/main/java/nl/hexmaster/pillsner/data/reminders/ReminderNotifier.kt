@@ -64,6 +64,10 @@ open class ReminderNotifier(
             // False so a re-post after a snooze alerts again rather than appearing silently.
             .setOnlyAlertOnce(false)
             .setContentIntent(openApp())
+            // So a due dose presents itself on a locked or busy phone rather than waiting silently
+            // in the shade (design D5). Where the capability is not granted the platform ignores
+            // this and the notification degrades to a heads-up, which is what happened before.
+            .setFullScreenIntent(openApp(), true)
             .setDeleteIntent(action(dose, ReminderAction.SNOOZE))
             .addAction(0, appContext.getString(R.string.reminder_action_took_it), action(dose, ReminderAction.TAKEN))
             .addAction(0, appContext.getString(R.string.reminder_action_not_yet), action(dose, ReminderAction.SNOOZE))
@@ -94,7 +98,7 @@ open class ReminderNotifier(
         notificationManager.notify(id, notification)
         true
     } catch (denied: SecurityException) {
-        Log.d(TAG, "Reminder  not shown: ")
+        Log.d(TAG, "A reminder was not shown: the permission was withdrawn")
         false
     }
 

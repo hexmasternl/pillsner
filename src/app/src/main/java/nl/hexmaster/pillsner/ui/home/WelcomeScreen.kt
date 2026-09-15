@@ -77,16 +77,11 @@ fun WelcomeScreen(
         ) {
             item(key = "header") { WelcomeHeader() }
 
-            if (uiState.remindersAreUnreliable) {
+            uiState.reminderProblem?.let { problem ->
                 item(key = "banner") {
                     ReminderBanner(
-                        message = stringResource(
-                            if (!uiState.notificationsAllowed) {
-                                R.string.reminder_banner_notifications_denied
-                            } else {
-                                R.string.reminder_banner_inexact_alarms
-                            },
-                        ),
+                        message = stringResource(problem.message),
+                        actionLabel = stringResource(problem.actionLabel),
                         onOpenSettings = onOpenReminderSettings,
                     )
                 }
@@ -116,6 +111,20 @@ fun WelcomeScreen(
         }
     }
 }
+
+/** What the banner says about each problem, and what its button offers to do about it. */
+private val ReminderProblem.message: Int
+    get() = when (this) {
+        ReminderProblem.NOTIFICATIONS_DENIED -> R.string.reminder_banner_notifications_denied
+        ReminderProblem.BATTERY_OPTIMISED -> R.string.reminder_banner_battery_optimised
+        ReminderProblem.INEXACT_ALARMS -> R.string.reminder_banner_inexact_alarms
+    }
+
+private val ReminderProblem.actionLabel: Int
+    get() = when (this) {
+        ReminderProblem.BATTERY_OPTIMISED -> R.string.reminder_banner_allow_background
+        else -> R.string.reminder_banner_open_settings
+    }
 
 // Preview data: invented names, fixed clock so the day labels are stable.
 private val previewNow: Instant = Instant.parse("2026-09-11T10:00:00Z")

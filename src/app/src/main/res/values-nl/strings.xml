@@ -244,6 +244,11 @@
     <string name="schedule_error_days_required">Kies minstens één dag.</string>
     <string name="schedule_error_all_seven_days">Kies minder dan zeven dagen, of gebruik Om de zoveel dagen.</string>
 
+    <!-- Controleren -->
+    <string name="wake_channel_name">Je medicijnen controleren</string>
+    <string name="wake_channel_description">Verschijnt heel even terwijl Pillsner nagaat welke doses aan de beurt zijn. Je kunt dit uitzetten.</string>
+    <string name="wake_notification">Je medicijnen controleren…</string>
+
     <!-- Herinnering -->
     <string name="reminder_channel_name">Herinneringen voor medicijnen</string>
     <string name="reminder_channel_description">Laat weten wanneer een dosis aan de beurt is, en je kunt meteen vanuit de melding antwoorden.</string>
@@ -261,7 +266,9 @@
     <!-- Start: herinneringen kunnen niet worden bezorgd -->
     <string name="reminder_banner_notifications_denied">Pillsner kan geen herinneringen tonen omdat meldingen uitstaan.</string>
     <string name="reminder_banner_inexact_alarms">Herinneringen kunnen tot tien minuten te laat komen omdat exacte alarmen uitstaan.</string>
+    <string name="reminder_banner_battery_optimised">Je telefoon kan Pillsner stoppen, waardoor een herinnering kan uitblijven. Geef de app toestemming om op de achtergrond te werken.</string>
     <string name="reminder_banner_open_settings">Instellingen openen</string>
+    <string name="reminder_banner_allow_background">Achtergrondgebruik toestaan</string>
 
     <!-- Instellingen: taal -->
     <string name="settings_language_header">Taal</string>

@@ -103,12 +103,14 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
         update(id) { it.copy(snoozedUntil = until, reminderCount = 0) }
     }
 
-    override suspend fun setFirstReminded(id: DoseId, at: Instant) {
-        update(id) { it.copy(firstRemindedAt = at) }
-    }
-
-    override suspend fun incrementReminderCount(id: DoseId) {
-        update(id) { it.copy(reminderCount = it.reminderCount + 1) }
+    override suspend fun recordReminded(id: DoseId, at: Instant, countsAsRepeat: Boolean) {
+        update(id) {
+            it.copy(
+                firstRemindedAt = it.firstRemindedAt ?: at,
+                lastRemindedAt = at,
+                reminderCount = it.reminderCount + if (countsAsRepeat) 1 else 0,
+            )
+        }
     }
 
     override suspend fun nextScheduledAtAfter(medicationId: MedicationId, after: Instant): Instant? =

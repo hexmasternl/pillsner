@@ -20,6 +20,11 @@ enum class ReminderAction { TAKEN, SNOOZE, SKIP }
  *
  * Swiping the notification away arrives here as [ReminderAction.SNOOZE]: only "Not going to" ends
  * reminding, so a dose can never be dismissed into silence by accident.
+ *
+ * Recording an answer means opening the database and reconciling the alarms, which on a cold start
+ * is more than a receiver's ten seconds can promise. So it goes to the same short foreground
+ * service the alarm wake uses, and only falls back into this receiver when the platform refuses to
+ * start one (reminder-delivery-reliability design D4).
  */
 class ReminderActionReceiver : BroadcastReceiver() {
 
@@ -27,6 +32,8 @@ class ReminderActionReceiver : BroadcastReceiver() {
         val doseId = DoseId(intent.getLongExtra(EXTRA_DOSE_ID, -1L))
         if (doseId.value < 0) return
         val action = intent.getStringExtra(EXTRA_ACTION)?.let(ReminderAction::valueOf) ?: return
+
+        if (ReminderWakeService.startAnswer(context, doseId, action)) return
 
         val container = (context.applicationContext as PillsnerApplication).container
         // Null when the receiver is driven directly rather than by a real broadcast, which is how

@@ -14,10 +14,12 @@ import kotlinx.coroutines.withTimeout
 import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
-import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
+import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.domain.scheduling.WakeKind
+import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
 
 /** Why the app woke up. Only ever logged, never shown. */
 enum class WakeReason {
@@ -38,6 +40,9 @@ enum class WakeReason {
     ACTION,
     MEDICATIONS_CHANGED,
     PERMISSION_CHANGED,
+
+    /** The periodic check that the alarms the app expects are still armed (design D3). */
+    WATCHDOG,
 }
 
 /**
@@ -55,7 +60,7 @@ class ReminderCoordinator(
     private val refreshPlannedDoses: RefreshPlannedDoses,
     private val markMissedDoses: MarkMissedDoses,
     private val dueDoses: DueDoses,
-    private val computeNextWake: ComputeNextWake,
+    private val computeWakeSchedule: ComputeWakeSchedule,
     private val notifier: ReminderNotifier,
     private val scheduler: ReminderAlarmScheduler,
     private val clock: Clock = Clock.systemDefaultZone(),
@@ -118,11 +123,11 @@ class ReminderCoordinator(
             when (runWakeBody(wakeReason)) {
                 WakeOutcome.COMPLETED -> {
                     consecutiveTimeouts = 0
-                    rescheduleNextWake()
+                    reconcileAlarms()
                 }
                 // A step throwing is not a reason to run the whole wake again: the steps that did
-                // run have done their work, and the next alarm is computed from what is stored.
-                WakeOutcome.FAILED -> rescheduleNextWake()
+                // run have done their work, and the alarm set is computed from what is stored.
+                WakeOutcome.FAILED -> reconcileAlarms()
                 WakeOutcome.TIMED_OUT -> armRetryOrGiveUp()
             }
 
@@ -162,14 +167,17 @@ class ReminderCoordinator(
         withdrawn.forEach { notifier.cancel(it) }
 
         val due = dueDoses()
+        val now = clock.instant()
         due.forEach { dose ->
             // A dose counts as reminded only once it has actually been announced (design D1). When
             // the post did not happen, its snooze stays where it is too: clearing it would take the
             // dose out of the due check as well, and the user would never hear about it.
             if (!notifier.show(dose, due.size)) return@forEach
-            if (dose.firstRemindedAt == null) {
-                doseRepository.setFirstReminded(dose.id, clock.instant())
-            }
+            // A dose falling due starts the repeat sequence and a snooze running out restarts it;
+            // only a posting that neither of those explains is the repeat rule asking again
+            // (design D5).
+            val countsAsRepeat = dose.firstRemindedAt != null && dose.snoozedUntil == null
+            doseRepository.recordReminded(dose.id, now, countsAsRepeat)
             if (dose.snoozedUntil != null) {
                 doseRepository.setSnooze(dose.id, null)
             }
@@ -177,37 +185,45 @@ class ReminderCoordinator(
     }
 
     /**
-     * The only thing the app can do before the first unlock: leave an alarm behind (design D4).
+     * The only thing the app can do before the first unlock: leave its alarms behind (design D4).
      *
-     * An alarm has just fired that nothing can act on, so it goes back a few minutes out. The
-     * recorded moment wins when it is still further away than that — the phone may simply have
-     * booted, in which case the real work is still ahead.
+     * An alarm has just fired that nothing can act on, so everything the app was waiting for goes
+     * back, never sooner than a few minutes out. The full wake at the first unlock is what settles
+     * the rest.
      */
     private suspend fun rearmWhileLocked() {
-        val soonest = clock.instant().plus(ReminderAlarmScheduler.LOCKED_RETRY)
-        val stored = scheduler.armedAt()
-        scheduler.scheduleAt(if (stored != null && stored.isAfter(soonest)) stored else soonest)
+        scheduler.rearmStoredAlarms(clock.instant().plus(ReminderAlarmScheduler.LOCKED_RETRY))
     }
 
     /**
      * A wake that ran out of time knows nothing about what is due, so handing that world to
-     * [ComputeNextWake] would arm the dose's *lapse* moment and record it missed having never been
-     * announced (design D2). Try again shortly instead — and once trying again has stopped helping,
-     * fall back to the ordinary schedule, so an alarm is still set on this path too.
+     * [ComputeWakeSchedule] would arm the dose's *lapse* moment and record it missed having never
+     * been announced (design D2). Try again shortly instead — and once trying again has stopped
+     * helping, fall back to the ordinary schedule, so an alarm is still set on this path too.
+     *
+     * The foreground service the wake now runs in makes a timeout rare. It does not make it
+     * impossible — a service can be stopped too — so this stays as the backstop behind it.
      */
     private suspend fun armRetryOrGiveUp() {
         if (consecutiveTimeouts >= MAX_RETRIES) {
             consecutiveTimeouts = 0
-            rescheduleNextWake()
+            reconcileAlarms()
             return
         }
         consecutiveTimeouts++
-        scheduler.scheduleAt(clock.instant().plus(RETRY_DELAY))
+        scheduler.reconcile(setOf(WakeMoment(clock.instant().plus(RETRY_DELAY), WakeKind.REMINDER)))
     }
 
-    private suspend fun rescheduleNextWake() {
-        val next = runCatching { computeNextWake() }.getOrNull()
-        if (next == null) scheduler.cancel() else scheduler.scheduleAt(next)
+    /**
+     * Brings the armed alarms back in line with what the app now has to wake for.
+     *
+     * When even working out the schedule fails, the alarms already armed are left exactly as they
+     * are. They are the app's last good answer, and a reconcile against a schedule that could not
+     * be read would cancel every one of them over what may be a passing failure.
+     */
+    private suspend fun reconcileAlarms() {
+        val schedule = runCatching { computeWakeSchedule() }.getOrNull() ?: return
+        scheduler.reconcile(schedule)
     }
 
     companion object {

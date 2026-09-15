@@ -87,7 +87,7 @@ class RefreshPlannedDosesTest {
         medications.replaceAll(listOf(twiceADay))
         refresh()
         val morning = doses.all().first()
-        doses.setFirstReminded(morning.id, at(hour = 8))
+        doses.recordReminded(morning.id, at(hour = 8), countsAsRepeat = false)
 
         medications.update(MedicationId(1)) { it.copy(isActive = false) }
         refresh()
@@ -100,7 +100,7 @@ class RefreshPlannedDosesTest {
         medications.replaceAll(listOf(twiceADay))
         refresh()
         val morning = doses.all().first()
-        doses.setFirstReminded(morning.id, at(hour = 8))
+        doses.recordReminded(morning.id, at(hour = 8), countsAsRepeat = false)
 
         medications.update(MedicationId(1)) {
             it.copy(schedules = listOf(Schedule.EveryNDays(mg40, 1, listOf(LocalTime.of(20, 0)))))

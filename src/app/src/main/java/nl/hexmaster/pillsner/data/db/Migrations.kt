@@ -42,12 +42,15 @@ object Migrations {
     }
 
     /**
-     * Adds the repeat counter a reminder needs to know how often it has already asked
-     * (reminder-delivery-reliability D5). Additive, with a default, so every existing dose starts
-     * at nought and no history is touched.
+     * Adds the two things a repeating reminder has to remember between one ask and the next
+     * (reminder-delivery-reliability D5): when it last posted, and how often it has asked since.
+     *
+     * Both are additive and default to "never asked", so every existing dose starts its repeat
+     * sequence at the next posting and no history is touched.
      */
     val MIGRATION_2_3 = object : Migration(2, 3) {
         override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `doses` ADD COLUMN `last_reminded_at` INTEGER")
             db.execSQL("ALTER TABLE `doses` ADD COLUMN `reminder_count` INTEGER NOT NULL DEFAULT 0")
         }
     }

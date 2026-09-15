@@ -49,21 +49,25 @@ class SystemEventsReceiver : BroadcastReceiver() {
         // everything that needs the database is waiting for exactly this moment.
         if (reason == WakeReason.USER_UNLOCKED) application.startWhenUnlocked()
 
-        // Null when the receiver is driven directly rather than by a real broadcast, which is how
-        // the instrumented tests exercise it.
-        val pendingResult: PendingResult? = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                if (reason == WakeReason.LOCKED_BOOT) {
-                    // No wake and no database: only the moment recorded in device-protected
-                    // storage, put back so the phone has an alarm before it is first unlocked.
-                    container.reminderAlarmScheduler.rearmStoredAlarm(Clock.systemUTC().instant())
-                } else {
-                    container.reminderCoordinator.onWake(reason)
+        if (reason == WakeReason.LOCKED_BOOT) {
+            // No wake and no database: only the moments recorded in device-protected storage, put
+            // back so the phone has its alarms before it is first unlocked. That is little enough
+            // work to stay well inside the receiver's own budget.
+            val pendingResult: PendingResult? = goAsync()
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                try {
+                    val now = Clock.systemUTC().instant()
+                    container.reminderAlarmScheduler
+                        .rearmStoredAlarms(now.plus(ReminderAlarmScheduler.LOCKED_RETRY))
+                } finally {
+                    pendingResult?.finish()
                 }
-            } finally {
-                pendingResult?.finish()
             }
+            return
         }
+
+        // A reboot or an update clears the watchdog too, and it is the net under everything else.
+        ReminderWatchdog.enqueue(context)
+        handOffWake(context, reason)
     }
 }

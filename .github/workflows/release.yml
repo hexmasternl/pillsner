@@ -133,10 +133,11 @@ jobs:
       # The phone and the watch bundle cannot share a release: Play rejects any artifact that
       # requires android.hardware.type.watch on a phone track. Each goes to its own track, in its
       # own edit. Paths are relative to the repository root - uses-steps ignore defaults.run.
-      # changesNotSentForReview stays true: an app whose store listing has never been
-      # reviewed cannot have its changes sent for review through the API. The edit commits,
-      # then the release is sent for review once from the Play Console. It can go back to
-      # false after the first review has completed.
+      # changesNotSentForReview is deliberately not set. It was true while the store listing
+      # had never been reviewed, because such an app cannot have its changes sent for review
+      # through the API. That first review has now completed, and Play rejects the parameter
+      # once it does: "Changes are sent for review automatically. The query parameter
+      # changesNotSentForReview must not be set." Releases now go for review on commit.
       - name: Upload the phone bundle to Google Play
         id: upload_phone
         uses: r0adkll/upload-google-play@v1
@@ -147,7 +148,6 @@ jobs:
           tracks: ${{ steps.version.outputs.track }}
           status: completed
           whatsNewDirectory: distribution/whatsnew
-          changesNotSentForReview: true
 
       - name: Upload the watch bundle to Google Play
         id: upload_watch
@@ -159,7 +159,6 @@ jobs:
           tracks: ${{ steps.version.outputs.wearTrack }}
           status: completed
           whatsNewDirectory: distribution/whatsnew
-          changesNotSentForReview: true
 
       - name: Tag the commit and create the GitHub release
         # Runs whether or not Play accepted the bundles, so a build that produced signed bundles is

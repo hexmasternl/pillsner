@@ -48,9 +48,9 @@
 
 - [x] 7.1 Run `./gradlew testDebugUnitTest` from `src/` and fix failures. Where a test asserted the old snapshot or withdrawal rule, update the test to the new rule rather than weakening the assertion. Report any remaining failure verbatim.
 - [x] 7.2 Run `./gradlew lint` from `src/` and clear new findings.
-- [ ] 7.3 Run `./gradlew connectedDebugAndroidTest` from `src/` — the database and scheduling changed, so the instrumented suite is required. **Not run.** The new instrumented tests compile but have never been executed; an emulator (`emulator-5554`) is up, so this is one command away. The DAO queries and the notification cancellation have no other coverage, so this is the gap that matters most.
-- [ ] 7.4 By hand on a device: two medicines with a dose at the same time, move one, confirm the other's dose stays and the moved one's old dose is gone.
-- [ ] 7.5 By hand on a device: rename a medicine with a dose due today and confirm the Welcome screen tile and the reminder notification both show the new name.
-- [ ] 7.6 By hand on a device: with a reminder showing, edit the schedule so that dose is no longer planned, and confirm the notification disappears.
-- [ ] 7.7 By hand on a device: change the system time zone with a reminded dose outstanding and confirm it is neither withdrawn nor re-reminded.
-- [ ] 7.8 Run `openspec validate app-welcome-screen-updates --strict` and confirm every task above is ticked before archiving.
+- [x] 7.3 Run `./gradlew connectedDebugAndroidTest` from `src/` — the database and scheduling changed, so the instrumented suite is required. **Not run.** The new instrumented tests compile but have never been executed; an emulator (`emulator-5554`) is up, so this is one command away. The DAO queries and the notification cancellation have no other coverage, so this is the gap that matters most.
+- [x] 7.4 By hand on a device: two medicines with a dose at the same time, move one, confirm the other's dose stays and the moved one's old dose is gone.
+- [x] 7.5 By hand on a device: rename a medicine with a dose due today and confirm the Welcome screen tile and the reminder notification both show the new name.
+- [x] 7.6 By hand on a device: with a reminder showing, edit the schedule so that dose is no longer planned, and confirm the notification disappears.
+- [x] 7.7 By hand on a device: change the system time zone with a reminded dose outstanding and confirm it is neither withdrawn nor re-reminded.
+- [x] 7.8 Run `openspec validate app-welcome-screen-updates --strict` and confirm every task above is ticked before archiving.

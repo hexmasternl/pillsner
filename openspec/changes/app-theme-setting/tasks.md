@@ -48,7 +48,7 @@
 
 - [x] 8.1 Run the unit test task from `src` and report any failure verbatim.
 - [x] 8.2 Run the lint task from `src`; confirm no missing-translation or extra-translation error.
-- [ ] 8.3 Run the instrumented tests from `src` (DataStore and Compose tests are instrumented) and report any failure verbatim.
+- [ ] 8.3 Run the instrumented tests from `src` (DataStore and Compose tests are instrumented) and report any failure verbatim. On a freshly wiped emulator, install with runtime permissions granted (`adb install -r -g` both APKs, then `adb shell am instrument -w`): otherwise the POST_NOTIFICATIONS dialog sits on top of the app and whichever tests run underneath it fail with "No compose hierarchies found in the app", which looks like a screen defect and is not one.
 - [ ] 8.4 Manual check on a device or emulator: choose Dark while the phone is light and confirm the Settings screen repaints at once with no restart notice; kill and cold start the app and confirm the first frame is dark; choose System default and toggle the phone's dark mode to confirm the app follows.
 - [ ] 8.5 Manual check: with Light chosen on a dark phone, confirm the status and navigation bar icons are dark and readable.
 - [ ] 8.6 Confirm the app lock unlock screen renders in the chosen theme when the app starts locked.

@@ -151,7 +151,11 @@ Principle 5, the dynamic-colour ban, section 2.2 and every palette row are untou
 - **Unit**, no Android: `AppTheme.isDark` across all three options against both phone states; `AppTheme.ofKey` for each key, for null, for empty and for an unrecognised value; `ThemeSectionViewModel` mapping a stored value into state and writing a selection through a fake repository.
 - **Instrumented**, `androidTest`: `DataStoreThemeRepository` round-trips each option and reads `SYSTEM` from a fresh store and from a corrupt value — mirroring `DataStoreLanguageRepositoryTest`, and instrumented for the same reason, that DataStore wants a real `Context`.
 - **Compose**: `ThemeSectionTest` — the dropdown shows the stored option, opening it offers three, choosing one reports it, and no restart notice appears. Plus one test for what the change is actually for: a composable under `PillsnerTheme` with `DARK` selected while the system is light resolves to the dark scheme, which `LocalPillsnerDarkTheme` makes directly assertable.
-- **Existing tests**: the `SettingsScreen` preview and any test constructing `SettingsScreen` gain the two new parameters. Nothing else should need touching; if a screenshot test does, that is a signal the section landed in the wrong place.
+- **Existing tests**: the `SettingsScreen` preview and any test constructing `SettingsScreen` gain the two new parameters.
+
+**Corrected during implementation.** This section originally claimed nothing else would need touching, and that anything else breaking meant the section had landed in the wrong place. That was wrong, and the reasoning behind it was wrong. `PillsnerAppNavigationTest.backFromAbout_returnsToSettingsWithTheBottomBarVisible` and `systemBackFromAbout_returnsToSettings` both assert the Settings title is displayed after coming back from About. Their helper scrolls the Settings list down to the About row, and Settings restores the scroll position it was left at — correct behaviour, and what a user wants. A section added *anywhere* above About lengthens the list, so the scroll goes further and the title is off screen on return. Placement has nothing to do with it; the tests were coupled to how long the list happened to be.
+
+Both now go through an `assertBackOnSettings()` helper that asserts the destination — the bottom bar's Settings item is selected — and then scrolls to the title before asserting it is displayed. That is what the tests meant, and it survives the next section anyone adds.
 
 ## Risks / Trade-offs
 

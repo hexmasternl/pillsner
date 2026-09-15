@@ -43,42 +43,6 @@ fire, and the app MUST NOT depend on one alarm firing in order to arm the next.
 - **WHEN** there are no medicines
 - **THEN** no alarm is set
 
-### Requirement: A dose is only recorded as reminded when it was announced
-The app SHALL record that a dose has been reminded only when the reminder notification was actually
-posted. When posting does not happen — because notification permission is absent, because the post
-was refused, or because the wake did not complete — the dose MUST remain un-reminded so that a later
-wake can still announce it.
-
-#### Scenario: Notification permission absent
-- **WHEN** a dose falls due and notification permission is not granted
-- **THEN** the dose is not recorded as reminded
-
-#### Scenario: Permission granted later
-- **WHEN** notification permission was absent when the dose fell due and the user grants it before the dose lapses
-- **THEN** the next wake posts the reminder for that dose
-
-#### Scenario: Posting refused
-- **WHEN** posting the notification is refused by the system
-- **THEN** the dose is not recorded as reminded and the failure is logged at debug level only
-
-### Requirement: A wake that does not complete is retried
-When the wake cycle does not finish within its budget, the app SHALL arm a retry within two minutes
-rather than treating the wake as done. Retries SHALL be bounded at three attempts, after which the
-dose follows the ordinary lapse rule. A wake that does not complete MUST NOT cause a dose to lapse as
-missed without ever having been announced.
-
-#### Scenario: Cold start runs out of budget
-- **WHEN** an alarm starts a dead process and the wake does not finish within its budget
-- **THEN** a retry is armed within two minutes and the dose is still un-reminded
-
-#### Scenario: Retry succeeds
-- **WHEN** the retry wake completes
-- **THEN** the reminder is posted and no further retry is armed
-
-#### Scenario: Retries exhausted
-- **WHEN** three retries in a row do not complete
-- **THEN** no further retry is armed and the dose lapses under the ordinary rule
-
 ## MODIFIED Requirements
 
 ### Requirement: Reminders fire from an exact alarm
@@ -116,7 +80,12 @@ window in which to finish.
 The service SHALL, in order: mark lapsed doses as missed, refresh the two-day window, post
 notifications for every dose that is due or due to repeat, record as reminded only those doses whose
 notification was posted, and reconcile the alarm set. The alarm set MUST be reconciled even if an
-earlier step fails. A wake that does not complete is handled by the retry requirement above.
+earlier step fails.
+
+The existing requirements "A dose is only recorded as reminded when it was announced", "A wake that
+does not complete is retried" and "The wake cycle does not run while the user is locked" continue to
+hold unchanged, and apply to the service exactly as they applied to the receiver. The foreground
+service is what makes a timeout rare; the retry remains the backstop for when it still happens.
 
 #### Scenario: Two doses due in the same minute
 - **WHEN** two doses fall due at 08:00
@@ -165,22 +134,29 @@ After the device reboots or the app is updated, the app SHALL refresh the window
 doses that fell due in the meantime and have not lapsed, mark lapsed doses missed, and reconcile the
 alarm set, without the user opening the app.
 
-A reboot SHALL re-arm alarms before the phone is first unlocked. Because medicines and doses cannot
-be read before unlock, the app SHALL re-arm from the alarm moments it recorded when it armed them,
-and SHALL run a full wake as soon as the user unlocks. The recorded alarm moments MUST NOT include a
-medicine name or amount.
+A reboot SHALL leave alarms armed before the device is first unlocked. Because medicines and doses
+cannot be read before unlock, the app SHALL record the moment of every alarm it arms in storage that
+is readable before unlock, and SHALL re-arm the whole recorded set on locked boot rather than a
+single moment. What is recorded MUST be the alarm moments alone: it MUST NOT include a medicine name,
+an amount or a dose identifier.
+
+A full wake SHALL follow as soon as the user unlocks the device, and SHALL re-enqueue the watchdog.
 
 #### Scenario: Reboot across a dose
 - **WHEN** the device is off from 07:50 to 08:10 and a dose was due at 08:00
 - **THEN** shortly after boot the reminder for the 08:00 dose is shown
 
-#### Scenario: Reboot before first unlock
-- **WHEN** the device reboots and is not unlocked, and a dose is due in two hours
-- **THEN** the alarm for that dose is armed before first unlock
+#### Scenario: Reboot before first unlock with several doses ahead
+- **WHEN** the device reboots and is not unlocked, and doses are due at 08:00 and 20:00
+- **THEN** alarms for both moments are armed before first unlock, not only the earliest
 
 #### Scenario: First unlock after reboot
 - **WHEN** the user unlocks the phone for the first time after a reboot
-- **THEN** a full wake runs, the window is refreshed and the alarm set is reconciled
+- **THEN** a full wake runs, the window is refreshed, the alarm set is reconciled and the watchdog is enqueued
+
+#### Scenario: Nothing identifying is stored before unlock
+- **WHEN** the storage the app reads on locked boot is inspected
+- **THEN** it contains alarm moments and kinds and nothing that names or identifies a medicine or a dose
 
 #### Scenario: Reboot across a lapse
 - **WHEN** the device is off from Monday 07:00 to Wednesday 09:00 and a daily 08:00 dose existed for Monday and Tuesday

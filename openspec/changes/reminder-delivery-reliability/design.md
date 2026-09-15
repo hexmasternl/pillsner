@@ -15,19 +15,12 @@ never ran, so nothing re-armed anything. Opening the app called `requestWake(APP
 found a dose past its moment with `firstRemindedAt` still null, and posted it — which is both the
 symptom the user saw and the proof the alarm wake never executed.
 
-Three smaller defects sit in the same path and each can silently lose a reminder on its own:
-
-1. `ReminderCoordinator.onWake` wraps the posting work in `withTimeout(9_000)` but puts
-   `rescheduleNextWake()` in the `finally` outside it. On a cold start — Room opening, two
-   `runBlocking` DataStore reads in `PillsnerApplication.onCreate` and `AppContainer.theme`, and an
-   `APP_START` wake already holding the mutex ahead of the alarm — the body can time out. Nothing is
-   posted, nothing is logged above debug, and `ComputeNextWake` then arms the dose's *lapse* moment,
-   so the dose goes straight to missed without ever having been announced.
-2. `ReminderNotifier.show` returns silently when notification permission is missing, but
-   `ReminderCoordinator` writes `setFirstReminded` regardless. Since both `DueDoses` and
-   `ComputeNextWake` gate on `firstRemindedAt == null`, that dose can never be announced again.
-3. The manifest listens for `BOOT_COMPLETED` only, so after a reboot there are no alarms at all
-   until the user unlocks the phone.
+Three smaller defects sat in the same path — a timed-out wake converting a due dose into a missed
+one, a dose recorded as reminded when nothing was posted, and no alarms between reboot and first
+unlock. They are corrected by `reminder-delivery-after-reboot`, which is a prerequisite of this
+change and ships first. This design assumes that work is in place: it builds on the device-protected
+alarm store, the record-when-posted rule, the bounded retry and the locked-wake guard, and it
+reimplements none of them. See D7 and D8.
 
 Constraints this design works within: no network, no third-party SDKs, no analytics; Kotlin and
 AndroidX only; minSdk 26, targetSdk 37; the domain layer stays free of Android framework types.
@@ -42,8 +35,8 @@ AndroidX only; minSdk 26, targetSdk 37; the domain layer stays free of Android f
 - The app can recover a broken schedule by itself, without the user opening it.
 - When the platform or the OEM is throttling Pillsner, the user is told, in the place they already
   look for this (the Home banner) and with a route to fix it.
-- Every path that can fail to post a reminder either retries or leaves the dose announceable. No
-  silent loss.
+- The no-silent-loss guarantees inherited from `reminder-delivery-after-reboot` continue to hold once
+  the wake runs in a foreground service rather than a receiver.
 
 **Non-Goals:**
 
@@ -91,8 +84,9 @@ refresh).
 
 Alarm identity becomes the dose id, so a `PendingIntent` request code derived from it replaces the
 single fixed request code 1. `ReminderAlarmScheduler` therefore needs to know which alarms it
-currently has set, so it can cancel the ones no longer wanted: it keeps the armed set in its own
-DataStore file. That store is also what the watchdog (D3) compares against.
+currently has set, so it can cancel the ones no longer wanted: it widens the device-protected store
+inherited from `reminder-delivery-after-reboot` from one moment to the armed set (D8). That store is
+also what the watchdog (D3) compares against.
 
 This is the change that turns the failure mode from catastrophic into local. A dropped 08:00 alarm
 no longer takes 20:00 with it.
@@ -128,8 +122,8 @@ watchdog. That is the same chain topology that failed, one level up.
 
 `goAsync()` gives roughly ten seconds at background process priority, and the alarm's own wake lock
 is not a durable guarantee across it. A cold start that has to open Room, run migrations and get
-past the two `runBlocking` DataStore reads can exceed it, and today exceeding it loses the reminder
-silently (see Context, defect 1).
+past the two `runBlocking` DataStore reads can exceed it. The inherited retry makes that survivable
+rather than silent, but a reminder two minutes late is still a reminder two minutes late.
 
 The receivers become thin: they start `ReminderWakeService`, a foreground service with
 `foregroundServiceType="shortService"`, passing the `WakeReason`. The service holds a real wake lock
@@ -183,31 +177,32 @@ auto-start screen. This is matched on `Build.MANUFACTURER` against a small table
 each guarded by `resolveActivity` so an intent that no longer exists is never offered. It is
 inherently best-effort and the design says so; the generic system setting is always the fallback.
 
-### D7 — No path may lose a reminder silently
+### D7 — Inherited from `reminder-delivery-after-reboot`
 
-Three fixes, each small and each closing one hole:
+Three behaviours this design depends on are introduced by the preceding change and are not
+reimplemented here: `ReminderNotifier.show` reports whether it posted and a dose is recorded as
+reminded only when it did; a wake that times out arms a bounded retry rather than falling through to
+the dose's lapse moment; and the wake cycle refuses to run while the user is still locked.
 
-- `ReminderNotifier.show` returns whether it actually posted. `ReminderCoordinator` writes
-  `setFirstReminded` only when it did. A dose that could not be shown stays announceable, and the
-  banner from D6 is what tells the user why nothing is arriving.
-- A wake whose body times out arms a retry two minutes out instead of falling through to the lapse
-  moment. The retry is bounded — three attempts — after which the dose follows the ordinary lapse
-  rule.
-- `rescheduleNextWake` moves out of the `finally` into a path that knows whether the body completed,
-  so "reschedule even on failure" (which `reminder-scheduling` requires and this design keeps) and
-  "reschedule as if everything succeeded" stop being the same thing.
+They matter to this design in two ways. The foreground service (D4) makes a timeout rare, but the
+retry stays as the backstop for when it still happens — a service can be stopped too. And the locked
+guard is what makes the `directBootAware` receivers here safe, because a wake started before first
+unlock still cannot read Room.
 
-### D8 — Direct boot and unlock
+### D8 — Extending the device-protected store from one moment to a set
 
-`SystemEventsReceiver` adds `LOCKED_BOOT_COMPLETED` and `ACTION_USER_UNLOCKED`. The receiver and the
-wake service become `directBootAware`, so an alarm can be re-armed before first unlock.
+`reminder-delivery-after-reboot` mirrors the single armed alarm moment into a Preferences DataStore
+on `createDeviceProtectedStorageContext()`, so a locked boot can re-arm it. With per-dose alarms (D2)
+there is no longer one moment, so the store holds the whole armed set: a moment and an alarm kind per
+entry.
 
-Room and DataStore both live in credential-encrypted storage and are unreadable before unlock, so a
-locked-boot wake cannot read doses. It does the one thing it can: re-arms from the armed-alarm set
-in a small device-protected DataStore that `ReminderAlarmScheduler` mirrors, and a full wake follows
-on `ACTION_USER_UNLOCKED`. Mirroring only alarm moments and dose ids keeps medication names and
-amounts out of device-protected storage, which the privacy rule requires.
+Dose ids stay out of it. The alarm carries no payload — the wake works everything out from the
+database once unlocked — so an id would buy nothing and would put a weak identifier in storage that
+is readable before authentication. Moments and kinds are enough to re-arm, and the kind is needed
+only to pick the alarm tier (D1).
 
+The same store is what the watchdog (D3) compares the expected schedule against, so this extension
+serves two requirements rather than one.
 ## Risks / Trade-offs
 
 - **The alarm icon is now permanently in the status bar for any user with a scheduled medicine.** →
@@ -237,6 +232,10 @@ amounts out of device-protected storage, which the privacy rule requires.
   change.
 
 ## Migration Plan
+
+Sequencing: `reminder-delivery-after-reboot` is implemented and archived first. Both changes carry
+spec deltas against `reminder-scheduling` and `medicine-reminders`, and this change's deltas are
+written against the baseline that one leaves behind, so archiving them out of order will conflict.
 
 Schema: one additive `reminderCount` column on the dose table, default 0, with its migration and
 migration test. No destructive fallback.

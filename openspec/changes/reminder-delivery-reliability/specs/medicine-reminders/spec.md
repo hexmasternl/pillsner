@@ -44,10 +44,10 @@ an ordinary heads-up notification and MUST NOT fail to post.
 ## MODIFIED Requirements
 
 ### Requirement: Reminder notification is shown when a dose is due
-When a pending dose's scheduled moment arrives, when a snooze ends, or when a reminder repeat is due,
-the app SHALL post a notification for that dose on a high-importance channel with sound and
-vibration. The notification MUST remain until the user answers it and MUST alert again each time it
-is re-posted after a snooze or as a repeat.
+The app SHALL post a notification for a dose on a high-importance channel with sound and vibration
+when that pending dose's scheduled moment arrives, when a snooze ends, or when a reminder repeat is
+due. The notification MUST remain until the user answers it and MUST alert again each time it is
+re-posted after a snooze or as a repeat.
 
 #### Scenario: Dose falls due
 - **WHEN** a pending dose reaches its scheduled moment
@@ -114,5 +114,9 @@ permission before the dose lapses still produces its reminder.
 - **THEN** the banner is gone and due reminders are shown
 
 #### Scenario: Dose that fell due without permission
-- **WHEN** a dose fell due while the permission was absent and the user grants it before the dose lapses
+- **WHEN** a dose fell due at 08:00 while the permission was absent and the user grants it at 08:20, before the dose lapses
 - **THEN** the reminder for that dose is posted
+
+#### Scenario: Dose that lapsed without permission
+- **WHEN** a dose fell due while the permission was absent and the user grants it only after the dose has lapsed
+- **THEN** the dose stands as missed and no reminder for it is posted

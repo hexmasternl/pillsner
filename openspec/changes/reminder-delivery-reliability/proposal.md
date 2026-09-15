@@ -29,12 +29,16 @@ this one working.
 - A reminder repeats until it is answered or lapses, rather than being announced exactly once.
   A due dose also gets a full-screen intent so it can break through on a locked or busy phone.
 - Wake processing moves off the broadcast-receiver budget into a short foreground service, so a
-  cold start that has to open the database cannot run out of time and lose the reminder silently.
-- Two silent-loss defects are fixed: a dose is no longer recorded as reminded when the notification
-  was not actually posted, and a wake that times out now re-arms a short retry instead of falling
-  through to the dose's lapse moment.
-- The app re-arms its alarms on `LOCKED_BOOT_COMPLETED` and on user unlock, so a reboot does not
-  leave the user unreminded until they unlock the phone.
+  cold start that has to open the database has a real window in which to finish.
+- The device-protected alarm store introduced by `reminder-delivery-after-reboot` widens from a
+  single moment to the whole armed set, so a locked boot re-arms every alarm rather than the
+  earliest one.
+
+**Prerequisite.** `reminder-delivery-after-reboot` ships first and is assumed in place. It fixes the
+two silent-loss defects (a dose recorded as reminded when nothing was posted; a timed-out wake
+falling through to the dose's lapse moment) and adds direct-boot recovery. This change builds on
+that work and does not repeat it; the retry it introduces stays as the backstop behind the
+foreground service here.
 
 ## Capabilities
 
@@ -46,33 +50,39 @@ this one working.
 ### Modified Capabilities
 - `reminder-scheduling`: the single next-wake alarm is replaced by per-dose alarms plus one
   housekeeping alarm; reminder alarms use the alarm-clock tier; wake processing runs in a short
-  foreground service rather than inside the receiver budget; recovery extends to direct boot and
-  user unlock; a timed-out wake retries rather than lapsing the dose.
+  foreground service rather than inside the receiver budget; locked-boot recovery re-arms the whole
+  armed set rather than a single moment.
 - `medicine-reminders`: a reminder repeats until answered rather than being posted once; a due dose
-  uses a full-screen intent; a dose is only recorded as reminded when the notification was posted;
-  the Home banner gains the battery-optimisation state.
+  uses a full-screen intent; the Home banner gains the battery-optimisation state.
 
 ## Impact
 
-**Code** — `data/reminders/`: `ReminderAlarmScheduler` (per-dose alarms, alarm-clock tier),
-`ReminderCoordinator` (repeat, retry, reminded-only-when-shown), `ReminderAlarmReceiver` and
-`SystemEventsReceiver` (hand off to the foreground service), `ReminderNotifier` (full-screen intent,
-`show` reports whether it posted). New: a short foreground service, a `WorkManager` watchdog worker,
-a battery-optimisation status source. `domain/scheduling/`: `ComputeNextWake` becomes
-`ComputeWakeSchedule` returning a set of moments; `DueDoses` gains the repeat rule.
-`ui/home/`: `HomeUiState`, `HomeViewModel` and `ReminderBanner` gain the throttling state.
+**Code** — `data/reminders/`: `ReminderAlarmScheduler` (per-dose alarms, alarm-clock tier, armed-set
+store), `ReminderCoordinator` (the repeat rule), `ReminderAlarmReceiver` and `SystemEventsReceiver`
+(hand off to the foreground service), `ReminderNotifier` (full-screen intent). New: a short
+foreground service, a `WorkManager` watchdog worker, a battery-optimisation status source.
+`domain/scheduling/`: `ComputeNextWake` becomes `ComputeWakeSchedule` returning a set of moments;
+`DueDoses` gains the repeat rule. `ui/home/`: `HomeUiState`, `HomeViewModel` and `ReminderBanner`
+gain the throttling state.
 
 **Manifest** — adds `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, `FOREGROUND_SERVICE`,
-`FOREGROUND_SERVICE_SHORT_SERVICE`, `USE_FULL_SCREEN_INTENT`, `RECEIVE_BOOT_COMPLETED` for
-`LOCKED_BOOT_COMPLETED`; declares the new service; marks the alarm receiver direct-boot aware.
+`FOREGROUND_SERVICE_SHORT_SERVICE` and `USE_FULL_SCREEN_INTENT`; declares the new service, direct-boot
+aware. The direct-boot broadcasts and receiver flags come from `reminder-delivery-after-reboot`.
 
 **Dependencies** — adds `androidx.work:work-runtime-ktx` to the version catalog. It is AndroidX, it
 is the only supported way to run a periodic check that survives process death, and writing one by
 hand would mean re-implementing its scheduling and backoff.
 
+**Schema** — one additive `reminderCount` column on the dose table, with its migration and migration
+test, for the repeat rule.
+
 **Privacy** — unchanged. No new network access, nothing leaves the device, and the new logging
-stays at debug level with dose ids only.
+stays at debug level with dose ids only. The widened device-protected store holds alarm moments and
+kinds only — no dose id, no medicine name, no amount.
 
 **Battery** — a 15-minute periodic worker and per-dose alarm-clock alarms cost more than one idle
 alarm. That is the trade the product promise requires, and the worker does nothing when there are
 no pending doses.
+
+**Sequencing** — depends on `reminder-delivery-after-reboot`, which must be implemented and archived
+first. Both carry spec deltas against the same two capabilities.

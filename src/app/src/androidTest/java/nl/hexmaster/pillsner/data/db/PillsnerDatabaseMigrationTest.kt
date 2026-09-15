@@ -73,6 +73,41 @@ class PillsnerDatabaseMigrationTest {
         migrated.close()
     }
 
+    @Test
+    fun migrate2To3_addsTheRepeatCounterAndKeepsTheDoses() {
+        helper.createDatabase(TEST_DATABASE, 2).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO medications
+                    (id, name, default_dose_value, default_dose_unit, used_since, use_until,
+                     prescribed_by, is_active)
+                VALUES (1, 'Ibuprofen', '400', 'MILLIGRAM', '2026-09-14', NULL,
+                        'GENERAL_PRACTITIONER', 1)
+                """.trimIndent(),
+            )
+            db.execSQL(
+                """
+                INSERT INTO doses
+                    (id, medication_id, medication_name, amount_value, amount_unit, scheduled_at,
+                     outcome, recorded_at, snoozed_until, first_reminded_at)
+                VALUES (1, 1, 'Ibuprofen', '400', 'MILLIGRAM', 1789200000000,
+                        'TAKEN', 1789200600000, NULL, 1789200000000)
+                """.trimIndent(),
+            )
+        }
+
+        val migrated = helper.runMigrationsAndValidate(TEST_DATABASE, 3, true, Migrations.MIGRATION_2_3)
+
+        migrated.query("SELECT medication_name, outcome, reminder_count FROM doses").use { cursor ->
+            assertEquals("The dose the user already answered is still there", 1, cursor.count)
+            cursor.moveToFirst()
+            assertEquals("Ibuprofen", cursor.getString(0))
+            assertEquals("TAKEN", cursor.getString(1))
+            assertEquals("Every existing dose starts at nought repeats", 0, cursor.getInt(2))
+        }
+        migrated.close()
+    }
+
     private companion object {
         const val TEST_DATABASE = "migration-test.db"
     }

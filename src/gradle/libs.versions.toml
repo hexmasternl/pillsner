@@ -23,6 +23,10 @@ core = "1.19.0"
 biometric = "1.1.0"
 datastore = "1.2.1"
 room = "2.8.5"
+# WorkManager: the periodic watchdog that repairs a broken alarm chain
+# (reminder-delivery-reliability design D3). Newest stable on 15 September 2026; 2.12.0 is still a
+# release candidate.
+work = "2.11.2"
 fragment = "1.9.0"
 
 # Wear OS (app-wearable-support design D9). Newest stable on 13 September 2026: Wear Compose 1.7.0
@@ -70,6 +74,8 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
 
 # Wear OS: the watch UI, and the only supported phone-to-watch transport.
 androidx-wear-compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "wearCompose" }

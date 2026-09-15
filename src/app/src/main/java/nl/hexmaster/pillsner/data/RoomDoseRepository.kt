@@ -98,6 +98,10 @@ class RoomDoseRepository(
         dao.setFirstReminded(id.value, at)
     }
 
+    override suspend fun incrementReminderCount(id: DoseId) {
+        dao.incrementReminderCount(id.value)
+    }
+
     override suspend fun nextScheduledAtAfter(medicationId: MedicationId, after: Instant): Instant? =
         dao.nextScheduledAtAfter(medicationId.value, after)
 
@@ -126,6 +130,7 @@ internal fun DoseEntity.toDomain(): Dose = Dose(
     intake = outcome?.let { Intake(IntakeOutcome.valueOf(it), checkNotNull(recordedAt) { "Dose $id has an outcome but no moment" }) },
     snoozedUntil = snoozedUntil,
     firstRemindedAt = firstRemindedAt,
+    reminderCount = reminderCount,
 )
 
 internal fun PlannedDose.toEntity(): DoseEntity = DoseEntity(

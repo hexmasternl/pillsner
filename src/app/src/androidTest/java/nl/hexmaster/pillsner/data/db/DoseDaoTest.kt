@@ -302,6 +302,54 @@ class DoseDaoTest {
         assertNull(doses.earliestScheduledAt(withoutDoses))
     }
 
+    @Test
+    fun aFreshDose_hasNotBeenAskedAboutAgain() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+
+        assertEquals(0, doses.pending().single().reminderCount)
+    }
+
+    @Test
+    fun eachRepeatCountsOnce() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+        val dose = doses.pending().single()
+
+        doses.incrementReminderCount(dose.id)
+        doses.incrementReminderCount(dose.id)
+
+        assertEquals(2, doses.pending().single().reminderCount)
+    }
+
+    @Test
+    fun aSnoozePutsTheRepeatsBackToTheStart() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+        val dose = doses.pending().single()
+        repeat(3) { doses.incrementReminderCount(dose.id) }
+
+        // "Not yet" is an acknowledgement, so the repeats before it must not count against the user.
+        doses.setSnooze(dose.id, evening)
+
+        val snoozed = doses.pending().single()
+        assertEquals(0, snoozed.reminderCount)
+        assertEquals(evening, snoozed.snoozedUntil)
+    }
+
+    @Test
+    fun theRepeatCountBelongsToOneDoseOnly() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        val first = doses.pending().first()
+
+        doses.incrementReminderCount(first.id)
+
+        val stored = doses.pending().associateBy { it.scheduledAt }
+        assertEquals(1, stored.getValue(morning).reminderCount)
+        assertEquals(0, stored.getValue(evening).reminderCount)
+    }
+
     private fun medication() = NewMedication(
         name = "Ibuprofen",
         defaultDose = mg40,

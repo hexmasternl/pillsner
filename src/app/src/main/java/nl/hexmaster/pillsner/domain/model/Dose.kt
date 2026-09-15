@@ -39,6 +39,10 @@ data class Intake(val outcome: IntakeOutcome, val recordedAt: Instant)
  * @property firstRemindedAt when the user was first told about this dose, or null while it is only
  *   planned. Planned doses may be regenerated freely; a dose the user has already seen is a fact
  *   and is never silently rewritten.
+ * @property reminderCount how often the reminder has been asked again since it was first
+ *   announced. Stored rather than held in memory, because the repeat rule has to survive the
+ *   process dying between one repeat and the next. A snooze resets it to nought: the user has
+ *   acknowledged the dose, so the app does not go on counting down against them.
  */
 data class Dose(
     val id: DoseId,
@@ -49,6 +53,7 @@ data class Dose(
     val intake: Intake? = null,
     val snoozedUntil: Instant? = null,
     val firstRemindedAt: Instant? = null,
+    val reminderCount: Int = 0,
 ) {
     /** True while the user has not answered: no outcome has been recorded. */
     val isPending: Boolean get() = intake == null

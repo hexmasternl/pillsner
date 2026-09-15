@@ -25,7 +25,7 @@ abstract class PillsnerDatabase : RoomDatabase() {
     abstract fun doseDao(): DoseDao
 
     companion object {
-        const val VERSION = 2
+        const val VERSION = 3
         const val NAME = "pillsner.db"
 
         /**

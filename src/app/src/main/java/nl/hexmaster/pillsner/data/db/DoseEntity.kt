@@ -43,4 +43,6 @@ data class DoseEntity(
     @ColumnInfo(name = "recorded_at") val recordedAt: Instant? = null,
     @ColumnInfo(name = "snoozed_until") val snoozedUntil: Instant? = null,
     @ColumnInfo(name = "first_reminded_at") val firstRemindedAt: Instant? = null,
+    /** How many times the reminder has been re-posted since it was first announced. */
+    @ColumnInfo(name = "reminder_count", defaultValue = "0") val reminderCount: Int = 0,
 )

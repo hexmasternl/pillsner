@@ -71,11 +71,24 @@ interface DoseRepository {
     /** Records the outcome of one dose and clears any snooze on it. */
     suspend fun recordIntake(id: DoseId, outcome: IntakeOutcome, at: Instant)
 
-    /** Sets, or with null clears, when a pending dose should be reminded about again. */
+    /**
+     * Sets, or with null clears, when a pending dose should be reminded about again.
+     *
+     * A snooze also resets the repeat count: the user has acknowledged the dose, so the repeats
+     * they collected before saying "Not yet" must not count against them afterwards.
+     */
     suspend fun setSnooze(id: DoseId, until: Instant?)
 
     /** Records that the user has now been told about this dose for the first time. */
     suspend fun setFirstReminded(id: DoseId, at: Instant)
+
+    /**
+     * Records that the reminder for this dose has been asked again, one repeat further along.
+     *
+     * Counted in storage rather than in memory because a repeat sequence outlives the process: the
+     * app is asleep between one repeat and the next, and may well be started fresh by the alarm.
+     */
+    suspend fun incrementReminderCount(id: DoseId)
 
     /**
      * The moment of the next dose of [medicationId] after [after], or null when there is none in

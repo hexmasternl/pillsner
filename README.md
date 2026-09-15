@@ -141,6 +141,7 @@ The project pins every tool and library version in `src/gradle/libs.versions.tom
 | AndroidX Core | 1.19.0 |
 | Room | 2.8.5 |
 | DataStore Preferences | 1.2.1 |
+| WorkManager (the reminder watchdog) | 2.11.2 |
 | Biometric | 1.1.0 |
 | Fragment (host required by Biometric's `BiometricPrompt`) | 1.9.0 |
 | Wear Compose (Material 3, Foundation) | 1.6.2 |

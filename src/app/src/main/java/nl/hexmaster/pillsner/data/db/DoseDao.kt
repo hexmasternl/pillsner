@@ -134,11 +134,15 @@ interface DoseDao {
     @Query("UPDATE doses SET outcome = :outcome, recorded_at = :at, snoozed_until = NULL WHERE id = :id")
     suspend fun setIntake(id: Long, outcome: String, at: Instant)
 
-    @Query("UPDATE doses SET snoozed_until = :until WHERE id = :id")
+    /** A snooze is an acknowledgement, so it also puts the repeat sequence back to the start. */
+    @Query("UPDATE doses SET snoozed_until = :until, reminder_count = 0 WHERE id = :id")
     suspend fun setSnooze(id: Long, until: Instant?)
 
     @Query("UPDATE doses SET first_reminded_at = :at WHERE id = :id")
     suspend fun setFirstReminded(id: Long, at: Instant)
+
+    @Query("UPDATE doses SET reminder_count = reminder_count + 1 WHERE id = :id")
+    suspend fun incrementReminderCount(id: Long)
 
     @Query(
         """

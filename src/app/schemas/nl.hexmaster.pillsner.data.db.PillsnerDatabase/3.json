@@ -1,0 +1,277 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "709bc3577d7393cad19fe97527b1b2b4",
+    "entities": [
+      {
+        "tableName": "medications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `default_dose_value` TEXT NOT NULL, `default_dose_unit` TEXT NOT NULL, `used_since` TEXT NOT NULL, `use_until` TEXT, `prescribed_by` TEXT NOT NULL, `is_active` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultDoseValue",
+            "columnName": "default_dose_value",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultDoseUnit",
+            "columnName": "default_dose_unit",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usedSince",
+            "columnName": "used_since",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "useUntil",
+            "columnName": "use_until",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "prescribedBy",
+            "columnName": "prescribed_by",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isActive",
+            "columnName": "is_active",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "schedules",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `medication_id` INTEGER NOT NULL, `position` INTEGER NOT NULL, `kind` TEXT NOT NULL, `amount_value` TEXT NOT NULL, `amount_unit` TEXT NOT NULL, `interval_days` INTEGER, `interval_hours` INTEGER, `days` TEXT, `times` TEXT, `first_dose_at` TEXT, FOREIGN KEY(`medication_id`) REFERENCES `medications`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "medicationId",
+            "columnName": "medication_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amountValue",
+            "columnName": "amount_value",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amountUnit",
+            "columnName": "amount_unit",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intervalDays",
+            "columnName": "interval_days",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "intervalHours",
+            "columnName": "interval_hours",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "days",
+            "columnName": "days",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "times",
+            "columnName": "times",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "firstDoseAt",
+            "columnName": "first_dose_at",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_schedules_medication_id",
+            "unique": false,
+            "columnNames": [
+              "medication_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_schedules_medication_id` ON `${TABLE_NAME}` (`medication_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "medications",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "medication_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "doses",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `medication_id` INTEGER, `medication_name` TEXT NOT NULL, `amount_value` TEXT NOT NULL, `amount_unit` TEXT NOT NULL, `scheduled_at` INTEGER NOT NULL, `outcome` TEXT, `recorded_at` INTEGER, `snoozed_until` INTEGER, `first_reminded_at` INTEGER, `reminder_count` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`medication_id`) REFERENCES `medications`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "medicationId",
+            "columnName": "medication_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "medicationName",
+            "columnName": "medication_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amountValue",
+            "columnName": "amount_value",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amountUnit",
+            "columnName": "amount_unit",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scheduledAt",
+            "columnName": "scheduled_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outcome",
+            "columnName": "outcome",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "recordedAt",
+            "columnName": "recorded_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "snoozedUntil",
+            "columnName": "snoozed_until",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "firstRemindedAt",
+            "columnName": "first_reminded_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "reminderCount",
+            "columnName": "reminder_count",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_doses_medication_id_scheduled_at",
+            "unique": true,
+            "columnNames": [
+              "medication_id",
+              "scheduled_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_doses_medication_id_scheduled_at` ON `${TABLE_NAME}` (`medication_id`, `scheduled_at`)"
+          },
+          {
+            "name": "index_doses_scheduled_at",
+            "unique": false,
+            "columnNames": [
+              "scheduled_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_doses_scheduled_at` ON `${TABLE_NAME}` (`scheduled_at`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "medications",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "medication_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '709bc3577d7393cad19fe97527b1b2b4')"
+    ]
+  }
+}

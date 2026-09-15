@@ -144,6 +144,8 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.process)
+    // The periodic watchdog that repairs a broken alarm chain (reminder-delivery-reliability D3).
+    implementation(libs.androidx.work.runtime.ktx)
     // Required by androidx.biometric 1.1.0: BiometricPrompt needs a FragmentActivity host.
     implementation(libs.androidx.fragment.ktx)
 
@@ -174,6 +176,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.navigation.testing)
     androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

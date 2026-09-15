@@ -48,6 +48,19 @@ object Sizes {
     val pinDotStroke = 2.dp
 
     /**
+     * A key on the PIN keypad. Well above [minTouchTarget] so the keypad reads like the device's
+     * own lock screen and stays comfortable one-handed (app-login design D10).
+     */
+    val pinKey = 72.dp
+
+    /**
+     * How wide the three-column keypad may grow. Chosen so that at full width a key is [pinKey]
+     * across as well as tall; on anything narrower, including the identity-check dialog on small
+     * phones, the keys shrink with the available width instead of overflowing it.
+     */
+    val pinKeypadMaxWidth = 240.dp
+
+    /**
      * The usage chart's fixed height (app-medicine-usage-history design D5). Tall enough for the
      * shortest bar of a fourteen-bar period to still read, short enough that the summary above it
      * and the legend below it stay on one screen at 100 % font scale.

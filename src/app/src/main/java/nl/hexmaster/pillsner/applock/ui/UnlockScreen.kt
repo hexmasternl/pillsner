@@ -25,7 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -40,16 +42,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.applock.domain.BiometricStatus
 import nl.hexmaster.pillsner.applock.domain.LockState
+import nl.hexmaster.pillsner.applock.domain.Pin
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Sizes
 import nl.hexmaster.pillsner.ui.theme.Spacing
-
-private const val MAX_PIN_LENGTH = 6
-private const val MIN_PIN_LENGTH = 4
 
 /**
  * The unlock screen (design D10): shown whenever [nl.hexmaster.pillsner.ui.PillsnerApp]'s root
@@ -84,11 +85,19 @@ fun UnlockScreen(
         }
     }
 
-    LaunchedEffect(uiState.shouldPromptBiometricNow) {
-        if (uiState.shouldPromptBiometricNow) {
-            onBiometricPromptShown()
-            onBiometricResult(authenticateWithBiometric())
-        }
+    // Keyed on Unit, never on shouldPromptBiometricNow itself: marking the prompt as shown turns
+    // that flag off at once, and an effect keyed on it would cancel its own coroutine the instant
+    // the prompt appeared, taking the prompt down with it. Watching the flag from inside a
+    // long-lived effect instead lets the prompt stay up until the user answers it, and lets
+    // "Use biometrics" raise it again by turning the flag back on.
+    val currentState by rememberUpdatedState(uiState)
+    LaunchedEffect(Unit) {
+        snapshotFlow { currentState.shouldPromptBiometricNow }
+            .filter { it }
+            .collect {
+                onBiometricPromptShown()
+                onBiometricResult(authenticateWithBiometric())
+            }
     }
 
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
@@ -109,7 +118,7 @@ fun UnlockScreen(
                 wrongPinShown = wrongPinShown,
                 biometricAvailable = biometricAvailable,
                 onDigit = { digit ->
-                    if (enteredPin.length < MAX_PIN_LENGTH) {
+                    if (enteredPin.length < Pin.MAX_LENGTH) {
                         wrongPinShown = false
                         enteredPin += digit
                     }
@@ -181,9 +190,8 @@ private fun LockedContent(
 
         PinKeypad(
             enteredLength = enteredPin.length,
-            maxLength = MAX_PIN_LENGTH,
             enabled = !cooldownActive,
-            submitEnabled = !cooldownActive && enteredPin.length >= MIN_PIN_LENGTH,
+            submitEnabled = !cooldownActive && enteredPin.length >= Pin.MIN_LENGTH,
             onDigit = onDigit,
             onBackspace = onBackspace,
             onSubmit = onSubmit,

@@ -28,11 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.applock.domain.Pin
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Spacing
-
-private const val MAX_PIN_LENGTH = 6
-private const val MIN_PIN_LENGTH = 4
 
 /** Which of the two PIN setup steps is showing (spec "Enabling the lock requires ... a PIN"). */
 private enum class SetupStep { Enter, Confirm }
@@ -127,11 +125,10 @@ fun PinSetupScreen(
 
             PinKeypad(
                 enteredLength = currentEntry.length,
-                maxLength = MAX_PIN_LENGTH,
                 enabled = true,
-                submitEnabled = currentEntry.length >= MIN_PIN_LENGTH,
+                submitEnabled = currentEntry.length >= Pin.MIN_LENGTH,
                 onDigit = { digit ->
-                    if (currentEntry.length < MAX_PIN_LENGTH) {
+                    if (currentEntry.length < Pin.MAX_LENGTH) {
                         mismatchShown = false
                         tooShortShown = false
                         sameAsCurrentShown = false
@@ -140,7 +137,7 @@ fun PinSetupScreen(
                 },
                 onBackspace = { currentEntry = currentEntry.dropLast(1) },
                 onSubmit = submit@{
-                    if (currentEntry.length < MIN_PIN_LENGTH) {
+                    if (currentEntry.length < Pin.MIN_LENGTH) {
                         tooShortShown = true
                         return@submit
                     }

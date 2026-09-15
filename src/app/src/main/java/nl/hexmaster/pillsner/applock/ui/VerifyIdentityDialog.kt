@@ -26,14 +26,12 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.applock.domain.Pin
 import nl.hexmaster.pillsner.applock.domain.SecurityAction
 import nl.hexmaster.pillsner.applock.domain.VerifyIdentityRequest
 import nl.hexmaster.pillsner.applock.domain.VerifyIdentityState
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Spacing
-
-private const val MAX_PIN_LENGTH = 6
-private const val MIN_PIN_LENGTH = 4
 
 /** Stable tags for the identity check, for semantics tests. */
 object VerifyIdentityDialogTestTags {
@@ -140,11 +138,10 @@ fun VerifyIdentityDialog(
 
                         PinKeypad(
                             enteredLength = enteredPin.length,
-                            maxLength = MAX_PIN_LENGTH,
                             enabled = !cooldownActive,
-                            submitEnabled = !cooldownActive && enteredPin.length >= MIN_PIN_LENGTH,
+                            submitEnabled = !cooldownActive && enteredPin.length >= Pin.MIN_LENGTH,
                             onDigit = { digit ->
-                                if (enteredPin.length < MAX_PIN_LENGTH) {
+                                if (enteredPin.length < Pin.MAX_LENGTH) {
                                     wrongPinShown = false
                                     enteredPin += digit
                                 }

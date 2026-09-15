@@ -8,7 +8,13 @@ package nl.hexmaster.pillsner.applock.domain
 value class Pin private constructor(val digits: String) {
 
     companion object {
-        private val VALID = Regex("^[0-9]{4,6}$")
+        /** The fewest digits a PIN may have. The UI refuses to submit anything shorter. */
+        const val MIN_LENGTH = 4
+
+        /** The most digits a PIN may have. The UI refuses to accept anything longer. */
+        const val MAX_LENGTH = 6
+
+        private val VALID = Regex("^[0-9]{$MIN_LENGTH,$MAX_LENGTH}$")
 
         /** Returns the [Pin] for [raw], or null when it is not 4 to 6 decimal digits. */
         fun of(raw: String): Pin? = if (VALID.matches(raw)) Pin(raw) else null

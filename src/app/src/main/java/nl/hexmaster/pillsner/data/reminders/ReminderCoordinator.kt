@@ -77,6 +77,8 @@ class ReminderCoordinator(
     // Nothing to record on a build that has not wired the preferences yet, which is every test
     // that does not care about the banner.
     private val silentlyMissedReminders: SilentlyMissedReminders = SilentlyMissedReminders {},
+    // Null in tests that do not care what was recorded; the real one lives in AppContainer.
+    private val deliveryLog: ReminderDeliveryLog? = null,
 ) {
 
     // One wake at a time: an alarm and an answer from a notification can arrive in the same second.
@@ -118,6 +120,7 @@ class ReminderCoordinator(
         lock.withLock {
             if (!unlockState.isUnlocked()) {
                 Log.d(TAG, "Wake for $reason deferred: the user has not unlocked yet")
+                deliveryLog?.record(DeliveryEvent.WAKE_DEFERRED, reason.name)
                 rearmWhileLocked()
                 return@withLock
             }
@@ -126,6 +129,7 @@ class ReminderCoordinator(
             // in the log is what makes a run of timeouts recognisable rather than a run of alarms.
             val wakeReason =
                 if (reason == WakeReason.ALARM && consecutiveFailures > 0) WakeReason.RETRY else reason
+            deliveryLog?.record(DeliveryEvent.WAKE, wakeReason.name)
 
             when (runWakeBody(wakeReason, timeoutMillis)) {
                 WakeOutcome.COMPLETED -> {
@@ -153,15 +157,23 @@ class ReminderCoordinator(
         WakeOutcome.COMPLETED
     } catch (timeout: TimeoutCancellationException) {
         Log.d(TAG, "Wake for $reason ran out of time")
+        deliveryLog?.record(DeliveryEvent.TIMED_OUT, reason.name)
         WakeOutcome.TIMED_OUT
     } catch (error: Exception) {
         Log.d(TAG, "Wake for $reason did not complete: ${error::class.simpleName}")
+        deliveryLog?.record(DeliveryEvent.FAILED, "${reason.name} ${error::class.simpleName}")
         WakeOutcome.FAILED
     }
 
     private suspend fun wake(reason: WakeReason) {
         val lapsed = markMissedDoses()
-        lapsed.forEach { notifier.cancel(it) }
+        lapsed.forEach { dose ->
+            notifier.cancel(dose)
+            deliveryLog?.record(
+                if (dose.wasMissedInSilence) DeliveryEvent.LAPSED_UNANNOUNCED else DeliveryEvent.LAPSED,
+                dose.id.value.toString(),
+            )
+        }
         recordSilentlyMissedReminders(lapsed)
 
         // Only a change the user made may withdraw a dose they have already been reminded about:
@@ -181,7 +193,11 @@ class ReminderCoordinator(
             // A dose counts as reminded only once it has actually been announced (design D1). When
             // the post did not happen, its snooze stays where it is too: clearing it would take the
             // dose out of the due check as well, and the user would never hear about it.
-            if (!notifier.show(dose, due.size)) return@forEach
+            if (!notifier.show(dose, due.size)) {
+                deliveryLog?.record(DeliveryEvent.POST_REFUSED, dose.id.value.toString())
+                return@forEach
+            }
+            deliveryLog?.record(DeliveryEvent.POSTED, dose.id.value.toString())
             // A dose falling due starts the repeat sequence and a snooze running out restarts it;
             // only a posting that neither of those explains is the repeat rule asking again
             // (design D5).
@@ -232,10 +248,12 @@ class ReminderCoordinator(
     private suspend fun armRetryOrGiveUp() {
         if (consecutiveFailures >= MAX_RETRIES) {
             consecutiveFailures = 0
+            deliveryLog?.record(DeliveryEvent.GAVE_UP)
             reconcileAlarms()
             return
         }
         consecutiveFailures++
+        deliveryLog?.record(DeliveryEvent.RETRY_ARMED)
         scheduler.reconcile(setOf(WakeMoment(clock.instant().plus(RETRY_DELAY), WakeKind.REMINDER)))
     }
 
@@ -247,8 +265,16 @@ class ReminderCoordinator(
      * be read would cancel every one of them over what may be a passing failure.
      */
     private suspend fun reconcileAlarms() {
-        val schedule = runCatching { computeWakeSchedule() }.getOrNull() ?: return
+        val schedule = runCatching { computeWakeSchedule() }.getOrNull()
+        if (schedule == null) {
+            deliveryLog?.record(DeliveryEvent.ALARMS_LEFT_AS_IS)
+            return
+        }
         scheduler.reconcile(schedule)
+        deliveryLog?.record(
+            DeliveryEvent.ALARMS_ARMED,
+            "${schedule.size} next=${schedule.minOfOrNull { it.at } ?: "none"}",
+        )
     }
 
     companion object {

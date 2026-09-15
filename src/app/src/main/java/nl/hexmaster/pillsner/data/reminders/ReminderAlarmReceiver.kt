@@ -33,7 +33,10 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
  * with room to spare (reminder-delivery-after-reboot design D4).
  */
 internal fun BroadcastReceiver.handOffWake(context: Context, reason: WakeReason) {
-    if (context.isUnlocked() && ReminderWakeService.startWake(context, reason)) return
+    if (context.isUnlocked()) {
+        if (ReminderWakeService.startWake(context, reason)) return
+        context.deliveryLog().record(DeliveryEvent.SERVICE_REFUSED, reason.name)
+    }
 
     // Null when the receiver is driven directly rather than by a real broadcast, which is how the
     // instrumented tests exercise it.
@@ -53,6 +56,10 @@ internal fun BroadcastReceiver.handOffWake(context: Context, reason: WakeReason)
  */
 internal fun Context.reminderCoordinator(): ReminderCoordinator =
     (applicationContext as PillsnerApplication).container.reminderCoordinator
+
+/** The delivery log, so a receiver can say when the platform would not start the service. */
+internal fun Context.deliveryLog(): ReminderDeliveryLog =
+    (applicationContext as PillsnerApplication).container.reminderDeliveryLog
 
 /** Whether the user has unlocked the phone since it booted; false in the direct-boot window. */
 internal fun Context.isUnlocked(): Boolean =

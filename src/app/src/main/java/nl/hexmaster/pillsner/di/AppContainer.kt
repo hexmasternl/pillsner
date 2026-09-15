@@ -44,6 +44,7 @@ import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
 import nl.hexmaster.pillsner.data.reminders.BatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.ReminderAlarmScheduler
 import nl.hexmaster.pillsner.data.reminders.ReminderCoordinator
+import nl.hexmaster.pillsner.data.reminders.ReminderDeliveryLog
 import nl.hexmaster.pillsner.data.wear.DataLayerSyncTarget
 import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
 import nl.hexmaster.pillsner.data.wear.WearDataClientFactory
@@ -182,6 +183,9 @@ class AppContainer(
 
     val reminderPreferences = ReminderPreferences(applicationContext)
 
+    /** What the reminders did, kept on the device so a missed reminder leaves evidence behind. */
+    val reminderDeliveryLog = ReminderDeliveryLog(applicationContext, clock)
+
     /**
      * Whether the phone has been unlocked since it booted (reminder-delivery-after-reboot D4).
      *
@@ -228,6 +232,7 @@ class AppContainer(
         doseSyncPublisher = doseSyncPublisher,
         unlockState = userUnlockState,
         silentlyMissedReminders = reminderPreferences::recordSilentlyMissedReminder,
+        deliveryLog = reminderDeliveryLog,
     )
 
     /**

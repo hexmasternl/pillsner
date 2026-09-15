@@ -129,11 +129,11 @@ class ReminderNotifierTest {
     }
 
     @Test
-    fun theReminder_isAReminderAtHighPriority() {
+    fun theReminder_isAnAlarmAtHighPriority() {
         notifier.show(dose, dueCount = 1)
 
         val notification = posted()
-        assertEquals(Notification.CATEGORY_REMINDER, notification.category)
+        assertEquals(Notification.CATEGORY_ALARM, notification.category)
         assertEquals(ReminderChannels.REMINDERS, notification.channelId)
     }
 

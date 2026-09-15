@@ -274,7 +274,7 @@
 
     <!-- Herinnering -->
     <string name="reminder_channel_name">Herinneringen voor medicijnen</string>
-    <string name="reminder_channel_description">Laat weten wanneer een dosis aan de beurt is, en je kunt meteen vanuit de melding antwoorden.</string>
+    <string name="reminder_channel_description">Laat weten wanneer een dosis aan de beurt is, en je kunt meteen vanuit de melding antwoorden. Klinkt als een alarm, zodat het ook door Niet storen en een stille telefoon heen komt.</string>
     <string name="reminder_text">Neem %1$s van je medicijn \'%2$s\', om %3$s</string>
     <string name="reminder_time_with_day">%1$s %2$s</string>
     <string name="reminder_public_title">Tijd voor je medicijn</string>

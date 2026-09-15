@@ -3,14 +3,32 @@ package nl.hexmaster.pillsner.data.reminders
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import androidx.core.app.NotificationManagerCompat
 import nl.hexmaster.pillsner.R
 
-/** The notification channel reminders are posted on. Created once, at app start. */
+/** The notification channels reminders are posted on. Created once, at app start. */
 object ReminderChannels {
 
-    /** The one channel: a dose being due is the only thing Pillsner interrupts anyone for. */
-    const val REMINDERS = "reminders"
+    /**
+     * The one channel that interrupts anyone: a dose being due.
+     *
+     * Its sound plays on the **alarm** stream, not the notification stream. A reminder on the
+     * notification stream is silenced by Do Not Disturb — even in its default configuration, which
+     * lets alarms through — and by a phone set to silent or vibrate, which is exactly where a
+     * medication reminder is most likely to be missed. On the alarm stream it rings at alarm
+     * volume, the way the clock app does, and Do Not Disturb treats it as an alarm because the
+     * notification itself is categorised as one.
+     *
+     * A channel's sound and audio attributes are fixed when it is created, so this is a new channel
+     * rather than a change to the old one; the old one is deleted below so it does not linger in
+     * the phone's settings as a duplicate.
+     */
+    const val REMINDERS = "reminders_alarm"
+
+    /** The channel reminders used to be posted on, before they rang like alarms. */
+    private const val LEGACY_REMINDERS = "reminders"
 
     /**
      * The channel the wake service's own notification sits on (design D4).
@@ -29,6 +47,15 @@ object ReminderChannels {
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             description = context.getString(R.string.reminder_channel_description)
+            // The phone's own notification sound, so it is recognisable, but on the alarm stream,
+            // so a silent phone and Do Not Disturb do not swallow it.
+            setSound(
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build(),
+            )
             enableVibration(true)
             enableLights(true)
             setShowBadge(true)
@@ -45,6 +72,11 @@ object ReminderChannels {
             setShowBadge(false)
         }
 
-        NotificationManagerCompat.from(context).createNotificationChannels(listOf(reminders, wake))
+        val manager = NotificationManagerCompat.from(context)
+        manager.createNotificationChannels(listOf(reminders, wake))
+        // Deleting a channel takes down anything posted on it. A reminder showing at the moment of
+        // the upgrade comes back with its next repeat, if one is still due; otherwise the dose is
+        // waiting on Home. That is the one upgrade's cost, and it is paid once.
+        manager.deleteNotificationChannel(LEGACY_REMINDERS)
     }
 }

@@ -68,7 +68,7 @@ open class ReminderNotifier(
             .setContentTitle(dose.medicationName)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(false)
             // False so a re-post after a snooze alerts again rather than appearing silently.
@@ -166,7 +166,7 @@ open class ReminderNotifier(
             .setSmallIcon(R.drawable.ic_notification_pillsner)
             .setColor(PillsnerNotificationColor)
             .setContentTitle(appContext.getString(R.string.reminder_public_title))
-            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(false)
             .setContentIntent(openApp())
@@ -183,7 +183,7 @@ open class ReminderNotifier(
             .setContentTitle(
                 appContext.resources.getQuantityString(R.plurals.reminder_group_summary, dueCount, dueCount),
             )
-            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(openApp())
             .setGroup(GROUP)

@@ -263,7 +263,7 @@
 
     <!-- Reminder notification (design system section 8.8) -->
     <string name="reminder_channel_name">Medicine reminders</string>
-    <string name="reminder_channel_description">Tells you when a dose is due, and lets you answer straight from the notification.</string>
+    <string name="reminder_channel_description">Tells you when a dose is due, and lets you answer straight from the notification. Sounds like an alarm, so it gets through Do Not Disturb and a silent phone.</string>
     <!-- %1$s: the amount, %2$s: the medicine name, %3$s: the scheduled time -->
     <string name="reminder_text">Take %1$s of your medicine \'%2$s\', on %3$s</string>
     <!-- %1$s: the time, %2$s: the day, for a dose that is not due today -->

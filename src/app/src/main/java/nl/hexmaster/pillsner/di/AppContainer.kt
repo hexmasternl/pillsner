@@ -50,17 +50,19 @@ import nl.hexmaster.pillsner.data.wear.WearDataClientFactory
 import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
 import nl.hexmaster.pillsner.data.reminders.UserUnlockState
+import nl.hexmaster.pillsner.data.reminders.WakeReason
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreThemeRepository
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
+import nl.hexmaster.pillsner.domain.intake.AnswerDose
+import nl.hexmaster.pillsner.domain.intake.DoseAnswer
 import nl.hexmaster.pillsner.domain.intake.RecordIntake
 import nl.hexmaster.pillsner.domain.intake.SnoozeDose
 import nl.hexmaster.pillsner.domain.legal.IsLegalAccepted
 import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.domain.model.AppTheme
 import nl.hexmaster.pillsner.domain.model.DoseId
-import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.LanguageRepository
 import nl.hexmaster.pillsner.domain.repository.LegalRepository
@@ -72,6 +74,7 @@ import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
@@ -223,11 +226,25 @@ class AppContainer(
         unlockState = userUnlockState,
     )
 
-    /** Records an answer given from a notification. */
-    suspend fun recordIntake(id: DoseId, outcome: IntakeOutcome) = recordIntakeUseCase(id, outcome)
+    /**
+     * The one way to answer a dose (app-welcome-screen-reminder-details design D1, D9).
+     *
+     * Declared after [reminderCoordinator] so the lambda closes over an initialised field. The
+     * lambda is the Android half of an answer — what must follow it wherever it was given — and
+     * keeping it here is what lets the use case stay in the domain layer.
+     */
+    private val answerDoseUseCase = AnswerDose(
+        doseRepository = this.doseRepository,
+        recordIntake = recordIntakeUseCase,
+        snoozeDose = snoozeDoseUseCase,
+        onAnswered = { dose ->
+            reminderNotifier.cancel(dose)
+            reminderCoordinator.onWake(WakeReason.ACTION)
+        },
+    )
 
-    /** Postpones a reminder, bounded by the moment the dose lapses. */
-    suspend fun snoozeDose(id: DoseId) = snoozeDoseUseCase(id)
+    /** Records an answer, from the notification or from the dose detail screen. */
+    suspend fun answerDose(id: DoseId, answer: DoseAnswer) = answerDoseUseCase(id, answer)
 
     // --- App lock (app-login design D9) ---------------------------------------------------
 
@@ -272,6 +289,14 @@ class AppContainer(
                 reminderReadiness = reminderAlarmScheduler.isExact,
                 clock = clock,
                 preferences = reminderPreferences,
+            )
+        }
+        initializer {
+            DoseDetailViewModel(
+                doseRepository = this@AppContainer.doseRepository,
+                answerDose = answerDoseUseCase,
+                savedStateHandle = createSavedStateHandle(),
+                clock = clock,
             )
         }
         initializer { MedicinesViewModel(this@AppContainer.medicationRepository) }

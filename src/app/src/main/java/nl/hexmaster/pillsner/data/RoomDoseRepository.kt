@@ -30,6 +30,8 @@ class RoomDoseRepository(
 
     override suspend fun get(id: DoseId): Dose? = dao.get(id.value)?.toDomain()
 
+    override fun observe(id: DoseId): Flow<Dose?> = dao.observe(id.value).map { it?.toDomain() }
+
     override suspend fun insertPlanned(doses: List<PlannedDose>) {
         if (doses.isEmpty()) return
         dao.insertIgnore(doses.map { it.toEntity() })

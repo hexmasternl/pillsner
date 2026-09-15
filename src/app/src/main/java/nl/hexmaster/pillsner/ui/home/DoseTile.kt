@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,10 +51,18 @@ import nl.hexmaster.pillsner.ui.theme.tileContainerColor
 /**
  * One planned dose on the welcome screen (docs/design-system.md section 8.1).
  *
- * Informational only in this change: no tap target, no actions. The whole card is one merged
- * semantics node so TalkBack reads "Ibuprofen, 1 tablet, Due at 08:00 Tomorrow" as one item. The
- * stripe, the icon, the chip and the spoken state all change together with [status], so the state
- * never rests on colour alone.
+ * The whole card is one merged semantics node so TalkBack reads "Ibuprofen, 1 tablet, Due at 08:00
+ * Tomorrow" as one item. The stripe, the icon, the chip and the spoken state all change together
+ * with [status], so the state never rests on colour alone.
+ *
+ * The tile is the tap target for the dose detail screen
+ * (app-welcome-screen-reminder-details design D8). The click goes on the node that already carries
+ * the merged description rather than on `Card(onClick = …)`, so that description stays the single
+ * source of what TalkBack reads, with an `onClick` label saying what the tap does. The tile itself
+ * still records nothing: the answers live on the screen it opens.
+ *
+ * @param onClick opens this dose. Defaults to nothing so previews and the tests of the tile's
+ *   appearance need not supply one.
  */
 @Composable
 fun DoseTile(
@@ -59,6 +70,7 @@ fun DoseTile(
     time: FormattedDoseTime,
     modifier: Modifier = Modifier,
     status: IntakeStatus = IntakeStatus.Due,
+    onClick: () -> Unit = {},
 ) {
     val statusColors = intakeStatusColors(status)
     val statusLabel = status.label()
@@ -77,11 +89,17 @@ fun DoseTile(
         )
     }
 
+    val openLabel = stringResource(R.string.dose_tile_open)
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = Sizes.tileMinHeight)
-            .semantics(mergeDescendants = true) { contentDescription = description },
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = description
+                onClick(label = openLabel, action = null)
+            },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = tileContainerColor()),
     ) {

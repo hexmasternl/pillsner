@@ -11,6 +11,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -41,6 +42,9 @@ import nl.hexmaster.pillsner.applock.ui.VerifyIdentityCallbacks
 import nl.hexmaster.pillsner.domain.legal.CurrentLegalDocuments
 import nl.hexmaster.pillsner.domain.legal.LegalDocumentId
 import nl.hexmaster.pillsner.domain.model.AppInfo
+import nl.hexmaster.pillsner.ui.dose.DoseDetailEffect
+import nl.hexmaster.pillsner.ui.dose.DoseDetailScreen
+import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.home.NotificationPermissionEffect
 import nl.hexmaster.pillsner.ui.home.BatteryOptimisationEffect
@@ -53,6 +57,7 @@ import nl.hexmaster.pillsner.ui.medicines.MedicinesScreen
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.medicationFormGraph
 import nl.hexmaster.pillsner.ui.navigation.About
+import nl.hexmaster.pillsner.ui.navigation.DoseDetail
 import nl.hexmaster.pillsner.ui.navigation.AcceptLegal
 import nl.hexmaster.pillsner.ui.navigation.LegalDocumentRoute
 import nl.hexmaster.pillsner.ui.navigation.MedicationFormGraph
@@ -208,6 +213,24 @@ private fun PillsnerAppContent(
                     onOpenReminderSettings = {
                         context.openReminderSettings(uiState.reminderProblem)
                     },
+                    onOpenDose = { navController.navigate(DoseDetail(it.value)) },
+                )
+            }
+            composable<DoseDetail> {
+                val viewModel: DoseDetailViewModel = viewModel(factory = viewModelFactory)
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val close = { navController.popBackStack(); Unit }
+                LaunchedEffect(viewModel) {
+                    viewModel.effects.collect { effect ->
+                        when (effect) {
+                            DoseDetailEffect.Close -> close()
+                        }
+                    }
+                }
+                DoseDetailScreen(
+                    uiState = uiState,
+                    onAnswer = viewModel::onAnswer,
+                    onClose = close,
                 )
             }
             composable<Medicines> {

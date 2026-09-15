@@ -57,6 +57,7 @@ fun WelcomeScreen(
     modifier: Modifier = Modifier,
     timeFormatter: UpcomingDoseTimeFormatter = remember { UpcomingDoseTimeFormatter() },
     onOpenReminderSettings: () -> Unit = {},
+    onOpenDose: (DoseId) -> Unit = {},
 ) {
     BoxWithConstraints(
         modifier
@@ -105,6 +106,7 @@ fun WelcomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag(WelcomeScreenTestTags.DOSE_TILE),
+                        onClick = { onOpenDose(dose.doseId) },
                     )
                 }
             }

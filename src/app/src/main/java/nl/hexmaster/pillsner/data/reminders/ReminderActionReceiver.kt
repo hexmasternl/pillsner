@@ -9,11 +9,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.PillsnerApplication
+import nl.hexmaster.pillsner.domain.intake.DoseAnswer
 import nl.hexmaster.pillsner.domain.model.DoseId
-import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 
 /** The three answers a reminder offers, in the order they always appear. */
 enum class ReminderAction { TAKEN, SNOOZE, SKIP }
+
+/**
+ * The same three answers as the rest of the app calls them.
+ *
+ * Two enums rather than one because the notification's is part of its intent contract and the
+ * domain's is not; they map one to one and must stay that way.
+ */
+internal fun ReminderAction.asAnswer(): DoseAnswer = when (this) {
+    ReminderAction.TAKEN -> DoseAnswer.TAKEN
+    ReminderAction.SNOOZE -> DoseAnswer.SNOOZE
+    ReminderAction.SKIP -> DoseAnswer.SKIP
+}
 
 /**
  * Handles an answer given from the notification, on the phone or on a bridged watch (design D7).
@@ -41,15 +53,8 @@ class ReminderActionReceiver : BroadcastReceiver() {
         val pendingResult: PendingResult? = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
-                val dose = container.doseRepository.get(doseId)
-                when (action) {
-                    ReminderAction.TAKEN -> container.recordIntake(doseId, IntakeOutcome.TAKEN)
-                    ReminderAction.SKIP -> container.recordIntake(doseId, IntakeOutcome.SKIPPED)
-                    ReminderAction.SNOOZE -> container.snoozeDose(doseId)
-                }
-                dose?.let { container.reminderNotifier.cancel(it) }
+                container.answerDose(doseId, action.asAnswer())
                 Log.d(TAG, "Dose ${doseId.value} answered with $action")
-                container.reminderCoordinator.onWake(WakeReason.ACTION)
             } finally {
                 pendingResult?.finish()
             }

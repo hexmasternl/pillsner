@@ -303,6 +303,23 @@ class DoseDaoTest {
     }
 
     @Test
+    fun observingOneDose_followsItUntilItIsGone() = runBlocking {
+        val medicationId = medications.add(medication())
+        doses.insertPlanned(listOf(planned(medicationId, morning)))
+        val id = doses.pending().single().id
+
+        assertEquals(morning, doses.observe(id).first()?.scheduledAt)
+
+        doses.recordIntake(id, IntakeOutcome.TAKEN, morning)
+        assertEquals(IntakeOutcome.TAKEN, doses.observe(id).first()?.intake?.outcome)
+
+        // Withdrawn by a refresh after the user changed the medicine: the stream says so with null
+        // rather than stalling on the last thing it saw.
+        database.doseDao().deleteByIds(listOf(id.value))
+        assertNull(doses.observe(id).first())
+    }
+
+    @Test
     fun aFreshDose_hasNotBeenAskedAboutAgain() = runBlocking {
         val id = medications.add(medication())
         doses.insertPlanned(listOf(planned(id, morning)))

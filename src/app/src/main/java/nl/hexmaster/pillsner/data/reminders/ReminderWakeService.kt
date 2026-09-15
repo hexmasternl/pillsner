@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.PillsnerApplication
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.domain.model.DoseId
-import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.ui.theme.PillsnerNotificationColor
 
 /**
@@ -74,15 +73,11 @@ class ReminderWakeService : Service() {
             is Command.Answer -> {
                 val doseId = work.doseId
                 val action = work.action
-                val dose = container.doseRepository.get(doseId)
-                when (action) {
-                    ReminderAction.TAKEN -> container.recordIntake(doseId, IntakeOutcome.TAKEN)
-                    ReminderAction.SKIP -> container.recordIntake(doseId, IntakeOutcome.SKIPPED)
-                    ReminderAction.SNOOZE -> container.snoozeDose(doseId)
-                }
-                dose?.let { container.reminderNotifier.cancel(it) }
+                // One use case for every answer, wherever it came from: it also takes the
+                // notification down and runs the wake that follows
+                // (app-welcome-screen-reminder-details design D1).
+                container.answerDose(doseId, action.asAnswer())
                 Log.d(TAG, "Dose ${doseId.value} answered with $action")
-                container.reminderCoordinator.onWake(WakeReason.ACTION)
             }
         }
     }

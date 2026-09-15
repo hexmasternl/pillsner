@@ -277,6 +277,19 @@
         <item quantity="other">%d medicines due</item>
     </plurals>
 
+    <!-- Dose detail (app-welcome-screen-reminder-details design D10) -->
+    <string name="dose_detail_title">Dose</string>
+    <string name="dose_detail_close">Close</string>
+    <string name="dose_detail_early">This dose is not due yet. You can still record it.</string>
+    <string name="dose_detail_late">This dose is overdue. You can still record it.</string>
+    <!-- %1$s: the time the user confirmed it -->
+    <string name="dose_detail_taken_at">Taken at %1$s</string>
+    <string name="dose_detail_skipped">You chose not to take this dose</string>
+    <string name="dose_detail_missed">This dose was not taken</string>
+    <string name="dose_detail_gone_title">This dose is no longer scheduled</string>
+    <string name="dose_detail_gone_hint">Its medicine or schedule changed.</string>
+    <string name="dose_tile_open">Open dose</string>
+
     <!-- Wake service: the notification the platform requires while the app checks (design D4) -->
     <string name="wake_channel_name">Checking your medicines</string>
     <string name="wake_channel_description">Appears for a moment while Pillsner works out which doses are due. You can turn this off.</string>

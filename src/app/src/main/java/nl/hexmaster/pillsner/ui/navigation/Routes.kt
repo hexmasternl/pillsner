@@ -50,6 +50,19 @@ data class EditSchedule(val index: Int? = null)
 @Serializable
 data class MedicineHistory(val medicationId: Long)
 
+/**
+ * One dose on its own screen, reached by tapping a tile on the welcome screen
+ * (app-welcome-screen-reminder-details design D3). Not a top-level destination, so the navigation
+ * suite hides itself while it is shown.
+ *
+ * @property doseId the dose being answered. It travels in the route rather than in a shared view
+ * model, so process death restores the right dose with nothing to rebuild. A `Long` rather than a
+ * `DoseId` because the route is a serialisation surface and `DoseId` is a value class; the view
+ * model wraps it back immediately.
+ */
+@Serializable
+data class DoseDetail(val doseId: Long)
+
 /** Placeholder until the settings changes land. */
 @Serializable
 data object Settings

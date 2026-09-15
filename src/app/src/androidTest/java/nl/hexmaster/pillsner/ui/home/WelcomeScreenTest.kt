@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.ui.home
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
@@ -10,6 +11,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.assertContentDescriptionContains
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.Clock
@@ -22,6 +24,7 @@ import nl.hexmaster.pillsner.domain.model.DoseUnit
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.UpcomingDose
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -89,6 +92,19 @@ class WelcomeScreenTest {
     }
 
     @Test
+    fun tile_isTheTapTargetThatOpensItsOwnDose() {
+        val opened = mutableListOf<DoseId>()
+        setScreen(HomeUiState(upcomingDoses = doses(3), isLoading = false)) { opened += it }
+
+        val tiles = composeRule.onAllNodesWithTag(WelcomeScreenTestTags.DOSE_TILE)
+        tiles[2].assertHasClickAction()
+        tiles[2].performClick()
+
+        // The third tile, not the first: a tile opens its own dose, not whichever was rendered first.
+        assertEquals(listOf(DoseId(3)), opened)
+    }
+
+    @Test
     fun loading_showsNeitherTilesNorEmptyState() {
         setScreen(HomeUiState(isLoading = true))
 
@@ -97,10 +113,10 @@ class WelcomeScreenTest {
         composeRule.onAllNodesWithTag(WelcomeScreenTestTags.EMPTY_STATE).assertCountEquals(0)
     }
 
-    private fun setScreen(state: HomeUiState) {
+    private fun setScreen(state: HomeUiState, onOpenDose: (DoseId) -> Unit = {}) {
         composeRule.setContent {
             PillsnerTheme {
-                WelcomeScreen(uiState = state, timeFormatter = formatter)
+                WelcomeScreen(uiState = state, timeFormatter = formatter, onOpenDose = onOpenDose)
             }
         }
     }

@@ -32,6 +32,13 @@ interface DoseDao {
     suspend fun get(id: Long): DoseEntity?
 
     /**
+     * One dose as a stream, by primary key. Emits null once the row is gone, which is how a screen
+     * showing a single dose learns that a refresh withdrew it.
+     */
+    @Query("SELECT * FROM doses WHERE id = :id")
+    fun observe(id: Long): Flow<DoseEntity?>
+
+    /**
      * Adds only the doses that are not stored yet: the unique index on medication and moment turns
      * a re-plan of the same window into a no-op, which is what makes refreshing idempotent.
      */

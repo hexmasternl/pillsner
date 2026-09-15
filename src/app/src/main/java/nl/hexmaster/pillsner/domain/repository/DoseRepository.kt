@@ -27,6 +27,16 @@ interface DoseRepository {
     suspend fun get(id: DoseId): Dose?
 
     /**
+     * One dose as a stream: re-emits when it is answered, snoozed or withdrawn.
+     *
+     * A null emission means the dose is gone — withdrawn by a refresh because the user changed the
+     * medicine it came from. A screen showing one dose needs this rather than [get], because the
+     * dose can be answered from the notification shade or from a watch while that screen is in the
+     * foreground, and what it shows must follow.
+     */
+    fun observe(id: DoseId): Flow<Dose?>
+
+    /**
      * Stores every dose of [doses] that is not stored yet. A dose already present for the same
      * medication and moment is left exactly as it is, which is what makes refreshing idempotent.
      */

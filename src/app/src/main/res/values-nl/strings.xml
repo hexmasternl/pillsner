@@ -244,6 +244,18 @@
     <string name="schedule_error_days_required">Kies minstens één dag.</string>
     <string name="schedule_error_all_seven_days">Kies minder dan zeven dagen, of gebruik Om de zoveel dagen.</string>
 
+    <!-- Dosisdetails -->
+    <string name="dose_detail_title">Dosis</string>
+    <string name="dose_detail_close">Sluiten</string>
+    <string name="dose_detail_early">Deze dosis is nog niet aan de beurt. Je kunt hem toch vastleggen.</string>
+    <string name="dose_detail_late">Deze dosis is te laat. Je kunt hem toch vastleggen.</string>
+    <string name="dose_detail_taken_at">Ingenomen om %1$s</string>
+    <string name="dose_detail_skipped">Je hebt deze dosis overgeslagen</string>
+    <string name="dose_detail_missed">Deze dosis is niet ingenomen</string>
+    <string name="dose_detail_gone_title">Deze dosis staat niet meer gepland</string>
+    <string name="dose_detail_gone_hint">Het medicijn of het schema is gewijzigd.</string>
+    <string name="dose_tile_open">Dosis openen</string>
+
     <!-- Controleren -->
     <string name="wake_channel_name">Je medicijnen controleren</string>
     <string name="wake_channel_description">Verschijnt heel even terwijl Pillsner nagaat welke doses aan de beurt zijn. Je kunt dit uitzetten.</string>

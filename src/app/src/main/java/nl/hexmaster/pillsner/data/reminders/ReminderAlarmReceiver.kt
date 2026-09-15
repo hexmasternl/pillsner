@@ -24,9 +24,16 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
  * start that has to open the database. When the platform refuses the service — which it should not,
  * for an exact alarm or a boot broadcast, but which is its call — the work falls back into the
  * receiver's own budget, where the wake's retry is the backstop behind it.
+ *
+ * Before the first unlock after a reboot the service is skipped deliberately. A foreground service
+ * has to show a notification, that notification needs its channel, and notification channels live
+ * in credential-encrypted storage that cannot be read yet — so starting it there would fail on the
+ * one path that has no user to see it fail. The locked wake is a couple of reads from
+ * device-protected storage and re-arming the alarms, which fits inside the receiver's own budget
+ * with room to spare (reminder-delivery-after-reboot design D4).
  */
 internal fun BroadcastReceiver.handOffWake(context: Context, reason: WakeReason) {
-    if (ReminderWakeService.startWake(context, reason)) return
+    if (context.isUnlocked() && ReminderWakeService.startWake(context, reason)) return
 
     // Null when the receiver is driven directly rather than by a real broadcast, which is how the
     // instrumented tests exercise it.
@@ -46,3 +53,7 @@ internal fun BroadcastReceiver.handOffWake(context: Context, reason: WakeReason)
  */
 internal fun Context.reminderCoordinator(): ReminderCoordinator =
     (applicationContext as PillsnerApplication).container.reminderCoordinator
+
+/** Whether the user has unlocked the phone since it booted; false in the direct-boot window. */
+internal fun Context.isUnlocked(): Boolean =
+    (applicationContext as PillsnerApplication).container.userUnlockState.isUnlocked()

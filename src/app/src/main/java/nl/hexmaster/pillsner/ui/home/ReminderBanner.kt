@@ -96,8 +96,8 @@ private fun ReminderBannerPreview() {
                     onOpenSettings = {},
                 )
                 ReminderBanner(
-                    message = "Your phone may stop Pillsner from running, so a reminder can be " +
-                        "missed. Allow it to run in the background.",
+                    message = "Your phone may stop Pillsner from running when a dose is due, so " +
+                        "a reminder can be missed.",
                     actionLabel = "Allow background use",
                     onOpenSettings = {},
                 )

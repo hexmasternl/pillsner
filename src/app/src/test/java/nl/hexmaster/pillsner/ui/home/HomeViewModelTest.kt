@@ -139,6 +139,39 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun `reminders are reported as unreliable when battery optimisation is on`() = runTest(dispatcher) {
+        val viewModel = collecting()
+
+        viewModel.onBatteryOptimisationChecked(false)
+
+        assertTrue(viewModel.uiState.value.remindersAreUnreliable)
+        assertEquals(ReminderProblem.BATTERY_OPTIMISED, viewModel.uiState.value.reminderProblem)
+    }
+
+    @Test
+    fun `the banner reports the most severe problem and only that one`() = runTest(dispatcher) {
+        val exactness = MutableStateFlow(false)
+        val viewModel = HomeViewModel(repository, exactness, clock)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        viewModel.onNotificationPermissionChecked(false)
+        viewModel.onBatteryOptimisationChecked(false)
+
+        // Without the permission there is no reminder at all, so it is reported first. Fixing each
+        // problem reveals the next, which is what makes one banner enough.
+        assertEquals(ReminderProblem.NOTIFICATIONS_DENIED, viewModel.uiState.value.reminderProblem)
+
+        viewModel.onNotificationPermissionChecked(true)
+        assertEquals(ReminderProblem.BATTERY_OPTIMISED, viewModel.uiState.value.reminderProblem)
+
+        viewModel.onBatteryOptimisationChecked(true)
+        assertEquals(ReminderProblem.INEXACT_ALARMS, viewModel.uiState.value.reminderProblem)
+
+        exactness.value = true
+        assertEquals(null, viewModel.uiState.value.reminderProblem)
+        assertFalse(viewModel.uiState.value.remindersAreUnreliable)
+    }
+
+    @Test
     fun `a dose in the future is due, a passed one overdue, a postponed one snoozed`() {
         val future = dose(id = 1, hoursFromNow = 2)
         val passed = dose(id = 2, hoursFromNow = -1)

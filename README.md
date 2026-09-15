@@ -35,6 +35,9 @@ The following capabilities define the scope of the app. Items are being delivere
 - Flexible schedules: fixed times of day, every N hours, specific weekdays, or as-needed medication without a schedule.
 - Reliable local notifications that fire on the exact minute, including when the device is dozing, and that survive a reboot, an app update, a clock change and a move to another time zone.
 - Answer a reminder in one tap, without opening the app: **I took it**, **Not yet** (a 15-minute snooze) or **Not going to**. A dose you never answer becomes missed when the next one is due, or 24 hours later, whichever comes first.
+- A reminder you do not answer asks again every 15 minutes, four times at most, and never past the moment the dose lapses. Any of the three answers stops it at once, and **Not yet** starts the quarter of an hour over.
+- **A scheduled medicine puts an alarm icon in your status bar.** Pillsner sets its reminders as real alarms, the one kind Android and the phone makers do not defer or drop — which is the whole point of an app that reminds you to take medication. The icon is the honest consequence: you have set an alarm.
+- Once you have a medicine with a schedule, Pillsner asks once to be left out of battery optimisation. It is a request, never a requirement: everything works without it, and the Home screen tells you when your phone is likely to be stopping reminders from arriving, with a button that takes you to the right setting.
 - The same reminder, with the same three answers, appears on a paired Wear OS watch.
 
 **On your wrist**
@@ -75,6 +78,9 @@ Pillsner asks for as little as it can, and for nothing that sends data anywhere.
 | `POST_NOTIFICATIONS` | A reminder is a notification. Without it Pillsner cannot remind you of anything, and the Home screen says so. |
 | `USE_EXACT_ALARM` (Android 13+), `SCHEDULE_EXACT_ALARM` (Android 12) | A dose due at 08:00 has to be announced at 08:00. Android reserves exact alarms for apps whose core function is alarms or reminders; that is exactly what Pillsner is. Without it reminders fall back to a ten-minute window and the Home screen warns you. |
 | `RECEIVE_BOOT_COMPLETED` | Restarting the phone clears every pending alarm, so Pillsner has to set its own again. |
+| `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SHORT_SERVICE` | When an alarm goes off, Pillsner has a few seconds to open its database and work out what is due. A short foreground service gives it a real window; it shows a quiet "Checking your medicines" notice for a second or two and then stops. |
+| `USE_FULL_SCREEN_INTENT` | So a due dose presents itself on a locked or busy phone rather than waiting silently in the notification shade. Android grants it at install to apps in the alarm and calendar categories. |
+| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Only to *ask*. Android's battery optimisation can stop Pillsner from running when its alarm fires, which means a reminder you never get. Pillsner asks once and never requires an answer; every path works without the exemption, and the Home screen tells you when it is missing. |
 
 ## Technology
 
@@ -162,7 +168,11 @@ From a terminal inside the `src` folder, the usual Gradle wrapper tasks apply: `
 
 ### Permissions the app asks for
 
-Pillsner needs permission to post notifications and to schedule exact alarms. Both are essential to its purpose. It does not request location, contacts, network or any other permission that is not needed to remind you of a dose.
+Pillsner needs permission to post notifications and to schedule exact alarms. Both are essential to its purpose. It also asks once, and only once there is a medicine to remind you about, to be left out of battery optimisation; that one is a request the app carries on without. It does not request location, contacts, network or any other permission that is not needed to remind you of a dose. The full list, with the reason for each, is in [Permissions](#permissions) above.
+
+**Play Console declaration for `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`.** Google Play requires a declared use for this permission. Pillsner's is the listed acceptable one — *the app's core function is exact-time alarms*:
+
+> Pillsner is a medication reminder. Its core function is to alert the user at an exact time that a dose of their medication is due, which it delivers with `AlarmManager.setAlarmClock` under `USE_EXACT_ALARM`. Battery optimisation prevents the app from running when that alarm fires, so the reminder is never shown and the user misses their medication. The exemption is requested once, is never required, and the app remains fully usable without it; when it is absent the app tells the user on its home screen and offers a route to the system setting. No background work of any other kind is performed: the app has no internet permission and sends no data anywhere.
 
 ## Development workflow
 

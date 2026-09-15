@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!--
         Reminders, and nothing else. There is deliberately no INTERNET permission: nothing about a
@@ -19,7 +20,10 @@
         enough for a cold start that has to open the database (reminder-delivery-reliability D4).
     -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE" />
+    <!-- Not a typo: this is the real Android 14 permission, which lint's own list predates. -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE"
+        tools:ignore="SystemPermissionTypo" />
     <!--
         So a due dose presents itself on a locked or busy phone rather than waiting in the shade
         (design D5). Granted at install to apps in the alarm and calendar categories, which Pillsner

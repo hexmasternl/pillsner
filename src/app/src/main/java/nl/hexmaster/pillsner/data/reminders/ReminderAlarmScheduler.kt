@@ -70,8 +70,8 @@ open class ReminderAlarmScheduler(
         _isExact.value = exact
 
         cancelLegacyAlarm()
-        (armedAlarmStore.armed() - schedule).forEach { alarmManager.cancel(alarmIntent(it)) }
-        schedule.forEach { arm(it, exact) }
+        (armedAlarmStore.armed() - schedule).forEach { cancelAlarm(it) }
+        schedule.forEach { setAlarm(it, exact) }
         armedAlarmStore.replace(schedule)
     }
 
@@ -100,7 +100,13 @@ open class ReminderAlarmScheduler(
         _isExact.value = canScheduleExact()
     }
 
-    private fun arm(moment: WakeMoment, exact: Boolean) {
+    /**
+     * Arms one alarm, at the tier its kind calls for.
+     *
+     * Open, and its counterpart below with it, so a test can watch what [reconcile] arms and
+     * cancels. `AlarmManager` will not say what it holds, so there is nothing else to observe.
+     */
+    internal open fun setAlarm(moment: WakeMoment, exact: Boolean) {
         val operation = alarmIntent(moment)
         val at = moment.at.toEpochMilli()
         when {
@@ -109,6 +115,11 @@ open class ReminderAlarmScheduler(
                 alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(at, showAlarm()), operation)
             else -> alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, operation)
         }
+    }
+
+    /** Takes one alarm down. */
+    internal open fun cancelAlarm(moment: WakeMoment) {
+        alarmManager.cancel(alarmIntent(moment))
     }
 
     private fun cancelLegacyAlarm() {

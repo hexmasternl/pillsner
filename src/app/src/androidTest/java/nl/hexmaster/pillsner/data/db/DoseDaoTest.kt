@@ -114,7 +114,7 @@ class DoseDaoTest {
             listOf(planned(id, morning), planned(id, evening), planned(id, evening.plusSeconds(3600))),
         )
         val all = doses.pending()
-        doses.setFirstReminded(all[0].id, morning)
+        doses.recordReminded(all[0].id, morning, countsAsRepeat = false)
         doses.recordIntake(all[1].id, IntakeOutcome.SKIPPED, evening)
 
         val withdrawn = doses.withdrawPlanned(
@@ -135,7 +135,7 @@ class DoseDaoTest {
         val id = medications.add(medication())
         doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
         val all = doses.pending()
-        doses.setFirstReminded(all[0].id, morning)
+        doses.recordReminded(all[0].id, morning, countsAsRepeat = false)
         doses.recordIntake(all[1].id, IntakeOutcome.TAKEN, evening)
 
         val withdrawn = doses.withdrawPlanned(
@@ -307,7 +307,24 @@ class DoseDaoTest {
         val id = medications.add(medication())
         doses.insertPlanned(listOf(planned(id, morning)))
 
-        assertEquals(0, doses.pending().single().reminderCount)
+        val fresh = doses.pending().single()
+        assertEquals(0, fresh.reminderCount)
+        assertNull(fresh.lastRemindedAt)
+    }
+
+    @Test
+    fun aRepeatMovesTheAnchorButNeverTheMomentTheUserWasFirstTold() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)))
+        val dose = doses.pending().single()
+
+        doses.recordReminded(dose.id, morning, countsAsRepeat = false)
+        doses.recordReminded(dose.id, morning.plusSeconds(900), countsAsRepeat = true)
+
+        val repeated = doses.pending().single()
+        assertEquals(morning, repeated.firstRemindedAt)
+        assertEquals(morning.plusSeconds(900), repeated.lastRemindedAt)
+        assertEquals(1, repeated.reminderCount)
     }
 
     @Test
@@ -316,8 +333,8 @@ class DoseDaoTest {
         doses.insertPlanned(listOf(planned(id, morning)))
         val dose = doses.pending().single()
 
-        doses.incrementReminderCount(dose.id)
-        doses.incrementReminderCount(dose.id)
+        doses.recordReminded(dose.id, morning, countsAsRepeat = true)
+        doses.recordReminded(dose.id, morning, countsAsRepeat = true)
 
         assertEquals(2, doses.pending().single().reminderCount)
     }
@@ -327,7 +344,7 @@ class DoseDaoTest {
         val id = medications.add(medication())
         doses.insertPlanned(listOf(planned(id, morning)))
         val dose = doses.pending().single()
-        repeat(3) { doses.incrementReminderCount(dose.id) }
+        repeat(3) { doses.recordReminded(dose.id, morning, countsAsRepeat = true) }
 
         // "Not yet" is an acknowledgement, so the repeats before it must not count against the user.
         doses.setSnooze(dose.id, evening)
@@ -343,7 +360,7 @@ class DoseDaoTest {
         doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
         val first = doses.pending().first()
 
-        doses.incrementReminderCount(first.id)
+        doses.recordReminded(first.id, morning, countsAsRepeat = true)
 
         val stored = doses.pending().associateBy { it.scheduledAt }
         assertEquals(1, stored.getValue(morning).reminderCount)

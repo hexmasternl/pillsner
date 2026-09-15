@@ -24,16 +24,21 @@ import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.Schedule
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
-import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
+import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.domain.scheduling.WakeKind
+import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
+import nl.hexmaster.pillsner.domain.scheduling.WakeSchedule
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -59,6 +64,15 @@ class ReminderRecoveryTest {
     private val clock: Clock = Clock.fixed(now, zone)
 
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
+
+    /** The real device-protected record, which is what a locked boot reads. */
+    private val store = ArmedAlarmStore(context)
+
+    @Before
+    fun clearTheRecord() = runBlocking { store.clear() }
+
+    @After
+    fun leaveNothingBehind() = runBlocking { store.clear() }
 
     private val hourly = Medication(
         id = MedicationId(1),
@@ -144,7 +158,7 @@ class ReminderRecoveryTest {
 
         coordinator(doses, scheduler = scheduler).onWake(WakeReason.ALARM)
 
-        assertEquals("A timed-out wake tries again shortly", now.plus(RETRY), scheduler.scheduledAt)
+        assertEquals("A timed-out wake tries again shortly", setOf(now.plus(RETRY)), scheduler.moments)
         assertNull("Nothing was announced, so nothing is reminded", doses.all().first().firstRemindedAt)
     }
 
@@ -159,11 +173,11 @@ class ReminderRecoveryTest {
         coordinator.onWake(WakeReason.ALARM)
 
         assertNotEquals(
-            "A wake that completed arms the ordinary next alarm, not another retry",
-            now.plus(RETRY),
-            scheduler.scheduledAt,
+            "A wake that completed arms the ordinary alarm set, not another retry",
+            setOf(now.plus(RETRY)),
+            scheduler.moments,
         )
-        assertNotNull(scheduler.scheduledAt)
+        assertTrue(scheduler.moments.isNotEmpty())
     }
 
     @Test
@@ -177,10 +191,10 @@ class ReminderRecoveryTest {
 
         assertNotEquals(
             "A fourth consecutive timeout means something a fifth attempt will not fix",
-            now.plus(RETRY),
-            scheduler.scheduledAt,
+            setOf(now.plus(RETRY)),
+            scheduler.moments,
         )
-        assertNotNull("An alarm is set on every path, this one included", scheduler.scheduledAt)
+        assertTrue("An alarm is set on every path, this one included", scheduler.moments.isNotEmpty())
     }
 
     @Test
@@ -191,14 +205,16 @@ class ReminderRecoveryTest {
         coordinator(doses, notifier = ThrowingNotifier(), scheduler = scheduler)
             .onWake(WakeReason.ALARM)
 
-        assertNotEquals("An exception is not a timeout", now.plus(RETRY), scheduler.scheduledAt)
-        assertNotNull("The next alarm is computed normally", scheduler.scheduledAt)
+        assertNotEquals("An exception is not a timeout", setOf(now.plus(RETRY)), scheduler.moments)
+        assertTrue("The alarm set is computed normally", scheduler.moments.isNotEmpty())
     }
 
     // --- The wake cycle does not run while the user is locked (design D4) -------------------
 
     @Test
     fun aLockedWake_postsNothingMarksNothingMissedAndStillLeavesAnAlarmSet() = runBlocking {
+        // The alarm that just fired is still in the record: nothing takes it out until a reconcile.
+        store.replace(setOf(WakeMoment(at(today, 9, 0), WakeKind.REMINDER)))
         val lapsed = dose(1, at(today.minusDays(2), 9, 0))
         val doses = InMemoryDoseRepository(listOf(lapsed))
         val notifier = RecordingNotifier(posts = true)
@@ -213,19 +229,40 @@ class ReminderRecoveryTest {
         )
         assertEquals(
             "The alarm goes back a few minutes out, so the app tries again",
-            now.plus(ReminderAlarmScheduler.LOCKED_RETRY),
-            scheduler.scheduledAt,
+            setOf(now.plus(ReminderAlarmScheduler.LOCKED_RETRY)),
+            scheduler.moments,
         )
     }
 
     @Test
     fun aLockedWake_keepsARecordedMomentThatIsStillFurtherOut() = runBlocking {
-        val scheduler = RecordingScheduler().apply { storedMoment = now.plus(Duration.ofMinutes(30)) }
+        val later = now.plus(Duration.ofMinutes(30))
+        store.replace(setOf(WakeMoment(later, WakeKind.REMINDER)))
+        val scheduler = RecordingScheduler()
 
         coordinator(InMemoryDoseRepository(), scheduler = scheduler, unlocked = false)
             .onWake(WakeReason.LOCKED_BOOT)
 
-        assertEquals(now.plus(Duration.ofMinutes(30)), scheduler.scheduledAt)
+        assertEquals(setOf(later), scheduler.moments)
+    }
+
+    @Test
+    fun aLockedWake_putsBackEveryRecordedAlarm() = runBlocking {
+        val evening = now.plus(Duration.ofHours(11))
+        store.replace(
+            setOf(
+                WakeMoment(at(today, 9, 0), WakeKind.REMINDER),
+                WakeMoment(evening, WakeKind.REMINDER),
+            ),
+        )
+        val scheduler = RecordingScheduler()
+
+        coordinator(InMemoryDoseRepository(), scheduler = scheduler, unlocked = false)
+            .onWake(WakeReason.LOCKED_BOOT)
+
+        // Both, not only the earliest: one alarm per moment is what stops a dropped alarm taking
+        // every later reminder with it (design D2, D8).
+        assertEquals(setOf(now.plus(ReminderAlarmScheduler.LOCKED_RETRY), evening), scheduler.moments)
     }
 
     @Test
@@ -238,40 +275,47 @@ class ReminderRecoveryTest {
         assertTrue("A phone that is unlocked reminds as it always did", notifier.shown.isNotEmpty())
     }
 
-    // --- Putting the alarm back on a locked boot (design D3) -------------------------------
+    // --- Putting the alarms back on a locked boot (design D3, D8) --------------------------
 
     @Test
     fun aRecordedMomentThePhoneSleptThrough_isPutBackAFewMinutesOut() = runBlocking {
-        val store = ArmedAlarmStore(context)
-        store.set(at(today, 8, 0))
-        val scheduler = StoreBackedScheduler()
+        store.replace(setOf(WakeMoment(at(today, 8, 0), WakeKind.REMINDER)))
+        val scheduler = RecordingScheduler()
 
-        scheduler.rearmStoredAlarm(now)
+        scheduler.rearmStoredAlarms(now.plus(ReminderAlarmScheduler.LOCKED_RETRY))
 
-        assertEquals(now.plus(ReminderAlarmScheduler.LOCKED_RETRY), scheduler.scheduledAt)
-        store.clear()
+        assertEquals(setOf(now.plus(ReminderAlarmScheduler.LOCKED_RETRY)), scheduler.moments)
     }
 
     @Test
     fun aRecordedMomentStillAhead_isPutBackExactlyWhereItWas() = runBlocking {
-        val store = ArmedAlarmStore(context)
-        store.set(at(today, 20, 0))
-        val scheduler = StoreBackedScheduler()
+        store.replace(setOf(WakeMoment(at(today, 20, 0), WakeKind.REMINDER)))
+        val scheduler = RecordingScheduler()
 
-        scheduler.rearmStoredAlarm(now)
+        scheduler.rearmStoredAlarms(now.plus(ReminderAlarmScheduler.LOCKED_RETRY))
 
-        assertEquals(at(today, 20, 0), scheduler.scheduledAt)
-        store.clear()
+        assertEquals(setOf(at(today, 20, 0)), scheduler.moments)
+    }
+
+    @Test
+    fun aRecordedMomentKeepsItsKind_soTheRightAlarmTierIsUsed() = runBlocking {
+        val housekeeping = WakeMoment(at(today, 20, 0), WakeKind.HOUSEKEEPING)
+        store.replace(setOf(housekeeping))
+        val scheduler = RecordingScheduler()
+
+        scheduler.rearmStoredAlarms(now.plus(ReminderAlarmScheduler.LOCKED_RETRY))
+
+        assertEquals(setOf(housekeeping), scheduler.schedule)
     }
 
     @Test
     fun withNothingRecorded_aLockedBootArmsNothing() = runBlocking {
-        ArmedAlarmStore(context).clear()
-        val scheduler = StoreBackedScheduler()
+        store.clear()
+        val scheduler = RecordingScheduler()
 
-        scheduler.rearmStoredAlarm(now)
+        scheduler.rearmStoredAlarms(now.plus(ReminderAlarmScheduler.LOCKED_RETRY))
 
-        assertNull("There was no alarm to put back", scheduler.scheduledAt)
+        assertNull("There was no alarm to put back", scheduler.schedule)
     }
 
     // --- Fixtures ---------------------------------------------------------------------------
@@ -307,8 +351,8 @@ class ReminderRecoveryTest {
             doseRepository = doses,
             refreshPlannedDoses = RefreshPlannedDoses(medications, doses, DoseGenerator(), clock),
             markMissedDoses = markMissed,
-            dueDoses = DueDoses(doses, clock),
-            computeNextWake = ComputeNextWake(doses, medications, markMissed, clock),
+            dueDoses = DueDoses(doses, markMissed, clock),
+            computeWakeSchedule = ComputeWakeSchedule(doses, medications, markMissed, clock),
             notifier = notifier,
             scheduler = scheduler,
             clock = clock,
@@ -339,34 +383,21 @@ class ReminderRecoveryTest {
         override fun cancel(id: DoseId, remainingDue: Int) = Unit
     }
 
-    /** A scheduler that records what it was asked to do instead of waking the device. */
-    private inner class RecordingScheduler : ReminderAlarmScheduler(context) {
-        var scheduledAt: Instant? = null
-        var storedMoment: Instant? = null
-
-        var cancelled = false
-
-        override fun scheduleAt(at: Instant) {
-            scheduledAt = at
-        }
-
-        override fun cancel() {
-            cancelled = true
-        }
-
-        override suspend fun armedAt(): Instant? = storedMoment
-    }
-
     /**
-     * The real device-protected store behind a scheduler that reports the alarm instead of setting
-     * it, which is what a locked boot puts back.
+     * A scheduler that records the set it was asked for instead of waking the device.
+     *
+     * `rearmStoredAlarms` is deliberately not overridden: it reads the real device-protected store,
+     * which is what a locked boot reads, and lands back here through [reconcile].
      */
-    private inner class StoreBackedScheduler : ReminderAlarmScheduler(context) {
-        var scheduledAt: Instant? = null
+    private inner class RecordingScheduler : ReminderAlarmScheduler(context) {
+        var schedule: WakeSchedule? = null
 
-        override fun scheduleAt(at: Instant) {
-            scheduledAt = at
+        override suspend fun reconcile(schedule: WakeSchedule) {
+            this.schedule = schedule
         }
+
+        /** The moments armed, or the empty set when reconcile was never reached. */
+        val moments: Set<Instant> get() = schedule.orEmpty().mapTo(mutableSetOf()) { it.at }
     }
 
     /**

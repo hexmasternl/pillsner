@@ -56,6 +56,46 @@ class ReminderBannerTest {
     }
 
     @Test
+    fun withBatteryOptimisationOn_theBannerAsksForBackgroundUse() {
+        setScreen(HomeUiState(isLoading = false, batteryExempt = false, now = now))
+
+        composeRule.onNodeWithTag(ReminderBannerTestTags.BANNER).assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "Your phone may stop Pillsner from running when a dose is due, so a reminder can be missed.",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText("Allow background use").assertIsDisplayed()
+    }
+
+    @Test
+    fun withEverythingWrongAtOnce_onlyTheMostSevereBannerIsShown() {
+        setScreen(
+            HomeUiState(
+                isLoading = false,
+                notificationsAllowed = false,
+                alarmsAreExact = false,
+                batteryExempt = false,
+                now = now,
+            ),
+        )
+
+        // One banner, one message, one button — and the one that matters most: without the
+        // permission there is no reminder at all, where the other two only degrade it.
+        composeRule.onAllNodesWithTag(ReminderBannerTestTags.BANNER).assertCountEquals(1)
+        composeRule.onNodeWithText("Pillsner cannot show reminders because notifications are turned off.")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun batteryOptimisationOutranksInexactAlarms() {
+        setScreen(
+            HomeUiState(isLoading = false, alarmsAreExact = false, batteryExempt = false, now = now),
+        )
+
+        composeRule.onAllNodesWithTag(ReminderBannerTestTags.BANNER).assertCountEquals(1)
+        composeRule.onNodeWithText("Allow background use").assertIsDisplayed()
+    }
+
+    @Test
     fun withEverythingAllowed_thereIsNoBanner() {
         setScreen(HomeUiState(isLoading = false, now = now))
 

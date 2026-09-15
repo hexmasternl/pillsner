@@ -27,11 +27,14 @@ import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.Schedule
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
-import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
+import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.domain.scheduling.WakeKind
+import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
+import nl.hexmaster.pillsner.domain.scheduling.WakeSchedule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -109,7 +112,14 @@ class ReminderWakeTest {
         assertNotNull("The dose that is due should have been announced", announced.firstRemindedAt)
 
         val tenOClock = ZonedDateTime.of(today, LocalTime.of(10, 0), zone).toInstant()
-        assertEquals("The next alarm is the next dose", tenOClock, scheduler.scheduledAt)
+        assertTrue(
+            "The next dose has an alarm of its own",
+            tenOClock in scheduler.reminderMoments,
+        )
+        assertFalse(
+            "The dose just announced is not armed at its own moment again",
+            nineOClock in scheduler.reminderMoments,
+        )
 
         doses.all().forEach { ReminderNotifier(context).cancel(it) }
     }
@@ -134,8 +144,7 @@ class ReminderWakeTest {
         coordinator(InMemoryDoseRepository(), InMemoryMedicationRepository(), scheduler)
             .onWake(WakeReason.APP_START)
 
-        assertNull(scheduler.scheduledAt)
-        assertTrue(scheduler.cancelled)
+        assertTrue("No medicines means no alarms at all", scheduler.schedule.isEmpty())
     }
 
     @Test
@@ -193,15 +202,17 @@ class ReminderWakeTest {
     }
 
     @Test
-    fun aWakeWhoseRefreshFails_stillSetsTheNextAlarm() = runBlocking {
-        val scheduler = RecordingScheduler()
-        val doses = InMemoryDoseRepository()
+    fun aWakeThatCannotReadAnything_leavesTheArmedAlarmsExactlyWhereTheyAre() = runBlocking {
+        val armed = setOf(WakeMoment(nineOClock, WakeKind.REMINDER))
+        val scheduler = RecordingScheduler().apply { schedule = armed }
 
-        coordinator(doses, FailingMedicationRepository(), scheduler).onWake(WakeReason.ALARM)
+        coordinator(InMemoryDoseRepository(), FailingMedicationRepository(), scheduler)
+            .onWake(WakeReason.ALARM)
 
-        // Nothing could be read, so there is nothing to wake for — but the step ran, which is what
-        // keeps one bad wake from leaving the user without reminders for good.
-        assertTrue("The next-wake step must run even when the refresh throws", scheduler.cancelled)
+        // The alarms already armed are the app's last good answer. Reconciling against a schedule
+        // that could not be computed would cancel every one of them over a passing failure, which
+        // is exactly how a user ends up with no reminders at all.
+        assertEquals(armed, scheduler.schedule)
     }
 
     @Test
@@ -240,8 +251,8 @@ class ReminderWakeTest {
             doseRepository = doses,
             refreshPlannedDoses = RefreshPlannedDoses(medications, doses, DoseGenerator(), clock),
             markMissedDoses = markMissed,
-            dueDoses = DueDoses(doses, clock),
-            computeNextWake = ComputeNextWake(doses, medications, markMissed, clock),
+            dueDoses = DueDoses(doses, markMissed, clock),
+            computeWakeSchedule = ComputeWakeSchedule(doses, medications, markMissed, clock),
             notifier = ReminderNotifier(context),
             scheduler = scheduler,
             clock = clock,
@@ -257,17 +268,16 @@ class ReminderWakeTest {
         override suspend fun setActive(id: MedicationId, isActive: Boolean) = error("unreadable")
     }
 
-    /** A scheduler that records what it was asked to do instead of waking the device. */
+    /** A scheduler that records the set it was asked for instead of waking the device. */
     private inner class RecordingScheduler : ReminderAlarmScheduler(context) {
-        var scheduledAt: Instant? = null
-        var cancelled = false
+        var schedule: WakeSchedule = emptySet()
 
-        override fun scheduleAt(at: Instant) {
-            scheduledAt = at
+        override suspend fun reconcile(schedule: WakeSchedule) {
+            this.schedule = schedule
         }
 
-        override fun cancel() {
-            cancelled = true
-        }
+        /** The moments a reminder would fire at, which is what the wake tests are about. */
+        val reminderMoments: Set<Instant>
+            get() = schedule.filter { it.kind == WakeKind.REMINDER }.mapTo(mutableSetOf()) { it.at }
     }
 }

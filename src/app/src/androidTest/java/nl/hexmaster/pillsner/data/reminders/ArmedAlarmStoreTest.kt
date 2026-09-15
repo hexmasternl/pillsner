@@ -5,9 +5,11 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
+import nl.hexmaster.pillsner.domain.scheduling.WakeKind
+import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -18,48 +20,58 @@ class ArmedAlarmStoreTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val store = ArmedAlarmStore(context)
 
-    private val moment: Instant = Instant.parse("2026-09-14T06:00:00Z")
+    private val dose = WakeMoment(Instant.parse("2026-09-14T06:00:00Z"), WakeKind.REMINDER)
+    private val housekeeping = WakeMoment(Instant.parse("2026-09-14T22:05:00Z"), WakeKind.HOUSEKEEPING)
 
     @After
     fun tearDown() = runBlocking { store.clear() }
 
     @Test
-    fun anArmedMomentIsReadBack() = runBlocking {
-        store.set(moment)
+    fun theArmedSetIsReadBack() = runBlocking {
+        store.replace(setOf(dose, housekeeping))
 
-        assertEquals(moment, store.armedAt())
+        assertEquals(setOf(dose, housekeeping), store.armed())
     }
 
     @Test
-    fun aMomentOutlivesTheObjectThatStoredIt() = runBlocking {
-        store.set(moment)
+    fun replacingKeepsOnlyTheNewSet() = runBlocking {
+        store.replace(setOf(dose, housekeeping))
+
+        store.replace(setOf(housekeeping))
+
+        assertEquals(setOf(housekeeping), store.armed())
+    }
+
+    @Test
+    fun theSetOutlivesTheObjectThatStoredIt() = runBlocking {
+        store.replace(setOf(dose))
 
         // A new instance on the same file is what a locked boot reads.
-        assertEquals(moment, ArmedAlarmStore(context).armedAt())
+        assertEquals(setOf(dose), ArmedAlarmStore(context).armed())
     }
 
     @Test
-    fun cancellingClearsIt() = runBlocking {
-        store.set(moment)
+    fun clearingLeavesNothing() = runBlocking {
+        store.replace(setOf(dose, housekeeping))
 
         store.clear()
 
-        assertNull("Nothing left to wake up for means nothing recorded", store.armedAt())
+        assertTrue("Nothing left to wake up for means nothing recorded", store.armed().isEmpty())
     }
 
     @Test
     fun withNothingEverArmedThereIsNothingToReadBack() = runBlocking {
         store.clear()
 
-        assertNull(store.armedAt())
+        assertTrue(store.armed().isEmpty())
     }
 
     @Test
-    fun theStoreHoldsAMomentAndNothingElse() = runBlocking {
-        store.set(moment)
+    fun theStoreHoldsMomentsAndKindsAndNothingElse() = runBlocking {
+        store.replace(setOf(dose, housekeeping))
 
         // Device-protected storage is readable before the user authenticates, so a medicine name,
         // an amount or even a dose id would be a privacy regression rather than a convenience.
-        assertEquals(setOf("armed_at"), store.storedKeys())
+        assertEquals(setOf("armed"), store.storedKeys())
     }
 }

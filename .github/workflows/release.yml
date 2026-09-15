@@ -99,8 +99,13 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Set up the Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          # The action's default package list still contains the obsolete "tools" package, which
+          # Google removed from the SDK repository, so sdkmanager fails. Only platform-tools is
+          # wanted here; the components the build needs are pinned in the next step.
+          packages: platform-tools
 
       - name: Install the pinned SDK components
         # Since Android moved to minor SDK releases, platform packages carry the minor version: there

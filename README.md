@@ -84,7 +84,7 @@ Pillsner asks for as little as it can, and for nothing that sends data anywhere.
 | `USE_EXACT_ALARM` (Android 13+), `SCHEDULE_EXACT_ALARM` (Android 12) | A dose due at 08:00 has to be announced at 08:00. Android reserves exact alarms for apps whose core function is alarms or reminders; that is exactly what Pillsner is. Without it reminders fall back to a ten-minute window and the Home screen warns you. |
 | `RECEIVE_BOOT_COMPLETED` | Restarting the phone clears every pending alarm, so Pillsner has to set its own again. |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SHORT_SERVICE` | When an alarm goes off, Pillsner has a few seconds to open its database and work out what is due. A short foreground service gives it a real window; it shows a quiet "Checking your medicines" notice for a second or two and then stops. |
-| `USE_FULL_SCREEN_INTENT` | So a due dose presents itself on a locked or busy phone rather than waiting silently in the notification shade. Android grants it at install to apps in the alarm and calendar categories. |
+| `USE_FULL_SCREEN_INTENT` | So a due dose presents itself on a locked or busy phone rather than waiting silently in the notification shade. From Android 14 it is granted at install only to apps whose core function is alarms or calling; Pillsner is an alarm app, and where it is not granted the reminder degrades to a heads-up notification. |
 
 ## Technology
 

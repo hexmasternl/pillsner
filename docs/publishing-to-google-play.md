@@ -941,7 +941,9 @@ medicine, and the watch tile.
 ## Part 11 — App content declarations
 
 **Produces:** a green checklist under **Policy → App content**. Every item must be complete before
-any track other than internal testing will publish.
+any track other than internal testing will publish. The two sensitive-permission declarations, 11.8
+and 11.9, are stricter than that: while either is unanswered the Play Developer API refuses to commit
+any edit at all, internal testing included, and the release workflow fails on upload.
 
 Work through them in this order.
 
@@ -1050,7 +1052,44 @@ but be ready to argue it:
 - Never swap exact alarms for `WorkManager` to sidestep the review. `CLAUDE.md` forbids it, and it
   would break the product promise.
 
-### 11.9 Advertising ID
+### 11.9 Sensitive permissions: full-screen intent
+
+The manifest declares `USE_FULL_SCREEN_INTENT`, so the phone shows a due dose on a locked screen
+instead of leaving it in the shade. Play treats that as a sensitive permission and asks for its own
+declaration under App content.
+
+Until that form is answered, the Play Developer API refuses to commit the edit and the release
+workflow fails with:
+
+```
+Error: You must let us know whether your app uses any full-screen intent permissions
+```
+
+There is no API field for this. `r0adkll/upload-google-play` cannot set it and no change to
+`release.yml` will get past it — it is a Console form, answered once, after which every later run
+goes through.
+
+**Play Console → Policy and programs → App content → Full-screen intent permission → Manage.**
+
+Expect to declare:
+
+- That the app **does** use the permission.
+- The eligible use: Pillsner's core function is **alarms and reminders**, which is one of the two
+  categories Android grants the permission to at install (the other is calling apps). From Android
+  14 anything outside those categories has the permission off by default and must ask the user for
+  it screen by screen.
+- A short description of where it appears: a dose reminder at its due time, and nothing else.
+
+Say the same thing here as in the exact alarm declaration and the store listing. A listing that
+leads with reminders makes both of them easy; one that leads with "track your health" makes a
+reviewer wonder why an alarm permission is in the manifest.
+
+Once it is saved, use **Re-run failed jobs** on the failed run rather than pushing a new commit.
+GitVersion derives the version from the commit, so the rebuild produces the same version codes, and
+Play has not spent them: the edit failed before it was committed. A fresh commit works too, it just
+burns a version for nothing.
+
+### 11.10 Advertising ID
 
 `play-services-wearable` can merge `com.google.android.gms.permission.AD_ID` into the manifest
 depending on its version. If that permission is present, Play requires you to declare that the app
@@ -1076,7 +1115,7 @@ If it is there, remove it rather than declaring it. In `src/app/src/main/Android
 
 Then re-run the check and answer **No** on the Advertising ID form. Do the same in the Wear module.
 
-### 11.10 The rest
+### 11.11 The rest
 
 | Form | Pillsner answer |
 | --- | --- |
@@ -1206,6 +1245,7 @@ the change, not as an afterthought at release time.
 | `APK specifies a version code that has already been used` | Version codes are spent once. GitVersion normally prevents this; it happens if a run is replayed on a commit that already shipped. Push a new commit, or move the version on with `+semver: minor`. |
 | `Version code N has already been used` on the Wear bundle only | Both modules resolved the same `versionCodeBase` but the `* 10 + 1` line is missing from `src/wear/build.gradle.kts`. |
 | `Changes cannot be sent for review automatically` | Some App content form is incomplete, or another release is already in review. Finish Part 11, or set `changesNotSentForReview: true` and submit from the Console. |
+| `You must let us know whether your app uses any full-screen intent permissions` | The Full-screen intent permission declaration under App content has never been answered. It is a Console form with no API equivalent, so no workflow change fixes it. Part 11.9, then re-run the failed job. |
 
 ### The build
 
@@ -1222,6 +1262,7 @@ the change, not as an afterthought at release time.
 | Symptom | Cause and fix |
 | --- | --- |
 | Rejected for exact alarm use | The listing does not make it obvious the app is a reminder app. Rewrite the short description to lead with reminders, and re-submit. Part 11.8. |
+| Rejected for full-screen intent use | The declaration and the listing disagree, or the listing does not read as an alarm app. Both must say the same thing: Pillsner reminds you to take a medicine at a fixed time. Part 11.9. |
 | Rejected under the Health policy | Usually copy that reads as medical advice. Remove any claim about outcomes, dosages or treatment. Part 11.7. |
 | Data safety flagged as inconsistent | A dependency added a network capability. Re-run the merged-manifest check in Part 11.6 and update the form, or drop the dependency. |
 | `Your app currently targets API level N` warning | `targetSdk` must stay within one year of the latest Android release. The catalog pins 37; bump it deliberately inside a change, keeping `libs.versions.toml` and the README toolchain table in step. |

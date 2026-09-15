@@ -26,8 +26,8 @@
         tools:ignore="SystemPermissionTypo" />
     <!--
         So a due dose presents itself on a locked or busy phone rather than waiting in the shade
-        (design D5). Granted at install to apps in the alarm and calendar categories, which Pillsner
-        is; where it is not granted the reminder degrades to a heads-up notification.
+        (design D5). From Android 14 it is granted at install only to alarm and calling apps,
+        which Pillsner is; where it is not granted the reminder degrades to a heads-up notification.
     -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 

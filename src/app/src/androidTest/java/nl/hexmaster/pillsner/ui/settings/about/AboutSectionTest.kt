@@ -24,6 +24,7 @@ import nl.hexmaster.pillsner.domain.model.AppLanguage
 import nl.hexmaster.pillsner.ui.settings.SettingsScreen
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionState
 import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceState
+import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionState
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -50,6 +51,8 @@ class AboutSectionTest {
                 SettingsScreen(
                     languageState = LanguageSectionState(selected = AppLanguage.ENGLISH),
                     onLanguageSelected = {},
+                    themeState = ThemeSectionState(),
+                    onThemeSelected = {},
                     appLockUiState = AppLockUiState(
                         pinLockEnabled = true,
                         biometricStatus = BiometricStatus.Available,

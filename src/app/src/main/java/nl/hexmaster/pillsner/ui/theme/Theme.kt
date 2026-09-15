@@ -17,9 +17,13 @@ import androidx.core.view.WindowCompat
 val LocalPillsnerDarkTheme = staticCompositionLocalOf { false }
 
 /**
- * Pillsner's Material 3 theme. Follows the system light/dark setting and never uses dynamic colour
+ * Pillsner's Material 3 theme. Renders the scheme it is given and never uses dynamic colour
  * (docs/design-system.md, principles 4 and 5). Wrap the whole app in it once, in MainActivity,
  * after `enableEdgeToEdge()`.
+ *
+ * @param darkTheme whether to render the dark scheme. MainActivity passes the user's stored theme
+ *   choice resolved against the phone (app-theme-setting design D6); the default follows the phone,
+ *   which is right for every other caller — previews and tests, which have no choice to hand.
  */
 @Composable
 fun PillsnerTheme(

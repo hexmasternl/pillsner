@@ -269,6 +269,13 @@
     <string name="settings_language_system_default">Systeemtaal</string>
     <string name="settings_language_restart_notice">Start Pillsner opnieuw om de nieuwe taal te gebruiken</string>
 
+    <!-- Instellingen: thema -->
+    <string name="settings_theme_header">Thema</string>
+    <string name="settings_theme_label">Thema</string>
+    <string name="settings_theme_system_default">Systeemstandaard</string>
+    <string name="settings_theme_light">Licht</string>
+    <string name="settings_theme_dark">Donker</string>
+
     <!-- Instellingen: juridisch -->
     <string name="legal_section_header">Juridisch</string>
     <string name="legal_row_disclaimer">Disclaimer</string>

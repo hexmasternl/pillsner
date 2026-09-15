@@ -11,7 +11,7 @@ Pillsner reminds people to take their medication and records whether they did. T
 1. **Calm by default, loud only when it matters.** Greens and blues carry the whole app. Red appears only when something is wrong or needs attention: a missed or overdue dose, reminders that cannot be delivered, stock that has run out. Because red is rare, it is unmistakable.
 2. **Legible at 2 a.m.** Body text is 18 sp, touch targets are at least 48 dp, the confirm action is at least 56 dp tall, and every colour pair meets WCAG AA. The app must remain usable at 200 % system font scale.
 3. **One tap to confirm.** The most important action on any surface is a single filled green button. Everything else steps back.
-4. **The system's theme is the app's theme.** Light and dark follow the OS setting. Both are first-class designs, not inversions of each other.
+4. **The system's theme is the app's default, and the user's choice is final.** Settings offers System, Light and Dark. System is what an untouched install uses and follows the OS setting; the other two hold the app to one scheme whatever the phone does. Both schemes are first-class designs, not inversions of each other.
 5. **Brand colour, not wallpaper colour.** Material You dynamic colour is switched off. Pillsner is always green, blue and white.
 
 ---
@@ -336,7 +336,7 @@ All theme code lives in `src/app/src/main/java/.../ui/theme/`.
 | `Shape.kt` | `PillsnerShapes` from section 4. |
 | `Dimens.kt` | `object Spacing` with the section 5 tokens as `Dp` values and touch-target minimums. |
 | `IntakeStatusColors.kt` | `@Composable fun intakeStatusColors(status: IntakeStatus): StatusColors` returning container, on-container and icon per section 2.3 from `MaterialTheme.colorScheme`. |
-| `Theme.kt` | `@Composable fun PillsnerTheme(darkTheme: Boolean = isSystemInDarkTheme(), content)`. Picks the scheme, applies typography and shapes, sets status and navigation bar appearance through `enableEdgeToEdge`. No dynamic colour parameter. |
+| `Theme.kt` | `@Composable fun PillsnerTheme(darkTheme: Boolean = isSystemInDarkTheme(), content)`. Picks the scheme, applies typography and shapes, sets status and navigation bar appearance through `enableEdgeToEdge`. No dynamic colour parameter. `MainActivity` passes the user's stored theme choice resolved against the phone; the default follows the phone and is what previews and tests use. |
 
 Every screen is wrapped in `PillsnerTheme` in `MainActivity` once. Previews use `@PreviewLightDark` so both themes render side by side in Android Studio.
 
@@ -355,5 +355,5 @@ Composables read tokens through `MaterialTheme.colorScheme`, `MaterialTheme.typo
 | Read colours from `MaterialTheme.colorScheme` | Write `Color(0xFF1B7F5C)` in a screen |
 | Bundle fonts in `res/font` | Use downloadable fonts |
 | Let text wrap at large font sizes | Set `maxLines = 1` on anything but the app bar title |
-| Follow the system light/dark setting | Add a theme toggle without a proposal |
+| Render the user's stored theme choice, defaulting to the system setting | Add a fourth theme, a schedule or an AMOLED variant without a proposal |
 | Keep dynamic colour off | Call `dynamicLightColorScheme` |

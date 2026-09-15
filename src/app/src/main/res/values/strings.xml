@@ -299,6 +299,13 @@
     <string name="settings_language_system_default">System default</string>
     <string name="settings_language_restart_notice">Restart Pillsner to apply the new language</string>
 
+    <!-- Settings: theme -->
+    <string name="settings_theme_header">Theme</string>
+    <string name="settings_theme_label">Theme</string>
+    <string name="settings_theme_system_default">System default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+
     <!-- Settings: legal -->
     <string name="legal_section_header">Legal</string>
     <string name="legal_row_disclaimer">Disclaimer</string>

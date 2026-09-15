@@ -251,7 +251,7 @@
   <div class="principle"><b>Calm by default, loud only when it matters</b><span class="muted">Greens and blues carry the app. Red is reserved for missed and overdue doses, undeliverable reminders and empty stock. Because red is rare, it is unmistakable.</span></div>
   <div class="principle"><b>Legible at 2 a.m.</b><span class="muted">18 sp body, 48 dp targets, a 56 dp confirm button, AA contrast everywhere, and layouts that survive 200 % font scale by wrapping.</span></div>
   <div class="principle"><b>One tap to confirm</b><span class="muted">Every surface has one filled green action in the bottom third of the screen. Everything else steps back.</span></div>
-  <div class="principle"><b>The system's theme is the app's theme</b><span class="muted">Light and dark follow the OS. Both are designed, not inverted.</span></div>
+  <div class="principle"><b>The system's theme is the app's default, and the user's choice is final</b><span class="muted">Settings offers System, Light and Dark. System follows the OS; the other two hold the app to one scheme. Both are designed, not inverted.</span></div>
   <div class="principle"><b>Brand colour, not wallpaper colour</b><span class="muted">Material You dynamic colour is off. Pillsner is always green, blue and white.</span></div>
 </div>
 
@@ -605,14 +605,14 @@
     <tr><td>Read colours from MaterialTheme.colorScheme</td><td>Write a hex literal in a screen</td></tr>
     <tr><td>Bundle fonts in res/font</td><td>Use downloadable fonts</td></tr>
     <tr><td>Let text wrap at large font sizes</td><td>Truncate anything but the app bar title</td></tr>
-    <tr><td>Follow the system light/dark setting</td><td>Add a theme toggle without a proposal</td></tr>
+    <tr><td>Render the user's stored theme choice, defaulting to the system setting</td><td>Add a fourth theme, a schedule or an AMOLED variant without a proposal</td></tr>
     <tr><td>Keep dynamic colour off</td><td>Call dynamicLightColorScheme</td></tr>
   </tbody>
 </table>
 </div>
 
 <footer>
-  <p class="small muted prose">Implementation: <code>ui/theme/Color.kt</code>, <code>Type.kt</code>, <code>Shape.kt</code>, <code>Dimens.kt</code>, <code>IntakeStatusColors.kt</code> and <code>Theme.kt</code>, wrapped once in <code>MainActivity</code> as <code>PillsnerTheme</code> with <code>isSystemInDarkTheme()</code> and no dynamic-colour parameter. Full tables and rules in <code>docs/design-system.md</code>.</p>
+  <p class="small muted prose">Implementation: <code>ui/theme/Color.kt</code>, <code>Type.kt</code>, <code>Shape.kt</code>, <code>Dimens.kt</code>, <code>IntakeStatusColors.kt</code> and <code>Theme.kt</code>, wrapped once in <code>MainActivity</code> as <code>PillsnerTheme</code>, which <code>MainActivity</code> hands the user's stored theme choice, defaulting to <code>isSystemInDarkTheme()</code>, and no dynamic-colour parameter. Full tables and rules in <code>docs/design-system.md</code>.</p>
 </footer>
 </div>
 </body>

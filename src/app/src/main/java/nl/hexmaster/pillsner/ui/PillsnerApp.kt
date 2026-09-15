@@ -64,6 +64,7 @@ import nl.hexmaster.pillsner.ui.navigation.topLevelDestinations
 import nl.hexmaster.pillsner.ui.settings.SettingsScreen
 import nl.hexmaster.pillsner.ui.settings.about.AboutScreen
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
+import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.AcceptLegalScreen
 import nl.hexmaster.pillsner.ui.settings.legal.LegalDocumentScreen
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
@@ -231,9 +232,13 @@ private fun PillsnerAppContent(
                 val appLockUiState by appLockViewModel.uiState.collectAsStateWithLifecycle()
                 val languageViewModel: LanguageSectionViewModel = viewModel(factory = viewModelFactory)
                 val languageState by languageViewModel.state.collectAsStateWithLifecycle()
+                val themeViewModel: ThemeSectionViewModel = viewModel(factory = viewModelFactory)
+                val themeState by themeViewModel.state.collectAsStateWithLifecycle()
                 SettingsScreen(
                     languageState = languageState,
                     onLanguageSelected = languageViewModel::onLanguageSelected,
+                    themeState = themeState,
+                    onThemeSelected = themeViewModel::onThemeSelected,
                     appLockUiState = appLockUiState,
                     appLockEvents = appLockViewModel.eventFlow,
                     securityEffects = appLockViewModel.securityEffects,

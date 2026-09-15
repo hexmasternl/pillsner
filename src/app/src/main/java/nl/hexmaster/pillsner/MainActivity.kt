@@ -6,8 +6,11 @@ import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.getValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
@@ -62,7 +65,13 @@ class MainActivity : FragmentActivity() {
         }
 
         setContent {
-            PillsnerTheme {
+            // The stored choice, already correct when the container handed it over, so the first
+            // frame is the scheme the user asked for (app-theme-setting design D4). While they
+            // follow the phone, isSystemInDarkTheme() is what answers; while they have chosen a
+            // scheme, its answer is discarded.
+            val theme by container.theme.collectAsStateWithLifecycle()
+
+            PillsnerTheme(darkTheme = theme.isDark(isSystemInDarkTheme())) {
                 // Created above the lock gate inside PillsnerApp (design D1) so navigation state
                 // survives a relock.
                 val navController = rememberNavController()

@@ -42,6 +42,7 @@ import nl.hexmaster.pillsner.applock.ui.VerifyIdentityCallbacks
 import nl.hexmaster.pillsner.domain.legal.LegalDocumentId
 import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.domain.model.AppLanguage
+import nl.hexmaster.pillsner.domain.model.AppTheme
 import nl.hexmaster.pillsner.ui.navigation.NavigationTestTags
 import nl.hexmaster.pillsner.ui.settings.about.AboutSection
 import nl.hexmaster.pillsner.ui.settings.about.PreviewAppInfo
@@ -49,6 +50,8 @@ import nl.hexmaster.pillsner.ui.settings.language.LanguageSection
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionState
 import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceState
 import nl.hexmaster.pillsner.ui.settings.legal.LegalSection
+import nl.hexmaster.pillsner.ui.settings.theme.ThemeSection
+import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionState
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Spacing
 
@@ -62,12 +65,14 @@ object SettingsScreenTestTags {
  *
  * Each section is a self-contained composable with its own state, so a later change adds one by
  * adding it to this list rather than by touching the others. Language comes first because it
- * decides how everything below it reads.
+ * decides how everything below it reads; Theme follows it as the other presentation setting.
  */
 @Composable
 fun SettingsScreen(
     languageState: LanguageSectionState,
     onLanguageSelected: (AppLanguage) -> Unit,
+    themeState: ThemeSectionState,
+    onThemeSelected: (AppTheme) -> Unit,
     appLockUiState: AppLockUiState,
     appLockEvents: Flow<AppLockEvent>,
     securityEffects: Flow<SecurityEffect>,
@@ -140,6 +145,10 @@ fun SettingsScreen(
                     LanguageSection(state = languageState, onLanguageSelected = onLanguageSelected)
                 }
 
+                item(key = "theme") {
+                    ThemeSection(state = themeState, onThemeSelected = onThemeSelected)
+                }
+
                 item(key = "security") {
                     SecuritySection(
                         uiState = appLockUiState,
@@ -179,6 +188,8 @@ private fun SettingsScreenPreview() {
                     restartRequired = true,
                 ),
                 onLanguageSelected = {},
+                themeState = ThemeSectionState(selected = AppTheme.DARK),
+                onThemeSelected = {},
                 appLockUiState = AppLockUiState(
                     pinLockEnabled = true,
                     biometricStatus = BiometricStatus.Available,

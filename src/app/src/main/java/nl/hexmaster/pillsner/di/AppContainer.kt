@@ -9,7 +9,12 @@ import java.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.applock.data.AndroidBiometricAvailability
 import nl.hexmaster.pillsner.applock.data.DataStoreAppLockRepository
 import nl.hexmaster.pillsner.applock.data.KeystorePinVerifier
@@ -42,17 +47,20 @@ import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
+import nl.hexmaster.pillsner.data.settings.DataStoreThemeRepository
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.intake.RecordIntake
 import nl.hexmaster.pillsner.domain.intake.SnoozeDose
 import nl.hexmaster.pillsner.domain.legal.IsLegalAccepted
 import nl.hexmaster.pillsner.domain.model.AppInfo
+import nl.hexmaster.pillsner.domain.model.AppTheme
 import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.LanguageRepository
 import nl.hexmaster.pillsner.domain.repository.LegalRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
+import nl.hexmaster.pillsner.domain.repository.ThemeRepository
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
 import nl.hexmaster.pillsner.domain.scheduling.ComputeNextWake
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
@@ -68,6 +76,7 @@ import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
+import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
 
 /**
  * The app's single dependency injection mechanism: manual constructor injection through one
@@ -91,6 +100,9 @@ class AppContainer(
 ) {
     private val applicationContext = context.applicationContext
     private val clock: Clock = Clock.systemDefaultZone()
+
+    /** Lives as long as the process, for flows the container itself keeps hot. */
+    private val containerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val database: PillsnerDatabase by lazy { PillsnerDatabase.build(applicationContext) }
 
@@ -124,6 +136,26 @@ class AppContainer(
     private val snoozeDoseUseCase = SnoozeDose(this.doseRepository, markMissedDoses, clock)
 
     val languageRepository: LanguageRepository = DataStoreLanguageRepository(applicationContext)
+
+    // --- Theme (app-theme-setting design D4) ------------------------------------------------
+
+    val themeRepository: ThemeRepository = DataStoreThemeRepository(applicationContext)
+
+    /**
+     * The stored theme, correct from the first frame.
+     *
+     * The blocking read is the trade `PillsnerApplication.applyStoredLanguage` already makes, on
+     * the same small file, which that read has pulled into DataStore's cache: microseconds against
+     * the ten-second budget in this class's KDoc. Without it the first frames paint in whichever
+     * scheme the default guessed — a white flash on an OLED phone at night, which is the thing the
+     * setting exists to prevent.
+     */
+    val theme: StateFlow<AppTheme> = themeRepository.observeTheme()
+        .stateIn(
+            scope = containerScope,
+            started = SharingStarted.Eagerly,
+            initialValue = runBlocking { themeRepository.observeTheme().first() },
+        )
 
     // --- Legal documents (app-legal-information design D3, D4) ------------------------------
 
@@ -205,6 +237,7 @@ class AppContainer(
         }
         initializer { MedicinesViewModel(this@AppContainer.medicationRepository) }
         initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }
+        initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }
         initializer {
             MedicationFormViewModel(

@@ -177,6 +177,21 @@ class PillsnerAppNavigationTest {
         composeRule.waitForIdle()
     }
 
+    /**
+     * We are back on Settings, with its bottom bar.
+     *
+     * Settings restores the scroll position it was left at, and [openAboutFromSettings] leaves it
+     * scrolled to the bottom, so the title is off screen on return — the more sections Settings
+     * grows, the further off. Scrolling to it keeps this about the destination rather than about
+     * how long the list happens to be.
+     */
+    private fun assertBackOnSettings() {
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).assertIsSelected()
+        composeRule.onNode(hasScrollAction())
+            .performScrollToNode(hasTestTag(NavigationTestTags.SETTINGS_TITLE))
+        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS_TITLE).assertIsDisplayed()
+    }
+
     @Test
     fun tapAboutOnSettings_showsAboutAndHidesTheBottomBar() {
         openAboutFromSettings()
@@ -194,8 +209,7 @@ class PillsnerAppNavigationTest {
         composeRule.onNodeWithTag(AboutScreenTestTags.BACK).performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS_TITLE).assertIsDisplayed()
-        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).assertIsSelected()
+        assertBackOnSettings()
     }
 
     @Test
@@ -205,8 +219,7 @@ class PillsnerAppNavigationTest {
         composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS_TITLE).assertIsDisplayed()
-        composeRule.onNodeWithTag(NavigationTestTags.SETTINGS).assertIsSelected()
+        assertBackOnSettings()
     }
 
     @Test

@@ -29,7 +29,7 @@
         (design D5). From Android 14 it is granted at install only to alarm and calling apps,
         which Pillsner is; where it is not granted the reminder degrades to a heads-up notification.
     -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!--uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" / -->
 
     <!--
         The vendor power-manager screens the Home banner offers on OEMs that ship one (design D3).

@@ -1,5 +1,6 @@
 package nl.hexmaster.pillsner.domain.scheduling
 
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -33,6 +34,7 @@ object SchedulingTestSupport {
         firstRemindedAt: Instant? = null,
         snoozedUntil: Instant? = null,
         lastRemindedAt: Instant? = firstRemindedAt,
+        plannedAt: Instant = scheduledAt.minus(Duration.ofHours(12)),
         reminderCount: Int = 0,
     ) = Dose(
         id = DoseId(id),
@@ -40,6 +42,7 @@ object SchedulingTestSupport {
         medicationName = "Ibuprofen",
         amount = mg40,
         scheduledAt = scheduledAt,
+        plannedAt = plannedAt,
         firstRemindedAt = firstRemindedAt,
         snoozedUntil = snoozedUntil,
         lastRemindedAt = lastRemindedAt,

@@ -32,9 +32,9 @@ class RoomDoseRepository(
 
     override fun observe(id: DoseId): Flow<Dose?> = dao.observe(id.value).map { it?.toDomain() }
 
-    override suspend fun insertPlanned(doses: List<PlannedDose>) {
+    override suspend fun insertPlanned(doses: List<PlannedDose>, plannedAt: Instant) {
         if (doses.isEmpty()) return
-        dao.insertIgnore(doses.map { it.toEntity() })
+        dao.insertIgnore(doses.map { it.toEntity(plannedAt) })
     }
 
     override suspend fun refreshSnapshots(doses: List<PlannedDose>) {
@@ -127,15 +127,17 @@ internal fun DoseEntity.toDomain(): Dose = Dose(
     scheduledAt = scheduledAt,
     intake = outcome?.let { Intake(IntakeOutcome.valueOf(it), checkNotNull(recordedAt) { "Dose $id has an outcome but no moment" }) },
     snoozedUntil = snoozedUntil,
+    plannedAt = plannedAt,
     firstRemindedAt = firstRemindedAt,
     lastRemindedAt = lastRemindedAt,
     reminderCount = reminderCount,
 )
 
-internal fun PlannedDose.toEntity(): DoseEntity = DoseEntity(
+internal fun PlannedDose.toEntity(plannedAt: Instant): DoseEntity = DoseEntity(
     medicationId = medicationId.value,
     medicationName = medicationName,
     amountValue = amount.value,
     amountUnit = amount.unit.name,
     scheduledAt = scheduledAt,
+    plannedAt = plannedAt,
 )

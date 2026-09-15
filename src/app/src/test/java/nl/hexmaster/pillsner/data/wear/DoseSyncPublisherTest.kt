@@ -53,7 +53,7 @@ class DoseSyncPublisherTest {
         unit: DoseUnit = DoseUnit.MILLIGRAM,
     ) {
         repository.insertPlanned(
-            listOf(
+            doses = listOf(
                 PlannedDose(
                     medicationId = MedicationId(1),
                     medicationName = name,
@@ -61,6 +61,7 @@ class DoseSyncPublisherTest {
                     scheduledAt = now.plusSeconds(minutesFromNow * 60),
                 ),
             ),
+            plannedAt = now.minusSeconds(3600),
         )
     }
 

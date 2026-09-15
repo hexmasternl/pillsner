@@ -55,6 +55,24 @@ object Migrations {
         }
     }
 
+    /**
+     * Adds the moment a dose was first stored (design D4).
+     *
+     * The column is what tells a reminder the platform did not deliver from a dose that never had
+     * a chance to be announced, so the Home banner is raised by evidence rather than by a setting.
+     *
+     * Existing rows take their own `scheduled_at`, which reads as "planned at the moment it was
+     * due" and so fails the "existed before it was due" test. Silent on history is the right
+     * default: the app reports what it observes from now on rather than re-litigating doses from
+     * before it could tell the two apart.
+     */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `doses` ADD COLUMN `planned_at` INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("UPDATE `doses` SET `planned_at` = `scheduled_at`")
+        }
+    }
+
     /** Every migration the database knows about, in order. */
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }

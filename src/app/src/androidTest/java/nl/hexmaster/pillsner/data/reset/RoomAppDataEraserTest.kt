@@ -39,6 +39,9 @@ class RoomAppDataEraserTest {
     private val today: LocalDate = LocalDate.of(2026, 9, 14)
     private val morning: Instant = Instant.parse("2026-09-14T06:00:00Z")
     private val evening: Instant = Instant.parse("2026-09-14T18:00:00Z")
+
+    /** Every dose in these tests is stored the evening before it is due, which is the usual case. */
+    private val plannedBeforeDue: Instant = Instant.parse("2026-09-13T18:00:00Z")
     private val night: Instant = Instant.parse("2026-09-14T21:00:00Z")
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
 
@@ -116,6 +119,7 @@ class RoomAppDataEraserTest {
                 PlannedDose(id, "Ibuprofen", mg40, night),
                 PlannedDose(id, "Ibuprofen", mg40, night.plusSeconds(3600)),
             ),
+            plannedAt = plannedBeforeDue,
         )
         val all = doses.pending()
         doses.recordIntake(all[0].id, IntakeOutcome.TAKEN, morning)

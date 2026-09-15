@@ -30,16 +30,9 @@
         is; where it is not granted the reminder degrades to a heads-up notification.
     -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <!--
-        Requested once, never required (design D6). Pillsner's core function is exact-time alarms
-        and it has no other way to deliver them, which is the acceptable use Play lists for this
-        permission. Every path works without the exemption; the Home banner is what the user sees
-        when it is absent.
-    -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!--
-        The vendor power-manager screens the Home banner offers on OEMs that ship one (design D6).
+        The vendor power-manager screens the Home banner offers on OEMs that ship one (design D3).
         Visibility is what lets `resolveActivity` answer honestly; without these entries every such
         intent would look absent and the banner would always fall back to the platform setting.
     -->

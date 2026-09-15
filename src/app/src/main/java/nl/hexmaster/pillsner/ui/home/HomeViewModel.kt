@@ -34,13 +34,6 @@ class HomeViewModel(
     private val notificationsAllowed = MutableStateFlow(true)
 
     /**
-     * Set by the screen on every resume. The platform has no callback for the exemption, and the
-     * user grants it in a system dialog the app never sees the result of, so asking again when
-     * the screen comes back is the only way to know.
-     */
-    private val batteryExempt = MutableStateFlow(true)
-
-    /**
      * Whether the permission dialog should still be put in front of the user. Once it has been,
      * the banner takes over rather than asking again on every launch.
      */
@@ -48,18 +41,28 @@ class HomeViewModel(
         (preferences?.hasRequestedNotificationPermission?.map { !it } ?: flowOf(false))
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
 
+    /**
+     * Whether a reminder has gone missing in silence and the user has not acknowledged it
+     * (design D2, D5).
+     *
+     * Written by the reminder coordinator when a dose lapses with nothing ever posted for it, so it
+     * is read from storage rather than held here: the miss happens while the app is asleep.
+     */
+    private val reminderWasMissed = preferences?.silentlyMissedReminderAt?.map { it != null }
+        ?: flowOf(false)
+
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observeUpcoming(limit = MAX_UPCOMING_DOSES),
         reminderReadiness,
         notificationsAllowed,
-        batteryExempt,
-    ) { doses, alarmsAreExact, notifications, battery ->
+        reminderWasMissed,
+    ) { doses, alarmsAreExact, notifications, missed ->
         HomeUiState(
             upcomingDoses = doses.sortedBy { it.scheduledAt }.take(MAX_UPCOMING_DOSES),
             isLoading = false,
             notificationsAllowed = notifications,
             alarmsAreExact = alarmsAreExact,
-            batteryExempt = battery,
+            reminderWasMissed = missed,
             now = clock.instant(),
         )
     }.stateIn(
@@ -78,29 +81,20 @@ class HomeViewModel(
         viewModelScope.launch { preferences?.markNotificationPermissionRequested() }
     }
 
-    /** Re-checked whenever the screen resumes, for the same reason as the notification answer. */
-    fun onBatteryOptimisationChecked(exempt: Boolean) {
-        batteryExempt.value = exempt
-    }
-
     /**
-     * Whether to put the battery-exemption dialog in front of the user (design D6).
+     * The user has activated the banner's button (design D5).
      *
-     * Asked once, and only once there is something to protect: a phone with no upcoming dose has
-     * no reminder to lose, and asking for an exemption before the user has told the app what they
-     * take is a dialog without a reason. An upcoming dose is exactly the observable consequence of
-     * the first active medicine with a schedule being saved.
+     * Tapping it is the acknowledgement, so the missed-reminder record is cleared here and nowhere
+     * else — not by a later reminder arriving, which on a phone that delivers three in four would
+     * make the warning flicker on and off. Only the record is cleared; the other two problems are
+     * states of the system and clear themselves when the user changes the setting.
+     *
+     * @param problem what the banner was reporting when it was tapped, so acting on the
+     *   notifications banner does not quietly discard evidence the user has not seen yet.
      */
-    val shouldRequestBatteryExemption: StateFlow<Boolean> = combine(
-        preferences?.hasRequestedBatteryExemption ?: flowOf(true),
-        uiState,
-    ) { alreadyAsked, state ->
-        !alreadyAsked && !state.batteryExempt && state.upcomingDoses.isNotEmpty()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
-
-    /** Records that the user has now been asked for the exemption once. */
-    fun onBatteryExemptionRequested() {
-        viewModelScope.launch { preferences?.markBatteryExemptionRequested() }
+    fun onReminderBannerActivated(problem: ReminderProblem?) {
+        if (problem != ReminderProblem.SILENTLY_MISSED_REMINDER) return
+        viewModelScope.launch { preferences?.clearSilentlyMissedReminder() }
     }
 
     companion object {

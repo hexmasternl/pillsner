@@ -53,3 +53,9 @@ the gate appears on the first medicine.
    **Expect:** both documents are entirely in Dutch; no English sentence anywhere.
    **Expect:** "Pillsner" and "Eduard Keilholz" are still spelled that way.
    **Expect:** the acceptance date and the effective date read the Dutch way (14 september 2026).
+
+## Status
+
+Not yet run. Each of these needs a person with a physical device — a real screen reader, a real
+font-scale setting and a phone with its radios off — none of which a build machine can stand in for.
+Everything about this change that can be proved without one is covered by the automated suite.

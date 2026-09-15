@@ -165,7 +165,15 @@ exact". A third input joins it: `PowerManager.isIgnoringBatteryOptimizations` is
 
 The app requests the exemption once, when the first medicine with a schedule is saved — the same
 moment it already requests notification permission — reusing `ReminderPreferences` to remember that
-it has asked. `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is justified here in the terms Google Play
+it has asked.
+
+*Resolved during implementation.* Those two are not in fact the same moment: notification permission
+is requested from the Home screen on resume, not from the form's save path, so this sentence
+described two different places at once. The exemption follows the notification permission, on Home,
+gated on there being an upcoming dose — which is exactly the observable consequence of the first
+active medicine with a schedule being saved. That reading is the better one anyway: a system dialog
+about battery has no business interrupting the save the user is in the middle of, and asking before
+there is a single dose to protect is a dialog without a reason. `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is justified here in the terms Google Play
 requires: the app's core function is exact-time alarms and it has no other way to deliver them.
 
 `ReminderBanner` takes one message and one action today, so the three states need an ordering. Most

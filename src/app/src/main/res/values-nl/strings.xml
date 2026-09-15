@@ -59,7 +59,7 @@
     <!-- Appvergrendeling: toetsenblok -->
     <string name="applock_keypad_submit">Doorgaan</string>
     <string name="applock_keypad_backspace">Laatste cijfer wissen</string>
-    <string name="applock_pin_dots_description">Pincode, cijfer %1$d van %2$d</string>
+    <string name="applock_pin_dots_description">Pincode, %1$d cijfers ingevoerd. Een pincode is %2$d tot %3$d cijfers.</string>
 
     <!-- Appvergrendeling: pincode instellen -->
     <string name="applock_setup_choose_title">Kies een pincode</string>

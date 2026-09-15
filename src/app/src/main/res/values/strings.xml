@@ -57,8 +57,8 @@
     <!-- App lock: keypad -->
     <string name="applock_keypad_submit">Continue</string>
     <string name="applock_keypad_backspace">Delete last digit</string>
-    <!-- %1$d: digits entered so far, %2$d: PIN length -->
-    <string name="applock_pin_dots_description">PIN entry, digit %1$d of %2$d</string>
+    <!-- %1$d: digits entered so far, %2$d: minimum PIN length, %3$d: maximum PIN length -->
+    <string name="applock_pin_dots_description">PIN entry, %1$d digits entered. A PIN is %2$d to %3$d digits.</string>
 
     <!-- App lock: PIN setup -->
     <string name="applock_setup_choose_title">Choose a PIN</string>

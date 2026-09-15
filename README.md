@@ -120,6 +120,7 @@ Any change to this table should go through the spec-driven workflow described be
 | `distribution/whatsnew/` | Play release notes, one plain-text file per listing language. Update them in the change that earns them. |
 | `GitVersion.yml` | How the release version is derived: every commit on `main` bumps the patch, and the tag written by a successful release becomes the next baseline. |
 | `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, plus the design agent and UI skills that enforce the design system. |
+| `CHANGELOG.md` | Full release notes for every release, newest first. The 500-character Play version lives in `distribution/whatsnew/`. |
 | `CLAUDE.md` | Working instructions for AI coding assistants contributing to this repository. |
 | `LICENSE` | MIT license. |
 

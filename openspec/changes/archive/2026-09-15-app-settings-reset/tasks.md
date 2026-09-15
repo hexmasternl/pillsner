@@ -64,6 +64,6 @@
 
 - [x] 9.1 Run the unit test task from `src/`. Report any failure verbatim.
 - [x] 9.2 Run lint from `src/`, including the missing-translation check. Report any failure verbatim.
-- [ ] 9.3 Run the instrumented test task from `src/` — this change touches notification, alarm and database code. Report any failure verbatim.
+- [x] 9.3 Run the instrumented test task from `src/` — this change touches notification, alarm and database code. Report any failure verbatim.
 - [x] 9.4 Update `README.md` if its feature list names settings features, so the reset is disclosed there too.
 - [x] 9.5 Re-read `openspec/changes/app-settings-reset/specs/` and confirm every requirement has a corresponding test or a documented manual check; note anything covered only manually.

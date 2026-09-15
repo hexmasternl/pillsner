@@ -1,8 +1,8 @@
 ## 1. Preconditions
 
 - [x] 1.1 Verify the project scaffold exists under `src` (Gradle project, `app` module, manifest, `MainActivity`, `AppContainer`, theme) and stop if it does not; this change creates none of it
-- [ ] 1.2 Confirm `reminder-delivery-reliability` has been archived and `openspec/specs/reminder-delivery-resilience/spec.md` exists, so this change's delta has something to modify. Stop and say so if it has not
-- [ ] 1.3 Read `openspec/specs/reminder-delivery-resilience/spec.md` and this change's `design.md` before touching code
+- [x] 1.2 Confirm `reminder-delivery-reliability` has been archived and `openspec/specs/reminder-delivery-resilience/spec.md` exists, so this change's delta has something to modify. Stop and say so if it has not
+- [x] 1.3 Read `openspec/specs/reminder-delivery-resilience/spec.md` and this change's `design.md` before touching code
 
 ## 2. Stop asking for the exemption
 

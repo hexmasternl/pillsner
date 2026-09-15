@@ -39,8 +39,12 @@ interface DoseRepository {
     /**
      * Stores every dose of [doses] that is not stored yet. A dose already present for the same
      * medication and moment is left exactly as it is, which is what makes refreshing idempotent.
+     *
+     * @param plannedAt the moment these new rows are being stored, which each one keeps for good.
+     *   A dose that is already there keeps the moment it first appeared, so the column never moves
+     *   under a refresh (design D4).
      */
-    suspend fun insertPlanned(doses: List<PlannedDose>)
+    suspend fun insertPlanned(doses: List<PlannedDose>, plannedAt: Instant)
 
     /**
      * Brings the name and amount of the pending doses matching [doses] up to date with the medicine

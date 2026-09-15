@@ -12,8 +12,9 @@ import nl.hexmaster.pillsner.ui.theme.IntakeStatus
  *   before real data is known.
  * @property notificationsAllowed whether the user has allowed Pillsner to show notifications.
  * @property alarmsAreExact whether the platform lets reminders fire at the exact minute.
- * @property batteryExempt whether Pillsner is out of battery optimisation, which is what lets it
- *   act on an alarm rather than merely receive one.
+ * @property reminderWasMissed whether a dose has lapsed with no reminder ever posted for it and
+ *   the user has not acknowledged it yet. Evidence that a reminder did not arrive, rather than a
+ *   setting the app disapproves of (design D2).
  * @property now the moment the state was built, which is what decides whether a dose is overdue.
  */
 data class HomeUiState(
@@ -21,7 +22,7 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val notificationsAllowed: Boolean = true,
     val alarmsAreExact: Boolean = true,
-    val batteryExempt: Boolean = true,
+    val reminderWasMissed: Boolean = false,
     val now: Instant = Instant.EPOCH,
 ) {
     /**
@@ -30,13 +31,13 @@ data class HomeUiState(
      *
      * Three things can stop a reminder and more than one can be wrong at a time, but the banner
      * holds one message and one button. So they are ordered by how completely each one breaks the
-     * promise: denied notifications mean no reminder at all; battery optimisation means a reminder
-     * that may never be acted on; inexact alarms mean a reminder that is merely late. Fixing the
-     * first reveals the next.
+     * promise: denied notifications mean no reminder at all, which subsumes a missed one; a
+     * reminder already missed means one the user never received; inexact alarms mean a reminder
+     * that is merely late. Fixing the first reveals the next.
      */
     val reminderProblem: ReminderProblem? get() = when {
         !notificationsAllowed -> ReminderProblem.NOTIFICATIONS_DENIED
-        !batteryExempt -> ReminderProblem.BATTERY_OPTIMISED
+        reminderWasMissed -> ReminderProblem.SILENTLY_MISSED_REMINDER
         !alarmsAreExact -> ReminderProblem.INEXACT_ALARMS
         else -> null
     }
@@ -50,8 +51,8 @@ enum class ReminderProblem {
     /** Pillsner may not post a notification, so a due dose is never announced. */
     NOTIFICATIONS_DENIED,
 
-    /** The platform may stop Pillsner from running when its alarm goes off. */
-    BATTERY_OPTIMISED,
+    /** A dose lapsed with no reminder ever posted for it, so at least one did not reach the user. */
+    SILENTLY_MISSED_REMINDER,
 
     /** Reminders still arrive, but within a ten-minute window rather than on the minute. */
     INEXACT_ALARMS,

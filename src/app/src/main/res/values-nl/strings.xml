@@ -289,9 +289,9 @@
     <!-- Start: herinneringen kunnen niet worden bezorgd -->
     <string name="reminder_banner_notifications_denied">Pillsner kan geen herinneringen tonen omdat meldingen uitstaan.</string>
     <string name="reminder_banner_inexact_alarms">Herinneringen kunnen tot tien minuten te laat komen omdat exacte alarmen uitstaan.</string>
-    <string name="reminder_banner_battery_optimised">Je telefoon kan Pillsner stoppen op het moment dat een dosis aan de beurt is, waardoor een herinnering kan uitblijven.</string>
+    <string name="reminder_banner_reminder_missed">Een dosis was aan de beurt, maar er kwam geen herinnering.</string>
     <string name="reminder_banner_open_settings">Instellingen openen</string>
-    <string name="reminder_banner_allow_background">Achtergrondgebruik toestaan</string>
+    <string name="reminder_banner_check_background">Achtergrondinstellingen controleren</string>
 
     <!-- Instellingen: taal -->
     <string name="settings_language_header">Taal</string>

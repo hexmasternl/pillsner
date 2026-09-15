@@ -37,7 +37,7 @@ class ResetRotationTest {
     val composeRule = createComposeRule()
 
     private var erases = 0
-    private val viewModel = ResetViewModel(EraseAllData({ erases++ }, { }, { }))
+    private val viewModel = ResetViewModel(EraseAllData({ erases++ }, { }, { }, { }))
     private val generation = mutableIntStateOf(0)
 
     @Test

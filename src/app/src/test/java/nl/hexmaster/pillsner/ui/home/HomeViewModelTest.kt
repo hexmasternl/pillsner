@@ -139,36 +139,46 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `reminders are reported as unreliable when battery optimisation is on`() = runTest(dispatcher) {
-        val viewModel = collecting()
+    fun `reminders are reported as unreliable once a reminder has been missed`() {
+        val state = HomeUiState(isLoading = false, reminderWasMissed = true, now = now)
 
-        viewModel.onBatteryOptimisationChecked(false)
-
-        assertTrue(viewModel.uiState.value.remindersAreUnreliable)
-        assertEquals(ReminderProblem.BATTERY_OPTIMISED, viewModel.uiState.value.reminderProblem)
+        assertTrue(state.remindersAreUnreliable)
+        assertEquals(ReminderProblem.SILENTLY_MISSED_REMINDER, state.reminderProblem)
     }
 
     @Test
-    fun `the banner reports the most severe problem and only that one`() = runTest(dispatcher) {
-        val exactness = MutableStateFlow(false)
-        val viewModel = HomeViewModel(repository, exactness, clock)
-        backgroundScope.launch { viewModel.uiState.collect {} }
-        viewModel.onNotificationPermissionChecked(false)
-        viewModel.onBatteryOptimisationChecked(false)
+    fun `not being exempt from battery optimisation is no longer a problem in itself`() {
+        // The banner is raised by evidence now: nothing has been missed, so there is nothing to
+        // say, however the phone is configured (design D2).
+        val state = HomeUiState(isLoading = false, now = now)
+
+        assertFalse(state.remindersAreUnreliable)
+        assertEquals(null, state.reminderProblem)
+    }
+
+    @Test
+    fun `the banner reports the most severe problem and only that one`() {
+        val everythingWrong = HomeUiState(
+            isLoading = false,
+            notificationsAllowed = false,
+            alarmsAreExact = false,
+            reminderWasMissed = true,
+            now = now,
+        )
 
         // Without the permission there is no reminder at all, so it is reported first. Fixing each
         // problem reveals the next, which is what makes one banner enough.
-        assertEquals(ReminderProblem.NOTIFICATIONS_DENIED, viewModel.uiState.value.reminderProblem)
+        assertEquals(ReminderProblem.NOTIFICATIONS_DENIED, everythingWrong.reminderProblem)
 
-        viewModel.onNotificationPermissionChecked(true)
-        assertEquals(ReminderProblem.BATTERY_OPTIMISED, viewModel.uiState.value.reminderProblem)
+        val notificationsFixed = everythingWrong.copy(notificationsAllowed = true)
+        assertEquals(ReminderProblem.SILENTLY_MISSED_REMINDER, notificationsFixed.reminderProblem)
 
-        viewModel.onBatteryOptimisationChecked(true)
-        assertEquals(ReminderProblem.INEXACT_ALARMS, viewModel.uiState.value.reminderProblem)
+        val acknowledged = notificationsFixed.copy(reminderWasMissed = false)
+        assertEquals(ReminderProblem.INEXACT_ALARMS, acknowledged.reminderProblem)
 
-        exactness.value = true
-        assertEquals(null, viewModel.uiState.value.reminderProblem)
-        assertFalse(viewModel.uiState.value.remindersAreUnreliable)
+        val nothingWrong = acknowledged.copy(alarmsAreExact = true)
+        assertEquals(null, nothingWrong.reminderProblem)
+        assertFalse(nothingWrong.remindersAreUnreliable)
     }
 
     @Test

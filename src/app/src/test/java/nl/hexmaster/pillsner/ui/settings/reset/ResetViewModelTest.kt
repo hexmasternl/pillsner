@@ -28,6 +28,7 @@ class ResetViewModelTest {
     private val eraseAllData = EraseAllData(
         eraser = { erases++ },
         teardown = { },
+        history = { },
         refresh = { },
     )
 

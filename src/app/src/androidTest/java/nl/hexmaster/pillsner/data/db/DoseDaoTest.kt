@@ -39,6 +39,9 @@ class DoseDaoTest {
     private val evening: Instant = Instant.parse("2026-09-14T18:00:00Z")
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
 
+    /** Every dose in these tests is stored the evening before it is due, which is the usual case. */
+    private val plannedBeforeDue: Instant = Instant.parse("2026-09-13T18:00:00Z")
+
     @Before
     fun setUp() {
         val context: Context = ApplicationProvider.getApplicationContext()
@@ -55,7 +58,7 @@ class DoseDaoTest {
     @Test
     fun aPlannedDose_roundTripsWithItsSnapshot() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning, Quantity.of("2.5", DoseUnit.MILLILITRE))))
+        doses.insertPlanned(listOf(planned(id, morning, Quantity.of("2.5", DoseUnit.MILLILITRE))), plannedAt = plannedBeforeDue)
 
         val stored = doses.pending().single()
         assertEquals(id, stored.medicationId)
@@ -70,8 +73,8 @@ class DoseDaoTest {
     fun insertingTheSamePlannedDoseTwice_changesNothing() = runBlocking {
         val id = medications.add(medication())
 
-        doses.insertPlanned(listOf(planned(id, morning)))
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
 
         assertEquals(1, doses.pending().size)
     }
@@ -79,7 +82,7 @@ class DoseDaoTest {
     @Test
     fun recordingAnOutcome_takesTheDoseOutOfPendingAndClearsItsSnooze() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
         val dose = doses.pending().single()
         doses.setSnooze(dose.id, morning.plusSeconds(900))
 
@@ -95,7 +98,7 @@ class DoseDaoTest {
     @Test
     fun deletingTheMedication_leavesTheDoseWithoutLosingItsHistory() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
 
         // Nothing in the app deletes a medicine; the nullable reference is what would keep the
         // history readable if a row ever did vanish, so it is exercised through raw SQL.
@@ -112,6 +115,7 @@ class DoseDaoTest {
         val id = medications.add(medication())
         doses.insertPlanned(
             listOf(planned(id, morning), planned(id, evening), planned(id, evening.plusSeconds(3600))),
+            plannedAt = plannedBeforeDue,
         )
         val all = doses.pending()
         doses.recordReminded(all[0].id, morning, countsAsRepeat = false)
@@ -133,7 +137,7 @@ class DoseDaoTest {
     @Test
     fun withdrawingPlannedDoses_takesARemindedOneWhenTheUserChangedTheMedicine() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)), plannedAt = plannedBeforeDue)
         val all = doses.pending()
         doses.recordReminded(all[0].id, morning, countsAsRepeat = false)
         doses.recordIntake(all[1].id, IntakeOutcome.TAKEN, evening)
@@ -154,7 +158,7 @@ class DoseDaoTest {
     @Test
     fun withdrawingPlannedDoses_keepsTheOnesStillCalledFor() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)), plannedAt = plannedBeforeDue)
 
         doses.withdrawPlanned(
             from = morning.minusSeconds(86_400),
@@ -170,7 +174,7 @@ class DoseDaoTest {
     fun withdrawingPlannedDoses_matchesOnTheMedicineAndNotOnTheMomentAlone() = runBlocking {
         val moved = medications.add(medication())
         val unchanged = medications.add(medication())
-        doses.insertPlanned(listOf(planned(moved, morning), planned(unchanged, morning)))
+        doses.insertPlanned(listOf(planned(moved, morning), planned(unchanged, morning)), plannedAt = plannedBeforeDue)
 
         // One medicine moves off the morning; the other still takes its dose then.
         doses.withdrawPlanned(
@@ -189,7 +193,7 @@ class DoseDaoTest {
     @Test
     fun withdrawingPlannedDoses_neverTakesADoseWhoseMedicineIsGone() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
         // The reference goes null, as in deletingTheMedication_leavesTheDoseWithoutLosingItsHistory.
         database.openHelper.writableDatabase.execSQL("DELETE FROM medications WHERE id = ${id.value}")
 
@@ -207,7 +211,7 @@ class DoseDaoTest {
     @Test
     fun refreshingSnapshots_updatesAPendingDoseAndLeavesAnAnsweredOneAlone() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)), plannedAt = plannedBeforeDue)
         val answered = doses.pending().first { it.scheduledAt == morning }
         doses.recordIntake(answered.id, IntakeOutcome.TAKEN, morning)
 
@@ -231,7 +235,7 @@ class DoseDaoTest {
     @Test
     fun theNextDoseOfAMedicine_isFound() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)), plannedAt = plannedBeforeDue)
 
         assertEquals(evening, doses.nextScheduledAtAfter(id, morning))
         assertNull(doses.nextScheduledAtAfter(id, evening))
@@ -242,7 +246,7 @@ class DoseDaoTest {
         val id = medications.add(medication())
         assertEquals(emptyList<Any>(), doses.observePending().first())
 
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
 
         assertEquals(listOf(morning), doses.observePending().first().map { it.scheduledAt })
     }
@@ -251,7 +255,7 @@ class DoseDaoTest {
     fun thePendingStream_reEmitsWhenASnapshotIsRefreshed() = runBlocking {
         // This is what carries a rename to the Home screen while the user is looking at it.
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
         assertEquals("Ibuprofen", doses.observePending().first().single().medicationName)
 
         doses.refreshSnapshots(listOf(PlannedDose(id, "Ibuprofen 400", mg40, morning)))
@@ -262,7 +266,7 @@ class DoseDaoTest {
     @Test
     fun pendingDosesComeBackSoonestFirst() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, evening), planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, evening), planned(id, morning)), plannedAt = plannedBeforeDue)
 
         assertEquals(listOf(morning, evening), doses.pending().map { it.scheduledAt })
     }
@@ -281,6 +285,7 @@ class DoseDaoTest {
                 planned(mine, later),
                 planned(other, morning),
             ),
+            plannedAt = plannedBeforeDue,
         )
         // One answered and one still unanswered, so both kinds have to come back.
         doses.recordIntake(doses.pending().first { it.scheduledAt == morning && it.medicationId == mine }.id, IntakeOutcome.TAKEN, morning)
@@ -296,7 +301,7 @@ class DoseDaoTest {
     fun theEarliestRecordedMoment_isTheOldestStoredDose() = runBlocking {
         val id = medications.add(medication())
         val withoutDoses = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, evening), planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, evening), planned(id, morning)), plannedAt = plannedBeforeDue)
 
         assertEquals(morning, doses.earliestScheduledAt(id))
         assertNull(doses.earliestScheduledAt(withoutDoses))
@@ -305,7 +310,7 @@ class DoseDaoTest {
     @Test
     fun observingOneDose_followsItUntilItIsGone() = runBlocking {
         val medicationId = medications.add(medication())
-        doses.insertPlanned(listOf(planned(medicationId, morning)))
+        doses.insertPlanned(listOf(planned(medicationId, morning)), plannedAt = plannedBeforeDue)
         val id = doses.pending().single().id
 
         assertEquals(morning, doses.observe(id).first()?.scheduledAt)
@@ -322,7 +327,7 @@ class DoseDaoTest {
     @Test
     fun aFreshDose_hasNotBeenAskedAboutAgain() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
 
         val fresh = doses.pending().single()
         assertEquals(0, fresh.reminderCount)
@@ -332,7 +337,7 @@ class DoseDaoTest {
     @Test
     fun aRepeatMovesTheAnchorButNeverTheMomentTheUserWasFirstTold() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
         val dose = doses.pending().single()
 
         doses.recordReminded(dose.id, morning, countsAsRepeat = false)
@@ -347,7 +352,7 @@ class DoseDaoTest {
     @Test
     fun eachRepeatCountsOnce() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
         val dose = doses.pending().single()
 
         doses.recordReminded(dose.id, morning, countsAsRepeat = true)
@@ -359,7 +364,7 @@ class DoseDaoTest {
     @Test
     fun aSnoozePutsTheRepeatsBackToTheStart() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning)))
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
         val dose = doses.pending().single()
         repeat(3) { doses.recordReminded(dose.id, morning, countsAsRepeat = true) }
 
@@ -374,7 +379,7 @@ class DoseDaoTest {
     @Test
     fun theRepeatCountBelongsToOneDoseOnly() = runBlocking {
         val id = medications.add(medication())
-        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)))
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)), plannedAt = plannedBeforeDue)
         val first = doses.pending().first()
 
         doses.recordReminded(first.id, morning, countsAsRepeat = true)

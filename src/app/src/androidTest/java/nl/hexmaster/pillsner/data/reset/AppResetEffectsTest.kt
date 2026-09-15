@@ -81,6 +81,9 @@ class AppResetEffectsTest {
     private lateinit var notifier: ReminderNotifier
     private lateinit var armedAlarmStore: ArmedAlarmStore
 
+    /** Every dose in these tests is stored the evening before it is due, which is the usual case. */
+    private val plannedBeforeDue: Instant = Instant.parse("2026-09-13T18:00:00Z")
+
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
 
     @Before
@@ -197,13 +200,14 @@ class AppResetEffectsTest {
                 schedules = listOf(Schedule.EveryNDays(mg40, 1, listOf(LocalTime.of(8, 0)))),
             ),
         )
-        doses.insertPlanned(listOf(PlannedDose(id, "Ibuprofen", mg40, Instant.now())))
+        doses.insertPlanned(listOf(PlannedDose(id, "Ibuprofen", mg40, Instant.now())), plannedAt = plannedBeforeDue)
         return doses.pending().first()
     }
 
     private fun eraseWith(refresh: () -> Unit) = EraseAllData(
         eraser = RoomAppDataEraser(database),
         teardown = notifier::cancelAll,
+        history = { },
         refresh = refresh,
     )
 

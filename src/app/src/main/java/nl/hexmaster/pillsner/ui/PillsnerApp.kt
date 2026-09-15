@@ -47,7 +47,6 @@ import nl.hexmaster.pillsner.ui.dose.DoseDetailScreen
 import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.home.NotificationPermissionEffect
-import nl.hexmaster.pillsner.ui.home.BatteryOptimisationEffect
 import nl.hexmaster.pillsner.ui.home.openReminderSettings
 import nl.hexmaster.pillsner.ui.home.WelcomeScreen
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -197,21 +196,17 @@ private fun PillsnerAppContent(
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 val context = LocalContext.current
                 val shouldRequest by viewModel.shouldRequestNotificationPermission.collectAsStateWithLifecycle()
-                val shouldRequestBattery by viewModel.shouldRequestBatteryExemption
-                    .collectAsStateWithLifecycle()
                 NotificationPermissionEffect(
                     shouldRequest = shouldRequest,
                     onPermissionChanged = viewModel::onNotificationPermissionChecked,
                     onRequested = viewModel::onNotificationPermissionRequested,
                 )
-                BatteryOptimisationEffect(
-                    shouldRequest = shouldRequestBattery,
-                    onExemptionChanged = viewModel::onBatteryOptimisationChecked,
-                    onRequested = viewModel::onBatteryExemptionRequested,
-                )
                 WelcomeScreen(
                     uiState = uiState,
                     onOpenReminderSettings = {
+                        // Tapping is the acknowledgement, which is what clears a missed reminder
+                        // from the banner (design D5).
+                        viewModel.onReminderBannerActivated(uiState.reminderProblem)
                         context.openReminderSettings(uiState.reminderProblem)
                     },
                     onOpenDose = { navController.navigate(DoseDetail(it.value)) },

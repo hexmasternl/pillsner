@@ -37,9 +37,9 @@ object ReminderBannerTestTags {
  *
  * This is the one red surface the user does not ask for, and deliberately so: an app that quietly
  * fails to remind someone of their medicine is worse than one that admits it. It appears only when
- * notifications are off, battery optimisation may stop the app running, or exact alarms are
- * unavailable — and never more than one of them at once, because it holds one message and one
- * button (design D6).
+ * notifications are off, a reminder has actually gone missing, or exact alarms are unavailable —
+ * and never more than one of them at once, because it holds one message and one button (design D6,
+ * and reminder-battery-prompt-removal D2).
  *
  * @param actionLabel what the button says, since each problem is fixed on a different screen.
  */
@@ -96,9 +96,8 @@ private fun ReminderBannerPreview() {
                     onOpenSettings = {},
                 )
                 ReminderBanner(
-                    message = "Your phone may stop Pillsner from running when a dose is due, so " +
-                        "a reminder can be missed.",
-                    actionLabel = "Allow background use",
+                    message = "A dose came due and no reminder arrived.",
+                    actionLabel = "Check background settings",
                     onOpenSettings = {},
                 )
                 ReminderBanner(

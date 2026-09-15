@@ -44,6 +44,9 @@ class ReminderActionReceiverTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
     private lateinit var doses: DoseRepository
     private lateinit var medications: MedicationRepository
+
+    /** Every dose in these tests is stored the evening before it is due, which is the usual case. */
+    private val plannedBeforeDue: Instant = Instant.parse("2026-09-13T18:00:00Z")
     private var medicationId: MedicationId = MedicationId(0)
 
     @Before
@@ -124,6 +127,7 @@ class ReminderActionReceiverTest {
                     scheduledAt = at,
                 ),
             ),
+            plannedAt = plannedBeforeDue,
         )
         return doses.observePending().first().first { it.scheduledAt == at }.id
     }

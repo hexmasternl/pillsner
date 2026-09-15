@@ -118,13 +118,13 @@ fun WelcomeScreen(
 private val ReminderProblem.message: Int
     get() = when (this) {
         ReminderProblem.NOTIFICATIONS_DENIED -> R.string.reminder_banner_notifications_denied
-        ReminderProblem.BATTERY_OPTIMISED -> R.string.reminder_banner_battery_optimised
+        ReminderProblem.SILENTLY_MISSED_REMINDER -> R.string.reminder_banner_reminder_missed
         ReminderProblem.INEXACT_ALARMS -> R.string.reminder_banner_inexact_alarms
     }
 
 private val ReminderProblem.actionLabel: Int
     get() = when (this) {
-        ReminderProblem.BATTERY_OPTIMISED -> R.string.reminder_banner_allow_background
+        ReminderProblem.SILENTLY_MISSED_REMINDER -> R.string.reminder_banner_check_background
         else -> R.string.reminder_banner_open_settings
     }
 

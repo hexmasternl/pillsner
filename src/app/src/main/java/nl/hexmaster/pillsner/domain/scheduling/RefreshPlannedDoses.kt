@@ -68,7 +68,10 @@ class RefreshPlannedDoses(
 
         val planned: List<PlannedDose> = plannedByMedication.values.flatten()
 
-        doseRepository.insertPlanned(planned)
+        // The moment of storing, kept for good on each new row: it is what later tells a reminder
+        // the platform dropped from a dose generated after its own moment, which never had one to
+        // drop (design D4). A dose already stored keeps the moment it first appeared.
+        doseRepository.insertPlanned(planned, clock.instant())
         doseRepository.refreshSnapshots(planned)
 
         val moments = plannedByMedication.mapValues { (_, doses) -> doses.map { it.scheduledAt } }

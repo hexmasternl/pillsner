@@ -309,9 +309,9 @@
     <!-- Home: reminders cannot be delivered (design system section 8.9) -->
     <string name="reminder_banner_notifications_denied">Pillsner cannot show reminders because notifications are turned off.</string>
     <string name="reminder_banner_inexact_alarms">Reminders may arrive up to ten minutes late because exact alarms are turned off.</string>
-    <string name="reminder_banner_battery_optimised">Your phone may stop Pillsner from running when a dose is due, so a reminder can be missed.</string>
+    <string name="reminder_banner_reminder_missed">A dose came due and no reminder arrived.</string>
     <string name="reminder_banner_open_settings">Open settings</string>
-    <string name="reminder_banner_allow_background">Allow background use</string>
+    <string name="reminder_banner_check_background">Check background settings</string>
 
     <!-- Starting and stopping a medicine from the overview -->
     <string name="medicines_action_deactivate">Deactivate</string>

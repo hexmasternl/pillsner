@@ -56,14 +56,14 @@ class ReminderBannerTest {
     }
 
     @Test
-    fun withBatteryOptimisationOn_theBannerAsksForBackgroundUse() {
-        setScreen(HomeUiState(isLoading = false, batteryExempt = false, now = now))
+    fun afterAReminderWasMissed_theBannerSaysNoReminderArrived() {
+        setScreen(HomeUiState(isLoading = false, reminderWasMissed = true, now = now))
 
         composeRule.onNodeWithTag(ReminderBannerTestTags.BANNER).assertIsDisplayed()
         composeRule.onNodeWithText(
-            "Your phone may stop Pillsner from running when a dose is due, so a reminder can be missed.",
+            "A dose came due and no reminder arrived.",
         ).assertIsDisplayed()
-        composeRule.onNodeWithText("Allow background use").assertIsDisplayed()
+        composeRule.onNodeWithText("Check background settings").assertIsDisplayed()
     }
 
     @Test
@@ -73,7 +73,7 @@ class ReminderBannerTest {
                 isLoading = false,
                 notificationsAllowed = false,
                 alarmsAreExact = false,
-                batteryExempt = false,
+                reminderWasMissed = true,
                 now = now,
             ),
         )
@@ -86,13 +86,13 @@ class ReminderBannerTest {
     }
 
     @Test
-    fun batteryOptimisationOutranksInexactAlarms() {
+    fun aMissedReminderOutranksInexactAlarms() {
         setScreen(
-            HomeUiState(isLoading = false, alarmsAreExact = false, batteryExempt = false, now = now),
+            HomeUiState(isLoading = false, alarmsAreExact = false, reminderWasMissed = true, now = now),
         )
 
         composeRule.onAllNodesWithTag(ReminderBannerTestTags.BANNER).assertCountEquals(1)
-        composeRule.onNodeWithText("Allow background use").assertIsDisplayed()
+        composeRule.onNodeWithText("Check background settings").assertIsDisplayed()
     }
 
     @Test

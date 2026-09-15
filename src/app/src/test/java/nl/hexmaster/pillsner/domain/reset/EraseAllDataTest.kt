@@ -12,17 +12,18 @@ class EraseAllDataTest {
     private val eraseAllData = EraseAllData(
         eraser = { steps += "erase" },
         teardown = { steps += "teardown" },
+        history = { steps += "forget" },
         refresh = { steps += "refresh" },
     )
 
     @Test
-    fun `a reset erases, then takes the notifications down, then re-arms`() = runBlocking {
+    fun `a reset erases, takes the notifications down, forgets what they saw, then re-arms`() = runBlocking {
         eraseAllData()
 
         // The order is the design. The irreversible step goes first, so a failure in either
         // correction leaves the data properly erased rather than half-gone with the app already
         // behaving as though it were.
-        assertEquals(listOf("erase", "teardown", "refresh"), steps)
+        assertEquals(listOf("erase", "teardown", "forget", "refresh"), steps)
     }
 
     @Test
@@ -31,6 +32,7 @@ class EraseAllDataTest {
 
         assertEquals(1, steps.count { it == "erase" })
         assertEquals(1, steps.count { it == "teardown" })
+        assertEquals(1, steps.count { it == "forget" })
         assertEquals(1, steps.count { it == "refresh" })
     }
 
@@ -39,6 +41,7 @@ class EraseAllDataTest {
         val failing = EraseAllData(
             eraser = { steps += "erase" },
             teardown = { error("the notification manager is gone") },
+            history = { steps += "forget" },
             refresh = { steps += "refresh" },
         )
 

@@ -38,7 +38,7 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
 
     override fun observe(id: DoseId): Flow<Dose?> = doses.map { all -> all.firstOrNull { it.id == id } }
 
-    override suspend fun insertPlanned(doses: List<PlannedDose>) {
+    override suspend fun insertPlanned(doses: List<PlannedDose>, plannedAt: Instant) {
         this.doses.update { current ->
             val known = current.map { it.medicationId to it.scheduledAt }.toSet()
             current + doses
@@ -50,6 +50,7 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
                         medicationName = planned.medicationName,
                         amount = planned.amount,
                         scheduledAt = planned.scheduledAt,
+                        plannedAt = plannedAt,
                     )
                 }
         }

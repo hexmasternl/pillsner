@@ -40,6 +40,16 @@ open class ReminderNotifier(
     private val notificationManager = NotificationManagerCompat.from(appContext)
 
     /**
+     * Whether the user has allowed Pillsner to post notifications at all.
+     *
+     * The notifier is the one component that already has to know, so it is what the coordinator
+     * asks rather than reaching for a framework type of its own (design D2). A dose that lapsed
+     * un-reminded because this is false has a known cause and its own banner; only a dose that
+     * lapsed un-reminded while this was true is evidence of an alarm the platform dropped.
+     */
+    open fun notificationsAllowed(): Boolean = appContext.hasNotificationPermission()
+
+    /**
      * Shows, or re-shows after a snooze, the reminder for [dose].
      *
      * Does nothing when the user has not allowed notifications: the Home screen's banner is what

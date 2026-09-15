@@ -74,7 +74,9 @@ fun Context.hasNotificationPermission(): Boolean =
 fun Context.openReminderSettings(problem: ReminderProblem?) {
     val exactAlarmSettingsExist = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val intent = when {
-        problem == ReminderProblem.BATTERY_OPTIMISED -> backgroundRunIntent()
+        // Unconditionally, whatever the exemption state says (design D3): the user who is already
+        // exempt and is still missing reminders is exactly the user the vendor screen is for.
+        problem == ReminderProblem.SILENTLY_MISSED_REMINDER -> backgroundRunIntent()
         problem == ReminderProblem.INEXACT_ALARMS && exactAlarmSettingsExist ->
             Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                 .setData(Uri.fromParts("package", packageName, null))

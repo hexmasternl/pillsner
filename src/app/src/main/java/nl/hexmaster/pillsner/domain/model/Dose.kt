@@ -34,6 +34,11 @@ data class Intake(val outcome: IntakeOutcome, val recordedAt: Instant)
  * @property medicationName the medicine's name when this dose was planned.
  * @property amount how much this dose is; the schedule's amount when it was planned.
  * @property scheduledAt the moment the dose is due, as an absolute instant.
+ * @property plannedAt the moment this dose was first stored, which is never rewritten. A dose
+ *   planned while it was still in the future had a window in which to remind; one generated after
+ *   its own moment — a medicine saved in the evening with a morning schedule — never did. That is
+ *   the difference between a reminder the platform dropped and one that was never possible
+ *   (design D4).
  * @property intake the recorded outcome, or null while the dose is still pending.
  * @property snoozedUntil when a pending dose should be reminded about again, or null.
  * @property firstRemindedAt when the user was first told about this dose, or null while it is only
@@ -53,6 +58,7 @@ data class Dose(
     val medicationName: String,
     val amount: Quantity,
     val scheduledAt: Instant,
+    val plannedAt: Instant = Instant.EPOCH,
     val intake: Intake? = null,
     val snoozedUntil: Instant? = null,
     val firstRemindedAt: Instant? = null,
@@ -61,6 +67,26 @@ data class Dose(
 ) {
     /** True while the user has not answered: no outcome has been recorded. */
     val isPending: Boolean get() = intake == null
+
+    /**
+     * True when this dose was recorded missed without the user ever having been told about it,
+     * although the app had a window in which to tell them (design D2, D4).
+     *
+     * That is the observable symptom of an alarm the platform did not deliver, and it is the only
+     * one the app has: `AlarmManager` will not say what it holds, so the consequence is what can be
+     * seen. Two things keep it honest. The dose must carry the missed outcome, so a dose still
+     * pending or one the user answered never counts. And [plannedAt] must be before [scheduledAt],
+     * so a dose generated after its own moment — a medicine saved in the evening with a morning
+     * schedule — is not read as a reminder that went astray when there was never one to give.
+     *
+     * Whether notifications were allowed is not part of this: the dose does not know, and a dose
+     * that went unannounced because the user denied the permission has its own banner. The caller
+     * checks that before recording anything.
+     */
+    val wasMissedInSilence: Boolean
+        get() = intake?.outcome == IntakeOutcome.MISSED &&
+            firstRemindedAt == null &&
+            plannedAt.isBefore(scheduledAt)
 }
 
 /**

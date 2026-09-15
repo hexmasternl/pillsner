@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.math.BigDecimal
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.flow.first
@@ -38,6 +39,9 @@ class MedicationDaoTest {
 
     private val today: LocalDate = LocalDate.of(2026, 9, 13)
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
+
+    /** Every dose in these tests is stored the evening before it is due, which is the usual case. */
+    private val plannedBeforeDue: Instant = Instant.parse("2026-09-13T18:00:00Z")
 
     @Before
     fun setUp() {
@@ -165,6 +169,7 @@ class MedicationDaoTest {
                     scheduledAt = java.time.Instant.parse("2026-09-14T06:00:00Z"),
                 ),
             ),
+            plannedAt = plannedBeforeDue,
         )
 
         repository.setActive(id, isActive = false)
@@ -259,6 +264,7 @@ class MedicationDaoTest {
                     scheduledAt = java.time.Instant.parse("2026-09-14T06:00:00Z"),
                 ),
             ),
+            plannedAt = plannedBeforeDue,
         )
         val before = doses.pending().single()
         val stored = repository.observeAll().first().single()

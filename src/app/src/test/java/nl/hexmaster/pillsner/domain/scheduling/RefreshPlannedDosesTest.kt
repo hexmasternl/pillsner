@@ -282,4 +282,46 @@ class RefreshPlannedDosesTest {
             there.first(),
         )
     }
+
+    @Test
+    fun `a dose is stamped with the moment it was stored, before it is due`() = runBlocking {
+        medications.replaceAll(listOf(twiceADay))
+
+        refresh()
+
+        // The clock says six in the morning; both of today's doses are still ahead of it, so each
+        // one existed while it was still in the future (design D4).
+        val todaysDoses = doses.all().filter { it.scheduledAt.isBefore(at(hour = 21)) }
+        assertEquals(listOf(at(hour = 6), at(hour = 6)), todaysDoses.map { it.plannedAt })
+        assertEquals(listOf(true, true), todaysDoses.map { it.plannedAt.isBefore(it.scheduledAt) })
+    }
+
+    @Test
+    fun `a dose generated after its own moment is stamped after it`() = runBlocking {
+        // The medicine is saved in the evening, so this morning's eight o'clock dose is planned
+        // when it is already past: there was never a window in which to remind.
+        clock.setTo(at(hour = 20))
+        medications.replaceAll(listOf(twiceADay))
+
+        refresh()
+
+        val thisMorning = doses.all().single { it.scheduledAt == at(hour = 8) }
+        assertEquals(at(hour = 20), thisMorning.plannedAt)
+        assertEquals(false, thisMorning.plannedAt.isBefore(thisMorning.scheduledAt))
+    }
+
+    @Test
+    fun `refreshing again leaves the moment a dose was first stored alone`() = runBlocking {
+        medications.replaceAll(listOf(twiceADay))
+        refresh()
+        val first = doses.all().map { it.id to it.plannedAt }
+
+        clock.setTo(at(hour = 9))
+        refresh()
+
+        // The refresh runs on every wake; a dose that is already there keeps the moment it
+        // appeared, or "existed before it was due" would become true of every dose eventually.
+        val after = doses.all().associate { it.id to it.plannedAt }
+        assertEquals(first, first.map { (id, _) -> id to after.getValue(id) })
+    }
 }

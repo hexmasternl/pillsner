@@ -227,6 +227,7 @@ class AppContainer(
         clock = clock,
         doseSyncPublisher = doseSyncPublisher,
         unlockState = userUnlockState,
+        silentlyMissedReminders = reminderPreferences::recordSilentlyMissedReminder,
     )
 
     /**
@@ -259,6 +260,7 @@ class AppContainer(
     private val eraseAllData = EraseAllData(
         eraser = RoomAppDataEraser(database),
         teardown = reminderNotifier::cancelAll,
+        history = reminderPreferences::clearSilentlyMissedReminder,
         refresh = { reminderCoordinator.requestWake(WakeReason.MEDICATIONS_CHANGED) },
     )
 

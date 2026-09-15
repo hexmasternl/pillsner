@@ -38,6 +38,16 @@ data class DoseEntity(
     @ColumnInfo(name = "amount_value") val amountValue: BigDecimal,
     @ColumnInfo(name = "amount_unit") val amountUnit: String,
     @ColumnInfo(name = "scheduled_at") val scheduledAt: Instant,
+    /**
+     * When this row was first stored, which is never rewritten afterwards.
+     *
+     * It is what tells a reminder the platform did not deliver from a dose that never had a
+     * chance: a dose planned before its own moment had a window in which to remind, and one
+     * generated already lapsed did not (design D4).
+     *
+     * `defaultValue` is for the migration, which backfills every existing row from `scheduled_at`.
+     */
+    @ColumnInfo(name = "planned_at", defaultValue = "0") val plannedAt: Instant,
     /** TAKEN, SKIPPED or MISSED; null while the dose is pending. */
     val outcome: String? = null,
     @ColumnInfo(name = "recorded_at") val recordedAt: Instant? = null,

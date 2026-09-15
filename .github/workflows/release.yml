@@ -68,11 +68,12 @@ jobs:
           BASE=$(( MAJOR * 1000000 + MINOR * 10000 + PATCH ))
           TRACK="${INPUT_TRACK:-internal}"
           # Play keeps Wear OS releases on their own form factor track, named "wear:" plus the
-          # default track name; the internal testing track is called "qa" there, not "internal".
-          # Closed testing tracks are named after the track created in Play Console, so "alpha"
-          # has no automatic equivalent - fail here rather than half-publish.
+          # default track name: wear:internal, wear:beta and wear:production mirror the phone
+          # tracks. Closed testing tracks are named after the track created in Play Console
+          # (this app has wear:closed-tests), so "alpha" has no automatic equivalent - fail here
+          # rather than half-publish.
           case "$TRACK" in
-            internal)   WEAR_TRACK="wear:qa" ;;
+            internal)   WEAR_TRACK="wear:internal" ;;
             beta)       WEAR_TRACK="wear:beta" ;;
             production) WEAR_TRACK="wear:production" ;;
             *)

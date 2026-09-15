@@ -133,4 +133,43 @@ class ReminderRepeatsTest {
         assertEquals(at(hour = 8, minute = 15), repeated.lastRemindedAt)
         assertEquals(1, repeated.reminderCount)
     }
+
+    // --- A due dose that was never announced is tried again (reminder hardening) --------------
+
+    @Test
+    fun `a due dose never announced is tried again five minutes from now`() {
+        val due = dose(1, at(hour = 8))
+        val now = at(hour = 8, minute = 1)
+
+        assertEquals(at(hour = 8, minute = 6), ReminderRepeats.nextUnannouncedRetryAt(due, now, lapseAt))
+    }
+
+    @Test
+    fun `a dose still in the future is not tried again, it has its own alarm`() {
+        assertNull(ReminderRepeats.nextUnannouncedRetryAt(dose(1, at(hour = 8)), at(hour = 7, minute = 59), lapseAt))
+    }
+
+    @Test
+    fun `a dose that was announced is left to the repeat rule`() {
+        val announced = dose(1, at(hour = 8), firstRemindedAt = at(hour = 8))
+
+        assertNull(ReminderRepeats.nextUnannouncedRetryAt(announced, at(hour = 8, minute = 1), lapseAt))
+    }
+
+    @Test
+    fun `trying again stops an hour after the dose was due`() {
+        val due = dose(1, at(hour = 8))
+
+        assertEquals(at(hour = 9, minute = 5), ReminderRepeats.nextUnannouncedRetryAt(due, at(hour = 9), lapseAt))
+        assertNull(ReminderRepeats.nextUnannouncedRetryAt(due, at(hour = 9, minute = 1), lapseAt))
+    }
+
+    @Test
+    fun `trying again never lands at or after the lapse`() {
+        val due = dose(1, at(hour = 8))
+        val soonLapse = at(hour = 8, minute = 5)
+
+        assertNull(ReminderRepeats.nextUnannouncedRetryAt(due, at(hour = 8), soonLapse))
+        assertEquals(at(hour = 8, minute = 5), ReminderRepeats.nextUnannouncedRetryAt(due, at(hour = 8), at(hour = 8, minute = 6)))
+    }
 }

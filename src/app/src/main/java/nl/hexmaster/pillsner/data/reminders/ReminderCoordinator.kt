@@ -83,12 +83,12 @@ class ReminderCoordinator(
     private val lock = Mutex()
 
     /**
-     * How many wakes in a row have run out of time (design D2).
+     * How many wakes in a row have not completed — run out of time or thrown (design D2).
      *
      * In memory on purpose: a retry sequence lives inside one episode of trouble, and a fresh
      * process is a fresh attempt. Erring towards delivering the reminder is the right direction.
      */
-    private var consecutiveTimeouts = 0
+    private var consecutiveFailures = 0
 
     /** Starts reacting to medicines being added, changed or deactivated. */
     fun start() {
@@ -104,15 +104,17 @@ class ReminderCoordinator(
     }
 
     /**
-     * The whole wake cycle. Bounded by [WAKE_TIMEOUT_MILLIS] so a broadcast receiver never runs
-     * past the window the platform gives it.
+     * The whole wake cycle, bounded by [timeoutMillis] so it never runs past the window the platform
+     * gives whoever called it: about ten seconds in a broadcast receiver, minutes in the foreground
+     * service. The budget is the caller's to state, because the same wake serves both and a wake
+     * cancelled at nine seconds inside a service that had three minutes is a reminder thrown away.
      *
      * **Before the first unlock after a reboot this does almost nothing** (design D4). The
      * medicines, the doses and the settings all live in credential-encrypted storage and cannot be
      * read yet, so the locked branch re-arms the alarm and returns. Anything a later change adds to
      * the wake belongs inside [wake], below that guard, never above it.
      */
-    suspend fun onWake(reason: WakeReason) {
+    suspend fun onWake(reason: WakeReason, timeoutMillis: Long = wakeTimeoutMillis) {
         lock.withLock {
             if (!unlockState.isUnlocked()) {
                 Log.d(TAG, "Wake for $reason deferred: the user has not unlocked yet")
@@ -123,17 +125,17 @@ class ReminderCoordinator(
             // The retry is an ordinary alarm, so only the coordinator knows it armed one. Saying so
             // in the log is what makes a run of timeouts recognisable rather than a run of alarms.
             val wakeReason =
-                if (reason == WakeReason.ALARM && consecutiveTimeouts > 0) WakeReason.RETRY else reason
+                if (reason == WakeReason.ALARM && consecutiveFailures > 0) WakeReason.RETRY else reason
 
-            when (runWakeBody(wakeReason)) {
+            when (runWakeBody(wakeReason, timeoutMillis)) {
                 WakeOutcome.COMPLETED -> {
-                    consecutiveTimeouts = 0
+                    consecutiveFailures = 0
                     reconcileAlarms()
                 }
-                // A step throwing is not a reason to run the whole wake again: the steps that did
-                // run have done their work, and the alarm set is computed from what is stored.
-                WakeOutcome.FAILED -> reconcileAlarms()
-                WakeOutcome.TIMED_OUT -> armRetryOrGiveUp()
+                // A wake that threw has, like one that ran out of time, not announced what was due,
+                // and every step of it is idempotent, so running it again shortly is safe and is
+                // the only thing that can still deliver the reminder on time.
+                WakeOutcome.FAILED, WakeOutcome.TIMED_OUT -> armRetryOrGiveUp()
             }
 
             // The wake has just settled what is still to be taken, so this is the moment the
@@ -146,8 +148,8 @@ class ReminderCoordinator(
     /** What became of one run of the wake body. Each outcome leaves a different alarm behind. */
     private enum class WakeOutcome { COMPLETED, TIMED_OUT, FAILED }
 
-    private suspend fun runWakeBody(reason: WakeReason): WakeOutcome = try {
-        withTimeout(wakeTimeoutMillis) { wake(reason) }
+    private suspend fun runWakeBody(reason: WakeReason, timeoutMillis: Long): WakeOutcome = try {
+        withTimeout(timeoutMillis) { wake(reason) }
         WakeOutcome.COMPLETED
     } catch (timeout: TimeoutCancellationException) {
         Log.d(TAG, "Wake for $reason ran out of time")
@@ -217,21 +219,23 @@ class ReminderCoordinator(
     }
 
     /**
-     * A wake that ran out of time knows nothing about what is due, so handing that world to
-     * [ComputeWakeSchedule] would arm the dose's *lapse* moment and record it missed having never
-     * been announced (design D2). Try again shortly instead — and once trying again has stopped
-     * helping, fall back to the ordinary schedule, so an alarm is still set on this path too.
+     * A wake that did not complete knows nothing reliable about what is due, so handing that world
+     * to [ComputeWakeSchedule] alone would arm the dose's *lapse* moment and record it missed having
+     * never been announced (design D2). Try again shortly instead — and once trying again has
+     * stopped helping, fall back to the ordinary schedule, so an alarm is still set on this path
+     * too. That schedule now carries its own bounded retry for a due dose that was never announced,
+     * so even the give-up path does not leave such a dose to its lapse.
      *
      * The foreground service the wake now runs in makes a timeout rare. It does not make it
      * impossible — a service can be stopped too — so this stays as the backstop behind it.
      */
     private suspend fun armRetryOrGiveUp() {
-        if (consecutiveTimeouts >= MAX_RETRIES) {
-            consecutiveTimeouts = 0
+        if (consecutiveFailures >= MAX_RETRIES) {
+            consecutiveFailures = 0
             reconcileAlarms()
             return
         }
-        consecutiveTimeouts++
+        consecutiveFailures++
         scheduler.reconcile(setOf(WakeMoment(clock.instant().plus(RETRY_DELAY), WakeKind.REMINDER)))
     }
 
@@ -250,8 +254,20 @@ class ReminderCoordinator(
     companion object {
         private const val TAG = "Reminders"
 
-        /** Under the ten seconds a broadcast receiver is allowed, with a second to spare. */
+        /**
+         * The budget when the wake runs inside a broadcast receiver: under the ten seconds the
+         * platform allows one, with a second to spare. This is the default, because it is the one
+         * a caller that has not thought about its budget had better get.
+         */
         const val WAKE_TIMEOUT_MILLIS = 9_000L
+
+        /**
+         * The budget when the wake runs inside [ReminderWakeService]. A short foreground service is
+         * allowed about three minutes; a minute is enough for the slowest cold start a phone under
+         * memory pressure produces, and cancelling a wake that would have finished at eleven seconds
+         * was the one way the service itself could lose a reminder.
+         */
+        const val SERVICE_WAKE_TIMEOUT_MILLIS = 60_000L
 
         /**
          * Long enough for the cold start that caused the timeout to have finished, short enough
@@ -259,7 +275,7 @@ class ReminderCoordinator(
          */
         val RETRY_DELAY: Duration = Duration.ofMinutes(2)
 
-        /** A fourth consecutive timeout means something a fifth attempt will not fix. */
+        /** A fourth consecutive failure means something a fifth attempt will not fix. */
         const val MAX_RETRIES = 3
     }
 }

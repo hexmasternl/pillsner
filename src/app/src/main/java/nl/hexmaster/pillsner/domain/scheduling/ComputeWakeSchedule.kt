@@ -19,9 +19,10 @@ import nl.hexmaster.pillsner.domain.repository.MedicationRepository
  * reminder instead of all of them.
  *
  * The moments are: every dose still to be announced, every snooze that runs out, every reminder due
- * to ask again, and one housekeeping moment — the earliest of the next dose lapse and the daily
- * refresh just after midnight that rolls the planning window forward. The window is two days and a
- * medicine is due a handful of times a day, so the set stays in single digits.
+ * to ask again, every due dose that was never announced and is to be tried again, and one
+ * housekeeping moment — the earliest of the next dose lapse and the daily refresh just after
+ * midnight that rolls the planning window forward. The window is two days and a medicine is due a
+ * handful of times a day, so the set stays in single digits.
  */
 class ComputeWakeSchedule(
     private val doseRepository: DoseRepository,
@@ -46,6 +47,13 @@ class ComputeWakeSchedule(
                 moments += WakeMoment(it, WakeKind.REMINDER)
             }
             ReminderRepeats.nextRepeatAt(dose, lapseAt)?.takeIf { it.isAfter(now) }?.let {
+                moments += WakeMoment(it, WakeKind.REMINDER)
+            }
+
+            // Due, never announced, and with no alarm of its own left: the alarm that made it due
+            // has fired. Try again shortly, a bounded number of times, or a wake that failed between
+            // the alarm and the posting leaves this dose to its lapse.
+            ReminderRepeats.nextUnannouncedRetryAt(dose, now, lapseAt)?.let {
                 moments += WakeMoment(it, WakeKind.REMINDER)
             }
 

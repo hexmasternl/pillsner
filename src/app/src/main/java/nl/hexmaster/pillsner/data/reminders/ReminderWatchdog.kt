@@ -47,7 +47,13 @@ class ReminderWatchdog(
         // A wake ends by reconciling the alarm set, and reconciling re-arms everything it wants.
         // Since AlarmManager will not say what it currently holds, re-arming is the only thing that
         // can repair an alarm the platform dropped — so one ordinary wake is the whole repair.
-        runCatching { container.reminderCoordinator.onWake(WakeReason.WATCHDOG) }
+        runCatching {
+            // A worker is allowed ten minutes; the service budget is the right order of magnitude.
+            container.reminderCoordinator.onWake(
+                WakeReason.WATCHDOG,
+                ReminderCoordinator.SERVICE_WAKE_TIMEOUT_MILLIS,
+            )
+        }
             .onFailure { return Result.retry() }
 
         return Result.success()

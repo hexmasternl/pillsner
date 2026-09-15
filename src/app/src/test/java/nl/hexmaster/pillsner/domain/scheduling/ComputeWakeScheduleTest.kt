@@ -144,6 +144,36 @@ class ComputeWakeScheduleTest {
         )
     }
 
+    @Test
+    fun `a due dose that was never announced gets a retry alarm rather than only its lapse`() = runBlocking {
+        medications.replaceAll(listOf(scheduled))
+        clock.setTo(at(hour = 8, minute = 2))
+        val doses = InMemoryDoseRepository(listOf(dose(1, at(hour = 8))))
+
+        val schedule = computeWith(doses)()
+
+        // The 08:00 alarm has fired and nothing was posted. Without this the next moment that
+        // touches the dose is its lapse, where it is marked missed having never been announced.
+        assertEquals(
+            listOf(at(hour = 8, minute = 7)),
+            schedule.filter { it.kind == WakeKind.REMINDER }.map { it.at },
+        )
+    }
+
+    @Test
+    fun `a due dose that was announced is not retried, the repeat rule has it`() = runBlocking {
+        medications.replaceAll(listOf(scheduled))
+        clock.setTo(at(hour = 8, minute = 2))
+        val doses = InMemoryDoseRepository(listOf(dose(1, at(hour = 8), firstRemindedAt = at(hour = 8))))
+
+        val schedule = computeWith(doses)()
+
+        assertEquals(
+            listOf(at(hour = 8, minute = 15)),
+            schedule.filter { it.kind == WakeKind.REMINDER }.map { it.at },
+        )
+    }
+
     private fun computeWith(doses: InMemoryDoseRepository) =
         ComputeWakeSchedule(doses, medications, MarkMissedDoses(doses, clock), clock)
 }

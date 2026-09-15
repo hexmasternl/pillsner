@@ -68,7 +68,12 @@ class ReminderWakeService : Service() {
     private suspend fun run(work: Command) {
         val container = (applicationContext as PillsnerApplication).container
         when (work) {
-            is Command.Wake -> container.reminderCoordinator.onWake(work.reason)
+            // The service has minutes where a receiver has seconds; say so, or the wake cancels
+            // itself long before the platform would have (design D4).
+            is Command.Wake -> container.reminderCoordinator.onWake(
+                work.reason,
+                ReminderCoordinator.SERVICE_WAKE_TIMEOUT_MILLIS,
+            )
 
             is Command.Answer -> {
                 val doseId = work.doseId

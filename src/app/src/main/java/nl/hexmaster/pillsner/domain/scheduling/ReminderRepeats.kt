@@ -41,4 +41,29 @@ object ReminderRepeats {
         val at = lastPosted.plus(INTERVAL)
         return at.takeIf { it.isBefore(lapseAt) }
     }
+
+    /** How soon a dose that is due but was never announced is tried again. */
+    val UNANNOUNCED_RETRY: Duration = Duration.ofMinutes(5)
+
+    /**
+     * When a dose that is due but has never been announced should be tried again, or null when it
+     * should not be.
+     *
+     * Such a dose is the one thing the alarm set must not leave alone. Its own alarm has already
+     * fired — that is how it came to be due — and nothing else in the schedule points at it before
+     * its lapse, so a wake that died or threw between the alarm and the posting would otherwise cost
+     * the reminder outright. The 15-minute watchdog is a net, not a promise; this is the promise.
+     *
+     * Bounded the way the repeats are: within [MAX] quarter-hours of the due moment and never at or
+     * after [lapseAt]. Denied notifications make every posting fail, and without the bound that
+     * would be a wake every five minutes for as long as the dose stayed pending.
+     */
+    fun nextUnannouncedRetryAt(dose: Dose, now: Instant, lapseAt: Instant): Instant? {
+        if (!dose.isPending || dose.firstRemindedAt != null) return null
+        if (dose.scheduledAt.isAfter(now)) return null
+        val cutoff = dose.scheduledAt.plus(INTERVAL.multipliedBy(MAX.toLong()))
+        if (now.isAfter(cutoff)) return null
+        val at = now.plus(UNANNOUNCED_RETRY)
+        return at.takeIf { it.isBefore(lapseAt) }
+    }
 }

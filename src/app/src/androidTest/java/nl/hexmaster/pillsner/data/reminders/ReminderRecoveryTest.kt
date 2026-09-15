@@ -198,15 +198,17 @@ class ReminderRecoveryTest {
     }
 
     @Test
-    fun aStepThatThrows_isNotATimeoutAndArmsNoRetry() = runBlocking {
-        val doses = InMemoryDoseRepository()
+    fun aStepThatThrows_isRetriedLikeATimeout() = runBlocking {
+        val doses = InMemoryDoseRepository(listOf(dose(1, at(today, 9, 0))))
         val scheduler = RecordingScheduler()
 
         coordinator(doses, notifier = ThrowingNotifier(), scheduler = scheduler)
             .onWake(WakeReason.ALARM)
 
-        assertNotEquals("An exception is not a timeout", setOf(now.plus(RETRY)), scheduler.moments)
-        assertTrue("The alarm set is computed normally", scheduler.moments.isNotEmpty())
+        // A wake that threw has not announced what was due any more than one that ran out of
+        // time has, and every step of it is idempotent, so it is tried again the same way.
+        assertEquals("A wake that threw tries again shortly", setOf(now.plus(RETRY)), scheduler.moments)
+        assertNull("Nothing was announced, so nothing is reminded", doses.all().first().firstRemindedAt)
     }
 
     // --- The wake cycle does not run while the user is locked (design D4) -------------------

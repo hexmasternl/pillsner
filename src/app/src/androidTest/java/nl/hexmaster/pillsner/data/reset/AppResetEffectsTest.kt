@@ -97,6 +97,13 @@ class AppResetEffectsTest {
     fun tearDown() = runBlocking {
         notifier.cancelAll()
         armedAlarmStore.clear()
+        // The settings this suite writes are the app's real ones, shared by every other test in
+        // the process. Leaving the lock on would put the unlock screen in front of the UI tests
+        // that run after it, so they are put back the way they were found.
+        DataStoreAppLockRepository(context).clearCredential()
+        DataStoreAppLockRepository(context).setBiometricEnabled(false)
+        DataStoreLanguageRepository(context).setLanguage(AppLanguage.SYSTEM)
+        DataStoreThemeRepository(context).setTheme(AppTheme.SYSTEM)
         database.close()
     }
 

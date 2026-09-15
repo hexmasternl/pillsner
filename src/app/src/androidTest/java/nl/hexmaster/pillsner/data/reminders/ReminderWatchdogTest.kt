@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -57,14 +58,18 @@ class ReminderWatchdogTest {
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
     private val store = ArmedAlarmStore(context)
 
-    private val hourly = Medication(
+    /**
+     * One dose a day, not an hourly one: a wake refreshes the whole two-day planning window, so an
+     * hourly medicine would fill it with dozens of past doses and bury what each test is about.
+     */
+    private fun dailyAt(hour: Int) = Medication(
         id = MedicationId(1),
         name = "Ibuprofen",
         defaultDose = mg40,
         usedSince = today,
         useUntil = null,
         prescribedBy = Prescriber.SELF,
-        schedules = listOf(Schedule.EveryNHours(mg40, 1, LocalTime.of(0, 0))),
+        schedules = listOf(Schedule.EveryNDays(mg40, 1, listOf(LocalTime.of(hour, 0)))),
         isActive = true,
     )
 
@@ -76,7 +81,7 @@ class ReminderWatchdogTest {
 
     @Test
     fun withTheAlarmsIntact_itArmsExactlyTheSameSetAgain() = runBlocking {
-        val doses = InMemoryDoseRepository(listOf(dose(1, at(10, 0))))
+        val doses = InMemoryDoseRepository(listOf(dose(1, at(9, 0))))
         val scheduler = WatchingScheduler()
         val coordinator = coordinator(doses, scheduler)
 
@@ -107,14 +112,19 @@ class ReminderWatchdogTest {
 
     @Test
     fun withNoAlarmsAtAll_theyAreArmedFromScratch() = runBlocking {
-        val doses = InMemoryDoseRepository(listOf(dose(1, at(20, 0))))
+        // An evening medicine and a morning clock, so nothing is due and the armed set is exactly
+        // the two doses the planning window holds — no repeats, nothing already posted.
         val scheduler = WatchingScheduler()
 
         // Nothing recorded and nothing armed: a phone whose alarms the platform threw away.
-        coordinator(doses, scheduler).onWake(WakeReason.WATCHDOG)
+        coordinator(InMemoryDoseRepository(), scheduler, medications = InMemoryMedicationRepository(listOf(dailyAt(20))))
+            .onWake(WakeReason.WATCHDOG)
 
         assertEquals(
-            setOf(WakeMoment(at(20, 0), WakeKind.REMINDER)),
+            setOf(
+                WakeMoment(at(20, 0), WakeKind.REMINDER),
+                WakeMoment(at(20, 0).plus(Duration.ofDays(1)), WakeKind.REMINDER),
+            ),
             scheduler.armedMoments.filterTo(mutableSetOf()) { it.kind == WakeKind.REMINDER },
         )
     }
@@ -147,7 +157,7 @@ class ReminderWatchdogTest {
         doses: InMemoryDoseRepository,
         scheduler: ReminderAlarmScheduler,
         notifier: ReminderNotifier = RecordingNotifier(),
-        medications: MedicationRepository = InMemoryMedicationRepository(listOf(hourly)),
+        medications: MedicationRepository = InMemoryMedicationRepository(listOf(dailyAt(9))),
     ): ReminderCoordinator {
         val markMissed = MarkMissedDoses(doses, clock)
         return ReminderCoordinator(

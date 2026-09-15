@@ -93,6 +93,9 @@ class MedicineHistoryNavigationTest {
         )
         val appLockViewModel =
             container.viewModelFactory.create(AppLockViewModel::class.java, CreationExtras.Empty)
+        // The app-scoped container resolves the lock state at process start; one built for a test
+        // has to be asked, or it stays Loading and nothing below the lock gate is ever composed.
+        container.resolveLockState()
         val biometricAuthenticator = BiometricAuthenticator(composeRule.activity)
         composeRule.setContent {
             val navController = TestNavHostController(LocalContext.current).apply {

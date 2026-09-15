@@ -58,6 +58,9 @@ class PillsnerAppNavigationTest {
         val container = AppContainer(composeRule.activity)
         appLockViewModel =
             container.viewModelFactory.create(AppLockViewModel::class.java, CreationExtras.Empty)
+        // The app-scoped container resolves the lock state at process start; one built for a test
+        // has to be asked, or it stays Loading and nothing below the lock gate is ever composed.
+        container.resolveLockState()
         // The add button is gated on the legal documents (app-legal-information design D5); these
         // tests are about navigation, so they start from a user who has already accepted.
         LegalAcceptanceFixture.accept(container)

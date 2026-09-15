@@ -74,6 +74,7 @@ import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.AcceptLegalScreen
 import nl.hexmaster.pillsner.ui.settings.legal.LegalDocumentScreen
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
+import nl.hexmaster.pillsner.ui.settings.reset.ResetViewModel
 
 /**
  * The app's root composable. Gains the app lock's root gate here (app-login design D1): the
@@ -265,6 +266,8 @@ private fun PillsnerAppContent(
                 val languageState by languageViewModel.state.collectAsStateWithLifecycle()
                 val themeViewModel: ThemeSectionViewModel = viewModel(factory = viewModelFactory)
                 val themeState by themeViewModel.state.collectAsStateWithLifecycle()
+                val resetViewModel: ResetViewModel = viewModel(factory = viewModelFactory)
+                val resetState by resetViewModel.uiState.collectAsStateWithLifecycle()
                 SettingsScreen(
                     languageState = languageState,
                     onLanguageSelected = languageViewModel::onLanguageSelected,
@@ -292,6 +295,12 @@ private fun PillsnerAppContent(
                     onOpenLegalDocument = { navController.navigate(LegalDocumentRoute(it)) },
                     appInfo = appInfo,
                     onAboutTapped = { navController.navigate(About) },
+                    resetState = resetState,
+                    resetEffects = resetViewModel.effects,
+                    onResetTapped = resetViewModel::onResetTapped,
+                    onResetConfirmationToggled = resetViewModel::onConfirmationToggled,
+                    onResetConfirmed = resetViewModel::onConfirmed,
+                    onResetDismissed = resetViewModel::onDismiss,
                 )
             }
             composable<About> {

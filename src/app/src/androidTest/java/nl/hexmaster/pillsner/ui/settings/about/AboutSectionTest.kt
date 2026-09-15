@@ -24,6 +24,7 @@ import nl.hexmaster.pillsner.domain.model.AppLanguage
 import nl.hexmaster.pillsner.ui.settings.SettingsScreen
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionState
 import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceState
+import nl.hexmaster.pillsner.ui.settings.reset.ResetUiState
 import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionState
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import org.junit.Assert.assertEquals
@@ -72,6 +73,12 @@ class AboutSectionTest {
                     onOpenLegalDocument = {},
                     appInfo = PreviewAppInfo,
                     onAboutTapped = { aboutTapped++ },
+                    resetState = ResetUiState(),
+                    resetEffects = emptyFlow(),
+                    onResetTapped = {},
+                    onResetConfirmationToggled = {},
+                    onResetConfirmed = {},
+                    onResetDismissed = {},
                 )
             }
         }

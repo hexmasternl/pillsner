@@ -69,6 +69,11 @@ The following capabilities define the scope of the app. Items are being delivere
 - You can change your PIN in Settings without turning the lock off. Changing the PIN, turning biometric unlock off and turning the lock off each ask you to confirm it is you first — with your fingerprint or face where you have one, and with the PIN itself for turning the lock off. Each confirmation is good for that one change.
 - On the lock screen a reminder can show only "Time for your medicine", never the name or the amount, whenever your phone is set to hide sensitive notifications.
 
+**Starting over**
+- Settings ends with a danger zone holding one button: **Reset app**. It erases every medicine, every schedule and your complete intake history from the device, so a phone being handed on, or an app filled with a trial run, does not have to be uninstalled to be emptied.
+- It cannot be hit by accident: a scroll to the bottom of Settings, a tap, a checkbox reading "I understand all data will be erased permanently" that has to be ticked before the button works, and a second tap. Cancelling, tapping outside or pressing back erases nothing. There is no undo, and the app does not pretend there is.
+- Your language, your app lock and the documents you accepted survive the reset. The app stays configured; it is simply empty.
+
 ## Permissions
 
 Pillsner asks for as little as it can, and for nothing that sends data anywhere. It declares **no internet permission at all**.

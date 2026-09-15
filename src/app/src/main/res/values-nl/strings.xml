@@ -244,6 +244,17 @@
     <string name="schedule_error_days_required">Kies minstens één dag.</string>
     <string name="schedule_error_all_seven_days">Kies minder dan zeven dagen, of gebruik Om de zoveel dagen.</string>
 
+    <!-- Instellingen: gevarenzone -->
+    <string name="reset_header">Gevarenzone</string>
+    <string name="reset_explanation">Wis elk medicijn, elk schema en alles wat op dit apparaat is vastgelegd. Dit kun je niet ongedaan maken.</string>
+    <string name="reset_action">App resetten</string>
+    <string name="reset_dialog_title">App resetten?</string>
+    <string name="reset_dialog_erased">Hiermee wis je elk medicijn, elk schema en je volledige innamegeschiedenis van dit apparaat. Dit kun je niet ongedaan maken.</string>
+    <string name="reset_dialog_kept">Je taal, je appvergrendeling en de documenten die je hebt geaccepteerd blijven zoals ze zijn.</string>
+    <string name="reset_dialog_checkbox">Ik begrijp dat alle gegevens definitief worden gewist</string>
+    <string name="reset_dialog_confirm">Alles wissen</string>
+    <string name="reset_done_message">Alles is gewist</string>
+
     <!-- Dosisdetails -->
     <string name="dose_detail_title">Dosis</string>
     <string name="dose_detail_close">Sluiten</string>

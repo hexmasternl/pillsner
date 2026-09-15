@@ -51,6 +51,7 @@ import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
 import nl.hexmaster.pillsner.data.reminders.UserUnlockState
 import nl.hexmaster.pillsner.data.reminders.WakeReason
+import nl.hexmaster.pillsner.data.reset.RoomAppDataEraser
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreThemeRepository
@@ -69,6 +70,7 @@ import nl.hexmaster.pillsner.domain.repository.LegalRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.ThemeRepository
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
+import nl.hexmaster.pillsner.domain.reset.EraseAllData
 import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
@@ -84,6 +86,7 @@ import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
+import nl.hexmaster.pillsner.ui.settings.reset.ResetViewModel
 import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
 
 /**
@@ -246,6 +249,19 @@ class AppContainer(
     /** Records an answer, from the notification or from the dose detail screen. */
     suspend fun answerDose(id: DoseId, answer: DoseAnswer) = answerDoseUseCase(id, answer)
 
+    /**
+     * The one irreversible operation the app offers (app-settings-reset design D3).
+     *
+     * Declared after [reminderCoordinator] so the two ports close over initialised fields. Wiring
+     * them here rather than in the use case is what keeps erasing the data a domain operation with
+     * no Android type in it.
+     */
+    private val eraseAllData = EraseAllData(
+        eraser = RoomAppDataEraser(database),
+        teardown = reminderNotifier::cancelAll,
+        refresh = { reminderCoordinator.requestWake(WakeReason.MEDICATIONS_CHANGED) },
+    )
+
     // --- App lock (app-login design D9) ---------------------------------------------------
 
     private val appLockScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -303,6 +319,7 @@ class AppContainer(
         initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }
         initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }
+        initializer { ResetViewModel(eraseAllData) }
         initializer {
             MedicationFormViewModel(
                 repository = this@AppContainer.medicationRepository,

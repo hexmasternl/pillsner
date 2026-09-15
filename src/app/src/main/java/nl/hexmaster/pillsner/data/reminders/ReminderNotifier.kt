@@ -102,6 +102,18 @@ open class ReminderNotifier(
         false
     }
 
+    /**
+     * Takes down every reminder at once, for a reset that has just erased the doses behind them
+     * (app-settings-reset design D4).
+     *
+     * `cancelAll()` is correct only because a reminder is the only notification Pillsner posts, so
+     * "all of them" and "all the reminders" are the same set. A later change that adds a second
+     * kind of notification must narrow this to the reminder group rather than leave it as it is.
+     */
+    open fun cancelAll() {
+        notificationManager.cancelAll()
+    }
+
     /** Takes down the reminder for one dose, and the group summary when it was the last one. */
     open fun cancel(dose: Dose, remainingDue: Int = 0) {
         cancel(dose.id, remainingDue)

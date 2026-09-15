@@ -277,6 +277,17 @@
         <item quantity="other">%d medicines due</item>
     </plurals>
 
+    <!-- Settings: danger zone and the reset confirmation (app-settings-reset design D10) -->
+    <string name="reset_header">Danger zone</string>
+    <string name="reset_explanation">Erase every medicine, schedule and record kept on this device. There is no undo.</string>
+    <string name="reset_action">Reset app</string>
+    <string name="reset_dialog_title">Reset app?</string>
+    <string name="reset_dialog_erased">This erases every medicine, every schedule and your complete intake history from this device. It cannot be undone.</string>
+    <string name="reset_dialog_kept">Your language, your app lock and the documents you accepted stay as they are.</string>
+    <string name="reset_dialog_checkbox">I understand all data will be erased permanently</string>
+    <string name="reset_dialog_confirm">Erase everything</string>
+    <string name="reset_done_message">Everything has been erased</string>
+
     <!-- Dose detail (app-welcome-screen-reminder-details design D10) -->
     <string name="dose_detail_title">Dose</string>
     <string name="dose_detail_close">Close</string>

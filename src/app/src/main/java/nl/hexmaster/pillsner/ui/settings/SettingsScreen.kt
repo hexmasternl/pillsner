@@ -50,6 +50,10 @@ import nl.hexmaster.pillsner.ui.settings.language.LanguageSection
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionState
 import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceState
 import nl.hexmaster.pillsner.ui.settings.legal.LegalSection
+import nl.hexmaster.pillsner.ui.settings.reset.DangerZoneSection
+import nl.hexmaster.pillsner.ui.settings.reset.ResetAppDialog
+import nl.hexmaster.pillsner.ui.settings.reset.ResetEffect
+import nl.hexmaster.pillsner.ui.settings.reset.ResetUiState
 import nl.hexmaster.pillsner.ui.settings.theme.ThemeSection
 import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionState
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
@@ -89,12 +93,19 @@ fun SettingsScreen(
     onOpenLegalDocument: (LegalDocumentId) -> Unit,
     appInfo: AppInfo,
     onAboutTapped: () -> Unit,
+    resetState: ResetUiState,
+    resetEffects: Flow<ResetEffect>,
+    onResetTapped: () -> Unit,
+    onResetConfirmationToggled: (Boolean) -> Unit,
+    onResetConfirmed: () -> Unit,
+    onResetDismissed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val pinChanged = stringResource(R.string.applock_pin_changed_message)
     val biometricsOff = stringResource(R.string.applock_biometrics_off_message)
     val lockDisabled = stringResource(R.string.applock_lock_disabled_message)
+    val everythingErased = stringResource(R.string.reset_done_message)
 
     LaunchedEffect(securityEffects) {
         securityEffects.collect { effect ->
@@ -105,6 +116,26 @@ fun SettingsScreen(
                 SecurityEffect.LockDisabled -> snackbarHostState.showSnackbar(lockDisabled)
             }
         }
+    }
+
+    LaunchedEffect(resetEffects) {
+        resetEffects.collect { effect ->
+            when (effect) {
+                // The user stays here. Home and Medicines observe the database and fall into their
+                // own empty states without being told (design D9).
+                ResetEffect.Erased -> snackbarHostState.showSnackbar(everythingErased)
+            }
+        }
+    }
+
+    if (resetState.dialogVisible) {
+        ResetAppDialog(
+            accepted = resetState.confirmationAccepted,
+            confirmEnabled = resetState.canConfirm,
+            onAcceptedChange = onResetConfirmationToggled,
+            onConfirm = onResetConfirmed,
+            onDismiss = onResetDismissed,
+        )
     }
 
     Scaffold(
@@ -171,6 +202,12 @@ fun SettingsScreen(
                 item(key = "about") {
                     AboutSection(appInfo = appInfo, onAboutTapped = onAboutTapped)
                 }
+
+                // Last, so the one irreversible thing the app can do takes a deliberate scroll to
+                // reach (app-settings-reset design D6).
+                item(key = "danger_zone") {
+                    DangerZoneSection(onResetTapped = onResetTapped)
+                }
             }
         }
     }
@@ -209,6 +246,12 @@ private fun SettingsScreenPreview() {
                 onOpenLegalDocument = {},
                 appInfo = PreviewAppInfo,
                 onAboutTapped = {},
+                resetState = ResetUiState(),
+                resetEffects = emptyFlow(),
+                onResetTapped = {},
+                onResetConfirmationToggled = {},
+                onResetConfirmed = {},
+                onResetDismissed = {},
             )
         }
     }

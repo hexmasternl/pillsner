@@ -210,6 +210,18 @@ class ReminderWakeTest {
         SystemEventsReceiver().onReceive(context, Intent(Intent.ACTION_BOOT_COMPLETED))
     }
 
+    @Test
+    fun theLockedBootBroadcast_isAccepted() {
+        // The only boot broadcast that arrives before the user unlocks the phone; it puts back the
+        // recorded alarm and touches nothing else (reminder-delivery-after-reboot design D5).
+        SystemEventsReceiver().onReceive(context, Intent(Intent.ACTION_LOCKED_BOOT_COMPLETED))
+    }
+
+    @Test
+    fun theUnlockBroadcast_isAccepted() {
+        SystemEventsReceiver().onReceive(context, Intent(Intent.ACTION_USER_UNLOCKED))
+    }
+
     /** Whether the app currently has a notification with this id on screen. */
     private fun isShowing(id: Int): Boolean =
         context.getSystemService(NotificationManager::class.java)

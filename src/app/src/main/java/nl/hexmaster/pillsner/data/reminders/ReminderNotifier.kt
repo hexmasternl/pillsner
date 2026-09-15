@@ -28,7 +28,7 @@ import nl.hexmaster.pillsner.ui.theme.PillsnerNotificationColor
  * On the lock screen the system decides between the full notification and a public version that
  * says only that a medicine is due, without naming it.
  */
-class ReminderNotifier(
+open class ReminderNotifier(
     context: Context,
     private val quantityFormatter: QuantityFormatter = QuantityFormatter(AppLocale.wrap(context.applicationContext)),
     private val timeFormatter: UpcomingDoseTimeFormatter = UpcomingDoseTimeFormatter(),
@@ -44,9 +44,13 @@ class ReminderNotifier(
      *
      * Does nothing when the user has not allowed notifications: the Home screen's banner is what
      * tells them reminders cannot be delivered, and posting anyway would only throw.
+     *
+     * @return whether the dose's own notification was actually posted. The caller records a dose as
+     *   reminded only then, so a dose that could not be announced stays announceable and a user who
+     *   grants the permission ten minutes later still gets their reminder (design D1).
      */
-    fun show(dose: Dose, dueCount: Int) {
-        if (!appContext.hasNotificationPermission()) return
+    open fun show(dose: Dose, dueCount: Int): Boolean {
+        if (!appContext.hasNotificationPermission()) return false
         val text = reminderText(dose)
         val notification = NotificationCompat.Builder(appContext, ReminderChannels.REMINDERS)
             .setSmallIcon(R.drawable.ic_notification_pillsner)
@@ -73,24 +77,29 @@ class ReminderNotifier(
             )
             .build()
 
-        post(dose.notificationId(), notification)
+        val posted = post(dose.notificationId(), notification)
+        // The summary is decoration. Whether it went up says nothing about whether the user was
+        // told about this dose, so it never decides the answer.
         if (dueCount > 1) post(SUMMARY_ID, summary(dueCount))
+        return posted
     }
 
     /**
      * The permission can be taken away between the check above and this call, and a reminder that
      * cannot be shown must never take the app down with it; the Home banner reports the state.
+     *
+     * @return whether the system accepted the notification.
      */
-    private fun post(id: Int, notification: android.app.Notification) {
-        try {
-            notificationManager.notify(id, notification)
-        } catch (denied: SecurityException) {
-            Log.d(TAG, "Reminder  not shown: ")
-        }
+    private fun post(id: Int, notification: android.app.Notification): Boolean = try {
+        notificationManager.notify(id, notification)
+        true
+    } catch (denied: SecurityException) {
+        Log.d(TAG, "Reminder  not shown: ")
+        false
     }
 
     /** Takes down the reminder for one dose, and the group summary when it was the last one. */
-    fun cancel(dose: Dose, remainingDue: Int = 0) {
+    open fun cancel(dose: Dose, remainingDue: Int = 0) {
         cancel(dose.id, remainingDue)
     }
 
@@ -99,7 +108,7 @@ class ReminderNotifier(
      * changed its schedule cannot be loaded any more, and cancelling a notification that was never
      * shown does nothing, so the caller need not know which is which.
      */
-    fun cancel(id: DoseId, remainingDue: Int = 0) {
+    open fun cancel(id: DoseId, remainingDue: Int = 0) {
         notificationManager.cancel(id.notificationId())
         if (remainingDue <= 1) notificationManager.cancel(SUMMARY_ID)
     }

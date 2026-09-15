@@ -17,9 +17,31 @@ class PillsnerApplication : Application() {
     lateinit var container: AppContainer
         private set
 
+    private var started = false
+
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+
+        // Between a reboot and the first unlock nothing below can run: the language, the theme, the
+        // medicines and the doses all live in credential-encrypted storage, which is unreadable
+        // until the user authenticates (reminder-delivery-after-reboot design D4). A direct-boot
+        // receiver may be what started this process, and all it needs is the alarm scheduler.
+        // `ACTION_USER_UNLOCKED` calls back here the moment the rest becomes possible.
+        if (container.userUnlockState.isUnlocked()) startWhenUnlocked()
+    }
+
+    /**
+     * Everything that needs credential-encrypted storage, once it can be read.
+     *
+     * Called from [onCreate] on an ordinary start, and from `SystemEventsReceiver` at the first
+     * unlock after a reboot. Doing nothing the second time is the point: either route may come
+     * first, and neither knows about the other.
+     */
+    @Synchronized
+    fun startWhenUnlocked() {
+        if (started) return
+        started = true
 
         // Before anything reads a string or formats a date (app-settings-language design D3). One
         // small file, read once per process, so the block is measured in microseconds; everything
@@ -28,6 +50,7 @@ class PillsnerApplication : Application() {
         applyStoredLanguage()
         // Relocks the app as soon as it leaves the foreground (app-login design D2).
         ProcessLifecycleOwner.get().lifecycle.addObserver(container.lockOnBackgroundObserver)
+        container.resolveLockState()
 
         // Reminders (app-medicine-alarm design D5): the channel has to exist before anything is
         // posted on it, and one wake at start catches up on everything missed while the process
@@ -43,7 +66,7 @@ class PillsnerApplication : Application() {
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        applyStoredLanguage()
+        if (started) applyStoredLanguage()
     }
 
     private fun applyStoredLanguage() {

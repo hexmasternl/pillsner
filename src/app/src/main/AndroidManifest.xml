@@ -38,7 +38,8 @@
         <!-- The app's single alarm. Only AlarmManager sends this, so it is not exported. -->
         <receiver
             android:name=".data.reminders.ReminderAlarmReceiver"
-            android:exported="false" />
+            android:exported="false"
+            android:directBootAware="true" />
 
         <!-- The three answers, and the swipe that counts as "Not yet". -->
         <receiver
@@ -48,12 +49,20 @@
         <!--
             Exported because the system sends these broadcasts; each action is protected by the
             platform, so no other app can deliver them.
+
+            Direct-boot aware, so that LOCKED_BOOT_COMPLETED is delivered at all: on a phone with a
+            secure lock screen it is the only boot broadcast that arrives before the user unlocks,
+            and until then the app has no alarm set (reminder-delivery-after-reboot design D5).
+            RECEIVE_BOOT_COMPLETED, declared above, covers the locked variant too.
         -->
         <receiver
             android:name=".data.reminders.SystemEventsReceiver"
-            android:exported="true">
+            android:exported="true"
+            android:directBootAware="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />

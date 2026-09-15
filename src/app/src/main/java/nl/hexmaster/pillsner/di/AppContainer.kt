@@ -38,6 +38,8 @@ import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.data.RoomUpcomingDosesRepository
 import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
+import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
+import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
 import nl.hexmaster.pillsner.data.reminders.ReminderAlarmScheduler
 import nl.hexmaster.pillsner.data.reminders.ReminderCoordinator
 import nl.hexmaster.pillsner.data.wear.DataLayerSyncTarget
@@ -45,6 +47,7 @@ import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
 import nl.hexmaster.pillsner.data.wear.WearDataClientFactory
 import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
+import nl.hexmaster.pillsner.data.reminders.UserUnlockState
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreThemeRepository
@@ -149,13 +152,20 @@ class AppContainer(
      * the ten-second budget in this class's KDoc. Without it the first frames paint in whichever
      * scheme the default guessed — a white flash on an OLED phone at night, which is the thing the
      * setting exists to prevent.
+     *
+     * Lazy, because a broadcast receiver that starts this process before the first unlock after a
+     * reboot cannot read this file at all, and has no frame to paint either
+     * (reminder-delivery-after-reboot design D4). The first read happens where it is needed, in
+     * `MainActivity`, which only exists once the phone is unlocked.
      */
-    val theme: StateFlow<AppTheme> = themeRepository.observeTheme()
-        .stateIn(
-            scope = containerScope,
-            started = SharingStarted.Eagerly,
-            initialValue = runBlocking { themeRepository.observeTheme().first() },
-        )
+    val theme: StateFlow<AppTheme> by lazy {
+        themeRepository.observeTheme()
+            .stateIn(
+                scope = containerScope,
+                started = SharingStarted.Eagerly,
+                initialValue = runBlocking { themeRepository.observeTheme().first() },
+            )
+    }
 
     // --- Legal documents (app-legal-information design D3, D4) ------------------------------
 
@@ -163,7 +173,18 @@ class AppContainer(
     private val isLegalAccepted = IsLegalAccepted(legalRepository)
 
     val reminderPreferences = ReminderPreferences(applicationContext)
-    val reminderAlarmScheduler = ReminderAlarmScheduler(applicationContext)
+
+    /**
+     * Whether the phone has been unlocked since it booted (reminder-delivery-after-reboot D4).
+     *
+     * Read before anything that needs credential-encrypted storage, which on this path is almost
+     * everything the app owns.
+     */
+    val userUnlockState: UserUnlockState = AndroidUserUnlockState(applicationContext)
+
+    /** The alarm moment, mirrored where a locked boot can still read it (design D3). */
+    private val armedAlarmStore = ArmedAlarmStore(applicationContext)
+    val reminderAlarmScheduler = ReminderAlarmScheduler(applicationContext, armedAlarmStore)
     val reminderNotifier = ReminderNotifier(applicationContext)
 
     // The watch, if there is one to talk to (app-wearable-support design D3). Amounts are written
@@ -188,6 +209,7 @@ class AppContainer(
         scheduler = reminderAlarmScheduler,
         clock = clock,
         doseSyncPublisher = doseSyncPublisher,
+        unlockState = userUnlockState,
     )
 
     /** Records an answer given from a notification. */
@@ -218,8 +240,14 @@ class AppContainer(
     /** Registered on `ProcessLifecycleOwner` by `PillsnerApplication` (design D2). */
     val lockOnBackgroundObserver = LockOnBackgroundObserver(appLockRepository, appLockStateHolder, appLockScope)
 
-    init {
-        // Cold start (design D2): resolved once, before any content is composed.
+    /**
+     * Cold start (app-login design D2): resolved once, before any content is composed.
+     *
+     * Called by `PillsnerApplication` rather than from an `init` block, because the stored lock
+     * state is one more thing that cannot be read before the first unlock after a reboot
+     * (reminder-delivery-after-reboot design D4).
+     */
+    fun resolveLockState() {
         appLockScope.launch {
             appLockStateHolder.set(resolveInitialLockState())
         }

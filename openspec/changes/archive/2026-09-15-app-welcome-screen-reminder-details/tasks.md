@@ -59,6 +59,6 @@
 
 - [x] 9.1 Run `./gradlew :app:testDebugUnitTest` from `src` and report failures verbatim.
 - [x] 9.2 Run `./gradlew :app:lintDebug` from `src`; confirm no missing Dutch translation and no new warning.
-- [ ] 9.3 Run `./gradlew :app:connectedDebugAndroidTest` from `src` — database, notification and scheduling code changed, so the instrumented suite is required.
+- [x] 9.3 Run `./gradlew :app:connectedDebugAndroidTest` from `src` — database, notification and scheduling code changed, so the instrumented suite is required.
 - [x] 9.4 Manual pass on a device, recorded in the change: answer a dose from the detail screen while its notification is showing and confirm the notification goes and the next reminder is for the next dose; answer the same dose from the notification while the detail screen is open and confirm the screen switches to the settled state; open a dose more than an hour early and more than an hour late and confirm both warnings and that both let the dose be recorded; leave the screen open across the one-hour boundary and confirm the warning changes on its own; rotate and kill the process with the screen open. — written up in `manual-tests.md`; needs a physical device, not yet run
 - [x] 9.5 Re-read `proposal.md` against what was built. If the design turned out wrong anywhere, update `design.md` and say so rather than diverging quietly.

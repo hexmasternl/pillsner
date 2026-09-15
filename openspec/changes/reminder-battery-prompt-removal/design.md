@@ -64,7 +64,9 @@ minSdk 26, targetSdk 37; the domain layer stays free of Android framework types.
 `BatteryOptimisationEffect`'s request branch goes, and with it
 `HomeViewModel.shouldRequestBatteryExemption`, `ReminderPreferences.hasRequestedBatteryExemption`,
 `markBatteryExemptionRequested` and the `battery_exemption_requested` key. Reading the exemption
-state stays: it is a cheap, silent `PowerManager` call and the banner's destination still uses it.
+state stays available — it is a cheap, silent `PowerManager` call — but nothing in the app consults
+it any more: D3 settles that the banner's destination does not depend on it either. It is kept
+because the spec permits reading and a later change may want it, not because anything reads it now.
 
 With nothing in the app launching the dialog, `Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`
 has no caller, so `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` comes out of the manifest. The remaining
@@ -119,6 +121,16 @@ One action, as `ReminderBanner` has always had. Its destination is chosen at tap
 
 The exemption state decides nothing in that order, and that is deliberate: the user who is already
 exempt and still missing reminders is precisely the user the vendor screen is for.
+
+**The button is always there, even when there is nothing good to offer.** On a device that is
+already exempt, has missed a reminder, and whose manufacturer is not on the vendor list, the button
+opens the system battery-optimisation list — a screen that will tell that user nothing they do not
+already know. It still appears, for two reasons. The banner cannot diagnose the cause, so "nothing
+left to offer" is a conclusion the app is not entitled to draw; the list is also where a user
+confirms for themselves that the app is exempt, which is worth something when a reminder has just
+gone missing. And more decisively, activating the button is what acknowledges the miss and clears
+the record (D5). A banner with no button would have no way to be dismissed and would sit on Home
+for good. If a later change gives the banner a separate dismissal, this is worth revisiting.
 
 ### D4 — A `plannedAt` column, so "never reminded" can be told from "never had a chance"
 
@@ -195,6 +207,6 @@ twice.
 
 ## Open Questions
 
-- Should the banner's action, on a device that is *already* exempt and still missing reminders and
-  whose manufacturer is not on the vendor list, offer anything at all, or degrade to a message with
-  no button? `ReminderBanner` currently assumes an action. Left to the designer during apply.
+None. The one that stood at proposal time — what the banner's action should do on a device that is
+already exempt, has missed a reminder and has no vendor screen — is answered in D3 above: the button
+stays, because activating it is what acknowledges the miss.

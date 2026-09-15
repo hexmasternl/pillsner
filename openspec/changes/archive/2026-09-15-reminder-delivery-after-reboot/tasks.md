@@ -53,7 +53,7 @@
 
 - [x] 8.1 Run the unit test task from `src` and report any failure verbatim
 - [x] 8.2 Run the lint task from `src` and clear anything it raises
-- [ ] 8.3 Run the instrumented tests; alarm scheduling and the boot receivers are both touched by this change
+- [x] 8.3 Run the instrumented tests; alarm scheduling and the boot receivers are both touched by this change
 - [x] 8.4 Instrumented test: alarm armed, reboot, no unlock, confirm an alarm exists before first unlock. **Covered as far as an instrumented test can go**: `ReminderRecoveryTest` proves a recorded moment is put back (in the past → a few minutes out, still ahead → exactly where it was, nothing recorded → nothing armed) and `ReminderWakeTest` proves `LOCKED_BOOT_COMPLETED` reaches the receiver. A real reboot with no unlock is manual test 2.
 - [x] 8.5 Instrumented test: unlock after a reboot that spanned a due dose, confirm the full wake runs and the reminder is posted. `ReminderRecoveryTest` proves the locked wake posts nothing and marks nothing missed, and that an unlocked wake reminds as before; `ReminderWakeTest` proves `ACTION_USER_UNLOCKED` reaches the receiver. The real reboot is manual test 3.
 - [x] 8.6 Documented as manual test 1 in `manual-tests.md`; needs a real device, so it is written out rather than run here: revoke notification permission, let a dose fall due, grant the permission, confirm the reminder arrives on the next wake

@@ -150,9 +150,6 @@ medicine with at least one schedule exists and the permission has not been grant
 When the permission is denied, the Home screen SHALL show a banner stating that reminders cannot be
 shown, with a button that opens the app's notification settings.
 
-This banner is the most severe of the reminder banners and takes precedence over the others;
-`reminder-delivery-resilience` defines the full order.
-
 A dose that fell due while the permission was absent MUST remain un-reminded, so that granting the
 permission before the dose lapses still produces its reminder.
 

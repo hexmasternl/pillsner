@@ -77,6 +77,13 @@ data object Settings
 data object About
 
 /**
+ * The reminder delivery log. A secondary destination reached only from the Reminders row on
+ * Settings; like [About] it carries no arguments and is not in [topLevelDestinations].
+ */
+@Serializable
+data object ReminderDiagnostics
+
+/**
  * The PIN flow, reached from the Security section (app-login design D10). Not top-level.
  *
  * @property mode whether it sets the first PIN or replaces the current one (app-settings-security

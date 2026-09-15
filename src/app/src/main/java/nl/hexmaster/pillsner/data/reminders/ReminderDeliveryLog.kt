@@ -32,12 +32,13 @@ import kotlinx.coroutines.withContext
  * made in that window is simply dropped rather than failing the wake that made it.
  */
 open class ReminderDeliveryLog(
-    context: Context,
+    private val file: File,
     private val clock: Clock = Clock.systemUTC(),
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
-    private val file = File(context.applicationContext.filesDir, FILE_NAME)
+    constructor(context: Context, clock: Clock = Clock.systemUTC()) :
+        this(File(context.applicationContext.filesDir, FILE_NAME), clock)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val writer = dispatcher.limitedParallelism(1)

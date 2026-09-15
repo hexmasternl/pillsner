@@ -411,6 +411,28 @@
     <string name="about_author_label">Author</string>
     <string name="about_author" translatable="false">Eduard Keilholz</string>
 
+    <!-- Settings: reminders, and the delivery log behind them -->
+    <string name="reminder_diagnostics_header">Reminders</string>
+    <string name="reminder_diagnostics_row_title">Delivery log</string>
+    <string name="reminder_diagnostics_row_summary">What the app did for each reminder, for when one does not arrive.</string>
+    <string name="reminder_diagnostics_title">Delivery log</string>
+    <string name="reminder_diagnostics_copy">Copy</string>
+    <string name="reminder_diagnostics_copied">Copied</string>
+    <string name="reminder_diagnostics_empty">Nothing has been recorded yet. The log fills as reminders are scheduled and shown.</string>
+    <string name="reminder_diagnostics_event_wake">Woke up</string>
+    <string name="reminder_diagnostics_event_wake_deferred">Woke up before the phone was unlocked</string>
+    <string name="reminder_diagnostics_event_service_refused">The phone would not start the reminder service</string>
+    <string name="reminder_diagnostics_event_posted">Reminder shown</string>
+    <string name="reminder_diagnostics_event_post_refused">Reminder not shown: notifications are off</string>
+    <string name="reminder_diagnostics_event_lapsed">Dose lapsed and was recorded as missed</string>
+    <string name="reminder_diagnostics_event_lapsed_unannounced">Dose lapsed with no reminder ever shown</string>
+    <string name="reminder_diagnostics_event_timed_out">The check ran out of time</string>
+    <string name="reminder_diagnostics_event_failed">The check failed</string>
+    <string name="reminder_diagnostics_event_retry_armed">Trying again shortly</string>
+    <string name="reminder_diagnostics_event_gave_up">Stopped trying again</string>
+    <string name="reminder_diagnostics_event_alarms_armed">Alarms set</string>
+    <string name="reminder_diagnostics_event_alarms_left_as_is">Alarms left as they were</string>
+
     <!-- Medicine usage history -->
     <string name="usage_history_title">Usage history</string>
     <string name="usage_history_menu_item">Usage history</string>

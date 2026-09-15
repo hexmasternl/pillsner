@@ -56,6 +56,7 @@ import nl.hexmaster.pillsner.ui.medicines.MedicinesScreen
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.medicationFormGraph
 import nl.hexmaster.pillsner.ui.navigation.About
+import nl.hexmaster.pillsner.ui.navigation.ReminderDiagnostics
 import nl.hexmaster.pillsner.ui.navigation.DoseDetail
 import nl.hexmaster.pillsner.ui.navigation.AcceptLegal
 import nl.hexmaster.pillsner.ui.navigation.LegalDocumentRoute
@@ -68,6 +69,8 @@ import nl.hexmaster.pillsner.ui.navigation.TopLevelDestination
 import nl.hexmaster.pillsner.ui.navigation.topLevelDestinations
 import nl.hexmaster.pillsner.ui.settings.SettingsScreen
 import nl.hexmaster.pillsner.ui.settings.about.AboutScreen
+import nl.hexmaster.pillsner.ui.settings.diagnostics.ReminderDiagnosticsScreen
+import nl.hexmaster.pillsner.ui.settings.diagnostics.ReminderDiagnosticsViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.AcceptLegalScreen
@@ -290,6 +293,7 @@ private fun PillsnerAppContent(
                     onOpenLegalDocument = { navController.navigate(LegalDocumentRoute(it)) },
                     appInfo = appInfo,
                     onAboutTapped = { navController.navigate(About) },
+                    onReminderLogTapped = { navController.navigate(ReminderDiagnostics) },
                     resetState = resetState,
                     resetEffects = resetViewModel.effects,
                     onResetTapped = resetViewModel::onResetTapped,
@@ -300,6 +304,15 @@ private fun PillsnerAppContent(
             }
             composable<About> {
                 AboutScreen(appInfo = appInfo, onBack = { navController.popBackStack() })
+            }
+            composable<ReminderDiagnostics> {
+                val viewModel: ReminderDiagnosticsViewModel = viewModel(factory = viewModelFactory)
+                val entries by viewModel.entries.collectAsStateWithLifecycle()
+                ReminderDiagnosticsScreen(
+                    entries = entries,
+                    copyText = viewModel::asText,
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable<LegalDocumentRoute> { backStackEntry ->
                 val document = backStackEntry.toRoute<LegalDocumentRoute>().document

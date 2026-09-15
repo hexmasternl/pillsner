@@ -73,6 +73,7 @@ class AboutSectionTest {
                     onOpenLegalDocument = {},
                     appInfo = PreviewAppInfo,
                     onAboutTapped = { aboutTapped++ },
+                    onReminderLogTapped = {},
                     resetState = ResetUiState(),
                     resetEffects = emptyFlow(),
                     onResetTapped = {},

@@ -88,6 +88,7 @@ import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
 import nl.hexmaster.pillsner.ui.settings.reset.ResetViewModel
+import nl.hexmaster.pillsner.ui.settings.diagnostics.ReminderDiagnosticsViewModel
 import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
 
 /**
@@ -327,6 +328,7 @@ class AppContainer(
         initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }
         initializer { ResetViewModel(eraseAllData) }
+        initializer { ReminderDiagnosticsViewModel(reminderDeliveryLog) }
         initializer {
             MedicationFormViewModel(
                 repository = this@AppContainer.medicationRepository,

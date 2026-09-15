@@ -46,6 +46,7 @@ import nl.hexmaster.pillsner.domain.model.AppTheme
 import nl.hexmaster.pillsner.ui.navigation.NavigationTestTags
 import nl.hexmaster.pillsner.ui.settings.about.AboutSection
 import nl.hexmaster.pillsner.ui.settings.about.PreviewAppInfo
+import nl.hexmaster.pillsner.ui.settings.diagnostics.ReminderDiagnosticsSection
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSection
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionState
 import nl.hexmaster.pillsner.ui.settings.legal.LegalAcceptanceState
@@ -93,6 +94,7 @@ fun SettingsScreen(
     onOpenLegalDocument: (LegalDocumentId) -> Unit,
     appInfo: AppInfo,
     onAboutTapped: () -> Unit,
+    onReminderLogTapped: () -> Unit,
     resetState: ResetUiState,
     resetEffects: Flow<ResetEffect>,
     onResetTapped: () -> Unit,
@@ -199,6 +201,12 @@ fun SettingsScreen(
                     LegalSection(state = legalState, onOpenDocument = onOpenLegalDocument)
                 }
 
+                // Before About, so the row a person looks for after a missed dose comes before
+                // the row nobody looks for.
+                item(key = "reminders") {
+                    ReminderDiagnosticsSection(onLogTapped = onReminderLogTapped)
+                }
+
                 item(key = "about") {
                     AboutSection(appInfo = appInfo, onAboutTapped = onAboutTapped)
                 }
@@ -246,6 +254,7 @@ private fun SettingsScreenPreview() {
                 onOpenLegalDocument = {},
                 appInfo = PreviewAppInfo,
                 onAboutTapped = {},
+                onReminderLogTapped = {},
                 resetState = ResetUiState(),
                 resetEffects = emptyFlow(),
                 onResetTapped = {},

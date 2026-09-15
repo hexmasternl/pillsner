@@ -223,6 +223,7 @@ class ResetSettingsTest {
                     onOpenLegalDocument = {},
                     appInfo = PreviewAppInfo,
                     onAboutTapped = {},
+                    onReminderLogTapped = {},
                     resetState = state,
                     resetEffects = resetEffects,
                     onResetTapped = {

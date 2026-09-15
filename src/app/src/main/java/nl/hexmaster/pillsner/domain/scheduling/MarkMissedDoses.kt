@@ -4,6 +4,7 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import nl.hexmaster.pillsner.domain.model.Dose
+import nl.hexmaster.pillsner.domain.model.Intake
 import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 
@@ -25,15 +26,20 @@ class MarkMissedDoses(
     /**
      * Marks every pending dose whose moment has lapsed as missed.
      *
-     * @return the doses that were marked, so their notifications can be taken down.
+     * @return the doses that were marked, each carrying the outcome that was recorded for it, so a
+     *   caller can take its notification down and can see the moment it lapsed without asking
+     *   again (design D2).
      */
     suspend operator fun invoke(): List<Dose> {
         val now = clock.instant()
-        val lapsed = doseRepository.pending().filter { !lapseAt(it).isAfter(now) }
-        lapsed.forEach { dose ->
-            doseRepository.recordIntake(dose.id, IntakeOutcome.MISSED, lapseAt(dose))
+        val lapsed = doseRepository.pending().mapNotNull { dose ->
+            val at = lapseAt(dose)
+            if (at.isAfter(now)) null else dose to at
         }
-        return lapsed
+        lapsed.forEach { (dose, at) ->
+            doseRepository.recordIntake(dose.id, IntakeOutcome.MISSED, at)
+        }
+        return lapsed.map { (dose, at) -> dose.copy(intake = Intake(IntakeOutcome.MISSED, at)) }
     }
 
     /** The moment [dose] stops being worth asking about. */

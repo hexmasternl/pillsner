@@ -12,12 +12,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
+import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.domain.scheduling.silentlyMissedReminderAmong
 import nl.hexmaster.pillsner.domain.scheduling.WakeKind
 import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
 
@@ -72,6 +74,9 @@ class ReminderCoordinator(
     private val unlockState: UserUnlockState = UserUnlockState { true },
     // Overridden only by the tests of the retry, which would otherwise wait nine real seconds.
     private val wakeTimeoutMillis: Long = WAKE_TIMEOUT_MILLIS,
+    // Nothing to record on a build that has not wired the preferences yet, which is every test
+    // that does not care about the banner.
+    private val silentlyMissedReminders: SilentlyMissedReminders = SilentlyMissedReminders {},
 ) {
 
     // One wake at a time: an alarm and an answer from a notification can arrive in the same second.
@@ -153,7 +158,9 @@ class ReminderCoordinator(
     }
 
     private suspend fun wake(reason: WakeReason) {
-        markMissedDoses().forEach { notifier.cancel(it) }
+        val lapsed = markMissedDoses()
+        lapsed.forEach { notifier.cancel(it) }
+        recordSilentlyMissedReminders(lapsed)
 
         // Only a change the user made may withdraw a dose they have already been reminded about:
         // they have just said they no longer take it then. A clock or time-zone move must leave
@@ -182,6 +189,20 @@ class ReminderCoordinator(
                 doseRepository.setSnooze(dose.id, null)
             }
         }
+    }
+
+    /**
+     * Records the evidence the Home banner is raised by (design D2).
+     *
+     * The rule itself is [silentlyMissedReminderAmong], in the domain, where it can be read without
+     * a device. The one thing it cannot work out for itself is whether a notification could have
+     * been posted at all; [ReminderNotifier] is what already knows that, so it is what is asked.
+     */
+    private suspend fun recordSilentlyMissedReminders(lapsed: List<Dose>) {
+        if (lapsed.none { it.wasMissedInSilence }) return
+        val at = silentlyMissedReminderAmong(lapsed, notifier.notificationsAllowed()) ?: return
+        Log.d(TAG, "A dose lapsed with no reminder ever having been posted for it")
+        silentlyMissedReminders.record(at)
     }
 
     /**

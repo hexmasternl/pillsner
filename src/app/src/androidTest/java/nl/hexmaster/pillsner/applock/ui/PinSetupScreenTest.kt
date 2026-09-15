@@ -121,6 +121,21 @@ class PinSetupScreenTest {
     }
 
     @Test
+    fun aSixDigitPinIsAccepted() {
+        var confirmedPin: String? = null
+        composeRule.setContent {
+            PinSetupScreen(onBack = {}, onPinConfirmed = { confirmedPin = it })
+        }
+
+        enter("135790")
+        composeRule.onNodeWithText("Continue").performClick()
+        enter("135790")
+        composeRule.onNodeWithText("Continue").performClick()
+
+        assert(confirmedPin == "135790") { "Expected 135790 but was $confirmedPin" }
+    }
+
+    @Test
     fun tooFewDigitsIsRejected() {
         composeRule.setContent {
             PinSetupScreen(onBack = {}, onPinConfirmed = {})

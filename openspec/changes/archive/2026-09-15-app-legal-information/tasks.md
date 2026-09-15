@@ -84,8 +84,8 @@
 - [x] 11.1 Run the unit test task from `src/` and report any failure verbatim.
 - [x] 11.2 Run lint from `src/` and confirm no missing-translation or extra-translation errors.
 - [x] 11.3 Run the instrumented tests for the navigation and screen tests added here.
-- [ ] 11.4 Manually check the acceptance screen at maximum font scale, in dark theme, and with TalkBack, confirming the disclaimer scrolls fully and the accept button stays visible and reachable.
-- [ ] 11.5 Manually check that a device with no network can read both documents and give acceptance.
+- [x] 11.4 Manually check the acceptance screen at maximum font scale, in dark theme, and with TalkBack, confirming the disclaimer scrolls fully and the accept button stays visible and reachable.
+- [x] 11.5 Manually check that a device with no network can read both documents and give acceptance.
 - [x] 11.6 Confirm the manifest gained no permission and the build gained no dependency.
 - [x] 11.7 Update `README.md` to note that Pillsner shows a disclaimer and terms of service and requires acceptance before the first medicine is added.
 - [x] 11.8 Run `pillsner-ui-review` once more across everything added under `ui/settings/legal/` and fix anything outstanding before declaring the change done.

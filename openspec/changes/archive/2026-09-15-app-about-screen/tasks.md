@@ -46,6 +46,6 @@
 ## 8. Design and verification
 
 - [x] 8.1 Run the `pillsner-ui-review` skill over `ui/settings/about/` and `ui/settings/SettingsScreen.kt`, and fix every violation it reports.
-- [ ] 8.2 Run the unit test task and the lint task from `src/`; confirm no missing-translation error and report any failure verbatim.
-- [ ] 8.3 Assemble the release build to confirm `buildConfig = true` needs no ProGuard rule (design risk 2).
+- [x] 8.2 Run the unit test task and the lint task from `src/`; confirm no missing-translation error and report any failure verbatim.
+- [x] 8.3 Assemble the release build to confirm `buildConfig = true` needs no ProGuard rule (design risk 2).
 - [x] 8.4 Check the manifest diff: no permission added, no network, no new dependency in the version catalog.

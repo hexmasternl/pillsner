@@ -1,5 +1,7 @@
 GitHub issue: [#7](https://github.com/hexmasternl/pillsner/issues/7)
 
+Pull Request: [#20](https://github.com/hexmasternl/pillsner/pull/20)
+
 ## Why
 
 The Wear OS companion app re-derives its upcoming-doses list every minute via a ticker flow, but `WatchViewModel` accidentally runs that ticker twice concurrently, doubling `UpcomingWindowFilter` and list-mapping work, and two of its collaborators (`DoseCard.formatTime()`, `UpcomingWindowFilter`) allocate a new formatter/`Instant` on every one of those calls instead of reusing one. On a battery- and CPU-constrained watch this is wasted work every minute the screen is open, with no user-visible benefit. Fixing the doubled ticker also halves how often the two allocation issues fire, so all three are worth fixing in one pass.

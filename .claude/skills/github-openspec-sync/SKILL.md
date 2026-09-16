@@ -1,6 +1,6 @@
 ---
 name: github-openspec-sync
-description: Keep a GitHub issue and an OpenSpec change in sync - create and link an issue when a change is proposed, and update it with a detailed implementation summary (then close it) once the change is fully implemented. Invoke this proactively, without being asked, immediately after openspec-propose finishes creating a change's artifacts, immediately after openspec-apply-change reports every task complete, and immediately after openspec-archive-change archives a change. Also use it when the user explicitly asks to link, sync, or create a GitHub issue for a change.
+description: Keep a GitHub issue, a pull request, and an OpenSpec change in sync - create and link an issue when a change is proposed, then once the change is fully implemented push the branch, open a pull request that closes the issue on merge, and comment on the issue with a detailed implementation summary. Invoke this proactively, without being asked, immediately after openspec-propose finishes creating a change's artifacts, immediately after openspec-apply-change reports every task complete, and immediately after openspec-archive-change archives a change. Also use it when the user explicitly asks to link, sync, or create a GitHub issue or pull request for a change.
 license: MIT
 compatibility: Requires the gh CLI (authenticated) and the openspec CLI.
 metadata:
@@ -8,8 +8,10 @@ metadata:
   version: "1.0"
 ---
 
-Keep an OpenSpec change and a GitHub issue in sync, end to end: create the issue when the change is
-proposed, and update + close it with what was actually done once the change is implemented.
+Keep an OpenSpec change, a GitHub issue, and a pull request in sync, end to end: create the issue
+when the change is proposed, and once the change is implemented push the branch, open a pull
+request that links to (and closes on merge) the issue, and comment on the issue with what was
+actually done.
 
 This is a hand-maintained companion to the OpenSpec workflow skills, not part of them — it never
 edits `openspec/changes/**` content beyond the one linking line described below, and it never
@@ -32,23 +34,32 @@ in `tasks.md` just turned `[x]` → `apply-complete`; the change just moved into
 `openspec/changes/archive/` → `archive`. If the change name is omitted, infer it from conversation
 context (the change just proposed/applied/archived) — do not guess across unrelated changes.
 
-## How a change and an issue are linked
+## How a change, an issue, and a PR are linked
 
-The source of truth is a line near the top of the change's `proposal.md` (search for it there
-first, before creating anything):
+The source of truth is a pair of lines near the top of the change's `proposal.md` (search for them
+there first, before creating anything):
 
 ```
 **GitHub Issue:** #<number> (<url>)
+**Pull Request:** #<number> (<url>)
 ```
 
-If that line is missing, check whether an issue already exists before assuming there is none:
+The `Pull Request` line only appears once **apply-complete** has opened one; its absence means no
+PR has been created yet for this change, not that the change has no issue.
+
+If the issue line is missing, check whether an issue already exists before assuming there is none:
 
 ```bash
 gh issue list --search "<change-name> in:title" --state all --json number,title,url,state
 ```
 
 If a matching issue is found, treat it as linked and back-fill the `proposal.md` line (see
-**Mode: link** below) instead of creating a duplicate.
+**Mode: link** below) instead of creating a duplicate. Likewise, if the PR line is missing, check
+for an existing PR before opening a new one:
+
+```bash
+gh pr list --search "<change-name> in:title" --state all --json number,title,url,state,headRefName
+```
 
 ## Mode: propose
 
@@ -75,12 +86,16 @@ If a matching issue is found, treat it as linked and back-fill the `proposal.md`
 ## Mode: apply-complete
 
 Runs once, right when a change's tasks all just became complete — not after every individual task.
+This mode both comments on the issue and opens the pull request that will close it on merge.
 
 1. Find the linked issue (see lookup above). If none exists, tell the user and offer to create one
    now (**Mode: propose**) before continuing; if they decline, stop here.
 2. Check the issue's existing comments (`gh issue view <number> --json comments`) for one already
-   containing the marker `<!-- github-openspec-sync: apply-complete -->`. If found, this mode
-   already ran for this change — report that and stop (idempotent).
+   containing the marker `<!-- github-openspec-sync: apply-complete -->`, and check `proposal.md`
+   for an existing `**Pull Request:**` line. If both are found, this mode already ran for this
+   change — report the existing comment and PR and stop (idempotent). If only one is found (e.g. a
+   previous run posted the comment but the PR creation was declined), pick up from the missing step
+   rather than redoing the part that already happened.
 3. Gather what actually happened, from what is already on disk — do not re-derive or re-verify
    anything the apply step already recorded:
    - The commit list on the change's branch: `git log --oneline <base>..<branch>` (the branch is
@@ -90,27 +105,63 @@ Runs once, right when a change's tasks all just became complete — not after ev
      run).
    - Any "Correction found during implementation" notes or similar in `design.md`, since these are
      exactly the kind of detail a human watching the issue would want surfaced, not buried.
-4. Compose a comment: what was implemented, key decisions or corrections made along the way,
-   verification status (call out anything **not** verified as plainly as `tasks.md` does — do not
-   round a partial verification up to "done"), and the commit list. End it with the marker line
-   `<!-- github-openspec-sync: apply-complete -->` (on its own line, so it does not have to be shown
-   to the user as part of the readable comment — mention to them that it's there for idempotency).
-5. Post it: `gh issue comment <number> --body "<comment>"`. Do **not** close the issue in this mode —
-   archiving is the closing event.
-6. Report to the user, with the comment URL.
+4. Compose the summary text once: what was implemented, key decisions or corrections made along the
+   way, verification status (call out anything **not** verified as plainly as `tasks.md` does — do
+   not round a partial verification up to "done"), and the commit list. This same text is used for
+   both the PR body and the issue comment below.
+5. Push the branch and open the PR:
+   - Confirm which branch holds the change's commits (usually the current branch, named after the
+     change per `CLAUDE.md`'s git conventions) and that it is based on an up-to-date `main`.
+   - Show the user the branch name, PR title, and PR body — the PR body is the summary from step 4
+     plus a closing line `Closes #<issue-number>` and a link to the change folder
+     (`openspec/changes/<name>/`) — and ask for confirmation before doing anything that touches the
+     remote. This is a push and a publicly visible PR, not a local edit, so always confirm even when
+     the rest of this mode is being run without being asked.
+   - On confirmation: push the branch (`git push -u origin <branch>` if it has no upstream yet, or a
+     plain `git push` otherwise), then
+     `gh pr create --title "<title>" --body "<body>" --base main --head <branch>`.
+   - Add `**Pull Request:** #<number> (<url>)` as its own line directly under the
+     `**GitHub Issue:**` line in `proposal.md`. Leave this edit staged, same as the issue link edit.
+   - If the user declines the push/PR step, still complete step 6 (the issue comment) so the
+     implementation summary isn't lost, and tell them the PR is still pending.
+6. Compose the issue comment: the same summary from step 4, plus a line noting the PR
+   (`Opened #<pr-number>, which will close this issue on merge.`) when one was created. End it with
+   the marker line `<!-- github-openspec-sync: apply-complete -->` (on its own line, so it does not
+   have to be shown to the user as part of the readable comment — mention to them that it's there
+   for idempotency).
+7. Post it: `gh issue comment <number> --body "<comment>"`. Do **not** close the issue in this
+   mode — merging the PR is the normal closing event; **Mode: archive** closes it explicitly as a
+   fallback if the merge didn't.
+8. Report to the user, with the PR URL and the comment URL.
 
 ## Mode: archive
 
+Normally the linked PR has already merged by the time a change is archived, which closes the issue
+automatically via its `Closes #<number>` line — so this mode usually just confirms that and adds a
+short note. It still closes the issue explicitly as a fallback (PR merged into a non-default
+branch, closing keyword didn't take effect, or no PR was ever created for this change).
+
 1. Find the linked issue. If none exists, tell the user there is nothing to close and stop — do not
    create one retroactively without asking.
-2. If the issue is already closed, report that and stop (idempotent).
-3. Check whether **apply-complete** already ran (the marker comment from step above).
-   - If yes: compose a short closing comment (what was archived, and the archive path
-     `openspec/changes/archive/<dated-name>/`) — no need to repeat the full summary.
+2. Check the linked PR (`proposal.md`'s `**Pull Request:**` line, if present) and the issue's state:
+   - **Issue already closed**: report that (and, if the PR is linked, that it was closed by the PR
+     merge) and post a short comment noting the archive path
+     (`openspec/changes/archive/<dated-name>/`) — no need to repeat the full summary. Do not call
+     `gh issue close` again.
+   - **Issue open, and a PR is linked but not yet merged**: this is unusual — archiving normally
+     happens after merge. Tell the user the PR (`#<number>`) hasn't merged yet and confirm they
+     still want to close the issue now before doing so.
+   - **Issue open, and no PR was ever created (or none is linked)**: this is the fallback path this
+     mode exists for. Proceed to close it directly.
+3. When closing directly (either fallback case above), check whether **apply-complete** already ran
+   (the marker comment from that mode).
+   - If yes: compose a short closing comment (what was archived, and the archive path) — no need to
+     repeat the full summary.
    - If no: compose the full summary described in **Mode: apply-complete** step 3-4, since this is
      the first and only chance to record it.
-4. Close with the comment in one call: `gh issue close <number> --comment "<comment>"`.
-5. Report to the user, with the issue URL, and note it is now closed.
+   - Close with the comment in one call: `gh issue close <number> --comment "<comment>"`.
+4. Report to the user, with the issue URL, and note whether it was already closed by the merge or
+   closed explicitly just now.
 
 ## Mode: link
 
@@ -125,14 +176,23 @@ the title search in **Mode: propose** step 2.
 
 ## Mode: status
 
-Reports, without changing anything: whether the change has a linked issue, the issue's state
-(open/closed), and whether apply-complete has already posted its summary. Useful before deciding
-which mode to run, or when the user just wants to check.
+Reports, without changing anything: whether the change has a linked issue and the issue's state
+(open/closed), whether apply-complete has already posted its summary, whether a PR has been opened
+and, if so, its number, URL and merged/open state. Useful before deciding which mode to run, or
+when the user just wants to check.
 
 ## Guardrails
 
-- Never push commits, create branches, merge, or touch git remotes — this skill only talks to
-  GitHub Issues (create, comment, close) and edits one line in one file (`proposal.md`).
+- The only git/GitHub write actions this skill performs are: pushing the change's existing branch,
+  creating a pull request from it, commenting on/closing a GitHub issue, and editing the two linking
+  lines in `proposal.md`. It never creates or deletes branches, never merges a PR, never force-pushes,
+  and never touches any other git remote operation.
+- Always show the user the exact branch name, PR title, and PR body before pushing or running
+  `gh pr create`, and wait for confirmation — this holds every time this mode runs, whether invoked
+  proactively or on request, because a push and a public PR are visible, shared-state actions per
+  `CLAUDE.md`'s risk policy, not local edits.
+- Merging the pull request is always a human action. This skill never merges, and never asks the
+  user to merge as a way of forcing the issue closed sooner.
 - Never close or comment on an issue this skill did not itself locate via the `proposal.md` link or
   an explicit, user-confirmed issue number. A title search alone is a candidate, not a match — confirm
   before linking or acting on it.

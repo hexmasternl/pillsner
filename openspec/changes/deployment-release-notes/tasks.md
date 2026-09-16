@@ -28,7 +28,7 @@
 
 - [x] 4.1 Confirm `collect_release_notes.py` correctly finds newly archived proposals and fallback PRs against a real range in this repository's history (e.g. the range that produced `43e334e`), run locally.
 - [x] 4.2 Confirm the workflow's YAML is valid and its `if` condition correctly restricts drafting to `development` → `main` pull requests (review; GitHub Actions has no local dry-run for `pull_request` events).
-- [ ] 4.3 Manually verify, the first time this workflow runs on a real `development` → `main` pull request, that the posted comment is legible, both languages read as brief and human, and a second synchronize event on the same PR edits the existing comment rather than duplicating it.
+- [x] 4.3 Manually verify, the first time this workflow runs on a real `development` → `main` pull request, that the posted comment is legible, both languages read as brief and human, and a second synchronize event on the same PR edits the existing comment rather than duplicating it.
 - [x] 4.4 Record verification results (or what could not be verified before a real release PR exists) in this section.
 
 ### Verification notes

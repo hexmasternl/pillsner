@@ -63,7 +63,7 @@ jobs:
         id: draft_en
         uses: actions/ai-inference@v1
         with:
-          model: openai/gpt-4o-mini
+          model: gpt-4.1
           token: ${{ github.token }}
           max-tokens: 400
           system-prompt: >-
@@ -79,7 +79,7 @@ jobs:
         id: draft_nl
         uses: actions/ai-inference@v1
         with:
-          model: openai/gpt-4o-mini
+          model: gpt-4.1
           token: ${{ github.token }}
           max-tokens: 400
           system-prompt: >-

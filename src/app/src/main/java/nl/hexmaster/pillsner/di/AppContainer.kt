@@ -175,9 +175,14 @@ class AppContainer(
         val themeState = MutableStateFlow(AppTheme.SYSTEM)
         val firstTheme = CompletableDeferred<Unit>()
         containerScope.launch {
-            themeRepository.observeTheme().collect { value ->
-                themeState.value = value
-                if (!firstTheme.isCompleted) firstTheme.complete(Unit)
+            try {
+                themeRepository.observeTheme().collect { value ->
+                    themeState.value = value
+                    if (!firstTheme.isCompleted) firstTheme.complete(Unit)
+                }
+            } catch (error: Throwable) {
+                firstTheme.completeExceptionally(error)
+                throw error
             }
         }
         runBlocking { firstTheme.await() }

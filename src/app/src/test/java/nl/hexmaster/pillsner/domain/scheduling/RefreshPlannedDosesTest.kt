@@ -105,7 +105,7 @@ class RefreshPlannedDosesTest {
         medications.update(MedicationId(1)) {
             it.copy(schedules = listOf(Schedule.EveryNDays(mg40, 1, listOf(LocalTime.of(20, 0)))))
         }
-        val withdrawn = refresh(afterUserEdit = true)
+        val withdrawn = refresh(afterUserEdit = true).withdrawn
 
         // The reminded 08:00 dose goes with the rest of what the new schedule no longer calls for.
         assertEquals(true, morning.id in withdrawn)
@@ -123,7 +123,7 @@ class RefreshPlannedDosesTest {
         doses.recordIntake(morning.id, IntakeOutcome.TAKEN, at(hour = 8))
 
         medications.update(MedicationId(1)) { it.copy(isActive = false) }
-        val withdrawn = refresh(afterUserEdit = true)
+        val withdrawn = refresh(afterUserEdit = true).withdrawn
 
         // The other three doses go; the answered one is the user's record and stays.
         assertEquals(false, morning.id in withdrawn)
@@ -144,7 +144,7 @@ class RefreshPlannedDosesTest {
         val refresh = RefreshPlannedDoses(medications, doses, DoseGenerator(), clock)
         medications.replaceAll(listOf(twiceADay))
 
-        val withdrawn = refresh(afterUserEdit = true)
+        val withdrawn = refresh(afterUserEdit = true).withdrawn
 
         assertEquals(emptyList<DoseId>(), withdrawn)
         assertEquals(true, doses.all().any { it.id == yesterday.id })
@@ -229,7 +229,7 @@ class RefreshPlannedDosesTest {
     fun `a refresh that withdraws nothing reports nothing`() = runBlocking {
         medications.replaceAll(listOf(twiceADay))
 
-        assertEquals(emptyList<DoseId>(), refresh())
+        assertEquals(emptyList<DoseId>(), refresh().withdrawn)
     }
 
     @Test

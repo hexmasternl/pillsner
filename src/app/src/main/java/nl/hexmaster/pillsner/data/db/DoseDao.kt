@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import java.math.BigDecimal
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +45,52 @@ interface DoseDao {
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(doses: List<DoseEntity>)
+
+    /** One row for [withdrawPlanned]: one medicine, mapped to the moments it still plans. */
+    data class WithdrawalWindow(val medicationId: Long, val plannedMoments: List<Instant>)
+
+    /**
+     * [plannedNoLongerScheduled] and [plannedForUnscheduledMedications] for every entry of
+     * [planned], then [deleteByIds] for everything they found, all in one transaction instead of
+     * separate round trips per medicine and an implicitly separate delete
+     * (reminder-wake-cycle-db-efficiency design D3).
+     *
+     * A dose with an outcome is never selected by either query, so it is never a candidate here.
+     */
+    @Transaction
+    suspend fun withdrawPlanned(
+        from: Instant,
+        to: Instant,
+        planned: List<WithdrawalWindow>,
+        includeReminded: Boolean,
+    ): List<Long> {
+        val (scheduled, unscheduled) = planned.partition { it.plannedMoments.isNotEmpty() }
+        val ids = buildList {
+            scheduled.forEach { window ->
+                addAll(
+                    plannedNoLongerScheduled(
+                        medicationId = window.medicationId,
+                        from = from,
+                        to = to,
+                        keep = window.plannedMoments,
+                        includeReminded = includeReminded,
+                    ),
+                )
+            }
+            if (unscheduled.isNotEmpty()) {
+                addAll(
+                    plannedForUnscheduledMedications(
+                        medicationIds = unscheduled.map { it.medicationId },
+                        from = from,
+                        to = to,
+                        includeReminded = includeReminded,
+                    ),
+                )
+            }
+        }
+        if (ids.isNotEmpty()) deleteByIds(ids)
+        return ids
+    }
 
     /**
      * The pending doses of one medicine, inside a window, that its schedules no longer call for.
@@ -138,6 +185,32 @@ interface DoseDao {
         amountUnit: String,
     )
 
+    /** One row for [refreshSnapshots], the batched form of [refreshSnapshot]. */
+    data class SnapshotUpdate(
+        val medicationId: Long,
+        val scheduledAt: Instant,
+        val name: String,
+        val amountValue: BigDecimal,
+        val amountUnit: String,
+    )
+
+    /**
+     * [refreshSnapshot] for every row of [updates], in one transaction instead of one commit per
+     * dose (reminder-wake-cycle-db-efficiency design D3).
+     */
+    @Transaction
+    suspend fun refreshSnapshots(updates: List<SnapshotUpdate>) {
+        updates.forEach {
+            refreshSnapshot(
+                medicationId = it.medicationId,
+                scheduledAt = it.scheduledAt,
+                name = it.name,
+                amountValue = it.amountValue,
+                amountUnit = it.amountUnit,
+            )
+        }
+    }
+
     @Query("UPDATE doses SET outcome = :outcome, recorded_at = :at, snoozed_until = NULL WHERE id = :id")
     suspend fun setIntake(id: Long, outcome: String, at: Instant)
 
@@ -159,6 +232,28 @@ interface DoseDao {
         """,
     )
     suspend fun recordReminded(id: Long, at: Instant, repeats: Int)
+
+    /** One row for [applyReminderOutcomes]. */
+    data class ReminderOutcomeRow(
+        val id: Long,
+        val at: Instant,
+        val repeats: Int,
+        val clearsSnooze: Boolean,
+    )
+
+    /**
+     * [recordReminded], then, only where the row says so, [setSnooze] to null, for every row of
+     * [updates], in one transaction instead of up to two suspend calls per dose
+     * (reminder-wake-cycle-db-efficiency design D3). The order matches calling the two separately:
+     * a posting is recorded first, then a clear resets the repeat count on top of it.
+     */
+    @Transaction
+    suspend fun applyReminderOutcomes(updates: List<ReminderOutcomeRow>) {
+        updates.forEach { row ->
+            recordReminded(row.id, row.at, row.repeats)
+            if (row.clearsSnooze) setSnooze(row.id, null)
+        }
+    }
 
     @Query(
         """

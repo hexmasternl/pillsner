@@ -18,6 +18,7 @@ import nl.hexmaster.pillsner.domain.model.NewMedication
 import nl.hexmaster.pillsner.domain.model.PlannedDose
 import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
+import nl.hexmaster.pillsner.domain.repository.ReminderOutcomeUpdate
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -387,6 +388,71 @@ class DoseDaoTest {
         val stored = doses.pending().associateBy { it.scheduledAt }
         assertEquals(1, stored.getValue(morning).reminderCount)
         assertEquals(0, stored.getValue(evening).reminderCount)
+    }
+
+    @Test
+    fun applyingReminderOutcomes_recordsEachRowInOneBatchAndClearsSnoozeWhereAsked() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning), planned(id, evening)), plannedAt = plannedBeforeDue)
+        val all = doses.pending()
+        doses.setSnooze(all[1].id, evening.plusSeconds(900))
+
+        doses.applyReminderOutcomes(
+            listOf(
+                ReminderOutcomeUpdate(all[0].id, morning, countsAsRepeat = false, clearsSnooze = false),
+                ReminderOutcomeUpdate(all[1].id, evening, countsAsRepeat = false, clearsSnooze = true),
+            ),
+        )
+
+        val updated = doses.pending().associateBy { it.id }
+        val unsnoozed = updated.getValue(all[0].id)
+        assertEquals(morning, unsnoozed.firstRemindedAt)
+        assertEquals(morning, unsnoozed.lastRemindedAt)
+        assertEquals(0, unsnoozed.reminderCount)
+
+        val wasSnoozed = updated.getValue(all[1].id)
+        assertEquals(evening, wasSnoozed.firstRemindedAt)
+        assertNull("The snooze this row asked to clear is gone", wasSnoozed.snoozedUntil)
+        assertEquals("Clearing a snooze also resets the repeat count", 0, wasSnoozed.reminderCount)
+    }
+
+    @Test
+    fun applyingReminderOutcomes_countsARepeatWhenTheUpdateSaysSo() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+        val dose = doses.pending().single()
+        doses.recordReminded(dose.id, morning, countsAsRepeat = false)
+
+        doses.applyReminderOutcomes(
+            listOf(
+                ReminderOutcomeUpdate(dose.id, morning.plusSeconds(900), countsAsRepeat = true, clearsSnooze = false),
+            ),
+        )
+
+        val repeated = doses.pending().single()
+        assertEquals("The first-told moment never moves", morning, repeated.firstRemindedAt)
+        assertEquals(morning.plusSeconds(900), repeated.lastRemindedAt)
+        assertEquals(1, repeated.reminderCount)
+    }
+
+    @Test
+    fun pendingQuery_usesTheOutcomeScheduledAtIndex() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+
+        val plan = database.openHelper.writableDatabase
+            .query("EXPLAIN QUERY PLAN SELECT * FROM doses WHERE outcome IS NULL ORDER BY scheduled_at ASC")
+            .use { cursor ->
+                val detail = cursor.getColumnIndexOrThrow("detail")
+                buildString {
+                    while (cursor.moveToNext()) appendLine(cursor.getString(detail))
+                }
+            }
+
+        assertTrue(
+            "Expected the doses(outcome, scheduled_at) index in the query plan, got:\n$plan",
+            plan.contains("index_doses_outcome_scheduled_at"),
+        )
     }
 
     private fun medication() = NewMedication(

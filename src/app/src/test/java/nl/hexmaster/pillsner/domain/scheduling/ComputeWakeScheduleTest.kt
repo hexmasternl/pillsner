@@ -2,6 +2,7 @@ package nl.hexmaster.pillsner.domain.scheduling
 
 import java.time.Duration
 import java.time.LocalTime
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.data.InMemoryDoseRepository
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
@@ -35,7 +36,7 @@ class ComputeWakeScheduleTest {
 
     @Test
     fun `with nothing at all there is nothing to wake up for`() = runBlocking {
-        assertEquals(emptySet<WakeMoment>(), computeWith(InMemoryDoseRepository())())
+        assertEquals(emptySet<WakeMoment>(), computeWith(InMemoryDoseRepository()))
     }
 
     @Test
@@ -44,7 +45,7 @@ class ComputeWakeScheduleTest {
 
         assertEquals(
             setOf(WakeMoment(at(today.plusDays(1), 0, 5), WakeKind.HOUSEKEEPING)),
-            computeWith(InMemoryDoseRepository())(),
+            computeWith(InMemoryDoseRepository()),
         )
     }
 
@@ -53,7 +54,7 @@ class ComputeWakeScheduleTest {
         medications.replaceAll(listOf(scheduled))
         val doses = InMemoryDoseRepository(listOf(dose(1, at(hour = 8)), dose(2, at(hour = 20))))
 
-        val schedule = computeWith(doses)()
+        val schedule = computeWith(doses)
 
         assertEquals(
             listOf(at(hour = 8), at(hour = 20)),
@@ -71,7 +72,7 @@ class ComputeWakeScheduleTest {
         )
         clock.setTo(at(hour = 8, minute = 1))
 
-        val reminders = computeWith(doses)().filter { it.kind == WakeKind.REMINDER }.map { it.at }
+        val reminders = computeWith(doses).filter { it.kind == WakeKind.REMINDER }.map { it.at }
 
         assertEquals(listOf(at(hour = 8, minute = 15), at(hour = 20)), reminders.sorted())
     }
@@ -83,7 +84,7 @@ class ComputeWakeScheduleTest {
         )
         clock.setTo(at(hour = 8, minute = 1))
 
-        val reminders = computeWith(doses)().filter { it.kind == WakeKind.REMINDER }.map { it.at }
+        val reminders = computeWith(doses).filter { it.kind == WakeKind.REMINDER }.map { it.at }
 
         assertEquals(listOf(at(hour = 8, minute = 15)), reminders)
     }
@@ -98,7 +99,7 @@ class ComputeWakeScheduleTest {
 
         assertEquals(
             setOf(WakeMoment(at(today.plusDays(1), 8), WakeKind.HOUSEKEEPING)),
-            computeWith(doses)(),
+            computeWith(doses),
         )
     }
 
@@ -114,7 +115,7 @@ class ComputeWakeScheduleTest {
         )
         clock.setTo(at(hour = 9))
 
-        val housekeeping = computeWith(doses)().filter { it.kind == WakeKind.HOUSEKEEPING }
+        val housekeeping = computeWith(doses).filter { it.kind == WakeKind.HOUSEKEEPING }
 
         assertEquals(listOf(WakeMoment(at(hour = 20), WakeKind.HOUSEKEEPING)), housekeeping)
     }
@@ -123,13 +124,13 @@ class ComputeWakeScheduleTest {
     fun `moving the clock backward puts the dose back in the future`() = runBlocking {
         val doses = InMemoryDoseRepository(listOf(dose(1, at(hour = 8))))
         clock.setTo(at(hour = 12))
-        computeWith(doses)()
+        computeWith(doses)
 
         clock.setTo(at(hour = 6))
 
         assertEquals(
             listOf(at(hour = 8)),
-            computeWith(doses)().filter { it.kind == WakeKind.REMINDER }.map { it.at },
+            computeWith(doses).filter { it.kind == WakeKind.REMINDER }.map { it.at },
         )
     }
 
@@ -140,7 +141,7 @@ class ComputeWakeScheduleTest {
 
         assertEquals(
             setOf(WakeMoment(at(today.plusDays(2), 0, 5), WakeKind.HOUSEKEEPING)),
-            computeWith(InMemoryDoseRepository())(),
+            computeWith(InMemoryDoseRepository()),
         )
     }
 
@@ -150,7 +151,7 @@ class ComputeWakeScheduleTest {
         clock.setTo(at(hour = 8, minute = 2))
         val doses = InMemoryDoseRepository(listOf(dose(1, at(hour = 8))))
 
-        val schedule = computeWith(doses)()
+        val schedule = computeWith(doses)
 
         // The 08:00 alarm has fired and nothing was posted. Without this the next moment that
         // touches the dose is its lapse, where it is marked missed having never been announced.
@@ -166,7 +167,7 @@ class ComputeWakeScheduleTest {
         clock.setTo(at(hour = 8, minute = 2))
         val doses = InMemoryDoseRepository(listOf(dose(1, at(hour = 8), firstRemindedAt = at(hour = 8))))
 
-        val schedule = computeWith(doses)()
+        val schedule = computeWith(doses)
 
         assertEquals(
             listOf(at(hour = 8, minute = 15)),
@@ -174,6 +175,8 @@ class ComputeWakeScheduleTest {
         )
     }
 
-    private fun computeWith(doses: InMemoryDoseRepository) =
-        ComputeWakeSchedule(doses, medications, MarkMissedDoses(doses, clock), clock)
+    private suspend fun computeWith(doses: InMemoryDoseRepository): WakeSchedule {
+        val snapshot = buildPendingSnapshot(doses, MarkMissedDoses(doses, clock))
+        return ComputeWakeSchedule(clock)(snapshot, medications.observeAll().first())
+    }
 }

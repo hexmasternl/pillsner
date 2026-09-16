@@ -1,5 +1,7 @@
 ## Why
 
+**GitHub Issue:** #3 (https://github.com/hexmasternl/pillsner/issues/3)
+
 Every reminder wake cycle — the hot path that runs on every alarm fire, snooze expiry, notification
 action, boot, clock change and app start — currently does far more database and file I/O than the
 work requires. A scan of `domain/scheduling`, `data/RoomDoseRepository.kt`, `data/reminders/` and

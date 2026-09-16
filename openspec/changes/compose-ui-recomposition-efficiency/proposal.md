@@ -1,3 +1,5 @@
+GitHub issue: [#4](https://github.com/hexmasternl/pillsner/issues/4)
+
 ## Why
 
 Three Compose screens do unnecessary work on every recomposition or keystroke: `MedicinesScreen` re-runs schedule-description formatting for every tile whenever any tile's swipe reveal state changes, `MedicationFormViewModel.updateDraft` re-encodes and rewrites the entire saved-state draft on every keystroke, and `ReminderDiagnosticsScreen` uses a shifting list index as its `LazyColumn` key so every visible row recomposes each time a new diagnostic entry arrives. None of these are bugs — output is correct today — but they waste CPU and battery on every interaction with the medicines list, the medication form, and the diagnostics screen. Fixing the shared "missing memoization / unstable key" pattern across all three keeps the app responsive as lists grow.

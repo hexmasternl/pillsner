@@ -128,7 +128,7 @@ Alongside the Android app, `src/website/` holds a separate, self-contained deliv
 | `.github/workflows/` | `ci.yml` tests, lints and assembles every pull request and push to `main` that touches anything outside `src/website/`; `release.yml` builds, signs and publishes both bundles to Google Play on every such push to `main`, then tags the commit and creates the GitHub release; `website.yml` builds the Hugo site and deploys it to Azure Static Web Apps on every push to `main` that changes `src/website/**`. The two sets of workflows never both run for the same push. |
 | `distribution/whatsnew/` | Play release notes, one plain-text file per listing language. Update them in the change that earns them. |
 | `GitVersion.yml` | How the release version is derived: every commit on `main` bumps the patch, and the tag written by a successful release becomes the next baseline. |
-| `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, plus the design agent and UI skills that enforce the design system. |
+| `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, the branching-model skill (`git-workflow`), the GitHub sync skill, plus the design agent and UI skills that enforce the design system. |
 | `CHANGELOG.md` | Full release notes for every release, newest first. The 500-character Play version lives in `distribution/whatsnew/`. |
 | `CLAUDE.md` | Working instructions for AI coding assistants contributing to this repository. |
 | `LICENSE` | MIT license. |
@@ -196,11 +196,20 @@ The typical loop is:
 
 The `openspec/specs/` folder is therefore the living description of how Pillsner behaves. When the code and a spec disagree, either the code has a bug or the spec needs a change proposal. Never silently drift.
 
+### Branching model
+
+- **`main`** always mirrors what's running in production. `release.yml` builds, signs and publishes to Google Play on every push to it, so nothing commits there directly — it's only updated by a `development` → `main` pull request, opened manually when a release is due.
+- **`development`** is the integration branch. Every finished feature lands here first, by pull request.
+- **Feature branches** are cut from `development`, one per OpenSpec change (or trivial fix), and merge back into `development` by pull request once done.
+
+Cutting a release is a deliberate, manual step: open a pull request from `development` into `main` when you want the accumulated features to ship. See `.claude/skills/git-workflow/SKILL.md` for the full lifecycle.
+
 ## Contributing
 
 Contributions are welcome. To keep the project coherent:
 
 - Start non-trivial work with a change proposal rather than a surprise pull request.
+- Branch from `development`, not `main`, and open pull requests against `development` — see [Branching model](#branching-model) above.
 - Keep the app small and focused. A feature that does not directly help someone take their medication correctly probably belongs in a different app.
 - Preserve the privacy stance. Do not introduce network access, third-party SDKs or telemetry without an accepted proposal that explains the trade-off.
 - Write tests for scheduling and intake logic. Reminder timing is the one thing this app must never get wrong.

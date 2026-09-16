@@ -186,7 +186,11 @@ def cmd_format_prompt(args: argparse.Namespace) -> None:
 
 
 def find_marker_comment_id(pr_number: str) -> int | None:
-    comments = gh_json(["api", f"repos/:owner/:repo/issues/{pr_number}/comments"])
+    comments = [
+        comment
+        for page in gh_json(["api", f"repos/:owner/:repo/issues/{pr_number}/comments", "--paginate", "--slurp"])
+        for comment in page
+    ]
     for comment in comments:
         if COMMENT_MARKER in (comment.get("body") or ""):
             return comment["id"]

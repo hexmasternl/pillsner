@@ -21,7 +21,7 @@ concurrency:
 jobs:
   draft:
     name: Draft release notes
-    if: github.event.pull_request.head.ref == 'development'
+    if: github.event.pull_request.head.ref == 'development' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}

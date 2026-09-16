@@ -1,0 +1,104 @@
+name: Draft release notes
+
+# Drafts brief, bilingual (EN/NL) Play Store "what's new" text for a development -> main release
+# pull request, from the OpenSpec changes (and fallback merged PRs) it contains, and posts it as
+# an updatable PR comment for a human to review and hand-copy. Never commits or pushes anything,
+# and never blocks ci.yml or release.yml.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  models: read
+
+concurrency:
+  group: release-notes-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  draft:
+    name: Draft release notes
+    if: github.event.pull_request.head.ref == 'development'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Collect shipped changes
+        id: collect
+        run: |
+          python3 .github/scripts/collect_release_notes.py collect \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
+            --out "${{ runner.temp }}/release-notes-context.json"
+
+      - name: Post "nothing new" comment
+        if: steps.collect.outputs.has_content != 'true'
+        run: |
+          python3 .github/scripts/collect_release_notes.py comment \
+            --pr "${{ github.event.pull_request.number }}" \
+            --nothing-new
+
+      - name: Build the drafting prompt
+        if: steps.collect.outputs.has_content == 'true'
+        run: |
+          python3 .github/scripts/collect_release_notes.py format-prompt \
+            --context "${{ runner.temp }}/release-notes-context.json" \
+            --style-en distribution/whatsnew/whatsnew-en-US \
+            --style-nl distribution/whatsnew/whatsnew-nl-NL \
+            --out "${{ runner.temp }}/release-notes-prompt.txt"
+
+      - name: Draft English release notes
+        if: steps.collect.outputs.has_content == 'true'
+        id: draft_en
+        uses: actions/ai-inference@v1
+        with:
+          model: openai/gpt-4o-mini
+          token: ${{ github.token }}
+          max-tokens: 400
+          system-prompt: >-
+            You write brief, warm, non-technical "what's new" release notes for the Google Play
+            Store listing of a medication-reminder app called Pillsner. Write only the notes
+            themselves, as a short list of bullet points (no more than 6), in plain English,
+            matching the tone and length of the style reference you are given. Do not invent
+            features that are not described in the input.
+          prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+
+      - name: Draft Dutch release notes
+        if: steps.collect.outputs.has_content == 'true'
+        id: draft_nl
+        uses: actions/ai-inference@v1
+        with:
+          model: openai/gpt-4o-mini
+          token: ${{ github.token }}
+          max-tokens: 400
+          system-prompt: >-
+            Je schrijft korte, vriendelijke, niet-technische "wat is er nieuw"-releaseteksten voor
+            de Google Play Store-vermelding van een medicatie-herinnerings-app genaamd Pillsner.
+            Schrijf alleen de tekst zelf, als een korte lijst met opsommingstekens (maximaal 6),
+            in duidelijk Nederlands, met dezelfde toon en lengte als het meegegeven
+            stijlvoorbeeld. Verzin geen functies die niet in de invoer worden beschreven.
+          prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+
+      - name: Post drafted release notes comment
+        if: steps.collect.outputs.has_content == 'true'
+        env:
+          ENGLISH_DRAFT: ${{ steps.draft_en.outputs.response }}
+          DUTCH_DRAFT: ${{ steps.draft_nl.outputs.response }}
+        run: |
+          printf '%s' "$ENGLISH_DRAFT" > "${{ runner.temp }}/draft-en.txt"
+          printf '%s' "$DUTCH_DRAFT" > "${{ runner.temp }}/draft-nl.txt"
+          python3 .github/scripts/collect_release_notes.py comment \
+            --pr "${{ github.event.pull_request.number }}" \
+            --english-file "${{ runner.temp }}/draft-en.txt" \
+            --dutch-file "${{ runner.temp }}/draft-nl.txt"

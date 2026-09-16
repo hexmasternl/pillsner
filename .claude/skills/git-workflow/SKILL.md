@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: Pillsner's branching model - main always mirrors production, development is the integration branch every feature lands on, and feature branches are cut from development per OpenSpec change. Use this before creating, merging, deleting or pushing any branch; right after /opsx:propose, to cut the change's feature branch; after a feature branch's pull request merges into development, to clean it up; and whenever asked how branching or releases work here.
+description: Pillsner's branching model - main always mirrors production, development is the integration branch every feature lands on, and feature branches (named feature/<change-name>) are cut from development per OpenSpec change. Use this before creating, merging, deleting or pushing any branch; right after /opsx:propose, to cut the change's feature branch; after a feature branch's pull request merges into development, to clean it up; and whenever asked how branching or releases work here.
 license: MIT
 metadata:
   author: pillsner
@@ -25,9 +25,9 @@ request, before it's ever part of a release. It carries everything merged so far
 released yet.
 
 **Feature branches** are where work actually happens: one per OpenSpec change (or per trivial fix
-that still needs its own branch), cut from the current tip of `development`, named after the change
-exactly as `openspec/changes/<name>/` is named. They merge back into `development` by pull request
-and are deleted once merged.
+that still needs its own branch), cut from the current tip of `development`, named
+`feature/<name>` where `<name>` is exactly how `openspec/changes/<name>/` is named. They merge back
+into `development` by pull request and are deleted once merged.
 
 ## Lifecycle
 
@@ -35,7 +35,8 @@ and are deleted once merged.
    the first implementation commit:
    - Bring `development` up to date: `git fetch origin`, then fast-forward the local branch if
      it's behind `origin/development`.
-   - Cut the feature branch from it, never from `main`: `git checkout -b <name> development`.
+   - Cut the feature branch from it, never from `main`:
+     `git checkout -b feature/<name> development`.
 2. **Working the change** — commit to the feature branch as usual, following `CLAUDE.md`'s commit
    message conventions. Nothing here changes.
 3. **Finishing a change** — this is what the `github-openspec-sync` skill's **apply-complete** mode
@@ -46,9 +47,9 @@ and are deleted once merged.
    not a rare fallback.
 4. **After the feature PR merges into `development`** — confirm the merge
    (`gh pr view <number> --json state,mergedAt`), then delete the feature branch, local and remote:
-   `git branch -d <name>` and `git push origin --delete <name>`. Confirm with the user first if
-   there's any doubt the merge actually happened, or if the branch holds commits `development`
-   doesn't have yet.
+   `git branch -d feature/<name>` and `git push origin --delete feature/<name>`. Confirm with the
+   user first if there's any doubt the merge actually happened, or if the branch holds commits
+   `development` doesn't have yet.
 5. **Cutting a release** — never do this unprompted. When the user asks to release or ship what's
    on `development`, offer to open the `development` → `main` pull request for them to review, or
    tell them the command (`gh pr create --base main --head development`) — do not create or merge

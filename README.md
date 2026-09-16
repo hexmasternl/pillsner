@@ -200,7 +200,7 @@ The `openspec/specs/` folder is therefore the living description of how Pillsner
 
 - **`main`** always mirrors what's running in production. `release.yml` builds, signs and publishes to Google Play on every push to it, so nothing commits there directly — it's only updated by a `development` → `main` pull request, opened manually when a release is due.
 - **`development`** is the integration branch. Every finished feature lands here first, by pull request.
-- **Feature branches** are cut from `development`, one per OpenSpec change (or trivial fix), and merge back into `development` by pull request once done.
+- **Feature branches** are cut from `development`, one per OpenSpec change (or trivial fix), named `feature/<change-name>`, and merge back into `development` by pull request once done.
 
 Cutting a release is a deliberate, manual step: open a pull request from `development` into `main` when you want the accumulated features to ship. See `.claude/skills/git-workflow/SKILL.md` for the full lifecycle.
 

@@ -110,8 +110,8 @@ This mode both comments on the issue and opens the pull request that will close 
    not round a partial verification up to "done"), and the commit list. This same text is used for
    both the PR body and the issue comment below.
 5. Push the branch and open the PR:
-   - Confirm which branch holds the change's commits (usually the current branch, named after the
-     change per `CLAUDE.md`'s git conventions and cut from `development` per
+   - Confirm which branch holds the change's commits (usually the current branch, named
+     `feature/<change-name>` per `CLAUDE.md`'s git conventions and cut from `development` per
      `.claude/skills/git-workflow/SKILL.md`) and that it is based on an up-to-date `development`.
    - Show the user the branch name, PR title, and PR body — the PR body is the summary from step 4
      plus a closing line `Closes #<issue-number>` and a link to the change folder

@@ -135,7 +135,7 @@ Use these terms consistently in code, specs and UI.
 
 ## Git conventions
 
-- Branching model: `main` always mirrors production — a push to it deploys, so nothing ever commits there directly. `development` is the integration branch every finished feature lands on. Feature branches are cut from `development`, one per OpenSpec change (or trivial fix), named after the change, and merge back into `development` by pull request. `main` is only ever updated by a `development` → `main` pull request that the user opens manually to cut a release. The full lifecycle is in `.claude/skills/git-workflow/SKILL.md` — read it before creating, merging, deleting or pushing any branch.
+- Branching model: `main` always mirrors production — a push to it deploys, so nothing ever commits there directly. `development` is the integration branch every finished feature lands on. Feature branches are cut from `development`, one per OpenSpec change (or trivial fix), named `feature/<change-name>`, and merge back into `development` by pull request. `main` is only ever updated by a `development` → `main` pull request that the user opens manually to cut a release. The full lifecycle is in `.claude/skills/git-workflow/SKILL.md` — read it before creating, merging, deleting or pushing any branch.
 - Write commit messages that describe intent in the imperative mood, with the change name in the body when applicable.
 - Commit and push only when asked. Never force-push `main` or `development`, and never merge a pull request yourself — merging is always a human action, especially the `development` → `main` release PR.
 - Keep the working tree clean of build output, IDE metadata and local property files; extend `.gitignore` rather than committing them.

@@ -1,11 +1,11 @@
 ## 1. Root-cause the German string resolution failure
 
-- [ ] 1.1 Reproduce `aGermanPhoneReadsGermanWithoutAnyChoice` as the sole test in the instrumented run and confirm it still fails (already done once; re-confirm on the branch this change is implemented on).
-- [ ] 1.2 Log or assert `AppLocale.wrap(context).resources.configuration.locales` right after `wrap` runs, to see what locale the created context actually reports holding.
-- [ ] 1.3 Try building the `Configuration` passed to `createConfigurationContext` from scratch (`Configuration()`) instead of copying `context.resources.configuration`, to rule out an inherited qualifier.
-- [ ] 1.4 Try `LocaleList.forLanguageTags("de")` directly instead of round-tripping through `Locale.forLanguageTag(tag)`, to rule out a `Locale` construction difference.
-- [ ] 1.5 Check whether the debug/androidTest build variant has any language-based resource/APK splitting enabled that could leave German resources out of the installed test APK.
-- [ ] 1.6 Once the cause is found, update `design.md`'s Decisions section with the confirmed root cause before writing the fix, per `CLAUDE.md`'s rule to keep the design in sync with what implementation finds.
+- [x] 1.1 Reproduce `aGermanPhoneReadsGermanWithoutAnyChoice` as the sole test in the instrumented run and confirm it still fails (already done once; re-confirm on the branch this change is implemented on).
+- [x] 1.2 Log or assert `AppLocale.wrap(context).resources.configuration.locales` right after `wrap` runs, to see what locale the created context actually reports holding. (Superseded — 1.5 found the cause directly, so this probe into `AppLocale`'s `Configuration` construction was unnecessary; the bug is not there.)
+- [x] 1.3 Try building the `Configuration` passed to `createConfigurationContext` from scratch (`Configuration()`) instead of copying `context.resources.configuration`, to rule out an inherited qualifier. (Superseded — same reason as 1.2.)
+- [x] 1.4 Try `LocaleList.forLanguageTags("de")` directly instead of round-tripping through `Locale.forLanguageTag(tag)`, to rule out a `Locale` construction difference. (Superseded — same reason as 1.2.)
+- [x] 1.5 Check whether the debug/androidTest build variant has any language-based resource/APK splitting enabled that could leave German resources out of the installed test APK. (Found it: `app/build.gradle.kts`'s `resourceConfigurations += listOf("en", "nl")` strips `values-de`/`fr`/`es`/`pt` from every variant's packaged resources. Confirmed with `aapt2 dump configurations` on the built debug APK — only `nl` and the unqualified default are present.)
+- [x] 1.6 Once the cause is found, update `design.md`'s Decisions section with the confirmed root cause before writing the fix, per `CLAUDE.md`'s rule to keep the design in sync with what implementation finds.
 
 ## 2. Fix
 

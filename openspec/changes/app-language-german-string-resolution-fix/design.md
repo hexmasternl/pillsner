@@ -71,6 +71,49 @@ Once one of these isolates the actual cause, record the finding here (updating t
 `CLAUDE.md`'s rule to keep the design in sync with what implementation finds) before writing the
 fix, so the fix in `tasks.md` targets the real cause rather than the closest plausible one.
 
+### Confirmed root cause
+
+Probe 4 (build/packaging config) found it directly, which made probes 1–3 (all about how `AppLocale`
+constructs the `Configuration`/`LocaleList` it hands to `createConfigurationContext`) moot — the bug
+is not in `AppLocale` at all.
+
+`app/build.gradle.kts`'s `defaultConfig` sets:
+
+```kotlin
+resourceConfigurations += listOf("en", "nl")
+```
+
+with the comment "The two languages the app ships. Strips every other locale from library resources,
+and makes the fallback chain exactly values-nl to values (English)." That comment is stale: the app
+now ships six languages (`SupportedLanguages.all` — English, Dutch, German, French, Spanish,
+Portuguese — and the dropdown already offers all six), but `resourceConfigurations` was never updated
+past the original two. `resourceConfigurations` is an `aapt`-level filter applied to every variant,
+debug and androidTest included, not just release/bundle splitting — it strips the *entire*
+`values-de` (and `values-fr`, `values-es`, `values-pt`) directory out of the packaged APK at build
+time, regardless of what device or configuration reads it afterwards.
+
+Confirmed empirically, not just inferred from the config: `./gradlew :app:assembleDebug` followed by
+`aapt2 dump configurations app/build/outputs/apk/debug/app-debug.apk` lists only `nl` as a packaged
+language qualifier — no `de`, `fr`, `es` or `pt` — alongside the unqualified (English) default. And
+running `LanguageSectionTest#aGermanPhoneReadsGermanWithoutAnyChoice` alone against that build
+reproduces exactly the reported symptom: `AppLocale.inEffect == AppLanguage.GERMAN` (resolution is
+correct) but `AppLocale.wrap(context).getString(...)` returns `"Settings"` instead of
+`"Einstellungen"` (`org.junit.ComparisonFailure: expected:<[Einstellungen]> but was:<[Settings]>`) —
+because `values-de/strings.xml` was never installed on the device to begin with. `AssetManager` falls
+back to the default (English) resources exactly as it would for any locale whose resources are
+absent, which is also why `AppLocale.inEffect` is unaffected: language *resolution* has nothing to do
+with which resource directories made it into the APK.
+
+This is real production behaviour, not a test-process artifact: the same `resourceConfigurations`
+filter applies to `assembleRelease`/`bundleRelease`. Today's install package for every user is
+missing German, French, Spanish and Portuguese strings entirely, regardless of what the language
+picker offers or what the phone's own language is — a phone whose language is German
+(`aGermanPhoneReadsGermanWithoutAnyChoice`'s exact scenario) silently reads the app in English. Dutch
+is unaffected only because it happens to be the one extra language the list was already updated for.
+
+The fix is therefore in build configuration, not in `AppLocale`: add the remaining supported
+languages' tags to `resourceConfigurations` so their resources are actually packaged.
+
 ## Risks / Trade-offs
 
 - **[Risk] Root cause could be environment-specific** (this exact AVD image/API level) rather than a

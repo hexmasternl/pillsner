@@ -1,6 +1,9 @@
 package nl.hexmaster.pillsner.applock.domain
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
 /** What became of a request to change the PIN. */
 sealed interface ChangePinResult {
@@ -24,12 +27,15 @@ sealed interface ChangePinResult {
 class ChangePin(
     private val repository: AppLockRepository,
     private val verifier: PinVerifier,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     suspend operator fun invoke(newPin: Pin): ChangePinResult {
         val current = repository.settings.first().credential
-        if (current != null && verifier.verify(newPin, current)) return ChangePinResult.SameAsCurrent
+        if (current != null && withContext(dispatcher) { verifier.verify(newPin, current) }) {
+            return ChangePinResult.SameAsCurrent
+        }
 
-        repository.replaceCredential(verifier.create(newPin))
+        repository.replaceCredential(withContext(dispatcher) { verifier.create(newPin) })
         return ChangePinResult.Changed
     }
 }

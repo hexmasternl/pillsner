@@ -38,6 +38,18 @@ class KeystorePinVerifierTest {
     }
 
     @Test
+    fun verifyWithFreshVerifierInstanceSucceedsAfterKeyIsCreated() {
+        val pin = requireNotNull(Pin.of("1234"))
+        val credential = verifier.create(pin)
+
+        // A new instance forces verify()'s single-fetch key lookup to hit the Keystore
+        // for the first time on this instance, rather than reusing anything cached by create().
+        val freshVerifier = KeystorePinVerifier()
+
+        assertTrue(freshVerifier.verify(pin, credential))
+    }
+
+    @Test
     fun isAvailableIsFalseAfterTheKeyAliasIsDeleted() {
         val pin = requireNotNull(Pin.of("1234"))
         verifier.create(pin)

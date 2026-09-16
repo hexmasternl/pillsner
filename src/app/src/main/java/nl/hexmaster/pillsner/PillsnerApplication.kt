@@ -10,6 +10,7 @@ import nl.hexmaster.pillsner.data.reminders.ReminderChannels
 import nl.hexmaster.pillsner.data.reminders.ReminderWatchdog
 import nl.hexmaster.pillsner.data.reminders.WakeReason
 import nl.hexmaster.pillsner.di.AppContainer
+import nl.hexmaster.pillsner.domain.model.AppLanguage
 import nl.hexmaster.pillsner.ui.locale.AppLocale
 
 /** Owns the [AppContainer] for the life of the process. */
@@ -19,6 +20,13 @@ class PillsnerApplication : Application() {
         private set
 
     private var started = false
+
+    /**
+     * The language resolved for this process, cached by [applyStoredLanguage]'s one DataStore read
+     * (design D3). A stored language can only change on the next app start, so a later locale change
+     * reapplies this value instead of reading it again.
+     */
+    private lateinit var storedLanguage: AppLanguage
 
     override fun onCreate() {
         super.onCreate()
@@ -71,11 +79,11 @@ class PillsnerApplication : Application() {
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (started) applyStoredLanguage()
+        if (started) AppLocale.apply(storedLanguage, Resources.getSystem().configuration.locales)
     }
 
     private fun applyStoredLanguage() {
-        val stored = runBlocking { container.languageRepository.observeLanguage().first() }
-        AppLocale.apply(stored, Resources.getSystem().configuration.locales)
+        storedLanguage = runBlocking { container.languageRepository.observeLanguage().first() }
+        AppLocale.apply(storedLanguage, Resources.getSystem().configuration.locales)
     }
 }

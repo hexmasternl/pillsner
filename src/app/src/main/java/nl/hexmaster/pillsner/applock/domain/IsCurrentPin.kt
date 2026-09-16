@@ -1,6 +1,9 @@
 package nl.hexmaster.pillsner.applock.domain
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
 /**
  * Whether [Pin] is the one currently in force. Used by the change-PIN flow to refuse the PIN the
@@ -9,9 +12,10 @@ import kotlinx.coroutines.flow.first
 class IsCurrentPin(
     private val repository: AppLockRepository,
     private val verifier: PinVerifier,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     suspend operator fun invoke(pin: Pin): Boolean {
         val credential = repository.settings.first().credential ?: return false
-        return verifier.verify(pin, credential)
+        return withContext(dispatcher) { verifier.verify(pin, credential) }
     }
 }

@@ -73,13 +73,13 @@ class AppLockViewModelTest {
             stateHolder = stateHolder,
             repository = repository,
             biometricAvailability = biometricAvailability,
-            enablePinLock = EnablePinLock(repository, verifier),
+            enablePinLock = EnablePinLock(repository, verifier, dispatcher),
             disableLock = DisableLock(repository),
-            unlockWithPin = UnlockWithPin(repository, verifier, registerFailedAttempt, clock),
+            unlockWithPin = UnlockWithPin(repository, verifier, registerFailedAttempt, clock, dispatcher),
             setBiometricUnlock = SetBiometricUnlock(repository),
-            verifyIdentity = VerifyIdentity(repository, verifier, registerFailedAttempt, clock),
-            changePin = ChangePin(repository, verifier),
-            isCurrentPin = IsCurrentPin(repository, verifier),
+            verifyIdentity = VerifyIdentity(repository, verifier, registerFailedAttempt, clock, dispatcher),
+            changePin = ChangePin(repository, verifier, dispatcher),
+            isCurrentPin = IsCurrentPin(repository, verifier, dispatcher),
             clock = clock,
         )
         viewModelStore.put("appLock", viewModel)

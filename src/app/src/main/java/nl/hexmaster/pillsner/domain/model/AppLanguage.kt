@@ -28,7 +28,10 @@ enum class AppLanguage(val tag: String?) {
  * The languages the app actually ships.
  *
  * Adding one is: a value above, an entry here, a `values-xx/strings.xml`, and its own name in the
- * language array. Nothing else changes, because the dropdown and the resolver both read this list.
+ * language array — the dropdown and the resolver both read this list, so nothing else changes for
+ * them. It also needs its tag added to `resourceConfigurations` in `app/build.gradle.kts`, or its
+ * resources are stripped from the packaged app entirely (the app-language-german-string-resolution-fix
+ * bug); `PackagedResourceConfigurationsTest` fails until that is done.
  */
 object SupportedLanguages {
 

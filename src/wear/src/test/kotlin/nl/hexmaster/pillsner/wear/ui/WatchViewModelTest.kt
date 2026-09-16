@@ -158,6 +158,15 @@ class WatchViewModelTest {
     }
 
     @Test
+    fun `a single per-minute tick checks connectivity exactly once`() = runTest(dispatcher) {
+        var connectivityChecks = 0
+        val viewModel = WatchViewModel(payloads, { connectivityChecks++; phoneConnected }, clock)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals(1, connectivityChecks)
+    }
+
+    @Test
     fun `a new payload replaces the list wholesale`() = runTest(dispatcher) {
         payloads.value = payload(doseAt(1, Duration.ofHours(1), "Taken in a moment"))
         val viewModel = collecting()

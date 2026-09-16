@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -92,13 +93,16 @@ fun DoseCard(entry: WatchDoseEntry, modifier: Modifier = Modifier) {
 private fun WatchDoseEntry.timeText(): String {
     // LocalizedContent has already put the phone app's language here.
     val locale = LocalConfiguration.current.locales[0]
-    val formatted = formatTime(scheduledAt, locale, ZoneId.systemDefault())
+    val zone = ZoneId.systemDefault()
+    val formatter = remember(locale, zone) {
+        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone)
+    }
+    val formatted = formatTime(scheduledAt, formatter)
     return if (isTomorrow) stringResource(R.string.upcoming_tomorrow_at, formatted) else formatted
 }
 
 internal fun formatTime(instant: Instant, locale: Locale, zone: ZoneId): String =
-    DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
-        .withLocale(locale)
-        .withZone(zone)
-        .format(instant)
+    formatTime(instant, DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone))
+
+internal fun formatTime(instant: Instant, formatter: DateTimeFormatter): String = formatter.format(instant)
 

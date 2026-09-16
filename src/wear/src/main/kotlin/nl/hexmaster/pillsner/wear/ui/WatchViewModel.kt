@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import nl.hexmaster.pillsner.shared.wear.SyncedDose
 import nl.hexmaster.pillsner.shared.wear.SyncedDoses
@@ -40,16 +39,13 @@ class WatchViewModel(
         }
     }
 
-    private val connectivity = minuteTicker.map { isPhoneConnected() }
-
     val uiState: StateFlow<WatchUiState> = combine(
         payloads,
         minuteTicker,
-        connectivity,
-    ) { payload, now, phoneConnected ->
+    ) { payload, now ->
         WatchUiState(
             entries = payload?.let { entriesFor(it, now) }.orEmpty(),
-            phoneConnected = phoneConnected,
+            phoneConnected = isPhoneConnected(),
             hasData = payload != null,
             locale = payload?.languageTag?.let(Locale::forLanguageTag) ?: Locale.getDefault(),
         )

@@ -18,9 +18,9 @@ object UpcomingWindowFilter {
     val WINDOW: Duration = Duration.ofHours(6)
 
     fun filter(doses: List<SyncedDose>, now: Instant): List<SyncedDose> {
-        val until = now.plus(WINDOW)
+        val untilMillis = now.toEpochMilli() + WINDOW.toMillis()
         return doses
-            .filter { !Instant.ofEpochMilli(it.scheduledAtEpochMillis).isAfter(until) }
+            .filter { it.scheduledAtEpochMillis <= untilMillis }
             .sortedBy { it.scheduledAtEpochMillis }
     }
 }

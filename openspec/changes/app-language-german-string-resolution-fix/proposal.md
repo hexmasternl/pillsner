@@ -1,5 +1,7 @@
 ## Why
 
+**GitHub Issue:** #8 (https://github.com/hexmasternl/pillsner/issues/8)
+
 Two instrumented tests in `LanguageSectionTest` fail consistently, both in isolation and inside the
 full instrumented suite: `aGermanPhoneReadsGermanWithoutAnyChoice` and
 `theRestartNoticeIsTranslatedIntoANewLanguage`. In both, `AppLocale` correctly resolves German

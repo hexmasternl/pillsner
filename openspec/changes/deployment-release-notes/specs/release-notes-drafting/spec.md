@@ -30,16 +30,16 @@ The system SHALL identify the OpenSpec changes included in a release pull reques
 - **WHEN** the commit range contains no newly archived change proposals and no other merged pull requests
 - **THEN** the workflow SHALL NOT call the AI drafting step and SHALL post a comment stating there is nothing new to summarize, rather than posting empty or fabricated release notes
 
-### Requirement: Release notes are drafted in English and Dutch using GitHub Models
-The system SHALL send the collected change summaries to GitHub Models, authenticated with the workflow's default `GITHUB_TOKEN` (via the `models: read` permission), and SHALL request two brief, non-technical, user-facing summaries suitable for a Play Store "what's new" listing: one in English and one in Dutch. The system SHALL NOT require or use any repository secret dedicated to this drafting step.
+### Requirement: Release notes are drafted in English and Dutch using GitHub Copilot
+The system SHALL send the collected change summaries to GitHub Copilot, via the GitHub Copilot CLI authenticated with a dedicated repository secret (`GIHUB_COPILOT_API_KEY`), and SHALL request two brief, non-technical, user-facing summaries suitable for a Play Store "what's new" listing: one in English and one in Dutch.
 
 #### Scenario: Successful draft generation
-- **WHEN** the collected change summaries are sent to GitHub Models
+- **WHEN** the collected change summaries are sent to GitHub Copilot
 - **THEN** the response contains a brief English summary and a brief Dutch summary, each written as user-facing "what's new" style text
 
-#### Scenario: No dedicated secret configured
-- **WHEN** the workflow runs in a repository with no additional secret provisioned for this step
-- **THEN** drafting still succeeds using only the workflow's own `GITHUB_TOKEN`
+#### Scenario: Dedicated secret missing or invalid
+- **WHEN** the workflow runs in a repository where `GIHUB_COPILOT_API_KEY` is not configured or has expired
+- **THEN** the drafting step fails, and the failure is isolated to this workflow (per the "Drafting failures do not block CI or the release build" requirement below)
 
 ### Requirement: Drafts are posted as a single, updatable pull request comment
 The system SHALL post the English and Dutch drafts together as one comment on the release pull request, marked with a hidden identifier so a later run can find and update it. On a later run against the same pull request, the system SHALL edit that existing comment in place rather than posting a new one. The system SHALL NOT commit any file, including `distribution/whatsnew/whatsnew-en-US` or `distribution/whatsnew/whatsnew-nl-NL`, and SHALL NOT push to any branch.

@@ -39,4 +39,17 @@
   - A same-commit range (`HEAD..HEAD`) correctly returned `has_content: false` with both lists empty (the "nothing new" case).
   - `format-prompt` was also run against the second range's output and produced a well-formed prompt combining both style-reference files with the four changes' summaries.
 - **4.2**: `release-notes.yml` parses as valid YAML (checked with PyYAML) and `collect_release_notes.py` compiles cleanly (`python -m py_compile`). The job-level `if: github.event.pull_request.head.ref == 'development'` matches the pattern GitHub Actions documents for this exact scoping and mirrors the condition already reviewed and shipped in this repository's other workflows' branch/path guards.
-- **4.3**: Not yet verifiable — this repository has no real `development` → `main` pull request open right now. Verify this the first time such a PR is opened or synchronized after this change ships: confirm the comment posts (or updates in place on a second sync), reads as brief and human in both languages, and that a run with nothing new posts the short "nothing new" comment instead of calling GitHub Models.
+- **4.3**: Not yet verifiable — this repository has no real `development` → `main` pull request open right now. Verify this the first time such a PR is opened or synchronized after this change ships: confirm the comment posts (or updates in place on a second sync), reads as brief and human in both languages, and that a run with nothing new posts the short "nothing new" comment instead of calling GitHub Copilot.
+
+### Correction found after merge
+
+`actions/ai-inference`'s direct GitHub Models support (used by the merged version of this
+workflow) was removed in the action's `v3` release — the action now only supports the GitHub
+Copilot CLI as its inference provider. The workflow was updated directly on `development` (per
+user instruction, bypassing the usual feature-branch/PR ceremony for this follow-up fix) to:
+pin `actions/ai-inference@v3`, install the Copilot CLI (`actions/setup-node@v4` +
+`npm install -g @github/copilot`), and authenticate it with a new repository secret,
+`GIHUB_COPILOT_API_KEY` (a GitHub Copilot API token the user provisioned), passed as
+`COPILOT_GITHUB_TOKEN`. The job's `models: read` permission was removed as it's no longer used.
+`design.md`, `proposal.md` and `specs/release-notes-drafting/spec.md` were updated to match.
+Re-verify 4.3 against this Copilot-based path, not the original GitHub Models path.

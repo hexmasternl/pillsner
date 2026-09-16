@@ -13,7 +13,6 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  models: read
 
 concurrency:
   group: release-notes-${{ github.event.pull_request.number }}
@@ -58,14 +57,23 @@ jobs:
             --style-nl distribution/whatsnew/whatsnew-nl-NL \
             --out "${{ runner.temp }}/release-notes-prompt.txt"
 
+      - name: Set up Node.js
+        if: steps.collect.outputs.has_content == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install GitHub Copilot CLI
+        if: steps.collect.outputs.has_content == 'true'
+        run: npm install -g @github/copilot
+
       - name: Draft English release notes
         if: steps.collect.outputs.has_content == 'true'
         id: draft_en
-        uses: actions/ai-inference@v1
+        uses: actions/ai-inference@v3
         with:
           model: gpt-4.1
           token: ${{ github.token }}
-          max-tokens: 400
           system-prompt: >-
             You write brief, warm, non-technical "what's new" release notes for the Google Play
             Store listing of a medication-reminder app called Pillsner. Write only the notes
@@ -73,15 +81,16 @@ jobs:
             matching the tone and length of the style reference you are given. Do not invent
             features that are not described in the input.
           prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
 
       - name: Draft Dutch release notes
         if: steps.collect.outputs.has_content == 'true'
         id: draft_nl
-        uses: actions/ai-inference@v1
+        uses: actions/ai-inference@v3
         with:
           model: gpt-4.1
           token: ${{ github.token }}
-          max-tokens: 400
           system-prompt: >-
             Je schrijft korte, vriendelijke, niet-technische "wat is er nieuw"-releaseteksten voor
             de Google Play Store-vermelding van een medicatie-herinnerings-app genaamd Pillsner.
@@ -89,6 +98,8 @@ jobs:
             in duidelijk Nederlands, met dezelfde toon en lengte als het meegegeven
             stijlvoorbeeld. Verzin geen functies die niet in de invoer worden beschreven.
           prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
 
       - name: Post drafted release notes comment
         if: steps.collect.outputs.has_content == 'true'

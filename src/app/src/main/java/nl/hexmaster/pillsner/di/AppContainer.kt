@@ -6,13 +6,12 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import java.time.Clock
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.applock.data.AndroidBiometricAvailability
@@ -162,18 +161,27 @@ class AppContainer(
      * scheme the default guessed — a white flash on an OLED phone at night, which is the thing the
      * setting exists to prevent.
      *
+     * `themeRepository.observeTheme()` is collected exactly once, by the coroutine started here;
+     * the blocking read waits for that same collection's first emission (via [firstTheme]) instead
+     * of opening a second, independent subscription just to get a synchronous initial value
+     * (design D4).
+     *
      * Lazy, because a broadcast receiver that starts this process before the first unlock after a
      * reboot cannot read this file at all, and has no frame to paint either
      * (reminder-delivery-after-reboot design D4). The first read happens where it is needed, in
      * `MainActivity`, which only exists once the phone is unlocked.
      */
     val theme: StateFlow<AppTheme> by lazy {
-        themeRepository.observeTheme()
-            .stateIn(
-                scope = containerScope,
-                started = SharingStarted.Eagerly,
-                initialValue = runBlocking { themeRepository.observeTheme().first() },
-            )
+        val themeState = MutableStateFlow(AppTheme.SYSTEM)
+        val firstTheme = CompletableDeferred<Unit>()
+        containerScope.launch {
+            themeRepository.observeTheme().collect { value ->
+                themeState.value = value
+                if (!firstTheme.isCompleted) firstTheme.complete(Unit)
+            }
+        }
+        runBlocking { firstTheme.await() }
+        themeState
     }
 
     // --- Legal documents (app-legal-information design D3, D4) ------------------------------

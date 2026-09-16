@@ -28,25 +28,30 @@ class KeystorePinVerifier : PinVerifier {
 
     override fun create(pin: Pin): PinCredential {
         val salt = ByteArray(SALT_SIZE_BYTES).also { SecureRandom().nextBytes(it) }
-        return PinCredential(salt = salt, verifier = hmac(salt, pin))
+        return PinCredential(salt = salt, verifier = hmac(salt, pin, loadOrCreateKey()))
     }
 
     override fun verify(pin: Pin, credential: PinCredential): Boolean {
-        if (!isAvailable()) return false
-        val computed = runCatching { hmac(credential.salt, pin) }.getOrNull() ?: return false
+        val key = currentKey() ?: return false
+        val computed = runCatching { hmac(credential.salt, pin, key) }.getOrNull() ?: return false
         return MessageDigest.isEqual(computed, credential.verifier)
     }
 
-    private fun hmac(salt: ByteArray, pin: Pin): ByteArray {
+    private fun hmac(salt: ByteArray, pin: Pin, key: SecretKey): ByteArray {
         val mac = Mac.getInstance(HMAC_ALGORITHM)
-        mac.init(loadOrCreateKey())
+        mac.init(key)
         mac.update(salt)
         return mac.doFinal(pin.digits.toByteArray(Charsets.UTF_8))
     }
 
+    /** Returns the existing key, or null if the alias hasn't been created yet, in a single Keystore round-trip. */
+    private fun currentKey(): SecretKey? = runCatching {
+        keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+    }.getOrNull()
+
     /** Reuses the existing key so verification of an old credential still works after a restart. */
     private fun loadOrCreateKey(): SecretKey {
-        (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        currentKey()?.let { return it }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_HMAC_SHA256, ANDROID_KEY_STORE)
         val spec = KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_SIGN).build()
         generator.init(spec)

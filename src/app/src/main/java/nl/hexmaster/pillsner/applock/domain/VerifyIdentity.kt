@@ -2,6 +2,9 @@ package nl.hexmaster.pillsner.applock.domain
 
 import java.time.Clock
 import java.time.Instant
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** A change to the lock that has to be proved to be the owner's (design D1). */
 enum class SecurityAction {
@@ -59,6 +62,7 @@ class VerifyIdentity(
     private val verifier: PinVerifier,
     private val registerFailedAttempt: RegisterFailedAttempt,
     private val clock: Clock,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     /** Where a check for [request] begins, given the settings and whether a biometric works now. */
@@ -108,7 +112,7 @@ class VerifyIdentity(
 
         activeCooldown(settings)?.let { return awaiting.copy(cooldownEndsAt = it) }
 
-        return if (verifier.verify(pin, credential)) {
+        return if (withContext(dispatcher) { verifier.verify(pin, credential) }) {
             repository.resetAttempts()
             VerifyIdentityState.Verified(awaiting.request, IdentityMethod.PIN)
         } else {

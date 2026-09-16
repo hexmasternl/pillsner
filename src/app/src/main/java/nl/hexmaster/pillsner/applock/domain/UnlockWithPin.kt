@@ -2,6 +2,9 @@ package nl.hexmaster.pillsner.applock.domain
 
 import java.time.Clock
 import java.time.Instant
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** The outcome of submitting a PIN on the unlock screen. */
 sealed interface UnlockResult {
@@ -19,13 +22,14 @@ class UnlockWithPin(
     private val verifier: PinVerifier,
     private val registerFailedAttempt: RegisterFailedAttempt,
     private val clock: Clock,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     suspend operator fun invoke(pin: Pin, settings: AppLockSettings): UnlockResult {
         val credential = settings.credential ?: return UnlockResult.WrongPin
         settings.cooldownEndsAt?.let { endsAt ->
             if (Instant.now(clock).isBefore(endsAt)) return UnlockResult.CoolingDown(endsAt)
         }
-        return if (verifier.verify(pin, credential)) {
+        return if (withContext(dispatcher) { verifier.verify(pin, credential) }) {
             repository.resetAttempts()
             UnlockResult.Success
         } else {

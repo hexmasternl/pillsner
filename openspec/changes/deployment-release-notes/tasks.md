@@ -53,3 +53,14 @@ pin `actions/ai-inference@v3`, install the Copilot CLI (`actions/setup-node@v4` 
 `COPILOT_GITHUB_TOKEN`. The job's `models: read` permission was removed as it's no longer used.
 `design.md`, `proposal.md` and `specs/release-notes-drafting/spec.md` were updated to match.
 Re-verify 4.3 against this Copilot-based path, not the original GitHub Models path.
+
+### Correction found in first real run
+
+Release PR #23 (`development` → `main`) exercised the workflow and the drafting steps failed:
+`Model "gpt-4.1" from --model flag is not available` (confirmed via `gh run rerun --debug`). The
+hardcoded `model: gpt-4.1` no longer exists in Copilot's model catalog. Fixed by passing
+`model: ""` explicitly — `actions/ai-inference` only appends `--model` to the Copilot CLI
+invocation when that input is non-empty, so an empty string lets the CLI fall back to its
+account's own default model rather than a name this repo would have to keep chasing as GitHub's
+catalog changes. Re-run pending to confirm the fix; once it succeeds, re-verify 4.3's remaining
+checks (comment content and re-sync behaviour) against PR #23 or the next release PR.

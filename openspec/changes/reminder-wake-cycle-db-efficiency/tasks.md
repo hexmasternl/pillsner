@@ -11,25 +11,25 @@ changes), not version 2 as the original design assumed — this change adds vers
 
 ## 2. Shared wake-cycle snapshot
 
-- [ ] 2.1 Introduce a pending-dose snapshot type (pending doses plus a resolved lapse moment per dose) computed once per wake.
-- [ ] 2.2 Change `DueDoses.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
-- [ ] 2.3 Change `ComputeWakeSchedule.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
-- [ ] 2.4 Update `ReminderCoordinator.wake()` to build the snapshot once (after `markMissedDoses()` runs) and pass it into `dueDoses(...)` and `computeWakeSchedule(...)`.
+- [x] 2.1 Introduce a pending-dose snapshot type (pending doses plus a resolved lapse moment per dose) computed once per wake. (`PendingSnapshot` + `buildPendingSnapshot`, built after `refreshPlannedDoses()` per the corrected design, not right after `markMissedDoses()`.)
+- [x] 2.2 Change `DueDoses.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
+- [x] 2.3 Change `ComputeWakeSchedule.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
+- [x] 2.4 Update `ReminderCoordinator.wake()` to build the snapshot once (after `refreshPlannedDoses()` runs, per the corrected design) and pass it into `dueDoses(...)`; update the snapshot in memory to mirror the due-dose posting loop's writes, and pass the result into `computeWakeSchedule(...)` via `reconcileAlarms(WakeResult)`.
 - [ ] 2.5 Update the unit tests for `DueDoses` and `ComputeWakeSchedule` to construct a snapshot directly instead of stubbing repository calls; keep every existing scenario passing unchanged.
 
 ## 3. Reuse the medication list across the wake
 
-- [ ] 3.1 Change `RefreshPlannedDoses.invoke()` to return both the withdrawn dose ids and the medication list it already read.
-- [ ] 3.2 Update `ComputeWakeSchedule.invoke()` to accept the medication list as a parameter instead of calling `medicationRepository.observeAll().first()` itself.
-- [ ] 3.3 Update `ReminderCoordinator.wake()` to pass the medication list from `refreshPlannedDoses(...)`'s result into `computeWakeSchedule(...)`.
+- [x] 3.1 Change `RefreshPlannedDoses.invoke()` to return both the withdrawn dose ids and the medication list it already read. (`RefreshResult`.)
+- [x] 3.2 Update `ComputeWakeSchedule.invoke()` to accept the medication list as a parameter instead of calling `medicationRepository.observeAll().first()` itself.
+- [x] 3.3 Update `ReminderCoordinator.wake()` to pass the medication list from `refreshPlannedDoses(...)`'s result into `computeWakeSchedule(...)`.
 - [ ] 3.4 Update the affected unit tests for `RefreshPlannedDoses` and `ComputeWakeSchedule`.
 
 ## 4. Batch the per-row DB writes into transactions
 
-- [ ] 4.1 Add a `@Transaction` composite method on `DoseDao` that applies a list of snapshot refreshes in one transaction; update `RoomDoseRepository.refreshSnapshots` to call it instead of looping.
-- [ ] 4.2 Add a `DoseRepository.applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>)` method backed by a `@Transaction` DAO method that records reminded state and clears snoozes for a batch of doses in one transaction.
-- [ ] 4.3 Update `ReminderCoordinator.wake()`'s `due.forEach` loop to collect the per-dose updates and apply them in one call to `applyReminderOutcomes(...)` after the loop, instead of calling the repository per dose.
-- [ ] 4.4 Wrap `RoomDoseRepository.withdrawPlanned`'s body in a single `@Transaction` DAO-backed call so the id-collection queries and `deleteByIds` are atomic.
+- [x] 4.1 Add a `@Transaction` composite method on `DoseDao` that applies a list of snapshot refreshes in one transaction; update `RoomDoseRepository.refreshSnapshots` to call it instead of looping.
+- [x] 4.2 Add a `DoseRepository.applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>)` method backed by a `@Transaction` DAO method that records reminded state and clears snoozes for a batch of doses in one transaction.
+- [x] 4.3 Update `ReminderCoordinator.wake()`'s `due.forEach` loop to collect the per-dose updates and apply them in one call to `applyReminderOutcomes(...)` after the loop, instead of calling the repository per dose.
+- [x] 4.4 Wrap `RoomDoseRepository.withdrawPlanned`'s body in a single `@Transaction` DAO-backed call so the id-collection queries and `deleteByIds` are atomic. (Moved into `DoseDao.withdrawPlanned`.)
 - [ ] 4.5 Add or update DAO tests covering the batched methods with more than one row, confirming atomicity and confirming the resulting rows match the previous per-row behaviour exactly.
 
 ## 5. Reminder delivery log

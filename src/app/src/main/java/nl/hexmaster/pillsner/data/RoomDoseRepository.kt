@@ -14,6 +14,7 @@ import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.PlannedDose
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
+import nl.hexmaster.pillsner.domain.repository.ReminderOutcomeUpdate
 
 /** The wired [DoseRepository]: every planned dose and every answer, kept on the device by Room. */
 class RoomDoseRepository(
@@ -38,15 +39,17 @@ class RoomDoseRepository(
     }
 
     override suspend fun refreshSnapshots(doses: List<PlannedDose>) {
-        doses.forEach {
-            dao.refreshSnapshot(
-                medicationId = it.medicationId.value,
-                scheduledAt = it.scheduledAt,
-                name = it.medicationName,
-                amountValue = it.amount.value,
-                amountUnit = it.amount.unit.name,
-            )
-        }
+        dao.refreshSnapshots(
+            doses.map {
+                DoseDao.SnapshotUpdate(
+                    medicationId = it.medicationId.value,
+                    scheduledAt = it.scheduledAt,
+                    name = it.medicationName,
+                    amountValue = it.amount.value,
+                    amountUnit = it.amount.unit.name,
+                )
+            },
+        )
     }
 
     override suspend fun withdrawPlanned(
@@ -54,39 +57,15 @@ class RoomDoseRepository(
         to: Instant,
         planned: Map<MedicationId, List<Instant>>,
         includeReminded: Boolean,
-    ): List<DoseId> {
-        val (scheduled, unscheduled) = planned.entries.partition { it.value.isNotEmpty() }
-
-        // Read the ids first, then delete them: a delete cannot say what it removed, and the
-        // coordinator needs the list to take down the notifications for them.
-        val ids = buildList {
-            scheduled.forEach { (medicationId, moments) ->
-                addAll(
-                    dao.plannedNoLongerScheduled(
-                        medicationId = medicationId.value,
-                        from = from,
-                        to = to,
-                        keep = moments,
-                        includeReminded = includeReminded,
-                    ),
-                )
-            }
-            if (unscheduled.isNotEmpty()) {
-                addAll(
-                    dao.plannedForUnscheduledMedications(
-                        medicationIds = unscheduled.map { it.key.value },
-                        from = from,
-                        to = to,
-                        includeReminded = includeReminded,
-                    ),
-                )
-            }
-        }
-
-        if (ids.isEmpty()) return emptyList()
-        dao.deleteByIds(ids)
-        return ids.map(::DoseId)
-    }
+    ): List<DoseId> =
+        dao.withdrawPlanned(
+            from = from,
+            to = to,
+            planned = planned.map { (medicationId, moments) ->
+                DoseDao.WithdrawalWindow(medicationId.value, moments)
+            },
+            includeReminded = includeReminded,
+        ).map(::DoseId)
 
     override suspend fun recordIntake(id: DoseId, outcome: IntakeOutcome, at: Instant) {
         dao.setIntake(id.value, outcome.name, at)
@@ -98,6 +77,19 @@ class RoomDoseRepository(
 
     override suspend fun recordReminded(id: DoseId, at: Instant, countsAsRepeat: Boolean) {
         dao.recordReminded(id.value, at, repeats = if (countsAsRepeat) 1 else 0)
+    }
+
+    override suspend fun applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>) {
+        dao.applyReminderOutcomes(
+            updates.map {
+                DoseDao.ReminderOutcomeRow(
+                    id = it.id.value,
+                    at = it.at,
+                    repeats = if (it.countsAsRepeat) 1 else 0,
+                    clearsSnooze = it.clearsSnooze,
+                )
+            },
+        )
     }
 
     override suspend fun nextScheduledAtAfter(medicationId: MedicationId, after: Instant): Instant? =

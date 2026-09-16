@@ -15,14 +15,14 @@ changes), not version 2 as the original design assumed — this change adds vers
 - [x] 2.2 Change `DueDoses.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
 - [x] 2.3 Change `ComputeWakeSchedule.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
 - [x] 2.4 Update `ReminderCoordinator.wake()` to build the snapshot once (after `refreshPlannedDoses()` runs, per the corrected design) and pass it into `dueDoses(...)`; update the snapshot in memory to mirror the due-dose posting loop's writes, and pass the result into `computeWakeSchedule(...)` via `reconcileAlarms(WakeResult)`.
-- [ ] 2.5 Update the unit tests for `DueDoses` and `ComputeWakeSchedule` to construct a snapshot directly instead of stubbing repository calls; keep every existing scenario passing unchanged.
+- [x] 2.5 Update the unit tests for `DueDoses` and `ComputeWakeSchedule` to construct a snapshot directly instead of stubbing repository calls; keep every existing scenario passing unchanged. (Verified: `./gradlew :app:testDebugUnitTest` — `DueDosesTest` 7/7, `ComputeWakeScheduleTest` 11/11, all passing.)
 
 ## 3. Reuse the medication list across the wake
 
 - [x] 3.1 Change `RefreshPlannedDoses.invoke()` to return both the withdrawn dose ids and the medication list it already read. (`RefreshResult`.)
 - [x] 3.2 Update `ComputeWakeSchedule.invoke()` to accept the medication list as a parameter instead of calling `medicationRepository.observeAll().first()` itself.
 - [x] 3.3 Update `ReminderCoordinator.wake()` to pass the medication list from `refreshPlannedDoses(...)`'s result into `computeWakeSchedule(...)`.
-- [ ] 3.4 Update the affected unit tests for `RefreshPlannedDoses` and `ComputeWakeSchedule`.
+- [x] 3.4 Update the affected unit tests for `RefreshPlannedDoses` and `ComputeWakeSchedule`. (Verified: `RefreshPlannedDosesTest` 19/19 passing.)
 
 ## 4. Batch the per-row DB writes into transactions
 

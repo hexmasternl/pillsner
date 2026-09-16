@@ -47,6 +47,15 @@ open class ReminderDeliveryLog(
     // Bumped after every write, so a screen showing the log re-reads it.
     private val version = MutableStateFlow(0)
 
+    /**
+     * How many lines [file] holds, or null until first needed. Read from the file exactly once,
+     * on the [writer] dispatcher, the first time [append] runs; every append then increments it in
+     * memory instead of re-reading the whole file just to decide whether it has grown past the trim
+     * threshold (reminder-wake-cycle-db-efficiency design D4). Only ever touched on [writer], which
+     * is single-threaded, so it needs no further synchronisation.
+     */
+    private var lineCount: Int? = null
+
     /** One line of the log. */
     data class Entry(val at: Instant, val event: DeliveryEvent, val detail: String?)
 
@@ -64,7 +73,12 @@ open class ReminderDeliveryLog(
 
     private suspend fun append(entry: Entry) = withContext(writer) {
         runCatching {
+            // The file may not exist yet - the very first entry ever written creates it, just as
+            // appendText below always has - so an absent file reads as zero lines rather than
+            // throwing before that first entry gets the chance to create it.
+            if (lineCount == null) lineCount = if (file.exists()) file.readLines().size else 0
             file.appendText(entry.toLine() + "\n")
+            lineCount = lineCount!! + 1
             trimIfNeeded()
         }
         version.value++
@@ -75,9 +89,10 @@ open class ReminderDeliveryLog(
     }
 
     private fun trimIfNeeded() {
+        if ((lineCount ?: 0) <= MAX_ENTRIES + TRIM_SLACK) return
         val lines = file.readLines()
-        if (lines.size <= MAX_ENTRIES + TRIM_SLACK) return
         file.writeText(lines.takeLast(MAX_ENTRIES).joinToString("\n", postfix = "\n"))
+        lineCount = MAX_ENTRIES
     }
 
     private fun Entry.toLine(): String =

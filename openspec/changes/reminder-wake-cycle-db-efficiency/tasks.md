@@ -34,9 +34,9 @@ changes), not version 2 as the original design assumed — this change adds vers
 
 ## 5. Reminder delivery log
 
-- [ ] 5.1 Add an in-memory line count to `ReminderDeliveryLog`, initialised once by reading the file, and updated on every `append()` instead of re-reading the file.
-- [ ] 5.2 Make `trimIfNeeded()` run its read-and-rewrite only when the in-memory count exceeds `MAX_ENTRIES + TRIM_SLACK`, and reset the count after trimming.
-- [ ] 5.3 Add or update a test confirming the log file is not read on every `record()` call, and that trimming still occurs correctly once the threshold is crossed.
+- [x] 5.1 Add an in-memory line count to `ReminderDeliveryLog`, initialised once by reading the file, and updated on every `append()` instead of re-reading the file.
+- [x] 5.2 Make `trimIfNeeded()` run its read-and-rewrite only when the in-memory count exceeds `MAX_ENTRIES + TRIM_SLACK`, and reset the count after trimming.
+- [x] 5.3 Add or update a test confirming the log file is not read on every `record()` call, and that trimming still occurs correctly once the threshold is crossed. (Verified: `ReminderDeliveryLogTest` 6/6 passing, including two new tests: growing the file behind the log's back proves it isn't re-checking the real file size, and a repeat of the bounded-log test confirms trimming still happens off the in-memory count.)
 
 ## 6. Verification
 

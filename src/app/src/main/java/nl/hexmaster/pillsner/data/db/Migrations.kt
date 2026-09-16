@@ -73,6 +73,21 @@ object Migrations {
         }
     }
 
+    /**
+     * Adds the composite index that keeps a pending-doses query a single index scan as the
+     * `doses` table grows without bound (reminder-wake-cycle-db-efficiency design D5).
+     *
+     * Index-only: no column or data changes, so every existing row is untouched.
+     */
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS " +
+                    "`index_doses_outcome_scheduled_at` ON `doses` (`outcome`, `scheduled_at`)",
+            )
+        }
+    }
+
     /** Every migration the database knows about, in order. */
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 }

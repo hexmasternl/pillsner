@@ -28,6 +28,7 @@ import java.time.Instant
     indices = [
         Index(value = ["medication_id", "scheduled_at"], unique = true),
         Index(value = ["scheduled_at"]),
+        Index(value = ["outcome", "scheduled_at"]),
     ],
 )
 data class DoseEntity(

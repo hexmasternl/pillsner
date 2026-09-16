@@ -389,6 +389,26 @@ class DoseDaoTest {
         assertEquals(0, stored.getValue(evening).reminderCount)
     }
 
+    @Test
+    fun pendingQuery_usesTheOutcomeScheduledAtIndex() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+
+        val plan = database.openHelper.writableDatabase
+            .query("EXPLAIN QUERY PLAN SELECT * FROM doses WHERE outcome IS NULL ORDER BY scheduled_at ASC")
+            .use { cursor ->
+                val detail = cursor.getColumnIndexOrThrow("detail")
+                buildString {
+                    while (cursor.moveToNext()) appendLine(cursor.getString(detail))
+                }
+            }
+
+        assertTrue(
+            "Expected the doses(outcome, scheduled_at) index in the query plan, got:\n$plan",
+            plan.contains("index_doses_outcome_scheduled_at"),
+        )
+    }
+
     private fun medication() = NewMedication(
         name = "Ibuprofen",
         defaultDose = mg40,

@@ -8,5 +8,9 @@
     <string-array name="language_names" translatable="false">
         <item>English</item>
         <item>Nederlands</item>
+        <item>Deutsch</item>
+        <item>Français</item>
+        <item>Español</item>
+        <item>Português</item>
     </string-array>
 </resources>

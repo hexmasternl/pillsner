@@ -30,7 +30,7 @@ class LocaleResolverTest {
 
     @Test
     fun `a language the app does not ship is skipped for one it does`() {
-        val resolved = LocaleResolver.resolve(AppLanguage.SYSTEM, listOf("de-DE", "fr-FR", "en-GB"))
+        val resolved = LocaleResolver.resolve(AppLanguage.SYSTEM, listOf("it-IT", "pl-PL", "en-GB"))
 
         assertEquals(AppLanguage.ENGLISH, resolved)
     }
@@ -48,7 +48,7 @@ class LocaleResolverTest {
 
     @Test
     fun `a phone speaking nothing the app ships reads English`() {
-        val resolved = LocaleResolver.resolve(AppLanguage.SYSTEM, listOf("de-DE", "fr-FR"))
+        val resolved = LocaleResolver.resolve(AppLanguage.SYSTEM, listOf("it-IT", "pl-PL"))
 
         assertEquals(AppLanguage.ENGLISH, resolved)
     }
@@ -60,11 +60,11 @@ class LocaleResolverTest {
 
     @Test
     fun `an unrecognised stored tag is treated as following the phone`() {
-        assertEquals(AppLanguage.SYSTEM, AppLanguage.ofTag("de"))
+        assertEquals(AppLanguage.SYSTEM, AppLanguage.ofTag("it"))
         assertEquals(AppLanguage.SYSTEM, AppLanguage.ofTag(null))
         assertEquals(
             AppLanguage.DUTCH,
-            LocaleResolver.resolve(AppLanguage.ofTag("de"), listOf("nl-NL")),
+            LocaleResolver.resolve(AppLanguage.ofTag("it"), listOf("nl-NL")),
         )
     }
 
@@ -72,5 +72,28 @@ class LocaleResolverTest {
     fun `a stored tag round-trips`() {
         assertEquals(AppLanguage.DUTCH, AppLanguage.ofTag(AppLanguage.DUTCH.tag))
         assertEquals(AppLanguage.ENGLISH, AppLanguage.ofTag(AppLanguage.ENGLISH.tag))
+    }
+
+    @Test
+    fun `a new supported language is picked when it is the phone's first match`() {
+        val resolved = LocaleResolver.resolve(AppLanguage.SYSTEM, listOf("it-IT", "de-DE", "nl-NL"))
+
+        assertEquals(AppLanguage.GERMAN, resolved)
+    }
+
+    @Test
+    fun `a regional variant of a new language matches on language only`() {
+        assertEquals(
+            AppLanguage.PORTUGUESE,
+            LocaleResolver.resolve(AppLanguage.SYSTEM, listOf("pt-BR")),
+        )
+    }
+
+    @Test
+    fun `every new language round-trips its tag`() {
+        assertEquals(AppLanguage.GERMAN, AppLanguage.ofTag(AppLanguage.GERMAN.tag))
+        assertEquals(AppLanguage.FRENCH, AppLanguage.ofTag(AppLanguage.FRENCH.tag))
+        assertEquals(AppLanguage.SPANISH, AppLanguage.ofTag(AppLanguage.SPANISH.tag))
+        assertEquals(AppLanguage.PORTUGUESE, AppLanguage.ofTag(AppLanguage.PORTUGUESE.tag))
     }
 }

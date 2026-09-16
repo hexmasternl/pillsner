@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    La traducción al español. El glosario de CLAUDE.md se respeta en todo el archivo:
+    medicamento, horario, dosis, toma, recordatorio, posponer.
+-->
+<resources>
+    <!-- Navegación -->
+    <string name="logo_content_description">Logotipo de Pillsner</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_medicines">Medicamentos</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="medicines_title">Medicamentos</string>
+    <string name="settings_title">Ajustes</string>
+
+    <!-- Inicio: lista vacía -->
+    <string name="home_empty_title">Nada pendiente por ahora</string>
+    <string name="home_empty_hint">Tu próxima dosis aparecerá aquí.</string>
+
+    <!-- Tarjeta de dosis -->
+    <string name="day_tomorrow">Mañana</string>
+    <string name="dose_tile_description">%1$s, %2$s, %3$s a las %4$s</string>
+    <string name="dose_tile_description_with_day">%1$s, %2$s, %3$s a las %4$s %5$s</string>
+
+    <!-- Estado de una dosis -->
+    <string name="dose_status_due">Pendiente</string>
+    <string name="dose_status_taken">Tomada</string>
+    <string name="dose_status_snoozed">Pospuesta</string>
+    <string name="dose_status_skipped">Omitida</string>
+    <string name="dose_status_overdue">Atrasada</string>
+    <string name="dose_status_missed">Perdida</string>
+
+    <!-- Acciones compartidas -->
+    <string name="action_back">Atrás</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_done">Hecho</string>
+    <string name="action_ok">Aceptar</string>
+    <string name="action_clear">Borrar</string>
+    <string name="action_discard">Descartar</string>
+    <string name="action_keep_editing">Seguir editando</string>
+    <string name="action_pick_date">Elegir una fecha</string>
+
+    <!-- Bloqueo de la aplicación: desbloqueo -->
+    <string name="applock_unlock_title">Introduce tu PIN</string>
+    <string name="applock_wrong_pin_message">Ese PIN no coincide. Inténtalo de nuevo.</string>
+    <plurals name="applock_cooldown_message">
+        <item quantity="one">Demasiados intentos fallidos. Vuelve a intentarlo en %d segundo.</item>
+        <item quantity="other">Demasiados intentos fallidos. Vuelve a intentarlo en %d segundos.</item>
+    </plurals>
+    <string name="applock_use_biometrics">Usar datos biométricos</string>
+    <string name="applock_use_pin">Usar PIN</string>
+    <string name="applock_biometric_prompt_title">Desbloquear Pillsner</string>
+
+    <!-- Bloqueo de la aplicación: recuperación -->
+    <string name="applock_recovery_title">No se puede comprobar el PIN</string>
+    <string name="applock_recovery_explanation">Algo ha cambiado en este dispositivo y el bloqueo de la aplicación ya no puede comprobar tu PIN. Confirma el bloqueo de pantalla de tu dispositivo para restablecerlo y, después, configúralo de nuevo.</string>
+    <string name="applock_reset_action">Restablecer el bloqueo de la aplicación</string>
+
+    <!-- Bloqueo de la aplicación: teclado numérico -->
+    <string name="applock_keypad_submit">Continuar</string>
+    <string name="applock_keypad_backspace">Borrar el último dígito</string>
+    <string name="applock_pin_dots_description">Introducción de PIN, %1$d dígitos introducidos. Un PIN tiene entre %2$d y %3$d dígitos.</string>
+
+    <!-- Bloqueo de la aplicación: configurar el PIN -->
+    <string name="applock_setup_choose_title">Elige un PIN</string>
+    <string name="applock_setup_confirm_title">Confirma tu PIN</string>
+    <string name="applock_setup_choose_instruction">Elige un PIN para proteger Pillsner.</string>
+    <string name="applock_setup_confirm_instruction">Introduce el mismo PIN otra vez para confirmarlo.</string>
+    <string name="applock_setup_length_hint">Usa entre 4 y 6 dígitos.</string>
+    <string name="applock_setup_mismatch_message">Esos PIN no coincidían. Elige un PIN y vuelve a introducirlo.</string>
+
+    <!-- Bloqueo de la aplicación: sección Seguridad -->
+    <string name="applock_security_header">Seguridad</string>
+    <string name="applock_protect_with_pin_title">Proteger con PIN</string>
+    <string name="applock_protect_with_pin_supporting">Exige un PIN para abrir Pillsner.</string>
+    <string name="applock_biometric_title">Desbloquear con datos biométricos</string>
+    <string name="applock_biometric_supporting">Usa tu huella dactilar o tu rostro en lugar de tu PIN.</string>
+    <string name="applock_biometric_disabled_no_pin">Activa Proteger con PIN para usar esta opción.</string>
+    <string name="applock_biometric_disabled_not_enrolled">En este dispositivo no hay datos biométricos configurados.</string>
+    <string name="applock_screenshot_note">Las capturas de pantalla y la vista previa de aplicaciones recientes están ocultas mientras el bloqueo de la aplicación está activado.</string>
+    <string name="applock_change_pin_title">Cambiar PIN</string>
+    <string name="applock_change_pin_supporting">Elige un nuevo PIN para el bloqueo de la aplicación.</string>
+
+    <!-- Verificación de identidad antes de un cambio de seguridad -->
+    <string name="applock_verify_change_pin_title">Confirma que eres tú para cambiar tu PIN</string>
+    <string name="applock_verify_disable_biometrics_title">Confirma que eres tú para desactivar el desbloqueo biométrico</string>
+    <string name="applock_verify_disable_lock_title">Confirma que eres tú para desactivar el bloqueo de la aplicación</string>
+    <string name="applock_verify_biometric_instruction">Usa tu huella dactilar o tu rostro para confirmar.</string>
+    <string name="applock_verify_pin_instruction">Introduce tu PIN actual para confirmar.</string>
+    <string name="applock_biometrics_off_message">Desbloqueo biométrico desactivado</string>
+    <string name="applock_lock_disabled_message">Bloqueo de la aplicación desactivado</string>
+
+    <!-- Cambiar el PIN -->
+    <string name="applock_change_choose_title">Elige un nuevo PIN</string>
+    <string name="applock_change_confirm_title">Confirma tu nuevo PIN</string>
+    <string name="applock_change_choose_instruction">Elige un nuevo PIN para proteger Pillsner.</string>
+    <string name="applock_change_confirm_instruction">Introduce el mismo PIN nuevo otra vez para confirmarlo.</string>
+    <string name="applock_change_same_pin_message">Elige un PIN distinto del actual.</string>
+    <string name="applock_pin_changed_message">PIN cambiado</string>
+
+    <!-- Resumen de medicamentos -->
+    <string name="medicines_section_active">Activos</string>
+    <string name="medicines_section_inactive">Inactivos</string>
+    <string name="medicines_empty_title">Aún no hay medicamentos</string>
+    <string name="medicines_empty_hint">Toca + para añadir tu primer medicamento.</string>
+    <string name="medicines_active_empty_title">No hay medicamentos activos</string>
+    <string name="medicines_active_empty_hint">Toca + para añadir uno.</string>
+    <string name="medicines_add_content_description">Añadir medicamento</string>
+    <string name="medicine_inactive_label">Inactivo</string>
+    <string name="medicines_action_deactivate">Desactivar</string>
+    <string name="medicines_action_activate">Activar</string>
+    <string name="medicines_update_failed">No se pudo actualizar el medicamento</string>
+    <string name="medicines_tile_open_details">Abrir los detalles del medicamento</string>
+
+    <!-- Descripciones de horario. Minúscula: siempre va precedido de una cantidad. -->
+    <string name="schedule_with_amount">%1$s %2$s</string>
+    <string name="schedule_once_a_day">una vez al día</string>
+    <string name="schedule_twice_a_day">dos veces al día</string>
+    <string name="schedule_n_times_a_day">%d veces al día</string>
+    <string name="schedule_once_a_day_on_days">una vez al día los %s</string>
+    <string name="schedule_twice_a_day_on_days">dos veces al día los %s</string>
+    <string name="schedule_n_times_a_day_on_days">%1$d veces al día los %2$s</string>
+    <string name="schedule_days_weekdays">días laborables</string>
+    <string name="schedule_once_every_other_day">una vez cada dos días</string>
+    <string name="schedule_twice_every_other_day">dos veces cada dos días</string>
+    <string name="schedule_n_times_every_other_day">%d veces cada dos días</string>
+    <string name="schedule_once_every_n_days">una vez cada %d días</string>
+    <string name="schedule_twice_every_n_days">dos veces cada %d días</string>
+    <string name="schedule_n_times_every_n_days">%1$d veces cada %2$d días</string>
+    <string name="schedule_every_n_hours">cada %d horas</string>
+    <string name="schedule_as_needed">cuando sea necesario</string>
+    <string name="list_separator">", "</string>
+
+    <!-- Unidades. %s es la cantidad ya formateada, por ejemplo «2,5» o «40». -->
+    <plurals name="dose_unit_milligram">
+        <item quantity="one">%s mg</item>
+        <item quantity="other">%s mg</item>
+    </plurals>
+    <plurals name="dose_unit_gram">
+        <item quantity="one">%s g</item>
+        <item quantity="other">%s g</item>
+    </plurals>
+    <plurals name="dose_unit_microgram">
+        <item quantity="one">%s mcg</item>
+        <item quantity="other">%s mcg</item>
+    </plurals>
+    <plurals name="dose_unit_millilitre">
+        <item quantity="one">%s ml</item>
+        <item quantity="other">%s ml</item>
+    </plurals>
+    <plurals name="dose_unit_tablet">
+        <item quantity="one">%s comprimido</item>
+        <item quantity="other">%s comprimidos</item>
+    </plurals>
+    <plurals name="dose_unit_capsule">
+        <item quantity="one">%s cápsula</item>
+        <item quantity="other">%s cápsulas</item>
+    </plurals>
+    <plurals name="dose_unit_drop">
+        <item quantity="one">%s gota</item>
+        <item quantity="other">%s gotas</item>
+    </plurals>
+    <plurals name="dose_unit_puff">
+        <item quantity="one">%s pulsación</item>
+        <item quantity="other">%s pulsaciones</item>
+    </plurals>
+    <plurals name="dose_unit_unit">
+        <item quantity="one">%s unidad</item>
+        <item quantity="other">%s unidades</item>
+    </plurals>
+
+    <!-- Unidades en el selector -->
+    <string name="dose_unit_label_milligram">mg</string>
+    <string name="dose_unit_label_gram">g</string>
+    <string name="dose_unit_label_microgram">mcg</string>
+    <string name="dose_unit_label_millilitre">ml</string>
+    <string name="dose_unit_label_tablet">comprimido</string>
+    <string name="dose_unit_label_capsule">cápsula</string>
+    <string name="dose_unit_label_drop">gota</string>
+    <string name="dose_unit_label_puff">pulsación</string>
+    <string name="dose_unit_label_unit">unidad</string>
+
+    <!-- Formulario de medicamento -->
+    <string name="medication_form_title_add">Añadir medicamento</string>
+    <string name="medication_form_title_details">Detalles del medicamento</string>
+    <string name="medicine_field_name">Nombre</string>
+    <string name="medicine_field_default_dose">Dosis predeterminada</string>
+    <string name="medicine_field_unit">Unidad</string>
+    <string name="medicine_field_used_since">En uso desde</string>
+    <string name="medicine_field_use_until">Usar hasta</string>
+    <string name="medicine_field_prescribed_by">Prescrito por</string>
+    <string name="medicine_schedules_header">Horarios</string>
+    <string name="medicine_add_schedule">Añadir horario</string>
+    <string name="medicine_no_schedules">Aún no hay horarios. Este medicamento aparecerá como de uso cuando sea necesario.</string>
+    <string name="schedule_remove_content_description">Eliminar horario</string>
+    <string name="medicine_save_failed">No se pudo guardar este medicamento. Inténtalo de nuevo.</string>
+    <string name="medication_form_active">Activo</string>
+    <string name="medication_form_active_supporting">Los medicamentos inactivos no generan recordatorios</string>
+    <string name="medication_form_open_failed">No se pudo abrir el medicamento</string>
+
+    <!-- Formulario de medicamento: validación -->
+    <string name="medicine_error_name_required">Introduce un nombre.</string>
+    <string name="medicine_error_dose_required">Introduce una cantidad.</string>
+    <string name="medicine_error_dose_not_a_number">Introduce la cantidad como un número.</string>
+    <string name="medicine_error_dose_not_positive">Introduce una cantidad mayor que cero.</string>
+    <string name="medicine_error_use_until_before_used_since">Debe ser igual o posterior a la fecha de inicio de uso.</string>
+
+    <!-- Descartar un borrador -->
+    <string name="medicine_discard_title">¿Descartar este medicamento?</string>
+    <string name="medicine_discard_body">Se perderá todo lo que has introducido.</string>
+
+    <!-- Prescriptor -->
+    <string name="prescriber_general_practitioner">Médico de cabecera</string>
+    <string name="prescriber_specialist">Especialista</string>
+    <string name="prescriber_pharmacist">Farmacéutico</string>
+    <string name="prescriber_self">Yo mismo</string>
+    <string name="prescriber_other">Otro</string>
+
+    <!-- Editor de horario -->
+    <string name="schedule_editor_add_title">Añadir horario</string>
+    <string name="schedule_editor_edit_title">Editar horario</string>
+    <string name="schedule_field_amount">Cantidad</string>
+    <string name="schedule_field_interval_hours">Intervalo</string>
+    <string name="schedule_field_first_dose">Primera dosis</string>
+    <string name="schedule_pattern_every_n_days">Cada N días</string>
+    <string name="schedule_pattern_weekdays">Días fijos</string>
+    <string name="schedule_pattern_every_n_hours">Cada N horas</string>
+    <string name="schedule_interval_every_day">Todos los días</string>
+    <string name="schedule_interval_every_other_day">Cada dos días</string>
+    <string name="schedule_interval_every_n_days">Cada %d días</string>
+    <string name="schedule_interval_decrease">Menos días entre dosis</string>
+    <string name="schedule_interval_increase">Más días entre dosis</string>
+    <string name="schedule_add_time">Añadir hora</string>
+    <string name="schedule_pick_time">Elegir una hora</string>
+    <string name="schedule_remove_time_content_description">Eliminar hora</string>
+    <string name="schedule_hours_value">%d horas</string>
+    <string name="schedule_daily_times">Dosis a las %s</string>
+    <string name="schedule_all_seven_days_hint">Los siete días equivalen a todos los días. Usa Cada N días en su lugar.</string>
+    <string name="schedule_preview_placeholder">Completa el horario para ver cómo quedará.</string>
+    <string name="schedule_duplicate_time">Esa hora ya está en la lista.</string>
+
+    <!-- Editor de horario: validación -->
+    <string name="schedule_error_times_required">Añade al menos una hora.</string>
+    <string name="schedule_error_days_required">Selecciona al menos un día.</string>
+    <string name="schedule_error_all_seven_days">Selecciona menos de siete días, o usa Cada N días.</string>
+
+    <!-- Ajustes: zona de peligro -->
+    <string name="reset_header">Zona de peligro</string>
+    <string name="reset_explanation">Borra todos los medicamentos, horarios y registros guardados en este dispositivo. No se puede deshacer.</string>
+    <string name="reset_action">Restablecer la aplicación</string>
+    <string name="reset_dialog_title">¿Restablecer la aplicación?</string>
+    <string name="reset_dialog_erased">Esto borra todos los medicamentos, todos los horarios y tu historial de tomas completo de este dispositivo. No se puede deshacer.</string>
+    <string name="reset_dialog_kept">Tu idioma, tu bloqueo de la aplicación y los documentos que has aceptado se mantienen como están.</string>
+    <string name="reset_dialog_checkbox">Entiendo que todos los datos se borrarán de forma permanente</string>
+    <string name="reset_dialog_confirm">Borrar todo</string>
+    <string name="reset_done_message">Todo se ha borrado</string>
+
+    <!-- Detalle de la dosis -->
+    <string name="dose_detail_title">Dosis</string>
+    <string name="dose_detail_close">Cerrar</string>
+    <string name="dose_detail_early">Esta dosis aún no está pendiente. Aún puedes registrarla.</string>
+    <string name="dose_detail_late">Esta dosis está atrasada. Aún puedes registrarla.</string>
+    <string name="dose_detail_taken_at">Tomada a las %1$s</string>
+    <string name="dose_detail_skipped">Elegiste no tomar esta dosis</string>
+    <string name="dose_detail_missed">Esta dosis no se tomó</string>
+    <string name="dose_detail_gone_title">Esta dosis ya no está programada</string>
+    <string name="dose_detail_gone_hint">Su medicamento o su horario ha cambiado.</string>
+    <string name="dose_tile_open">Abrir dosis</string>
+
+    <!-- Comprobación -->
+    <string name="wake_channel_name">Comprobando tus medicamentos</string>
+    <string name="wake_channel_description">Aparece un momento mientras Pillsner determina qué dosis están pendientes. Puedes desactivarlo.</string>
+    <string name="wake_notification">Comprobando tus medicamentos…</string>
+
+    <!-- Recordatorio -->
+    <string name="reminder_channel_name">Recordatorios de medicamentos</string>
+    <string name="reminder_channel_description">Te avisa cuando una dosis está pendiente y te permite responder directamente desde la notificación. Suena como una alarma, así que se abre paso incluso con No molestar y con el teléfono en silencio.</string>
+    <string name="reminder_text">Toma %1$s de tu medicamento \'%2$s\', a las %3$s</string>
+    <string name="reminder_time_with_day">%1$s %2$s</string>
+    <string name="reminder_public_title">Hora de tu medicamento</string>
+    <string name="reminder_action_took_it">Ya la tomé</string>
+    <string name="reminder_action_not_yet">Todavía no</string>
+    <string name="reminder_action_not_going_to">No la tomaré</string>
+    <plurals name="reminder_group_summary">
+        <item quantity="one">%d medicamento pendiente</item>
+        <item quantity="other">%d medicamentos pendientes</item>
+    </plurals>
+
+    <!-- Inicio: los recordatorios no se pueden entregar -->
+    <string name="reminder_banner_notifications_denied">Pillsner no puede mostrar recordatorios porque las notificaciones están desactivadas.</string>
+    <string name="reminder_banner_inexact_alarms">Los recordatorios pueden llegar hasta diez minutos tarde porque las alarmas exactas están desactivadas.</string>
+    <string name="reminder_banner_reminder_missed">Una dosis llegó a su hora y no llegó ningún recordatorio.</string>
+    <string name="reminder_banner_open_settings">Abrir ajustes</string>
+    <string name="reminder_banner_check_background">Comprobar los ajustes en segundo plano</string>
+
+    <!-- Ajustes: idioma -->
+    <string name="settings_language_header">Idioma</string>
+    <string name="settings_language_label">Idioma</string>
+    <string name="settings_language_system_default">Idioma del sistema</string>
+    <string name="settings_language_restart_notice">Reinicia Pillsner para aplicar el nuevo idioma</string>
+
+    <!-- Ajustes: tema -->
+    <string name="settings_theme_header">Tema</string>
+    <string name="settings_theme_label">Tema</string>
+    <string name="settings_theme_system_default">Predeterminado del sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+
+    <!-- Ajustes: legal -->
+    <string name="legal_section_header">Legal</string>
+    <string name="legal_row_disclaimer">Aviso legal</string>
+    <string name="legal_row_terms">Términos de servicio</string>
+    <string name="legal_status_not_accepted">Aún no aceptado</string>
+    <!-- %1$s: la fecha en que el usuario lo aceptó -->
+    <string name="legal_status_accepted">Aceptado el %1$s</string>
+    <!-- %1$s: la fecha en que el usuario aceptó una versión anterior de los documentos -->
+    <string name="legal_status_revised">Aceptado el %1$s — estos documentos han cambiado desde entonces</string>
+
+    <!-- Un documento legal en su propia pantalla -->
+    <string name="legal_disclaimer_title">Aviso legal</string>
+    <string name="legal_terms_title">Términos de servicio</string>
+    <!-- %1$d: la versión del documento, %2$s: la fecha en que entró en vigor -->
+    <string name="legal_document_version">Versión %1$d · %2$s</string>
+
+    <!-- La pantalla de aceptación, mostrada antes de añadir el primer medicamento -->
+    <string name="legal_accept_title">Antes de añadir un medicamento</string>
+    <string name="legal_accept_scroll_hint">Lee el aviso legal hasta el final para continuar</string>
+    <string name="legal_accept_terms_link">Leer los términos de servicio</string>
+    <string name="legal_accept_button">Entiendo y acepto</string>
+    <string name="legal_accept_now_enabled">Ya puedes aceptar</string>
+
+    <!-- El aviso legal, versión 1 -->
+    <string name="legal_disclaimer_s1_heading">Pillsner es un recordatorio, no un médico</string>
+    <string name="legal_disclaimer_s1_p1">Pillsner te ayuda a recordar que debes tomar tu medicación. No es un producto sanitario y no ofrece consejo médico. No comprueba si un medicamento es adecuado para ti, si una dosis es segura, ni si dos medicamentos son compatibles entre sí.</string>
+    <string name="legal_disclaimer_s1_p2">Todo lo que Pillsner te muestra es lo que tú mismo has introducido. No sabe nada de tu receta, tu afección ni tu tratamiento.</string>
+    <string name="legal_disclaimer_s2_heading">Tú decides qué tomas</string>
+    <string name="legal_disclaimer_s2_p1">Tú, junto con el médico o farmacéutico que te ha recetado tu medicación, decides qué medicamento tomas, en qué cantidad, con qué frecuencia y a qué horas. Pillsner solo repite el horario que tú le has indicado.</string>
+    <string name="legal_disclaimer_s2_p2">Si lo que Pillsner te recuerda no coincide con tu receta, sigue tu receta y corrige el horario en la aplicación.</string>
+    <string name="legal_disclaimer_s3_heading">Un recordatorio puede llegar tarde o no llegar</string>
+    <string name="legal_disclaimer_s3_p1">Pillsner no puede garantizar que un recordatorio te llegue. Es posible que tu teléfono esté apagado, sin batería, en silencio, en un modo de concentración o No molestar, o que el sistema retrase o detenga la aplicación para ahorrar batería. Nada de eso está bajo el control de la aplicación.</string>
+    <string name="legal_disclaimer_s3_p2">No confíes solo en Pillsner para recordarte que debes tomar tu medicación. Mantén cualquier otro método que te funcione: una rutina fija, un pastillero, una segunda alarma o alguien que te ayude.</string>
+    <string name="legal_disclaimer_s4_heading">De qué no somos responsables</string>
+    <string name="legal_disclaimer_s4_p1">Ni Pillsner, ni su editor Eduard Keilholz, ni las personas que la desarrollan pueden ser considerados responsables de una dosis que se olvide, se tome tarde, se tome dos veces o se tome de forma incorrecta, haya llegado o no un recordatorio.</string>
+    <string name="legal_disclaimer_s4_p2">Lo mismo se aplica a cualquier daño, pérdida o coste derivado del uso de la aplicación, o de la imposibilidad de usarla.</string>
+    <string name="legal_disclaimer_s5_heading">A quién preguntar</string>
+    <string name="legal_disclaimer_s5_p1">Las preguntas sobre tu medicación, tu dosis o tu horario debes dirigirlas a tu médico o a tu farmacéutico. Ellos conocen tu situación; la aplicación no.</string>
+    <string name="legal_disclaimer_s5_p2">En caso de emergencia, o si crees que has tomado demasiada cantidad, contacta de inmediato con los servicios de emergencia o con un centro de información toxicológica. No esperes a la aplicación.</string>
+
+    <!-- Los términos de servicio, versión 1 -->
+    <string name="legal_terms_s1_heading">Tu licencia de uso de Pillsner</string>
+    <string name="legal_terms_s1_p1">Eduard Keilholz te concede una licencia personal, no exclusiva y revocable para usar Pillsner en dispositivos que controlas, para tu propio uso. No puedes vender, alquilar ni redistribuir la aplicación, ni presentarla como propia.</string>
+    <string name="legal_terms_s1_p2">Esta licencia dura mientras cumplas estos términos. Puedes darla por finalizada en cualquier momento eliminando la aplicación de tu dispositivo.</string>
+    <string name="legal_terms_s2_heading">Se proporciona tal cual</string>
+    <string name="legal_terms_s2_p1">Pillsner se proporciona “tal cual” y “según disponibilidad”, sin garantía de ningún tipo, ya sea expresa o implícita. No se promete que la aplicación esté libre de fallos, que sea idónea para un fin concreto, ni que vaya a funcionar sin interrupciones.</string>
+    <string name="legal_terms_s2_p2">En particular, no se promete que un recordatorio vaya a entregarse, ni que se entregue a tiempo. El aviso legal explica lo que eso significa en la práctica.</string>
+    <string name="legal_terms_s3_heading">Limitación de responsabilidad</string>
+    <string name="legal_terms_s3_p1">En la medida en que la ley lo permita, Eduard Keilholz y las personas que desarrollan Pillsner no son responsables de ningún daño, pérdida o coste derivado del uso que hagas de la aplicación, de un recordatorio que no haya llegado o que haya llegado tarde, o de datos que se hayan perdido.</string>
+    <string name="legal_terms_s3_p2">Nada en estos términos excluye ni limita la responsabilidad que la ley no permita excluir ni limitar, incluida la responsabilidad por muerte o lesiones personales causadas por dolo o negligencia grave.</string>
+    <string name="legal_terms_s4_heading">Tus datos permanecen en tu dispositivo</string>
+    <string name="legal_terms_s4_p1">Todo lo que introduces en Pillsner — tus medicamentos, tus horarios y lo que has registrado que has tomado — se guarda en tu propio dispositivo. Pillsner no envía nada de eso a ningún sitio, y Eduard Keilholz no tiene acceso a ello ni puede recuperarlo por ti.</string>
+    <string name="legal_terms_s4_p2">Mantener una copia de seguridad es responsabilidad tuya. Si eliminas la aplicación, restableces tu dispositivo o lo pierdes, tus datos desaparecen con él.</string>
+    <string name="legal_terms_s5_heading">Cambios en estos términos</string>
+    <string name="legal_terms_s5_p1">Estos términos y el aviso legal pueden revisarse, por ejemplo cuando la aplicación cambia o cuando lo hace la ley. Cada documento lleva un número de versión y una fecha, que siempre puedes consultar en Ajustes.</string>
+    <string name="legal_terms_s5_p2">Cuando se haya revisado alguno de los dos documentos, se te pedirá que lo leas y lo aceptes de nuevo antes de añadir tu próximo medicamento. Lo que ya has introducido se mantiene como está, y tus recordatorios siguen funcionando.</string>
+    <string name="legal_terms_s6_heading">Ley aplicable</string>
+    <string name="legal_terms_s6_p1">Pillsner es publicada y desarrollada por Eduard Keilholz, en los Países Bajos. Estos términos, y cualquier disputa derivada de ellos, se rigen por la legislación de los Países Bajos.</string>
+    <string name="legal_terms_s6_p2">Si alguna parte de estos términos resultara no ser válida, el resto permanece en vigor.</string>
+
+    <!-- Sección Acerca de en Ajustes, y la pantalla Acerca de -->
+    <string name="about_header">Acerca de</string>
+    <string name="about_row_title">Acerca de Pillsner</string>
+    <!-- %1$s: nombre de versión, por ejemplo 0.1.0. %2$d: código de versión. -->
+    <string name="about_version_summary">Versión %1$s (%2$d)</string>
+    <string name="about_title">Acerca de</string>
+
+    <!-- Ajustes: recordatorios, y el registro de entregas detrás de ellos -->
+    <string name="reminder_diagnostics_header">Recordatorios</string>
+    <string name="reminder_diagnostics_row_title">Registro de entregas</string>
+    <string name="reminder_diagnostics_row_summary">Lo que hizo la aplicación con cada recordatorio, por si alguno no llega.</string>
+    <string name="reminder_diagnostics_title">Registro de entregas</string>
+    <string name="reminder_diagnostics_copy">Copiar</string>
+    <string name="reminder_diagnostics_copied">Copiado</string>
+    <string name="reminder_diagnostics_empty">Todavía no se ha registrado nada. El registro se va llenando a medida que se programan y se muestran recordatorios.</string>
+    <string name="reminder_diagnostics_event_wake">Se activó</string>
+    <string name="reminder_diagnostics_event_wake_deferred">Se activó antes de que se desbloqueara el teléfono</string>
+    <string name="reminder_diagnostics_event_service_refused">El teléfono no quiso iniciar el servicio de recordatorios</string>
+    <string name="reminder_diagnostics_event_posted">Recordatorio mostrado</string>
+    <string name="reminder_diagnostics_event_post_refused">Recordatorio no mostrado: las notificaciones están desactivadas</string>
+    <string name="reminder_diagnostics_event_lapsed">La dosis venció y se registró como perdida</string>
+    <string name="reminder_diagnostics_event_lapsed_unannounced">La dosis venció sin que se mostrara nunca un recordatorio</string>
+    <string name="reminder_diagnostics_event_timed_out">La comprobación se quedó sin tiempo</string>
+    <string name="reminder_diagnostics_event_failed">La comprobación falló</string>
+    <string name="reminder_diagnostics_event_retry_armed">Se reintentará en breve</string>
+    <string name="reminder_diagnostics_event_gave_up">Se dejó de reintentar</string>
+    <string name="reminder_diagnostics_event_alarms_armed">Alarmas configuradas</string>
+    <string name="reminder_diagnostics_event_alarms_left_as_is">Alarmas dejadas como estaban</string>
+    <string name="about_name_origin">El nombre combina dos palabras: Pills y Partner. Eso es lo que la aplicación quiere ser: un compañero que recuerda tus dosis para que tú no tengas que hacerlo.</string>
+    <!-- %1$s: nombre de versión. %2$d: código de versión. La fila ya se llama "Versión". -->
+    <string name="about_version_value">%1$s (%2$d)</string>
+    <string name="about_version_label">Versión</string>
+    <string name="about_application_id_label">Identificador de la aplicación</string>
+    <string name="about_author_label">Autor</string>
+
+    <!-- Historial de uso de un medicamento -->
+    <string name="usage_history_title">Historial de uso</string>
+    <string name="usage_history_menu_item">Historial de uso</string>
+    <string name="action_more_options">Más opciones</string>
+    <string name="usage_period_week">1 semana</string>
+    <string name="usage_period_month">1 mes</string>
+    <string name="usage_period_three_months">3 meses</string>
+    <string name="usage_history_adherence_caption">de las dosis hasta ahora se tomaron</string>
+    <string name="usage_history_scheduled_label">Programadas</string>
+    <string name="usage_history_taken_label">Tomadas</string>
+    <string name="usage_status_unanswered">Aún sin responder</string>
+    <!-- %1$s: la categoría, por ejemplo Tomadas. %2$d: cuántas dosis. -->
+    <plurals name="usage_legend_row_description">
+        <item quantity="one">%1$s: %2$d dosis</item>
+        <item quantity="other">%1$s: %2$d dosis</item>
+    </plurals>
+    <string name="usage_history_by_day">Por día</string>
+    <string name="usage_history_by_week">Por semana</string>
+    <!-- %1$s: el día, por ejemplo 9 de septiembre. %2$d: dosis tomadas. %3$d: dosis programadas. -->
+    <plurals name="usage_history_bar_day">
+        <item quantity="one">%1$s, %2$d de %3$d dosis tomada</item>
+        <item quantity="other">%1$s, %2$d de %3$d dosis tomadas</item>
+    </plurals>
+    <!-- %1$s: el día en que empieza la semana. %2$d: dosis tomadas. %3$d: dosis programadas. -->
+    <plurals name="usage_history_bar_week">
+        <item quantity="one">Semana del %1$s, %2$d de %3$d dosis tomada</item>
+        <item quantity="other">Semana del %1$s, %2$d de %3$d dosis tomadas</item>
+    </plurals>
+    <!-- %1$s: el día. -->
+    <string name="usage_history_bar_day_empty">%1$s, sin dosis programadas</string>
+    <!-- %1$s: el día en que empieza la semana. -->
+    <string name="usage_history_bar_week_empty">Semana del %1$s, sin dosis programadas</string>
+    <!-- %1$s: la fecha desde la que hay registros de este medicamento. -->
+    <string name="usage_history_records_start">Los registros de este medicamento empiezan el %1$s.</string>
+    <string name="usage_history_empty_title">No hay nada registrado en este periodo</string>
+    <string name="usage_history_empty_hint">Prueba con un periodo más largo, o vuelve cuando hayan pasado algunas dosis.</string>
+</resources>

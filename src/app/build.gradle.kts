@@ -100,8 +100,8 @@ android {
 
     bundle {
         language {
-            // Both languages ship in the base install. Play would otherwise deliver only the one
-            // the phone is set to, and the in-app language picker offers the other.
+            // Every supported language ships in the base install. Play would otherwise deliver
+            // only the one the phone is set to, and the in-app language picker offers the rest.
             enableSplit = false
         }
     }

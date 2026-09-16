@@ -11,6 +11,10 @@ enum class AppLanguage(val tag: String?) {
     SYSTEM(null),
     ENGLISH("en"),
     DUTCH("nl"),
+    GERMAN("de"),
+    FRENCH("fr"),
+    SPANISH("es"),
+    PORTUGUESE("pt"),
     ;
 
     companion object {
@@ -29,7 +33,14 @@ enum class AppLanguage(val tag: String?) {
 object SupportedLanguages {
 
     /** In the order the dropdown offers them. */
-    val all: List<AppLanguage> = listOf(AppLanguage.ENGLISH, AppLanguage.DUTCH)
+    val all: List<AppLanguage> = listOf(
+        AppLanguage.ENGLISH,
+        AppLanguage.DUTCH,
+        AppLanguage.GERMAN,
+        AppLanguage.FRENCH,
+        AppLanguage.SPANISH,
+        AppLanguage.PORTUGUESE,
+    )
 
     /** What a phone speaking none of the above gets. */
     val fallback: AppLanguage = AppLanguage.ENGLISH

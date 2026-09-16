@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pillsner</string>
+
+    <!-- L\'unique écran -->
+    <string name="upcoming_header">Prochaines 6 heures</string>
+    <string name="upcoming_empty">Aucun médicament prévu pour les 6 prochaines heures</string>
+    <!-- %1$s : une heure, par exemple 08:00 -->
+    <string name="upcoming_tomorrow_at">Demain %1$s</string>
+    <string name="phone_not_connected">Téléphone non connecté</string>
+    <string name="never_synced">Ouvre Pillsner sur ton téléphone pour synchroniser</string>
+
+    <!-- %1$s : nom du médicament, %2$s : quantité, %3$s : heure -->
+    <string name="dose_description">%1$s, %2$s, à %3$s</string>
+    <!-- %1$s : nom du médicament, %2$s : quantité, %3$s : heure -->
+    <string name="dose_description_overdue">%1$s, %2$s, prévue à %3$s</string>
+</resources>

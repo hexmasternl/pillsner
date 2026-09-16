@@ -50,7 +50,15 @@ class LanguageSectionViewModelTest {
         val viewModel = collecting(inEffect = AppLanguage.ENGLISH)
 
         assertEquals(
-            listOf(AppLanguage.SYSTEM, AppLanguage.ENGLISH, AppLanguage.DUTCH),
+            listOf(
+                AppLanguage.SYSTEM,
+                AppLanguage.ENGLISH,
+                AppLanguage.DUTCH,
+                AppLanguage.GERMAN,
+                AppLanguage.FRENCH,
+                AppLanguage.SPANISH,
+                AppLanguage.PORTUGUESE,
+            ),
             viewModel.state.value.options,
         )
     }

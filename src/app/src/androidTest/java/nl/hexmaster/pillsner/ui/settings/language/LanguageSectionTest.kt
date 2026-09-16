@@ -48,12 +48,24 @@ class LanguageSectionTest {
 
         composeRule.onNodeWithTag(LanguageSectionTestTags.DROPDOWN).performClick()
 
-        listOf(AppLanguage.SYSTEM, AppLanguage.ENGLISH, AppLanguage.DUTCH).forEach { option ->
+        listOf(
+            AppLanguage.SYSTEM,
+            AppLanguage.ENGLISH,
+            AppLanguage.DUTCH,
+            AppLanguage.GERMAN,
+            AppLanguage.FRENCH,
+            AppLanguage.SPANISH,
+            AppLanguage.PORTUGUESE,
+        ).forEach { option ->
             composeRule.onNodeWithTag(LanguageSectionTestTags.OPTION_PREFIX + option.name)
                 .assertIsDisplayed()
         }
         composeRule.onNodeWithText("English").assertIsDisplayed()
         composeRule.onNodeWithText("Nederlands").assertIsDisplayed()
+        composeRule.onNodeWithText("Deutsch").assertIsDisplayed()
+        composeRule.onNodeWithText("Français").assertIsDisplayed()
+        composeRule.onNodeWithText("Español").assertIsDisplayed()
+        composeRule.onNodeWithText("Português").assertIsDisplayed()
     }
 
     @Test
@@ -102,7 +114,7 @@ class LanguageSectionTest {
     fun aPhoneSpeakingNeitherLanguageReadsEnglish() {
         val context: Context = ApplicationProvider.getApplicationContext()
 
-        AppLocale.apply(AppLanguage.SYSTEM, android.os.LocaleList(Locale.GERMAN))
+        AppLocale.apply(AppLanguage.SYSTEM, android.os.LocaleList(Locale.ITALIAN))
 
         assertEquals(AppLanguage.ENGLISH, AppLocale.inEffect)
         assertEquals(
@@ -121,6 +133,32 @@ class LanguageSectionTest {
         assertEquals(
             "Instellingen",
             AppLocale.wrap(context).getString(nl.hexmaster.pillsner.R.string.settings_title),
+        )
+    }
+
+    @Test
+    fun aGermanPhoneReadsGermanWithoutAnyChoice() {
+        val context: Context = ApplicationProvider.getApplicationContext()
+
+        AppLocale.apply(AppLanguage.SYSTEM, android.os.LocaleList(Locale.GERMAN))
+
+        assertEquals(AppLanguage.GERMAN, AppLocale.inEffect)
+        assertEquals(
+            "Einstellungen",
+            AppLocale.wrap(context).getString(nl.hexmaster.pillsner.R.string.settings_title),
+        )
+    }
+
+    @Test
+    fun theRestartNoticeIsTranslatedIntoANewLanguage() {
+        val context: Context = ApplicationProvider.getApplicationContext()
+
+        AppLocale.apply(AppLanguage.GERMAN, android.os.LocaleList(Locale.ENGLISH))
+
+        assertEquals(
+            "Starte Pillsner neu, um die neue Sprache zu verwenden",
+            AppLocale.wrap(context)
+                .getString(nl.hexmaster.pillsner.R.string.settings_language_restart_notice),
         )
     }
 

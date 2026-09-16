@@ -6,17 +6,19 @@
 
 ## 2. Infrastructure as code
 
-- [x] 2.1 Create `infra/website/static-web-app.bicep`: a resource-group-scoped module that creates a `Microsoft.Web/staticSites` resource on the Free tier, with no `repositoryUrl` (content is pushed by the workflow, not by Azure's own GitHub integration), and outputs the resource name, default hostname, and a `@secure()` deployment token via `listSecrets()`.
-- [x] 2.2 Create `infra/website/main.bicep`: a subscription-scoped template that creates the resource group and deploys the `static-web-app.bicep` module into it, re-exposing its outputs (including the `@secure()` deployment token).
+- [x] 2.1 Create `infra/website/static-web-app.bicep`: a resource-group-scoped module that creates a `Microsoft.Web/staticSites` resource on the Free tier, with no `repositoryUrl` (content is pushed by the workflow, not by Azure's own GitHub integration), and outputs the resource name and default hostname.
+- [x] 2.2 Create `infra/website/main.bicep`: a subscription-scoped template that creates the resource group and deploys the `static-web-app.bicep` module into it, re-exposing its outputs.
 - [x] 2.3 Validate both templates compile (`az bicep build`) with no errors.
+- [x] 2.4 (Reverted) Do NOT route the deployment token through a `@secure()` Bicep output — tried, compiled cleanly, but `swa deploy` rejected the round-tripped value as invalid in an actual run. Fetch it directly instead (task 3.5).
 
 ## 3. Workflow implementation
 
 - [x] 3.1 Create `.github/workflows/website.yml` with `on: push` to `main` path-filtered to `src/website/**`, and `on: workflow_dispatch`.
 - [x] 3.2 Add checkout and Hugo setup steps pinned to the version in `README.md`'s toolchain table (extended edition), and run `hugo --minify` from `src/website/`.
 - [x] 3.3 Add `permissions: id-token: write` (and `contents: read`) to the job, and an `azure/login` step using `AZURE_WEBSITE_CLIENT_ID`, `AZURE_WEBSITE_TENANT_ID`, `AZURE_WEBSITE_SUBSCRIPTION_ID`.
-- [x] 3.4 Add a provisioning step that runs `az deployment sub create` against `infra/website/main.bicep`, captures the `deploymentToken` and `defaultHostname` outputs via `--query properties.outputs -o json` + `jq`, and masks the token with `::add-mask::` before exposing it as a step output.
-- [x] 3.5 Add a deploy step that runs `swa deploy` against the Hugo build output, authenticated with `--deployment-token` from the provisioning step — no AAD flags, no interactive fallback possible.
+- [x] 3.4 Add a provisioning step that runs `az deployment sub create` against `infra/website/main.bicep`, capturing the `defaultHostname` output via `--query properties.outputs -o json` + `jq`.
+- [x] 3.5 Add a step that fetches a fresh deployment token via `az staticwebapp secrets list --query "properties.apiKey" -o tsv` against the resource just provisioned, and masks it with `::add-mask::` before exposing it as a step output.
+- [x] 3.6 Add a deploy step that runs `swa deploy` against the Hugo build output, authenticated with `--deployment-token` from 3.5 — no AAD flags, no interactive fallback possible.
 
 ## 4. Documentation
 

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pillsner.app/sitemap.xml
+Sitemap: https://pillsner.hexmaster.nl/sitemap.xml

@@ -49,10 +49,10 @@ jobs:
         with:
           # These three secrets are the OIDC federated-credential identity for this repository's
           # main branch — there is no client secret or deployment token to leak or rotate.
-          # AZURE_WEBSITE_SUBSCRPITION_ID is spelled the way it was provisioned; do not "fix" it.
+          # AZURE_WEBSITE_SUBSCRIPTION_ID is spelled the way it was provisioned; do not "fix" it.
           client-id: ${{ secrets.AZURE_WEBSITE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_WEBSITE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_WEBSITE_SUBSCRPITION_ID }}
+          subscription-id: ${{ secrets.AZURE_WEBSITE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Static Web Apps
         run: |
@@ -64,6 +64,6 @@ jobs:
             --client-id "$AZURE_CLIENT_ID" \
             --env production
         env:
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_WEBSITE_SUBSCRPITION_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_WEBSITE_SUBSCRIPTION_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_WEBSITE_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_WEBSITE_CLIENT_ID }}

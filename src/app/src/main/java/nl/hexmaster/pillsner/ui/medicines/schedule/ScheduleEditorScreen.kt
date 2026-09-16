@@ -2,9 +2,12 @@ package nl.hexmaster.pillsner.ui.medicines.schedule
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -43,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import java.time.LocalTime
@@ -177,15 +181,24 @@ fun ScheduleEditorScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                SingleChoiceSegmentedButtonRow(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                ) {
                     SchedulePattern.entries.forEachIndexed { index, pattern ->
                         SegmentedButton(
                             selected = uiState.pattern == pattern,
                             onClick = { onPatternChange(pattern) },
                             shape = SegmentedButtonDefaults.itemShape(index, SchedulePattern.entries.size),
-                            modifier = Modifier.testTag(ScheduleEditorTestTags.PATTERN_PREFIX + pattern.name),
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .testTag(ScheduleEditorTestTags.PATTERN_PREFIX + pattern.name),
                         ) {
-                            Text(stringResource(pattern.labelRes()))
+                            Text(
+                                text = stringResource(pattern.labelRes()),
+                                textAlign = TextAlign.Center,
+                            )
                         }
                     }
                 }

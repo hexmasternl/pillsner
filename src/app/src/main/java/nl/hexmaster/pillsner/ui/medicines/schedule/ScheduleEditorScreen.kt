@@ -198,7 +198,6 @@ fun ScheduleEditorScreen(
                             Text(
                                 text = stringResource(pattern.labelRes()),
                                 textAlign = TextAlign.Center,
-                                maxLines = 2,
                             )
                         }
                     }

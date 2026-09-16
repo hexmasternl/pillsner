@@ -23,17 +23,17 @@ import org.junit.runner.RunWith
 /**
  * The pattern selector stays aligned regardless of how its translated labels wrap (spec:
  * schedule-editor "Pattern selection", GitHub issue #10).
+ *
+ * Covers the two locales `app/build.gradle.kts` actually packages (`resourceConfigurations`):
+ * English, where every label fits on one line, and Dutch, where the outer two wrap to a second
+ * line while the middle one does not. A third, unpackaged locale would silently fall back to the
+ * English strings here, so it would not exercise anything this test doesn't already cover.
  */
 @RunWith(AndroidJUnit4::class)
 class ScheduleEditorScreenTest {
 
     @get:Rule
     val composeRule = createComposeRule()
-
-    @Test
-    fun theThreeSegmentsShareOneHeightInFrenchWhereLabelsWrap() {
-        assertSegmentsShareOneHeight(AppLanguage.FRENCH, Locale.FRENCH)
-    }
 
     @Test
     fun theThreeSegmentsShareOneHeightInDutchWhereLabelsWrap() {

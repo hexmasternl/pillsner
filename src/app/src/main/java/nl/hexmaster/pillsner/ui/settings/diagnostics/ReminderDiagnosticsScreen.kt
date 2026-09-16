@@ -156,7 +156,14 @@ fun ReminderDiagnosticsScreen(
                     contentPadding = PaddingValues(horizontal = Spacing.screenEdge, vertical = Spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(Spacing.md),
                 ) {
-                    itemsIndexed(entries, key = { index, _ -> index }) { _, entry ->
+                    itemsIndexed(
+                        entries,
+                        // Entries prepend as new ones arrive, so an index key would shift every
+                        // existing row's identity on each append. A timestamp alone is not
+                        // guaranteed unique - two events can log within the same millisecond -
+                        // so the event and detail join it to keep the key stable per entry.
+                        key = { _, entry -> "${entry.at.toEpochMilli()}:${entry.event}:${entry.detail}" },
+                    ) { _, entry ->
                         LogEntry(entry = entry, time = formatter.format(entry.at))
                     }
                 }

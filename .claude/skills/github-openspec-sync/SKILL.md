@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires the gh CLI (authenticated) and the openspec CLI.
 metadata:
   author: pillsner
-  version: "1.0"
+  version: "1.1"
 ---
 
 Keep an OpenSpec change, a GitHub issue, and a pull request in sync, end to end: create the issue
@@ -79,8 +79,13 @@ gh pr list --search "<change-name> in:title" --state all --json number,title,url
    continuation of a propose flow they just asked for — when in doubt, show it.
 5. Create it: `gh issue create --title "<title>" --body "<body>"`.
 6. Add `**GitHub Issue:** #<number> (<url>)` as its own line directly under the `## Why` heading in
-   `proposal.md`. Do not commit this edit yourself — leave it staged like any other artifact edit;
-   committing follows the same "only when asked" rule as the rest of the OpenSpec workflow.
+   `proposal.md`, then commit that edit immediately — this is the one exception to the rest of the
+   OpenSpec workflow's "commit only when asked" rule, because an unlinked `proposal.md` is a broken
+   half-state (the issue exists but the link that lets this skill find it next time doesn't), not a
+   normal in-progress edit worth leaving for a later, larger commit. Use a message such as
+   `docs: link GitHub issue #<number> in <name> proposal`, in the imperative mood with the change
+   name in the body, per `CLAUDE.md`'s commit conventions. Do not push it — pushing is not part of
+   propose mode.
 7. Report the issue URL to the user.
 
 ## Mode: apply-complete
@@ -110,8 +115,8 @@ This mode both comments on the issue and opens the pull request that will close 
    not round a partial verification up to "done"), and the commit list. This same text is used for
    both the PR body and the issue comment below.
 5. Push the branch and open the PR:
-   - Confirm which branch holds the change's commits (usually the current branch, named after the
-     change per `CLAUDE.md`'s git conventions and cut from `development` per
+   - Confirm which branch holds the change's commits (usually the current branch, named
+     `feature/<change-name>` per `CLAUDE.md`'s git conventions and cut from `development` per
      `.claude/skills/git-workflow/SKILL.md`) and that it is based on an up-to-date `development`.
    - Show the user the branch name, PR title, and PR body — the PR body is the summary from step 4
      plus a closing line `Closes #<issue-number>` and a link to the change folder
@@ -122,7 +127,12 @@ This mode both comments on the issue and opens the pull request that will close 
      plain `git push` otherwise), then
      `gh pr create --title "<title>" --body "<body>" --base development --head <branch>`.
    - Add `**Pull Request:** #<number> (<url>)` as its own line directly under the
-     `**GitHub Issue:**` line in `proposal.md`. Leave this edit staged, same as the issue link edit.
+     `**GitHub Issue:**` line in `proposal.md`, then commit that edit immediately, same as the issue
+     link edit in **Mode: propose** step 6 (message such as
+     `docs: link pull request #<number> in <name> proposal`). Push this commit too — the branch was
+     just pushed and confirmed with the user in this same step, so adding one more commit to it
+     needs no separate confirmation; use `git push` (no new confirmation needed, it is the same
+     push already agreed to).
    - If the user declines the push/PR step, still complete step 6 (the issue comment) so the
      implementation summary isn't lost, and tell them the PR is still pending.
 6. Compose the issue comment: the same summary from step 4, plus a line noting the PR
@@ -173,8 +183,8 @@ the title search in **Mode: propose** step 2.
 
 1. Confirm the issue number and change name with the user if either was inferred rather than given
    directly — never guess-link an issue found only by a fuzzy title match without confirming first.
-2. Add `**GitHub Issue:** #<number> (<url>)` under the `## Why` heading in `proposal.md`, exactly as
-   in **Mode: propose** step 6.
+2. Add `**GitHub Issue:** #<number> (<url>)` under the `## Why` heading in `proposal.md`, and commit
+   that edit immediately, exactly as in **Mode: propose** step 6.
 3. Report the link.
 
 ## Mode: status
@@ -187,9 +197,13 @@ when the user just wants to check.
 ## Guardrails
 
 - The only git/GitHub write actions this skill performs are: pushing the change's existing branch,
-  creating a pull request from it, commenting on/closing a GitHub issue, and editing the two linking
-  lines in `proposal.md`. It never creates or deletes branches, never merges a PR, never force-pushes,
-  and never touches any other git remote operation. Branch creation and cleanup are
+  creating a pull request from it, commenting on/closing a GitHub issue, and editing and committing
+  the two linking lines in `proposal.md`. Committing those two specific lines the moment they change
+  is this skill's one deliberate exception to the project's normal "commit only when asked" rule,
+  because they exist to make the issue/PR findable on the next run, not as work in progress; it
+  never commits anything else unasked. It never creates or deletes branches, never merges a PR,
+  never force-pushes, and never touches any other git remote operation beyond the plain `git push`
+  noted in **Mode: apply-complete** step 5. Branch creation and cleanup are
   `.claude/skills/git-workflow/SKILL.md`'s job, not this skill's.
 - Always show the user the exact branch name, PR title, and PR body before pushing or running
   `gh pr create`, and wait for confirmation — this holds every time this mode runs, whether invoked

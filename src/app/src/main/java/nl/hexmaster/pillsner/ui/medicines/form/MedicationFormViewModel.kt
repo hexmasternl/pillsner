@@ -243,7 +243,6 @@ class MedicationFormViewModel(
         draft = transform(draft)
         DraftSaver.save(savedStateHandle, draft)
         val previous = _uiState.value
-        DraftSaver.saveInitial(savedStateHandle, initialDraft)
         _uiState.value = draft.toUiState(
             showErrors = previous.showErrors,
             isSaving = previous.isSaving,

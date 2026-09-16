@@ -1,4 +1,5 @@
-GitHub issue: [#4](https://github.com/hexmasternl/pillsner/issues/4)
+**GitHub Issue:** #4 (https://github.com/hexmasternl/pillsner/issues/4)
+**Pull Request:** #18 (https://github.com/hexmasternl/pillsner/pull/18)
 
 ## Why
 

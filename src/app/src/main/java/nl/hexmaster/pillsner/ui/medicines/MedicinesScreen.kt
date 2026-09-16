@@ -191,9 +191,12 @@ fun MedicinesScreen(
                             }
                         } else {
                             items(uiState.active, key = { it.id.value }) { tile ->
+                                val descriptions = remember(tile.schedules, formatter) {
+                                    tile.schedules.map { formatter.describe(it.summary, it.amount) }
+                                }
                                 SwipeableMedicineTile(
                                     tile = tile,
-                                    descriptions = tile.schedules.map { formatter.describe(it.summary, it.amount) },
+                                    descriptions = descriptions,
                                     isRevealed = revealedId == tile.id.value,
                                     onRevealChange = { revealed ->
                                         revealedId = when {
@@ -225,9 +228,12 @@ fun MedicinesScreen(
                                 )
                             }
                             items(uiState.inactive, key = { it.id.value }) { tile ->
+                                val descriptions = remember(tile.schedules) {
+                                    tile.schedules.map { formatter.describe(it.summary, it.amount) }
+                                }
                                 SwipeableMedicineTile(
                                     tile = tile,
-                                    descriptions = tile.schedules.map { formatter.describe(it.summary, it.amount) },
+                                    descriptions = descriptions,
                                     isRevealed = revealedId == tile.id.value,
                                     onRevealChange = { revealed ->
                                         revealedId = when {

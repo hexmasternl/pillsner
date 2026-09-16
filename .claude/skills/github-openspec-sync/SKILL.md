@@ -111,7 +111,8 @@ This mode both comments on the issue and opens the pull request that will close 
    both the PR body and the issue comment below.
 5. Push the branch and open the PR:
    - Confirm which branch holds the change's commits (usually the current branch, named after the
-     change per `CLAUDE.md`'s git conventions) and that it is based on an up-to-date `main`.
+     change per `CLAUDE.md`'s git conventions and cut from `development` per
+     `.claude/skills/git-workflow/SKILL.md`) and that it is based on an up-to-date `development`.
    - Show the user the branch name, PR title, and PR body — the PR body is the summary from step 4
      plus a closing line `Closes #<issue-number>` and a link to the change folder
      (`openspec/changes/<name>/`) — and ask for confirmation before doing anything that touches the
@@ -119,7 +120,7 @@ This mode both comments on the issue and opens the pull request that will close 
      the rest of this mode is being run without being asked.
    - On confirmation: push the branch (`git push -u origin <branch>` if it has no upstream yet, or a
      plain `git push` otherwise), then
-     `gh pr create --title "<title>" --body "<body>" --base main --head <branch>`.
+     `gh pr create --title "<title>" --body "<body>" --base development --head <branch>`.
    - Add `**Pull Request:** #<number> (<url>)` as its own line directly under the
      `**GitHub Issue:**` line in `proposal.md`. Leave this edit staged, same as the issue link edit.
    - If the user declines the push/PR step, still complete step 6 (the issue comment) so the
@@ -136,10 +137,12 @@ This mode both comments on the issue and opens the pull request that will close 
 
 ## Mode: archive
 
-Normally the linked PR has already merged by the time a change is archived, which closes the issue
-automatically via its `Closes #<number>` line — so this mode usually just confirms that and adds a
-short note. It still closes the issue explicitly as a fallback (PR merged into a non-default
-branch, closing keyword didn't take effect, or no PR was ever created for this change).
+The linked PR merges into `development`, not the repository's default branch (`main`), so GitHub's
+`Closes #<number>` keyword does **not** auto-close the issue on merge — that only fires for merges
+into the default branch. So this mode's explicit close is the normal path, not a rare fallback. (An
+issue can still already be closed here — someone closed it by hand, or a PR was merged straight
+into `main` in an unusual case — hence the check below still branches on the issue's current state
+rather than assuming it's always open.)
 
 1. Find the linked issue. If none exists, tell the user there is nothing to close and stop — do not
    create one retroactively without asking.
@@ -186,7 +189,8 @@ when the user just wants to check.
 - The only git/GitHub write actions this skill performs are: pushing the change's existing branch,
   creating a pull request from it, commenting on/closing a GitHub issue, and editing the two linking
   lines in `proposal.md`. It never creates or deletes branches, never merges a PR, never force-pushes,
-  and never touches any other git remote operation.
+  and never touches any other git remote operation. Branch creation and cleanup are
+  `.claude/skills/git-workflow/SKILL.md`'s job, not this skill's.
 - Always show the user the exact branch name, PR title, and PR body before pushing or running
   `gh pr create`, and wait for confirmation — this holds every time this mode runs, whether invoked
   proactively or on request, because a push and a public PR are visible, shared-state actions per

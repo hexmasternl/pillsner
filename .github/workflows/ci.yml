@@ -2,8 +2,12 @@ name: CI
 
 on:
   pull_request:
+    paths-ignore:
+      - "src/website/**"
   push:
     branches: [main]
+    paths-ignore:
+      - "src/website/**"
 
 permissions:
   contents: read

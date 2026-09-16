@@ -6,6 +6,8 @@ name: Release to Google Play
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "src/website/**"
   workflow_dispatch:
     inputs:
       track:

@@ -1,7 +1,7 @@
 ## 1. Layout fix
 
-- [ ] 1.1 In `ScheduleEditorScreen.kt`, wrap the pattern `SingleChoiceSegmentedButtonRow` with `Modifier.height(IntrinsicSize.Min)` and give each `SegmentedButton` `Modifier.fillMaxHeight()`, so all three segments share one row height.
-- [ ] 1.2 Set each pattern label `Text` to `textAlign = TextAlign.Center`, `maxLines = 2`, `softWrap = true`, and no ellipsis/truncation overflow.
+- [x] 1.1 In `ScheduleEditorScreen.kt`, wrap the pattern `SingleChoiceSegmentedButtonRow` with `Modifier.height(IntrinsicSize.Min)` and give each `SegmentedButton` `Modifier.fillMaxHeight()`, so all three segments share one row height.
+- [x] 1.2 Set each pattern label `Text` to `textAlign = TextAlign.Center`, `maxLines = 2`, `softWrap = true`, and no ellipsis/truncation overflow.
 
 ## 2. Verification
 

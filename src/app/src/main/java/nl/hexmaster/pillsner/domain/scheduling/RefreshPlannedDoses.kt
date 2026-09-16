@@ -7,10 +7,18 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlinx.coroutines.flow.first
 import nl.hexmaster.pillsner.domain.model.DoseId
+import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.PlannedDose
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
+
+/**
+ * What a refresh did: the doses it withdrew, and the medication list it read to do it — handed
+ * back so a caller elsewhere in the same wake (namely [ComputeWakeSchedule]) does not have to read
+ * the same list again (reminder-wake-cycle-db-efficiency design D2).
+ */
+data class RefreshResult(val withdrawn: List<DoseId>, val medications: List<Medication>)
 
 /**
  * Keeps the stored doses for today and tomorrow equal to what the active medicines' schedules say
@@ -51,9 +59,9 @@ class RefreshPlannedDoses(
      * @param afterUserEdit true only when this refresh follows a change the user made to a medicine
      *   or its schedules, which is the one case that may withdraw an already-reminded dose.
      * @return the doses this refresh withdrew, so the caller can take down anything it has shown
-     *   the user for them.
+     *   the user for them, and the medication list this refresh read.
      */
-    suspend operator fun invoke(afterUserEdit: Boolean = false): List<DoseId> {
+    suspend operator fun invoke(afterUserEdit: Boolean = false): RefreshResult {
         val zone = clock.zone
         val today = LocalDate.now(clock)
         val window = today..today.plusDays(WINDOW_DAYS)
@@ -87,19 +95,20 @@ class RefreshPlannedDoses(
             includeReminded = false,
         )
 
-        if (!afterUserEdit) return withdrawn
+        if (!afterUserEdit) return RefreshResult(withdrawn, medications)
 
         // The user has just changed a medicine, so a reminder still showing for a dose they no
         // longer take is wrong and goes too. Only within the window the plan actually covers: a
         // dose out in the slack is not planned simply because the window does not reach it, and
         // withdrawing an unanswered reminder on that basis would lose something the user still
         // owes an answer to.
-        return withdrawn + doseRepository.withdrawPlanned(
+        val alsoWithdrawn = doseRepository.withdrawPlanned(
             from = zone.startOfDay(window.start),
             to = zone.startOfDay(window.endInclusive.plusDays(1)),
             planned = moments,
             includeReminded = true,
         )
+        return RefreshResult(withdrawn + alsoWithdrawn, medications)
     }
 
     private fun ZoneId.startOfDay(date: LocalDate) =

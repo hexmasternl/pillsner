@@ -39,7 +39,7 @@
   - A same-commit range (`HEAD..HEAD`) correctly returned `has_content: false` with both lists empty (the "nothing new" case).
   - `format-prompt` was also run against the second range's output and produced a well-formed prompt combining both style-reference files with the four changes' summaries.
 - **4.2**: `release-notes.yml` parses as valid YAML (checked with PyYAML) and `collect_release_notes.py` compiles cleanly (`python -m py_compile`). The job-level `if: github.event.pull_request.head.ref == 'development'` matches the pattern GitHub Actions documents for this exact scoping and mirrors the condition already reviewed and shipped in this repository's other workflows' branch/path guards.
-- **4.3**: Not yet verifiable — this repository has no real `development` → `main` pull request open right now. Verify this the first time such a PR is opened or synchronized after this change ships: confirm the comment posts (or updates in place on a second sync), reads as brief and human in both languages, and that a run with nothing new posts the short "nothing new" comment instead of calling GitHub Copilot.
+- **4.3**: Verified against the real release PR #23 (`development` → `main`), after the two corrections below: the workflow posted a comment with brief, legible English and Dutch drafts, each confined to its own language with no cross-contamination, and a subsequent push to `development` (the model-flag fix) triggered a synchronize event that edited the same comment in place (confirmed via `gh pr view 23 --json comments`) rather than creating a second one.
 
 ### Correction found after merge
 
@@ -62,5 +62,10 @@ hardcoded `model: gpt-4.1` no longer exists in Copilot's model catalog. Fixed by
 `model: ""` explicitly — `actions/ai-inference` only appends `--model` to the Copilot CLI
 invocation when that input is non-empty, so an empty string lets the CLI fall back to its
 account's own default model rather than a name this repo would have to keep chasing as GitHub's
-catalog changes. Re-run pending to confirm the fix; once it succeeds, re-verify 4.3's remaining
-checks (comment content and re-sync behaviour) against PR #23 or the next release PR.
+catalog changes. Confirmed fixed: the re-run (triggered automatically by the push, since PR #23's
+head is `development`) completed successfully and posted a comment.
+
+That same run's English draft, however, also generated an unrequested Dutch translation
+alongside it, duplicating content in the comment. Fixed by tightening both system prompts to
+explicitly forbid mixing languages or adding language-labelled headings. The next run (also
+auto-triggered) produced a clean, single-language comment in each section -- see 4.3 above.

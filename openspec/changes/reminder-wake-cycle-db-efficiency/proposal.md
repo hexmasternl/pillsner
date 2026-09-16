@@ -27,9 +27,10 @@ together avoids touching the same call sites twice.
 - Make `ReminderDeliveryLog.append()` avoid a full `file.readLines()` on every `record()` call by
   tracking the log's line count in memory (or only reading the file when its on-disk size suggests
   it is near the trim threshold).
-- Add a Room schema version 3 with a composite index on `doses(outcome, scheduled_at)`, matching
+- Add a Room schema version 5 with a composite index on `doses(outcome, scheduled_at)`, matching
   the `WHERE outcome IS NULL ORDER BY scheduled_at ASC` filter used by `observePending()` /
-  `pending()`, with an accompanying migration and migration test.
+  `pending()`, with an accompanying migration and migration test. (The database is already at
+  version 4 in this repository; earlier versions cover unrelated changes.)
 
 None of this changes what the user sees or when a reminder fires, snoozes, or is recorded — every
 scenario in `reminder-scheduling` and `reminder-delivery-resilience` continues to hold. This is an
@@ -43,9 +44,11 @@ internal efficiency change to the implementation of those requirements.
 
 ### Modified Capabilities
 
-- `medication-persistence`: the "Schema history" requirement gains a Version 3 entry (composite
-  index on `doses(outcome, scheduled_at)`), and the "Migration test harness" requirement extends to
-  cover a migration test from version 2 to version 3.
+- `medication-persistence`: the "Schema history" requirement gains a Version 5 entry (composite
+  index on `doses(outcome, scheduled_at)`; the database is already at version 4 for unrelated
+  earlier changes), documents the previously-undocumented versions 3 and 4 in the same pass, and
+  the "Migration test harness" requirement extends to cover a migration test from version 4 to
+  version 5.
 
 ## Impact
 
@@ -53,7 +56,7 @@ internal efficiency change to the implementation of those requirements.
   `domain/scheduling/ComputeWakeSchedule.kt`, `domain/scheduling/RefreshPlannedDoses.kt`,
   `data/RoomDoseRepository.kt`, `data/reminders/ReminderCoordinator.kt`,
   `data/reminders/ReminderDeliveryLog.kt`, `data/db/DoseDao.kt`, `data/db/DoseEntity.kt`, plus a new
-  Room migration and exported schema JSON for version 3.
+  Room migration and exported schema JSON for version 5.
 - **Tests**: existing unit tests for the affected use cases and repository methods need updating to
   the new call shapes; a new migration test (version 2 → 3) is added to the existing harness;
   instrumented tests covering wake behaviour should be re-run since scheduling code changed, per

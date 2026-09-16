@@ -1,9 +1,12 @@
-## 1. Room schema version 3 (index)
+## 1. Room schema version 5 (index)
 
-- [ ] 1.1 Add `Index(value = ["outcome", "scheduled_at"])` to `DoseEntity` and bump the database version to 3.
-- [ ] 1.2 Write `MIGRATION_2_3` (`CREATE INDEX ...`) and register it with the database builder.
-- [ ] 1.3 Export the version 3 schema JSON to the app module's schemas directory and check it in.
-- [ ] 1.4 Add a migration test to the existing harness: seed a version 2 database with a medication, a schedule and a dose row, migrate to version 3, and validate against the exported schema with all rows unchanged.
+Note: the database is already at version 4 in this repository (versions 1-3 cover unrelated earlier
+changes), not version 2 as the original design assumed — this change adds version 5, not version 3.
+
+- [ ] 1.1 Add `Index(value = ["outcome", "scheduled_at"])` to `DoseEntity` and bump the database version to 5.
+- [ ] 1.2 Write `MIGRATION_4_5` (`CREATE INDEX ...`) and register it with the database builder.
+- [ ] 1.3 Export the version 5 schema JSON to the app module's schemas directory and check it in.
+- [ ] 1.4 Add a migration test to the existing harness: seed a version 4 database with a medication, a schedule and a dose row, migrate to version 5, and validate against the exported schema with all rows unchanged.
 - [ ] 1.5 Add a DAO or query-plan test confirming `pending()`/`observePending()` use the new composite index.
 
 ## 2. Shared wake-cycle snapshot

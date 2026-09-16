@@ -38,7 +38,7 @@ The workflow SHALL build the site from `src/website/` using the same Hugo versio
 - **THEN** the workflow fails and no deployment step runs
 
 ### Requirement: Azure authentication via OpenID Connect
-The workflow SHALL authenticate to Azure using OpenID Connect federated credentials, sourcing the subscription ID, tenant ID and client ID from the repository secrets `AZURE_WEBSITE_SUBSCRPITION_ID`, `AZURE_WEBSITE_TENANT_ID` and `AZURE_WEBSITE_CLIENT_ID` respectively. The workflow SHALL NOT require or use a client secret, certificate, or long-lived deployment-token secret for this authentication.
+The workflow SHALL authenticate to Azure using OpenID Connect federated credentials, sourcing the subscription ID, tenant ID and client ID from the repository secrets `AZURE_WEBSITE_SUBSCRIPTION_ID`, `AZURE_WEBSITE_TENANT_ID` and `AZURE_WEBSITE_CLIENT_ID` respectively. The workflow SHALL NOT require or use a client secret, certificate, or long-lived deployment-token secret stored in GitHub for this authentication.
 
 #### Scenario: Successful OIDC authentication
 - **WHEN** the workflow runs on `main` with a valid federated credential trusting this repository already configured in Azure
@@ -49,12 +49,34 @@ The workflow SHALL authenticate to Azure using OpenID Connect federated credenti
 - **THEN** the Azure login step fails with an authentication error and the deployment step does not run
 
 ### Requirement: Deployment target is Azure Static Web Apps Free tier
-The workflow SHALL deploy the built site to an Azure Static Web Apps resource provisioned on the Free tier's production environment. The workflow SHALL NOT provision, upgrade, or otherwise modify the Azure Static Web Apps resource's plan tier.
+The workflow SHALL deploy the built site to an Azure Static Web Apps resource on the Free tier's production environment. The workflow SHALL NOT create, upgrade, or otherwise modify any plan tier other than Free.
 
-#### Scenario: Deploy to existing Free tier resource
-- **WHEN** the workflow's deploy step runs against an already-provisioned Azure Static Web Apps Free tier resource
+#### Scenario: Deploy after provisioning
+- **WHEN** the workflow's infrastructure step has provisioned (or confirmed) the Azure Static Web Apps Free tier resource
 - **THEN** the built site content is published to that resource's production environment and becomes reachable at its URL
 
-#### Scenario: Target resource does not exist
-- **WHEN** the configured Azure Static Web Apps resource has not been provisioned yet
-- **THEN** the deploy step fails visibly rather than silently succeeding or creating a new resource
+### Requirement: Resource provisioning is automated and idempotent
+The workflow SHALL provision the resource group and the Azure Static Web Apps resource it deploys to using a declarative Infrastructure-as-Code template, run as part of the workflow itself. Running the provisioning step against infrastructure that already matches the template SHALL be a no-op with respect to that infrastructure's configuration, and SHALL NOT fail because the resources already exist.
+
+#### Scenario: First run creates the infrastructure
+- **WHEN** the workflow runs and the resource group and Static Web App do not yet exist
+- **THEN** the provisioning step creates both, and the workflow proceeds to build and deploy without manual intervention
+
+#### Scenario: Later runs reconcile without side effects
+- **WHEN** the workflow runs again and the resource group and Static Web App already match the template
+- **THEN** the provisioning step succeeds without creating duplicate resources or altering unrelated configuration
+
+#### Scenario: Provisioning failure stops the deployment
+- **WHEN** the provisioning step fails (for example, the workflow's identity lacks permission to create resources)
+- **THEN** the workflow fails at that step and no build output is deployed
+
+### Requirement: Deployment credential is never stored as a long-lived GitHub secret
+The workflow SHALL obtain the Azure Static Web Apps deployment token dynamically, from the provisioning step's output, on every run. The workflow SHALL NOT read a deployment token from a GitHub Actions secret, and the token SHALL NOT be written to deployment history, workflow logs, or any uploaded artifact.
+
+#### Scenario: Token sourced from provisioning output
+- **WHEN** the provisioning step completes successfully
+- **THEN** the deployment token it produces is passed directly to the deploy step within the same job run, without being persisted anywhere outside that run
+
+#### Scenario: Token does not appear in logs
+- **WHEN** the workflow run's logs are inspected after a successful or failed run
+- **THEN** the deployment token's value does not appear in plain text anywhere in those logs

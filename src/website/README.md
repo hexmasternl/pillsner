@@ -48,7 +48,7 @@ Edit `content/<lang>/_index.md` for the page copy and `i18n/<lang>.toml` for chr
 
 ## Deployment
 
-`.github/workflows/website.yml` builds this site and deploys it to an Azure Static Web Apps (Free tier) resource on every push to `main` that changes `src/website/**`, or on a manual `workflow_dispatch` run. It authenticates via OpenID Connect using the repository's `AZURE_WEBSITE_CLIENT_ID`, `AZURE_WEBSITE_TENANT_ID` and `AZURE_WEBSITE_SUBSCRPITION_ID` secrets — no deployment token is stored in GitHub. The Azure Static Web Apps resource, the app registration and its federated credential are provisioned manually, outside this repository; see `openspec/changes/website-deployment-workflow/tasks.md` (section 1) for that one-time setup checklist.
+`.github/workflows/website.yml` builds this site and deploys it to an Azure Static Web Apps (Free tier) resource on every push to `main` that changes `src/website/**`, or on a manual `workflow_dispatch` run. It authenticates via OpenID Connect using the repository's `AZURE_WEBSITE_CLIENT_ID`, `AZURE_WEBSITE_TENANT_ID` and `AZURE_WEBSITE_SUBSCRIPTION_ID` secrets, then provisions the resource group and the Static Web App itself via the Bicep templates in `infra/website/` (idempotent — safe to run on every deployment) and deploys using a deployment token fetched fresh from that provisioning step. No deployment token is stored in GitHub. The only remaining manual step is the Microsoft Entra app registration and its federated credential/role assignment; see `openspec/changes/website-deployment-workflow/tasks.md` (section 1) for that one-time setup checklist.
 
 ## Privacy
 

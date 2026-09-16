@@ -30,7 +30,7 @@ changes), not version 2 as the original design assumed — this change adds vers
 - [x] 4.2 Add a `DoseRepository.applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>)` method backed by a `@Transaction` DAO method that records reminded state and clears snoozes for a batch of doses in one transaction.
 - [x] 4.3 Update `ReminderCoordinator.wake()`'s `due.forEach` loop to collect the per-dose updates and apply them in one call to `applyReminderOutcomes(...)` after the loop, instead of calling the repository per dose.
 - [x] 4.4 Wrap `RoomDoseRepository.withdrawPlanned`'s body in a single `@Transaction` DAO-backed call so the id-collection queries and `deleteByIds` are atomic. (Moved into `DoseDao.withdrawPlanned`.)
-- [ ] 4.5 Add or update DAO tests covering the batched methods with more than one row, confirming atomicity and confirming the resulting rows match the previous per-row behaviour exactly.
+- [x] 4.5 Add or update DAO tests covering the batched methods with more than one row, confirming atomicity and confirming the resulting rows match the previous per-row behaviour exactly. `refreshSnapshots`/`withdrawPlanned` were already covered with multiple rows at the repository level (same call shape, now transactional underneath); added two new tests for the new `applyReminderOutcomes` method. Written; compiles; not yet run — no device/emulator (task 6.3).
 
 ## 5. Reminder delivery log
 

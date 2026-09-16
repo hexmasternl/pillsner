@@ -148,7 +148,10 @@ class ReminderCoordinator(
                 // A wake that threw is not a timeout (`reminder-scheduling` "An exception is not a
                 // timeout"): every step is idempotent, so the alarm set is still reconciled
                 // normally from what is stored rather than treated as a reason to retry.
-                WakeOutcome.Failed -> reconcileAlarms()
+WakeOutcome.Failed -> {
+    consecutiveFailures = 0
+    reconcileAlarms()
+}
                 // A wake that ran out of its time budget has not announced what was due, so it is
                 // retried shortly instead of being treated as complete.
                 WakeOutcome.TimedOut -> armRetryOrGiveUp()

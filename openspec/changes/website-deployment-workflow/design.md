@@ -2,19 +2,22 @@
 
 `website-single-page-hugo` (not yet archived) adds a Hugo site at `src/website/` and a local build (`hugo --minify`), but explicitly defers hosting/deployment: "Deployment (choosing and configuring a static host) is out of scope for this change." `README.md` already documents `.github/workflows/website.yml` as building the site when `src/website/` or `docs/` changes — that text was written ahead of the workflow existing and currently overstates both scope (it mentions `docs/`) and effect (it says "builds", not "deploys"). This change creates the actual workflow, corrects that README text, and picks the static host the earlier design left open: Azure Static Web Apps.
 
-The repository already has `AZURE_WEBSITE_SUBSCRPITION_ID`, `AZURE_WEBSITE_TENANT_ID` and `AZURE_WEBSITE_CLIENT_ID` configured as GitHub secrets (naming — note the `SUBSCRPITION` typo — is fixed by whoever provisioned them; this workflow must use the secret names as they exist). Three secrets with no accompanying client secret is the standard shape for OpenID Connect (workload identity federation): a Microsoft Entra app registration with a federated credential trusting GitHub's OIDC token for this repository, and Azure RBAC granting that app registration just enough access to deploy to one Static Web Apps resource. No password, certificate, or long-lived deployment token needs to live in GitHub.
+The repository already has `AZURE_WEBSITE_SUBSCRIPTION_ID`, `AZURE_WEBSITE_TENANT_ID` and `AZURE_WEBSITE_CLIENT_ID` configured as GitHub secrets. Three secrets with no accompanying client secret is the standard shape for OpenID Connect (workload identity federation): a Microsoft Entra app registration with a federated credential trusting GitHub's OIDC token for this repository, and Azure RBAC granting that app registration access. No password, certificate, or long-lived deployment token needs to live in GitHub.
+
+A first implementation attempt authenticated via `azure/login` and then called `swa deploy` directly against a not-yet-existing Static Web App by name. `swa deploy`'s AAD login path is built for interactive/local use: when it can't resolve the named app, it falls back to an interactive resource picker, which just hangs a non-interactive GitHub Actions runner (confirmed by an actual failed run). That, plus the resource never having been provisioned, is why this design now provisions the infrastructure itself via Bicep rather than treating it as a manual prerequisite.
 
 ## Goals / Non-Goals
 
 **Goals:**
 - A GitHub Actions workflow that builds `src/website/` with the pinned Hugo version and publishes the output to an Azure Static Web Apps (Free tier) resource on every push to `main` that touches `src/website/**`.
 - Authenticate to Azure using only the three existing OIDC secrets — no new secret type introduced.
+- Provision the resource group and Static Web App via a subscription-scoped Bicep template, idempotently, as part of the workflow — no manual "click the portal first" step.
 - Keep the workflow fully independent of `ci.yml` and `release.yml`: separate file, separate triggers, no shared jobs, caches, or working directories.
 - Support a manual re-run (`workflow_dispatch`) for redeploying without a content change (e.g. after rotating the federated credential).
-- Leave the workflow able to fail loudly and stop if the Azure resource or federated credential isn't provisioned yet, rather than silently no-op-ing.
+- Leave the workflow able to fail loudly and stop if authentication or provisioning fails, rather than silently no-op-ing or hanging.
 
 **Non-Goals:**
-- Provisioning the Azure Static Web Apps resource or the Entra app registration/federated credential itself. That is a one-time manual (or separate IaC) setup step, documented here as a prerequisite, not automated by this change.
+- Provisioning the Entra app registration/federated credential itself, or the RBAC role assignment that lets it run the Bicep deployment. Those identity-level prerequisites remain one-time manual setup (see Decision 5); only the Azure *resources* (resource group, Static Web App) are provisioned by this workflow.
 - Preview/staging environments for pull requests. This change only wires up production deployment on `main`; PR preview environments (a Static Web Apps feature) can be a follow-up.
 - Broadening the trigger to `docs/**` or any other path. The proposal scopes the trigger to `src/website/**` only, per the request; the earlier README wording that mentioned `docs/` was aspirational and is corrected, not implemented.
 - Custom domain configuration, CDN, or WAF setup in front of the Static Web Apps resource.

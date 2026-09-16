@@ -17,19 +17,16 @@ concurrency:
 
 env:
   HUGO_VERSION: "0.165.0"
-  # Azure Static Web Apps resource this workflow deploys to. Not secret, safe to keep here.
-  # PLACEHOLDER: update to the actual resource name/group once provisioned
-  # (openspec/changes/website-deployment-workflow/tasks.md, section 1).
+  AZURE_LOCATION: "westeurope"
+  # Names for the resource group and Static Web App the infra deployment provisions
+  # (or updates, idempotently) on every run. Not secret, safe to keep here.
   SWA_APP_NAME: "pillsner-website"
   SWA_RESOURCE_GROUP: "rg-pillsner-website"
 
 jobs:
   deploy:
-    name: Build and deploy
+    name: Provision, build and deploy
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/website
 
     steps:
       - name: Check out
@@ -42,6 +39,7 @@ jobs:
           extended: true
 
       - name: Build
+        working-directory: src/website
         run: hugo --minify
 
       - name: Log in to Azure
@@ -49,21 +47,37 @@ jobs:
         with:
           # These three secrets are the OIDC federated-credential identity for this repository's
           # main branch — there is no client secret or deployment token to leak or rotate.
-          # AZURE_WEBSITE_SUBSCRIPTION_ID is spelled the way it was provisioned; do not "fix" it.
           client-id: ${{ secrets.AZURE_WEBSITE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_WEBSITE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_WEBSITE_SUBSCRIPTION_ID }}
 
+      - name: Provision the resource group and Static Web App
+        id: infra
+        # Subscription-scoped Bicep deployment: creates the resource group and the Free-tier
+        # Static Web App if they don't exist yet, or no-ops if they already match. The deployment
+        # token is a @secure() output, so it's excluded from deployment history/logging, but it
+        # is still returned to this command's own JSON output - which is why it's captured here
+        # rather than looked up again afterwards.
+        run: |
+          OUTPUTS=$(az deployment sub create \
+            --name "website-$(date +%s)" \
+            --location "$AZURE_LOCATION" \
+            --template-file infra/website/main.bicep \
+            --parameters resourceGroupName="$SWA_RESOURCE_GROUP" staticWebAppName="$SWA_APP_NAME" location="$AZURE_LOCATION" \
+            --query properties.outputs -o json)
+          TOKEN=$(echo "$OUTPUTS" | jq -r '.deploymentToken.value')
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+          echo "hostname=$(echo "$OUTPUTS" | jq -r '.defaultHostname.value')" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Azure Static Web Apps
+        working-directory: src/website
         run: |
           npx --yes @azure/static-web-apps-cli@latest deploy ./public \
-            --app-name "$SWA_APP_NAME" \
-            --resource-group "$SWA_RESOURCE_GROUP" \
-            --subscription-id "$AZURE_SUBSCRIPTION_ID" \
-            --tenant-id "$AZURE_TENANT_ID" \
-            --client-id "$AZURE_CLIENT_ID" \
+            --deployment-token "$DEPLOYMENT_TOKEN" \
             --env production
         env:
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_WEBSITE_SUBSCRIPTION_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_WEBSITE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_WEBSITE_CLIENT_ID }}
+          DEPLOYMENT_TOKEN: ${{ steps.infra.outputs.token }}
+
+      - name: Summary
+        run: echo "Deployed to https://${{ steps.infra.outputs.hostname }}" >> "$GITHUB_STEP_SUMMARY"

@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.shared.wear.SyncedDose
@@ -57,6 +59,15 @@ class WatchViewModelTest {
         publishedAtEpochMillis = now.toEpochMilli(),
         doses = doses.toList(),
     )
+
+    /** A clock whose instant can be moved forward from the test body, in lockstep with virtual time. */
+    private class ControllableClock(var instant: Instant, private val zone: ZoneId) : Clock() {
+        override fun getZone(): ZoneId = zone
+
+        override fun withZone(zone: ZoneId): Clock = ControllableClock(instant, zone)
+
+        override fun instant(): Instant = instant
+    }
 
     @Test
     fun `before anything has ever arrived the screen knows it has nothing`() = runTest(dispatcher) {
@@ -164,6 +175,28 @@ class WatchViewModelTest {
         backgroundScope.launch { viewModel.uiState.collect {} }
 
         assertEquals(1, connectivityChecks)
+    }
+
+    @Test
+    fun `a payload update does not recheck connectivity, but the next minute tick does`() = runTest(dispatcher) {
+        val tickingClock = ControllableClock(now, ZoneId.of("Europe/Amsterdam"))
+        var connectivityChecks = 0
+        payloads.value = payload(doseAt(1, Duration.ofHours(1), "Ibuprofen"))
+        val viewModel = WatchViewModel(payloads, { connectivityChecks++; phoneConnected }, tickingClock)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals("subscribing checks connectivity once", 1, connectivityChecks)
+
+        payloads.value = payload(doseAt(2, Duration.ofHours(1), "Metformin"))
+
+        assertEquals("a payload replacement alone must not recheck connectivity", 1, connectivityChecks)
+        assertEquals(listOf("Metformin"), viewModel.uiState.value.entries.map { it.name })
+
+        tickingClock.instant = now.plus(Duration.ofMinutes(1))
+        advanceTimeBy(Duration.ofMinutes(1).toMillis())
+        runCurrent()
+
+        assertEquals("one minute passing checks connectivity exactly once more", 2, connectivityChecks)
     }
 
     @Test

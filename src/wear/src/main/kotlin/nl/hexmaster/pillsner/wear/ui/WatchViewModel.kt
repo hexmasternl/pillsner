@@ -34,7 +34,7 @@ class WatchViewModel(
     private val minuteTicker = flow {
         while (true) {
             val now = Instant.now(clock)
-            emit(now)
+            emit(Tick(now, isPhoneConnected()))
             delay(millisUntilNextMinute(now))
         }
     }
@@ -42,10 +42,10 @@ class WatchViewModel(
     val uiState: StateFlow<WatchUiState> = combine(
         payloads,
         minuteTicker,
-    ) { payload, now ->
+    ) { payload, tick ->
         WatchUiState(
-            entries = payload?.let { entriesFor(it, now) }.orEmpty(),
-            phoneConnected = isPhoneConnected(),
+            entries = payload?.let { entriesFor(it, tick.now) }.orEmpty(),
+            phoneConnected = tick.phoneConnected,
             hasData = payload != null,
             locale = payload?.languageTag?.let(Locale::forLanguageTag) ?: Locale.getDefault(),
         )
@@ -72,6 +72,8 @@ class WatchViewModel(
     private fun millisUntilNextMinute(now: Instant): Long =
         now.until(now.truncatedTo(ChronoUnit.MINUTES).plus(1, ChronoUnit.MINUTES), ChronoUnit.MILLIS)
             .coerceAtLeast(1)
+
+    private data class Tick(val now: Instant, val phoneConnected: Boolean)
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L

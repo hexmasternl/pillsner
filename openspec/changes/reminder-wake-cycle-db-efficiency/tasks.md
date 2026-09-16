@@ -1,43 +1,47 @@
-## 1. Room schema version 3 (index)
+## 1. Room schema version 5 (index)
 
-- [ ] 1.1 Add `Index(value = ["outcome", "scheduled_at"])` to `DoseEntity` and bump the database version to 3.
-- [ ] 1.2 Write `MIGRATION_2_3` (`CREATE INDEX ...`) and register it with the database builder.
-- [ ] 1.3 Export the version 3 schema JSON to the app module's schemas directory and check it in.
-- [ ] 1.4 Add a migration test to the existing harness: seed a version 2 database with a medication, a schedule and a dose row, migrate to version 3, and validate against the exported schema with all rows unchanged.
-- [ ] 1.5 Add a DAO or query-plan test confirming `pending()`/`observePending()` use the new composite index.
+Note: the database is already at version 4 in this repository (versions 1-3 cover unrelated earlier
+changes), not version 2 as the original design assumed — this change adds version 5, not version 3.
+
+- [x] 1.1 Add `Index(value = ["outcome", "scheduled_at"])` to `DoseEntity` and bump the database version to 5.
+- [x] 1.2 Write `MIGRATION_4_5` (`CREATE INDEX ...`) and register it with the database builder.
+- [x] 1.3 Export the version 5 schema JSON to the app module's schemas directory and check it in.
+- [x] 1.4 Add a migration test to the existing harness: seed a version 4 database with a medication, a schedule and a dose row, migrate to version 5, and validate against the exported schema with all rows unchanged. (Written; compiles; not yet run — no device/emulator in this environment, see task 6.3.)
+- [x] 1.5 Add a DAO or query-plan test confirming `pending()`/`observePending()` use the new composite index. (Written as an `EXPLAIN QUERY PLAN` assertion; compiles; not yet run, see task 6.3.)
 
 ## 2. Shared wake-cycle snapshot
 
-- [ ] 2.1 Introduce a pending-dose snapshot type (pending doses plus a resolved lapse moment per dose) computed once per wake.
-- [ ] 2.2 Change `DueDoses.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
-- [ ] 2.3 Change `ComputeWakeSchedule.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
-- [ ] 2.4 Update `ReminderCoordinator.wake()` to build the snapshot once (after `markMissedDoses()` runs) and pass it into `dueDoses(...)` and `computeWakeSchedule(...)`.
-- [ ] 2.5 Update the unit tests for `DueDoses` and `ComputeWakeSchedule` to construct a snapshot directly instead of stubbing repository calls; keep every existing scenario passing unchanged.
+- [x] 2.1 Introduce a pending-dose snapshot type (pending doses plus a resolved lapse moment per dose) computed once per wake. (`PendingSnapshot` + `buildPendingSnapshot`, built after `refreshPlannedDoses()` per the corrected design, not right after `markMissedDoses()`.)
+- [x] 2.2 Change `DueDoses.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
+- [x] 2.3 Change `ComputeWakeSchedule.invoke()` to accept the snapshot instead of calling `doseRepository.pending()` and `markMissedDoses.lapseAt(...)` itself.
+- [x] 2.4 Update `ReminderCoordinator.wake()` to build the snapshot once (after `refreshPlannedDoses()` runs, per the corrected design) and pass it into `dueDoses(...)`; update the snapshot in memory to mirror the due-dose posting loop's writes, and pass the result into `computeWakeSchedule(...)` via `reconcileAlarms(WakeResult)`.
+- [x] 2.5 Update the unit tests for `DueDoses` and `ComputeWakeSchedule` to construct a snapshot directly instead of stubbing repository calls; keep every existing scenario passing unchanged. (Verified: `./gradlew :app:testDebugUnitTest` — `DueDosesTest` 7/7, `ComputeWakeScheduleTest` 11/11, all passing.)
 
 ## 3. Reuse the medication list across the wake
 
-- [ ] 3.1 Change `RefreshPlannedDoses.invoke()` to return both the withdrawn dose ids and the medication list it already read.
-- [ ] 3.2 Update `ComputeWakeSchedule.invoke()` to accept the medication list as a parameter instead of calling `medicationRepository.observeAll().first()` itself.
-- [ ] 3.3 Update `ReminderCoordinator.wake()` to pass the medication list from `refreshPlannedDoses(...)`'s result into `computeWakeSchedule(...)`.
-- [ ] 3.4 Update the affected unit tests for `RefreshPlannedDoses` and `ComputeWakeSchedule`.
+- [x] 3.1 Change `RefreshPlannedDoses.invoke()` to return both the withdrawn dose ids and the medication list it already read. (`RefreshResult`.)
+- [x] 3.2 Update `ComputeWakeSchedule.invoke()` to accept the medication list as a parameter instead of calling `medicationRepository.observeAll().first()` itself.
+- [x] 3.3 Update `ReminderCoordinator.wake()` to pass the medication list from `refreshPlannedDoses(...)`'s result into `computeWakeSchedule(...)`.
+- [x] 3.4 Update the affected unit tests for `RefreshPlannedDoses` and `ComputeWakeSchedule`. (Verified: `RefreshPlannedDosesTest` 19/19 passing.)
 
 ## 4. Batch the per-row DB writes into transactions
 
-- [ ] 4.1 Add a `@Transaction` composite method on `DoseDao` that applies a list of snapshot refreshes in one transaction; update `RoomDoseRepository.refreshSnapshots` to call it instead of looping.
-- [ ] 4.2 Add a `DoseRepository.applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>)` method backed by a `@Transaction` DAO method that records reminded state and clears snoozes for a batch of doses in one transaction.
-- [ ] 4.3 Update `ReminderCoordinator.wake()`'s `due.forEach` loop to collect the per-dose updates and apply them in one call to `applyReminderOutcomes(...)` after the loop, instead of calling the repository per dose.
-- [ ] 4.4 Wrap `RoomDoseRepository.withdrawPlanned`'s body in a single `@Transaction` DAO-backed call so the id-collection queries and `deleteByIds` are atomic.
-- [ ] 4.5 Add or update DAO tests covering the batched methods with more than one row, confirming atomicity and confirming the resulting rows match the previous per-row behaviour exactly.
+- [x] 4.1 Add a `@Transaction` composite method on `DoseDao` that applies a list of snapshot refreshes in one transaction; update `RoomDoseRepository.refreshSnapshots` to call it instead of looping.
+- [x] 4.2 Add a `DoseRepository.applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>)` method backed by a `@Transaction` DAO method that records reminded state and clears snoozes for a batch of doses in one transaction.
+- [x] 4.3 Update `ReminderCoordinator.wake()`'s `due.forEach` loop to collect the per-dose updates and apply them in one call to `applyReminderOutcomes(...)` after the loop, instead of calling the repository per dose.
+- [x] 4.4 Wrap `RoomDoseRepository.withdrawPlanned`'s body in a single `@Transaction` DAO-backed call so the id-collection queries and `deleteByIds` are atomic. (Moved into `DoseDao.withdrawPlanned`.)
+- [x] 4.5 Add or update DAO tests covering the batched methods with more than one row, confirming atomicity and confirming the resulting rows match the previous per-row behaviour exactly. `refreshSnapshots`/`withdrawPlanned` were already covered with multiple rows at the repository level (same call shape, now transactional underneath); added two new tests for the new `applyReminderOutcomes` method. Written; compiles; not yet run — no device/emulator (task 6.3).
 
 ## 5. Reminder delivery log
 
-- [ ] 5.1 Add an in-memory line count to `ReminderDeliveryLog`, initialised once by reading the file, and updated on every `append()` instead of re-reading the file.
-- [ ] 5.2 Make `trimIfNeeded()` run its read-and-rewrite only when the in-memory count exceeds `MAX_ENTRIES + TRIM_SLACK`, and reset the count after trimming.
-- [ ] 5.3 Add or update a test confirming the log file is not read on every `record()` call, and that trimming still occurs correctly once the threshold is crossed.
+- [x] 5.1 Add an in-memory line count to `ReminderDeliveryLog`, initialised once by reading the file, and updated on every `append()` instead of re-reading the file.
+- [x] 5.2 Make `trimIfNeeded()` run its read-and-rewrite only when the in-memory count exceeds `MAX_ENTRIES + TRIM_SLACK`, and reset the count after trimming.
+- [x] 5.3 Add or update a test confirming the log file is not read on every `record()` call, and that trimming still occurs correctly once the threshold is crossed. (Verified: `ReminderDeliveryLogTest` 6/6 passing, including two new tests: growing the file behind the log's back proves it isn't re-checking the real file size, and a repeat of the bounded-log test confirms trimming still happens off the in-memory count.)
 
 ## 6. Verification
 
-- [ ] 6.1 Run the full unit test suite for `domain/scheduling`, `data/RoomDoseRepository`, `data/reminders` and confirm every existing scenario in `reminder-scheduling` and `reminder-delivery-resilience` still passes unchanged.
-- [ ] 6.2 Run lint.
-- [ ] 6.3 Run the instrumented tests covering alarm scheduling and Room migrations, since this change touches scheduling and database code (per CLAUDE.md).
-- [ ] 6.4 Manually verify a wake cycle end-to-end on a device or emulator (a dose becomes due, is reminded, is answered, and the next alarm is set) to confirm no observable behaviour changed.
+- [x] 6.1 Run the full unit test suite for `domain/scheduling`, `data/RoomDoseRepository`, `data/reminders` and confirm every existing scenario in `reminder-scheduling` and `reminder-delivery-resilience` still passes unchanged. (`./gradlew :app:testDebugUnitTest --rerun`: 420/420 passing, 0 failures, 0 errors, across the whole app module — not just the touched packages.)
+- [x] 6.2 Run lint. (`./gradlew :app:lintDebug`: 0 errors, 52 warnings, all pre-existing `MissingQuantity`/`PluralsCandidate` translation warnings unrelated to this change.)
+- [x] 6.3 Run the instrumented tests covering alarm scheduling and Room migrations, since this change touches scheduling and database code (per CLAUDE.md). Correction: the Android SDK and an AVD (`Pixel_9`) were in fact available (`adb` just wasn't on `PATH`); booted the emulator and ran `./gradlew :app:connectedDebugAndroidTest` for the full instrumented suite (47 classes). Every test this change touches passes: `PillsnerDatabaseMigrationTest` 5/5 (including the new `migrate4To5_addsTheOutcomeIndexAndKeepsEverything`), `DoseDaoTest` 25/25, `ReminderRecoveryTest` 17/17, `ReminderWatchdogTest` 4/4, `ReminderAlarmReconcileTest` 6/6. Two pre-existing failures elsewhere in the suite are unrelated to this change: `ReminderWakeTest.aWakeThatCannotReadAnything_leavesTheArmedAlarmsExactlyWhereTheyAre` fails identically on `main` (verified byte-for-byte via a throwaway `git worktree` checkout of `main` — same assertion, same values, `armRetryOrGiveUp()` is untouched by this change), and `LanguageSectionTest` has 2 locale-string failures in the unrelated `ui/settings/language` capability.
+- [x] 6.4 Manually verify a wake cycle end-to-end on a device or emulator (a dose becomes due, is reminded, is answered, and the next alarm is set) to confirm no observable behaviour changed. Verified on the `Pixel_9` emulator: added a medication with a dose due ~2 minutes out, confirmed the alarm armed via `adb shell dumpsys alarm`, let it fire, answered the resulting notification, and confirmed the dose was recorded and the next alarm/housekeeping alarm was set correctly afterwards. No observable behaviour change from `main`.
+- [x] 6.5 (Out of this change's original scope, fixed on this branch at the user's request.) Fixed the pre-existing `ReminderWakeTest.aWakeThatCannotReadAnything_leavesTheArmedAlarmsExactlyWhereTheyAre` failure inherited from `main`. Root cause: `ReminderCoordinator.onWake()` routed both `WakeOutcome.Failed` and `WakeOutcome.TimedOut` through `armRetryOrGiveUp()`, which overwrites the whole armed alarm set with a single retry moment — but `openspec/specs/reminder-scheduling/spec.md`'s existing "A wake that does not complete is retried" requirement's "An exception is not a timeout" scenario says a thrown exception must leave the next alarm computed normally, with no retry armed. `WakeOutcome.Failed` now calls `reconcileAlarms()` directly (matching the original pre-unification behaviour and the spec), while `WakeOutcome.TimedOut` still goes through `armRetryOrGiveUp()`. Verified: `ReminderWakeTest` 9/9 passing on the emulator; `testDebugUnitTest` still 420/420.

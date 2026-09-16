@@ -13,6 +13,7 @@ import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.PlannedDose
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
+import nl.hexmaster.pillsner.domain.repository.ReminderOutcomeUpdate
 
 /**
  * A [DoseRepository] held in memory, with the same rules as the Room one: planned inserts ignore a
@@ -113,6 +114,13 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
                 lastRemindedAt = at,
                 reminderCount = it.reminderCount + if (countsAsRepeat) 1 else 0,
             )
+        }
+    }
+
+    override suspend fun applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>) {
+        updates.forEach { update ->
+            recordReminded(update.id, update.at, update.countsAsRepeat)
+            if (update.clearsSnooze) setSnooze(update.id, null)
         }
     }
 

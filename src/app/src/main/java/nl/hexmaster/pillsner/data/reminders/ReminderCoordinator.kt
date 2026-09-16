@@ -7,18 +7,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
 import nl.hexmaster.pillsner.domain.model.Dose
+import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
+import nl.hexmaster.pillsner.domain.repository.ReminderOutcomeUpdate
 import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
+import nl.hexmaster.pillsner.domain.scheduling.PendingSnapshot
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.domain.scheduling.buildPendingSnapshot
 import nl.hexmaster.pillsner.domain.scheduling.silentlyMissedReminderAmong
 import nl.hexmaster.pillsner.domain.scheduling.WakeKind
 import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
@@ -85,7 +90,11 @@ class ReminderCoordinator(
     private val lock = Mutex()
 
     /**
-     * How many wakes in a row have not completed — run out of time or thrown (design D2).
+     * How many wakes in a row have timed out (design D2).
+     *
+     * An exception is not a timeout (`reminder-scheduling` "A wake that does not complete is
+     * retried"): a step throwing still lets the wake settle what it could and reconcile the alarm
+     * set normally, so only running out of the time budget counts here.
      *
      * In memory on purpose: a retry sequence lives inside one episode of trouble, and a fresh
      * process is a fresh attempt. Erring towards delivering the reminder is the right direction.
@@ -131,15 +140,21 @@ class ReminderCoordinator(
                 if (reason == WakeReason.ALARM && consecutiveFailures > 0) WakeReason.RETRY else reason
             deliveryLog?.record(DeliveryEvent.WAKE, wakeReason.name)
 
-            when (runWakeBody(wakeReason, timeoutMillis)) {
-                WakeOutcome.COMPLETED -> {
+            when (val outcome = runWakeBody(wakeReason, timeoutMillis)) {
+                is WakeOutcome.Completed -> {
                     consecutiveFailures = 0
-                    reconcileAlarms()
+                    reconcileAlarms(outcome.result)
                 }
-                // A wake that threw has, like one that ran out of time, not announced what was due,
-                // and every step of it is idempotent, so running it again shortly is safe and is
-                // the only thing that can still deliver the reminder on time.
-                WakeOutcome.FAILED, WakeOutcome.TIMED_OUT -> armRetryOrGiveUp()
+                // A wake that threw is not a timeout (`reminder-scheduling` "An exception is not a
+                // timeout"): every step is idempotent, so the alarm set is still reconciled
+                // normally from what is stored rather than treated as a reason to retry.
+WakeOutcome.Failed -> {
+    consecutiveFailures = 0
+    reconcileAlarms()
+}
+                // A wake that ran out of its time budget has not announced what was due, so it is
+                // retried shortly instead of being treated as complete.
+                WakeOutcome.TimedOut -> armRetryOrGiveUp()
             }
 
             // The wake has just settled what is still to be taken, so this is the moment the
@@ -149,23 +164,29 @@ class ReminderCoordinator(
         }
     }
 
+    /** What a completed wake found, carried forward to [reconcileAlarms] without re-querying it. */
+    private class WakeResult(val snapshot: PendingSnapshot, val medications: List<Medication>)
+
     /** What became of one run of the wake body. Each outcome leaves a different alarm behind. */
-    private enum class WakeOutcome { COMPLETED, TIMED_OUT, FAILED }
+    private sealed class WakeOutcome {
+        data class Completed(val result: WakeResult) : WakeOutcome()
+        data object TimedOut : WakeOutcome()
+        data object Failed : WakeOutcome()
+    }
 
     private suspend fun runWakeBody(reason: WakeReason, timeoutMillis: Long): WakeOutcome = try {
-        withTimeout(timeoutMillis) { wake(reason) }
-        WakeOutcome.COMPLETED
+        WakeOutcome.Completed(withTimeout(timeoutMillis) { wake(reason) })
     } catch (timeout: TimeoutCancellationException) {
         Log.d(TAG, "Wake for $reason ran out of time")
         deliveryLog?.record(DeliveryEvent.TIMED_OUT, reason.name)
-        WakeOutcome.TIMED_OUT
+        WakeOutcome.TimedOut
     } catch (error: Exception) {
         Log.d(TAG, "Wake for $reason did not complete: ${error::class.simpleName}")
         deliveryLog?.record(DeliveryEvent.FAILED, "${reason.name} ${error::class.simpleName}")
-        WakeOutcome.FAILED
+        WakeOutcome.Failed
     }
 
-    private suspend fun wake(reason: WakeReason) {
+    private suspend fun wake(reason: WakeReason): WakeResult {
         val lapsed = markMissedDoses()
         lapsed.forEach { dose ->
             notifier.cancel(dose)
@@ -179,16 +200,23 @@ class ReminderCoordinator(
         // Only a change the user made may withdraw a dose they have already been reminded about:
         // they have just said they no longer take it then. A clock or time-zone move must leave
         // such a dose exactly where it is.
-        val withdrawn = refreshPlannedDoses(
+        val refreshResult = refreshPlannedDoses(
             afterUserEdit = reason == WakeReason.MEDICATIONS_CHANGED,
         )
         // A withdrawn dose no longer exists, so a notification for it would offer answers that
         // resolve to nothing. Cancelling one that was never shown is a no-op, so there is no need
         // to ask first.
-        withdrawn.forEach { notifier.cancel(it) }
+        refreshResult.withdrawn.forEach { notifier.cancel(it) }
 
-        val due = dueDoses()
+        // Built once, after the refresh has settled what is pending, so it reflects every insert
+        // and withdrawal the refresh just made; shared by dueDoses below and, once updated to
+        // reflect the postings just below, by computeWakeSchedule in reconcileAlarms
+        // (reminder-wake-cycle-db-efficiency design D1).
+        val snapshot = buildPendingSnapshot(doseRepository, markMissedDoses)
+        val due = dueDoses(snapshot)
         val now = clock.instant()
+        val outcomeUpdates = mutableListOf<ReminderOutcomeUpdate>()
+        val updatedDoses = snapshot.doses.associateByTo(LinkedHashMap()) { it.id }
         due.forEach { dose ->
             // A dose counts as reminded only once it has actually been announced (design D1). When
             // the post did not happen, its snooze stays where it is too: clearing it would take the
@@ -202,11 +230,27 @@ class ReminderCoordinator(
             // only a posting that neither of those explains is the repeat rule asking again
             // (design D5).
             val countsAsRepeat = dose.firstRemindedAt != null && dose.snoozedUntil == null
-            doseRepository.recordReminded(dose.id, now, countsAsRepeat)
-            if (dose.snoozedUntil != null) {
-                doseRepository.setSnooze(dose.id, null)
+            val clearsSnooze = dose.snoozedUntil != null
+            outcomeUpdates += ReminderOutcomeUpdate(dose.id, now, countsAsRepeat, clearsSnooze)
+
+            // Mirrors exactly what applyReminderOutcomes is about to write, so the snapshot handed
+            // to computeWakeSchedule below sees this dose's post-reminder state rather than the
+            // moment before it was announced.
+            var updated = dose.copy(
+                firstRemindedAt = dose.firstRemindedAt ?: now,
+                lastRemindedAt = now,
+                reminderCount = dose.reminderCount + if (countsAsRepeat) 1 else 0,
+            )
+            if (clearsSnooze) {
+                updated = updated.copy(snoozedUntil = null, reminderCount = 0)
             }
+            updatedDoses[dose.id] = updated
         }
+        if (outcomeUpdates.isNotEmpty()) {
+            doseRepository.applyReminderOutcomes(outcomeUpdates)
+        }
+
+        return WakeResult(snapshot.copy(doses = updatedDoses.values.toList()), refreshResult.medications)
     }
 
     /**
@@ -260,12 +304,21 @@ class ReminderCoordinator(
     /**
      * Brings the armed alarms back in line with what the app now has to wake for.
      *
+     * [wakeResult] is what a wake that just completed found, reused here instead of read again. A
+     * wake that gave up after repeated failures has no such result to reuse — [armRetryOrGiveUp]
+     * calls this with none, and a fresh snapshot and medication list are read for it, exactly as
+     * this whole method always did before the wake-cycle snapshot was introduced.
+     *
      * When even working out the schedule fails, the alarms already armed are left exactly as they
      * are. They are the app's last good answer, and a reconcile against a schedule that could not
      * be read would cancel every one of them over what may be a passing failure.
      */
-    private suspend fun reconcileAlarms() {
-        val schedule = runCatching { computeWakeSchedule() }.getOrNull()
+    private suspend fun reconcileAlarms(wakeResult: WakeResult? = null) {
+        val schedule = runCatching {
+            val snapshot = wakeResult?.snapshot ?: buildPendingSnapshot(doseRepository, markMissedDoses)
+            val medications = wakeResult?.medications ?: medicationRepository.observeAll().first()
+            computeWakeSchedule(snapshot, medications)
+        }.getOrNull()
         if (schedule == null) {
             deliveryLog?.record(DeliveryEvent.ALARMS_LEFT_AS_IS)
             return

@@ -1,3 +1,5 @@
+GitHub issue: [#6](https://github.com/hexmasternl/pillsner/issues/6)
+
 ## Why
 
 A backlog scan (`docs/todo.md`) found that app startup and PIN verification do more synchronous, blocking, and redundant work than necessary: PIN checks hit the Android Keystore twice per attempt, several app-lock use cases call blocking Keystore/JCE crypto directly on `viewModelScope` (Main) with no `withContext(Dispatchers.IO)`, a locale change blocks the main thread on a `runBlocking` DataStore read in `onConfigurationChanged()`, and the app's theme `StateFlow` subscribes to the same DataStore flow twice at startup. None of this is a functional bug — behaviour is correct today — but it risks main-thread jank on every unlock attempt, PIN change, biometric fallback, and system locale change, and does needless duplicate work at process start. Fixing it now, before more app-lock flows are added, keeps PIN verification and startup responsive.

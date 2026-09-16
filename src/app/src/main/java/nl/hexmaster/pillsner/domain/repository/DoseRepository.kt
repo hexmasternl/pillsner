@@ -8,6 +8,20 @@ import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.PlannedDose
 
+/**
+ * One dose's reminder posting to apply through [DoseRepository.applyReminderOutcomes]: the moment
+ * it was posted, whether the posting counts as a repeat, and whether it also clears an outstanding
+ * snooze — the same information a [DoseRepository.recordReminded] call followed, when needed, by a
+ * [DoseRepository.setSnooze] call to null would carry, batched for one transaction instead of two
+ * suspend calls per dose (reminder-wake-cycle-db-efficiency design D3).
+ */
+data class ReminderOutcomeUpdate(
+    val id: DoseId,
+    val at: Instant,
+    val countsAsRepeat: Boolean,
+    val clearsSnooze: Boolean,
+)
+
 /** Storage of the doses the app has planned and of what became of them. */
 interface DoseRepository {
 
@@ -108,6 +122,14 @@ interface DoseRepository {
      * is asleep between one ask and the next, and may well be started fresh by the alarm.
      */
     suspend fun recordReminded(id: DoseId, at: Instant, countsAsRepeat: Boolean)
+
+    /**
+     * Applies every [ReminderOutcomeUpdate] of [updates] in one transaction: for each one, records
+     * its reminder as posted, then — only where the update says so — clears its snooze. This is the
+     * batched form of calling [recordReminded] and, conditionally, [setSnooze] once per dose in a
+     * loop, for the wake cycle's due-dose posting step.
+     */
+    suspend fun applyReminderOutcomes(updates: List<ReminderOutcomeUpdate>)
 
     /**
      * The moment of the next dose of [medicationId] after [after], or null when there is none in

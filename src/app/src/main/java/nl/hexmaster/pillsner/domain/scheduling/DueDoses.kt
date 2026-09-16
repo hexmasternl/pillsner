@@ -3,7 +3,6 @@ package nl.hexmaster.pillsner.domain.scheduling
 import java.time.Clock
 import java.time.Instant
 import nl.hexmaster.pillsner.domain.model.Dose
-import nl.hexmaster.pillsner.domain.repository.DoseRepository
 
 /**
  * The pending doses that should have a reminder showing right now: a dose whose moment has come and
@@ -13,24 +12,25 @@ import nl.hexmaster.pillsner.domain.repository.DoseRepository
  * A dose the user has already been reminded about is never returned because its own moment came
  * round again, so a clock moved backwards cannot make the app re-announce doses the user has seen.
  * Only the repeat rule, which counts forward from the last posting, brings such a dose back.
+ *
+ * Works entirely from a [PendingSnapshot] built earlier in the same wake, rather than reading the
+ * repository itself, so the wake cycle pays for one pending-dose read instead of one per use case.
  */
 class DueDoses(
-    private val doseRepository: DoseRepository,
-    private val markMissedDoses: MarkMissedDoses,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
 
-    suspend operator fun invoke(): List<Dose> {
+    operator fun invoke(snapshot: PendingSnapshot): List<Dose> {
         val now = clock.instant()
-        return doseRepository.pending().filter { dose ->
+        return snapshot.doses.filter { dose ->
             val snoozeElapsed = dose.snoozedUntil?.let { !it.isAfter(now) } == true
             val newlyDue = dose.firstRemindedAt == null && !dose.scheduledAt.isAfter(now)
-            snoozeElapsed || newlyDue || repeatIsDue(dose, now)
+            snoozeElapsed || newlyDue || repeatIsDue(dose, snapshot, now)
         }
     }
 
-    private suspend fun repeatIsDue(dose: Dose, now: Instant): Boolean {
-        val repeatAt = ReminderRepeats.nextRepeatAt(dose, markMissedDoses.lapseAt(dose)) ?: return false
+    private fun repeatIsDue(dose: Dose, snapshot: PendingSnapshot, now: Instant): Boolean {
+        val repeatAt = ReminderRepeats.nextRepeatAt(dose, snapshot.lapseAt(dose)) ?: return false
         return !repeatAt.isAfter(now)
     }
 }

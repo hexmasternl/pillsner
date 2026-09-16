@@ -141,9 +141,8 @@ class AppContainer(
     private val markMissedDoses = MarkMissedDoses(this.doseRepository, clock)
     private val refreshPlannedDoses =
         RefreshPlannedDoses(this.medicationRepository, this.doseRepository, DoseGenerator(), clock)
-    private val dueDoses = DueDoses(this.doseRepository, markMissedDoses, clock)
-    private val computeWakeSchedule =
-        ComputeWakeSchedule(this.doseRepository, this.medicationRepository, markMissedDoses, clock)
+    private val dueDoses = DueDoses(clock)
+    private val computeWakeSchedule = ComputeWakeSchedule(clock)
 
     private val recordIntakeUseCase = RecordIntake(this.doseRepository, clock)
     private val snoozeDoseUseCase = SnoozeDose(this.doseRepository, markMissedDoses, clock)

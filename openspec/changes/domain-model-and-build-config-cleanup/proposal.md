@@ -1,3 +1,5 @@
+GitHub issue: [#5](https://github.com/hexmasternl/pillsner/issues/5)
+
 ## Why
 
 A backlog scan (`docs/todo.md`) found two small, independent inefficiencies that don't share a root cause with any of the other grouped optimization changes (reminder wake-cycle DB efficiency, startup/PIN-verification blocking, Compose UI recomposition, wear per-minute tick efficiency): a per-call allocation in the `Quantity` domain model, and a dead version-catalog entry that leaves the wear module building against the phone's `minSdk` instead of its own. They're batched together here purely because each is too small to justify its own change, not because they're related.

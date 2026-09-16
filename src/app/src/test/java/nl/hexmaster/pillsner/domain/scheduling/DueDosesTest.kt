@@ -79,6 +79,8 @@ class DueDosesTest {
         assertEquals(emptyList<Long>(), dueWith(doses))
     }
 
-    private suspend fun dueWith(doses: InMemoryDoseRepository): List<Long> =
-        DueDoses(doses, MarkMissedDoses(doses, clock), clock)().map { it.id.value }
+    private suspend fun dueWith(doses: InMemoryDoseRepository): List<Long> {
+        val snapshot = buildPendingSnapshot(doses, MarkMissedDoses(doses, clock))
+        return DueDoses(clock)(snapshot).map { it.id.value }
+    }
 }

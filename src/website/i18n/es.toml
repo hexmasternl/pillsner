@@ -27,3 +27,21 @@ other = "Descargar en Google Play"
 
 [skip_to_content_target]
 other = "Contenido principal"
+
+[beta_banner_aria]
+other = "Anuncio de pruebas beta"
+
+[beta_banner_heading]
+other = "Conviértete en probador beta"
+
+[beta_banner_body]
+other = "Únete a la beta de Pillsner: primero entra en el Grupo de Google y luego inscríbete como probador para recibir versiones anticipadas antes de que lleguen a Play Store."
+
+[beta_banner_join_group]
+other = "Unirse al Grupo de Google"
+
+[beta_banner_become_tester]
+other = "Convertirse en probador"
+
+[beta_banner_delay_note]
+other = "Pueden pasar hasta 10 minutos desde que te unes al grupo hasta que puedas descargar la aplicación."

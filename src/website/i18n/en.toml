@@ -27,3 +27,21 @@ other = "Download on Google Play"
 
 [skip_to_content_target]
 other = "Main content"
+
+[beta_banner_aria]
+other = "Beta testing announcement"
+
+[beta_banner_heading]
+other = "Become a beta tester"
+
+[beta_banner_body]
+other = "Join the Pillsner beta: join the Google Group first, then opt in as a tester to get early builds before they reach the Play Store."
+
+[beta_banner_join_group]
+other = "Join the Google Group"
+
+[beta_banner_become_tester]
+other = "Become a tester"
+
+[beta_banner_delay_note]
+other = "It can take up to 10 minutes after joining the group before you're able to download the app."

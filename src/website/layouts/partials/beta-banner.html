@@ -1,0 +1,23 @@
+{{/* Attention-drawing beta call-to-action. Uses the secondary (blue) container, never the
+     error role: red is reserved for danger states, and this isn't one. */}}
+<section class="beta-banner" aria-label="{{ i18n "beta_banner_aria" }}">
+  <div class="container beta-banner__inner">
+    <span class="beta-banner__icon">{{ partial "icon.html" "group" }}</span>
+    <div class="beta-banner__copy">
+      <p class="title-large">{{ i18n "beta_banner_heading" }}</p>
+      <p class="body-medium">{{ i18n "beta_banner_body" }}</p>
+      <p class="beta-banner__note body-medium">
+        <span class="beta-banner__note-icon">{{ partial "icon.html" "info" }}</span>
+        <span>{{ i18n "beta_banner_delay_note" }}</span>
+      </p>
+    </div>
+    <div class="beta-banner__actions">
+      <a class="button button--filled" href="{{ .Site.Params.betaGroupUrl }}" rel="noopener" target="_blank">
+        {{ i18n "beta_banner_join_group" }}
+      </a>
+      <a class="button button--outlined" href="{{ .Site.Params.betaTesterUrl }}" rel="noopener" target="_blank">
+        {{ i18n "beta_banner_become_tester" }}
+      </a>
+    </div>
+  </div>
+</section>

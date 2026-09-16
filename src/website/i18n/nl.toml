@@ -27,3 +27,21 @@ other = "Downloaden via Google Play"
 
 [skip_to_content_target]
 other = "Hoofdinhoud"
+
+[beta_banner_aria]
+other = "Aankondiging betatesten"
+
+[beta_banner_heading]
+other = "Word betatester"
+
+[beta_banner_body]
+other = "Doe mee aan de Pillsner-beta: word eerst lid van de Google-groep en meld je daarna aan als tester om vroege versies te krijgen voordat ze in de Play Store verschijnen."
+
+[beta_banner_join_group]
+other = "Word lid van de Google-groep"
+
+[beta_banner_become_tester]
+other = "Tester worden"
+
+[beta_banner_delay_note]
+other = "Het kan tot 10 minuten duren nadat je lid bent geworden voordat je de app kunt downloaden."

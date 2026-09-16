@@ -61,6 +61,76 @@
   color: var(--color-on-secondary-container);
 }
 
+/* Beta call-to-action banner. Secondary (blue) container, not error/red — this draws attention
+   without claiming to be a danger state, which the design system reserves red for exclusively. */
+
+.beta-banner {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+
+.beta-banner__inner {
+  display: grid;
+  gap: var(--space-lg);
+  padding-block: var(--space-lg);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .beta-banner__inner {
+    grid-template-columns: auto 1fr auto;
+  }
+}
+
+.beta-banner__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--shape-medium);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.beta-banner__copy > * + * {
+  margin-top: var(--space-xs);
+}
+
+.beta-banner__note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  color: var(--color-on-secondary-container);
+  opacity: 0.85;
+}
+
+.beta-banner__note-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 3px;
+}
+
+.beta-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.beta-banner .button--outlined {
+  color: var(--color-on-secondary-container);
+  border-color: var(--color-on-secondary-container);
+}
+
+.beta-banner .button--outlined:hover,
+.beta-banner .button--outlined:focus-visible {
+  background: var(--color-surface-container-lowest);
+  color: var(--color-secondary);
+  border-color: var(--color-surface-container-lowest);
+}
+
 /* Language switcher: a plain, always-visible list of links. Works with no JS. */
 
 .language-switcher {

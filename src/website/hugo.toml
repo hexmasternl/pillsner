@@ -55,6 +55,8 @@ disableKinds = ["taxonomy", "term", "section"]
   githubUrl = "https://github.com/hexmasternl/pillsner"
   privacyPolicyUrl = "https://github.com/hexmasternl/pillsner/blob/main/PRIVACY.md"
   siteName = "Pillsner"
+  betaGroupUrl = "https://groups.google.com/g/pillsner-closed-tests"
+  betaTesterUrl = "https://play.google.com/apps/testing/nl.hexmaster.pillsner"
 
   [params.ogLocales]
     en = "en_US"

@@ -1,0 +1,86 @@
+baseURL = "https://pillsner.app/"
+locale = "en"
+title = "Pillsner"
+defaultContentLanguage = "en"
+defaultContentLanguageInSubdir = true
+enableRobotsTXT = false
+summaryLength = 30
+enableEmoji = false
+disableKinds = ["taxonomy", "term", "section"]
+
+[outputs]
+  home = ["html"]
+
+[permalinks]
+  page = "/:slug/"
+
+[languages]
+  [languages.en]
+    label = "English"
+    direction = "ltr"
+    weight = 1
+    contentDir = "content/en"
+  [languages.nl]
+    label = "Nederlands"
+    direction = "ltr"
+    weight = 2
+    contentDir = "content/nl"
+  [languages.fr]
+    label = "Français"
+    direction = "ltr"
+    weight = 3
+    contentDir = "content/fr"
+  [languages.es]
+    label = "Español"
+    direction = "ltr"
+    weight = 4
+    contentDir = "content/es"
+  [languages.pt]
+    label = "Português"
+    direction = "ltr"
+    weight = 5
+    contentDir = "content/pt"
+  [languages.de]
+    label = "Deutsch"
+    direction = "ltr"
+    weight = 6
+    contentDir = "content/de"
+
+[sitemap]
+  changeFreq = "monthly"
+  priority = 0.5
+
+[params]
+  playStoreUrl = "https://play.google.com/store/apps/details?id=nl.hexmaster.pillsner"
+  githubUrl = "https://github.com/hexmasternl/pillsner"
+  privacyPolicyUrl = "https://github.com/hexmasternl/pillsner/blob/main/PRIVACY.md"
+  siteName = "Pillsner"
+
+  [params.ogLocales]
+    en = "en_US"
+    nl = "nl_NL"
+    fr = "fr_FR"
+    es = "es_ES"
+    pt = "pt_PT"
+    de = "de_DE"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = false
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+
+[minify]
+  [minify.tdewolff]
+    [minify.tdewolff.html]
+      keepWhitespace = false
+
+[build]
+  writeStats = false
+
+[caches]
+  [caches.images]
+    dir = ":resourceDir/_gen"
+    maxAge = -1

@@ -1,0 +1,76 @@
+{{ define "main" }}
+{{ partial "header.html" . }}
+
+<main id="main">
+  <section class="hero container">
+    <div class="hero__grid">
+      <div class="hero__copy">
+        <span class="section__eyebrow label-large">{{ .Params.hero.eyebrow }}</span>
+        <h1 class="display-large">{{ .Params.hero.heading }}</h1>
+        <p class="body-large">{{ .Params.hero.lead }}</p>
+        <div class="hero__actions">
+          <a class="button button--filled button--large" href="{{ .Site.Params.playStoreUrl }}" rel="noopener">
+            {{ partial "icon.html" "play" }}
+            {{ i18n "cta_play_store" }}
+          </a>
+          <a class="button button--outlined button--large" href="#features">
+            {{ i18n "nav_features" }}
+          </a>
+        </div>
+      </div>
+      {{ $feature := resources.Get "images/feature-source.png" }}
+      {{ if $feature }}
+        {{ $hero := $feature.Fill "960x600 Center" }}
+        <img class="hero__art" src="{{ $hero.RelPermalink }}" width="{{ $hero.Width }}" height="{{ $hero.Height }}" alt="{{ .Params.hero.heading }}">
+      {{ end }}
+    </div>
+  </section>
+
+  <section class="section container" id="why">
+    <div class="section__heading">
+      <h2 class="headline-large">{{ .Params.why.heading }}</h2>
+      <p class="body-large">{{ .Params.why.intro }}</p>
+    </div>
+    <ul class="why__points">
+      {{ range .Params.why.points }}
+      <li>
+        <span class="check">{{ partial "icon.html" "check" }}</span>
+        <span class="body-large">{{ . }}</span>
+      </li>
+      {{ end }}
+    </ul>
+  </section>
+
+  <section class="section container" id="features">
+    <div class="section__heading">
+      <h2 class="headline-large">{{ .Params.features.heading }}</h2>
+    </div>
+    <div class="features__grid">
+      {{ range .Params.features.items }}
+      <article class="feature-card">
+        <span class="feature-card__icon">{{ partial "icon.html" .icon }}</span>
+        <h3 class="title-large">{{ .title }}</h3>
+        <p class="body-medium">{{ .description }}</p>
+      </article>
+      {{ end }}
+    </div>
+  </section>
+
+  <section class="section container" id="privacy">
+    <div class="privacy">
+      <div class="privacy__grid">
+        <span class="privacy__badge">{{ partial "icon.html" "shield" }}</span>
+        <div>
+          <h2 class="headline-large">{{ .Params.privacy.heading }}</h2>
+          <p class="body-large">{{ .Params.privacy.body }}</p>
+          <p class="body-large">
+            <a href="{{ .Site.Params.privacyPolicyUrl }}" rel="noopener">{{ .Params.privacy.link_label }}</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{{ partial "footer.html" . }}
+{{ end }}

@@ -1,0 +1,179 @@
+/* Design tokens ported from docs/design-system.md.
+   Never hard-code a colour or size elsewhere in this project; add or change a
+   token here instead. Light values are the default; dark values apply under
+   prefers-color-scheme: dark, matching the app's "system decides" default. */
+
+@font-face {
+  font-family: "Raleway";
+  src: url("/fonts/raleway_extralight.ttf") format("truetype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Raleway";
+  src: url("/fonts/raleway_light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/montserrat_regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/montserrat_medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/montserrat_semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Section 2.1 brand hues */
+  --pillsner-green: #1B7F5C;
+  --pillsner-blue: #2D6DA8;
+  --pillsner-teal: #0F7C8C;
+  --pillsner-signal-red: #BA1A1A;
+  --pillsner-mint-white: #F9FBFA;
+  --pillsner-deep-moss: #101413;
+
+  /* Section 2.2 Material 3 colour roles — light */
+  --color-primary: #1B7F5C;
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #A8F0CE;
+  --color-on-primary-container: #00381F;
+  --color-secondary: #2D6DA8;
+  --color-on-secondary: #FFFFFF;
+  --color-secondary-container: #D3E4FF;
+  --color-on-secondary-container: #0B2F52;
+  --color-tertiary: #0F7C8C;
+  --color-on-tertiary: #FFFFFF;
+  --color-tertiary-container: #B5EEF6;
+  --color-on-tertiary-container: #00363D;
+  --color-error: #BA1A1A;
+  --color-on-error: #FFFFFF;
+  --color-error-container: #FFDAD6;
+  --color-on-error-container: #410002;
+  --color-surface: #F9FBFA;
+  --color-on-surface: #191C1B;
+  --color-surface-variant: #DCE5E0;
+  --color-on-surface-variant: #3F4945;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #F3F6F4;
+  --color-surface-container: #EDF1EF;
+  --color-surface-container-high: #E7ECE9;
+  --color-surface-container-highest: #E1E6E3;
+  --color-outline: #6F7975;
+  --color-outline-variant: #BFC9C4;
+  --color-inverse-surface: #2E312F;
+  --color-inverse-on-surface: #EFF1EE;
+  --color-inverse-primary: #8CD8B0;
+
+  /* Section 3 type families */
+  --font-display: "Raleway", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+
+  /* Section 3.2 type scale (sp treated as px on the web) */
+  --type-display-large-size: 48px;
+  --type-display-large-weight: 200;
+  --type-display-large-line: 56px;
+  --type-display-medium-size: 40px;
+  --type-display-medium-weight: 200;
+  --type-display-medium-line: 48px;
+  --type-headline-large-size: 32px;
+  --type-headline-large-weight: 300;
+  --type-headline-large-line: 40px;
+  --type-headline-medium-size: 28px;
+  --type-headline-medium-weight: 300;
+  --type-headline-medium-line: 36px;
+  --type-headline-small-size: 24px;
+  --type-headline-small-weight: 300;
+  --type-headline-small-line: 32px;
+  --type-title-large-size: 22px;
+  --type-title-large-weight: 500;
+  --type-title-large-line: 30px;
+  --type-body-large-size: 18px;
+  --type-body-large-weight: 400;
+  --type-body-large-line: 28px;
+  --type-body-large-tracking: 0.2px;
+  --type-body-medium-size: 16px;
+  --type-body-medium-weight: 400;
+  --type-body-medium-line: 24px;
+  --type-body-medium-tracking: 0.2px;
+  --type-label-large-size: 16px;
+  --type-label-large-weight: 600;
+  --type-label-large-line: 22px;
+  --type-label-large-tracking: 0.3px;
+  --type-label-small-size: 12px;
+  --type-label-small-weight: 600;
+  --type-label-small-line: 16px;
+  --type-label-small-tracking: 0.5px;
+
+  /* Section 4 shape */
+  --shape-medium: 12px;
+  --shape-large: 16px;
+  --shape-extra-large: 28px;
+  --shape-full: 999px;
+
+  /* Section 5 spacing (4dp grid) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+  --space-xxxl: 48px;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Section 2.2 Material 3 colour roles — dark */
+    --color-primary: #8CD8B0;
+    --color-on-primary: #00382A;
+    --color-primary-container: #005E43;
+    --color-on-primary-container: #A8F0CE;
+    --color-secondary: #A2C9FF;
+    --color-on-secondary: #003259;
+    --color-secondary-container: #1D4E7F;
+    --color-on-secondary-container: #D3E4FF;
+    --color-tertiary: #83D4E0;
+    --color-on-tertiary: #00363D;
+    --color-tertiary-container: #005A66;
+    --color-on-tertiary-container: #B5EEF6;
+    --color-error: #FFB4AB;
+    --color-on-error: #690005;
+    --color-error-container: #93000A;
+    --color-on-error-container: #FFDAD6;
+    --color-surface: #101413;
+    --color-on-surface: #E1E3E0;
+    --color-surface-variant: #3F4945;
+    --color-on-surface-variant: #BFC9C4;
+    --color-surface-container-lowest: #0B0F0E;
+    --color-surface-container-low: #191C1B;
+    --color-surface-container: #1D211F;
+    --color-surface-container-high: #272B29;
+    --color-surface-container-highest: #323634;
+    --color-outline: #89938E;
+    --color-outline-variant: #3F4945;
+    --color-inverse-surface: #E1E3E0;
+    --color-inverse-on-surface: #2E312F;
+    --color-inverse-primary: #1B7F5C;
+  }
+}

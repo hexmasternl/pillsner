@@ -1,0 +1,69 @@
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/website/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: website-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  HUGO_VERSION: "0.165.0"
+  # Azure Static Web Apps resource this workflow deploys to. Not secret, safe to keep here.
+  # PLACEHOLDER: update to the actual resource name/group once provisioned
+  # (openspec/changes/website-deployment-workflow/tasks.md, section 1).
+  SWA_APP_NAME: "pillsner-website"
+  SWA_RESOURCE_GROUP: "rg-pillsner-website"
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/website
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Hugo ${{ env.HUGO_VERSION }} (extended)
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
+
+      - name: Build
+        run: hugo --minify
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          # These three secrets are the OIDC federated-credential identity for this repository's
+          # main branch — there is no client secret or deployment token to leak or rotate.
+          # AZURE_WEBSITE_SUBSCRPITION_ID is spelled the way it was provisioned; do not "fix" it.
+          client-id: ${{ secrets.AZURE_WEBSITE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_WEBSITE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_WEBSITE_SUBSCRPITION_ID }}
+
+      - name: Deploy to Azure Static Web Apps
+        run: |
+          npx --yes @azure/static-web-apps-cli@latest deploy ./public \
+            --app-name "$SWA_APP_NAME" \
+            --resource-group "$SWA_RESOURCE_GROUP" \
+            --subscription-id "$AZURE_SUBSCRIPTION_ID" \
+            --tenant-id "$AZURE_TENANT_ID" \
+            --client-id "$AZURE_CLIENT_ID" \
+            --env production
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_WEBSITE_SUBSCRPITION_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_WEBSITE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_WEBSITE_CLIENT_ID }}

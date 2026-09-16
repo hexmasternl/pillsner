@@ -1,0 +1,29 @@
+[skip_to_content]
+other = "Ir al contenido"
+
+[nav_why]
+other = "Por qué Pillsner"
+
+[nav_features]
+other = "Funciones"
+
+[nav_privacy]
+other = "Privacidad"
+
+[cta_play_store]
+other = "Disponible en Google Play"
+
+[language_switcher_label]
+other = "Idioma"
+
+[footer_privacy_link]
+other = "Política de privacidad"
+
+[footer_github_link]
+other = "Código fuente en GitHub"
+
+[footer_play_link]
+other = "Descargar en Google Play"
+
+[skip_to_content_target]
+other = "Contenido principal"

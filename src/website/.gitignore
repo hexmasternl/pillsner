@@ -1,0 +1,12 @@
+# Hugo build output
+public/
+
+# Hugo's resource cache (generated favicons, resized images, bundled CSS/JS)
+resources/
+
+# Written by `hugo server`; harmless but machine-local
+.hugo_build.lock
+
+# IDE metadata
+.idea/
+.vscode/

@@ -1,0 +1,138 @@
+/* Buttons, chips, language switcher — Section 8.4 of the design system,
+   translated to the web (full/pill shape, filled = primary action). */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  border-radius: var(--shape-full);
+  padding: var(--space-md) var(--space-xl);
+  font-family: var(--font-body);
+  font-size: var(--type-label-large-size);
+  font-weight: var(--type-label-large-weight);
+  letter-spacing: var(--type-label-large-tracking);
+  text-decoration: none;
+  border: 1px solid transparent;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.button--large {
+  min-height: 56px;
+  padding-inline: var(--space-xxl);
+}
+
+.button--filled {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.button--filled:hover,
+.button--filled:focus-visible {
+  background: var(--color-on-primary-container);
+  color: var(--color-primary-container);
+}
+
+.button--outlined {
+  background: transparent;
+  color: var(--color-on-surface);
+  border-color: var(--color-outline);
+}
+
+.button--outlined:hover,
+.button--outlined:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.button__icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  border-radius: var(--shape-full);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+
+/* Language switcher: a plain, always-visible list of links. Works with no JS. */
+
+.language-switcher {
+  position: relative;
+}
+
+.language-switcher summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--shape-full);
+  border: 1px solid var(--color-outline);
+  color: var(--color-on-surface);
+}
+
+.language-switcher summary::-webkit-details-marker {
+  display: none;
+}
+
+.language-switcher[open] summary {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.language-switcher__menu {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: var(--space-xs);
+  position: absolute;
+  right: 0;
+  min-width: 160px;
+  background: var(--color-surface-container-high);
+  border-radius: var(--shape-medium);
+  box-shadow: 0 8px 24px -8px rgba(16, 20, 19, 0.4);
+  display: grid;
+}
+
+.language-switcher__menu a {
+  display: block;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--shape-small, 8px);
+  text-decoration: none;
+  color: var(--color-on-surface);
+}
+
+.language-switcher__menu a:hover,
+.language-switcher__menu a:focus-visible {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+
+.language-switcher__menu a[aria-current="true"] {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .language-switcher__menu {
+    animation: switcher-in 0.12s ease;
+  }
+}
+
+@keyframes switcher-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

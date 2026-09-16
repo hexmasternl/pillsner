@@ -1,0 +1,21 @@
+<a class="skip-link label-large" href="#main">{{ i18n "skip_to_content" }}</a>
+<header class="site-header">
+  <div class="container site-header__bar">
+    <a class="site-header__brand" href="{{ .Permalink }}">
+      {{ $icon := resources.Get "images/icon-source.png" }}
+      {{ if $icon }}
+        {{ $navIcon := $icon.Resize "64x64" }}
+        <img src="{{ $navIcon.RelPermalink }}" width="32" height="32" alt="">
+      {{ end }}
+      <span>{{ .Site.Params.siteName }}</span>
+    </a>
+    <nav class="site-nav" aria-label="{{ .Site.Params.siteName }}">
+      <a href="#why">{{ i18n "nav_why" }}</a>
+      <a href="#features">{{ i18n "nav_features" }}</a>
+      <a href="#privacy">{{ i18n "nav_privacy" }}</a>
+    </nav>
+    <div class="site-header__controls">
+      {{ partial "language-switcher.html" . }}
+    </div>
+  </div>
+</header>

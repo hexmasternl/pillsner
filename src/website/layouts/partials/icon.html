@@ -1,0 +1,21 @@
+{{/* Small inline SVG icon set, hand-drawn to match Material Symbols Rounded
+     at the outline weight the design system specifies (section 7), so no
+     icon font or external request is needed. Usage: {{ partial "icon.html" "medication" }} */}}
+{{ $name := . }}
+{{ if eq $name "medication" }}
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4.5" y="8.5" width="15" height="7" rx="3.5" transform="rotate(-45 12 12)"></rect><line x1="9.5" y1="9.5" x2="14.5" y2="14.5"></line></svg>
+{{ else if eq $name "schedule" }}
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+{{ else if eq $name "watch" }}
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="7" y="7" width="10" height="10" rx="3"></rect><path d="M9 7V4.5h6V7M9 17v2.5h6V17"></path><path d="M12 10.5V12l1.4 1"></path></svg>
+{{ else if eq $name "history" }}
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.6-5.9"></path><path d="M4 5v4h4"></path><path d="M12 8v4l2.8 1.6"></path></svg>
+{{ else if eq $name "check" }}
+<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>
+{{ else if eq $name "shield" }}
+<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5l7 3v5c0 4.5-3 7.5-7 8.5-4-1-7-4-7-8.5v-5l7-3z"></path><path d="M9 12l2 2 4-4"></path></svg>
+{{ else if eq $name "play" }}
+<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M5 3.5v17a1 1 0 0 0 1.5.87l14-8.5a1 1 0 0 0 0-1.74l-14-8.5A1 1 0 0 0 5 3.5z"></path></svg>
+{{ else if eq $name "chevron-down" }}
+<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"></path></svg>
+{{ end }}

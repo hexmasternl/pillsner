@@ -106,6 +106,14 @@ Pillsner is a native Android application written in Kotlin.
 
 Any change to this table should go through the spec-driven workflow described below, so that the reasoning is recorded alongside the decision.
 
+Alongside the Android app, `src/website/` holds a separate, self-contained deliverable: a static, single-page, six-language marketing site describing Pillsner and linking to its Google Play listing. It is built with [Hugo](https://gohugo.io/) and has no runtime server, no analytics and no third-party trackers — see `src/website/README.md`. It is not a Gradle module and does not affect the app's toolchain, build or permissions in any way.
+
+| Area | Choice |
+| --- | --- |
+| Static site generator | Hugo, extended edition, 0.165.0 |
+| Languages | English, Dutch, French, Spanish, Portuguese, German |
+| Hosting | Azure Static Web Apps, Free tier; deployed by `.github/workflows/website.yml` |
+
 ## Repository layout
 
 | Path | Purpose |
@@ -114,9 +122,10 @@ Any change to this table should go through the spec-driven workflow described be
 | `src/app/` | The phone application. |
 | `src/wear/` | The Wear OS companion application. It shares its application id and signing with the phone app, which is what lets the two talk. |
 | `src/shared/` | Plain Kotlin: the phone-to-watch sync contract, so both apps compile against one wire format. |
+| `src/website/` | The public marketing website: a static, single-page, six-language Hugo site. It is **not** part of the Gradle project — its own toolchain, own config, no shared files with `src/app`/`src/wear`/`src/shared` — but lives under `src/` at the maintainers' direction. See `src/website/README.md`. |
 | `openspec/` | Spec-driven planning: `specs/` holds the agreed behaviour of the app, `changes/` holds in-progress change proposals, and `changes/archive/` holds completed ones. |
 | `docs/` | The design system (`design-system.md`) and its visual companion (`design-system.html`): colours, typography, components and accessibility rules for the app. |
-| `.github/workflows/` | `ci.yml` tests, lints and assembles every pull request; `release.yml` builds, signs and publishes both bundles to Google Play on every push to `main`, then tags the commit and creates the GitHub release. |
+| `.github/workflows/` | `ci.yml` tests, lints and assembles every pull request; `release.yml` builds, signs and publishes both bundles to Google Play on every push to `main`, then tags the commit and creates the GitHub release; `website.yml` builds the Hugo site and deploys it to Azure Static Web Apps on every push to `main` that changes `src/website/**`. |
 | `distribution/whatsnew/` | Play release notes, one plain-text file per listing language. Update them in the change that earns them. |
 | `GitVersion.yml` | How the release version is derived: every commit on `main` bumps the patch, and the tag written by a successful release becomes the next baseline. |
 | `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, plus the design agent and UI skills that enforce the design system. |

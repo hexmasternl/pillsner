@@ -1,0 +1,33 @@
+<footer class="site-footer" id="footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div>
+        <p class="title-large">{{ .Site.Params.siteName }}</p>
+        <p class="body-medium">{{ .Params.footer.tagline }}</p>
+        <a class="button button--outlined label-large" href="{{ .Site.Params.playStoreUrl }}" rel="noopener">
+          {{ partial "icon.html" "play" }}
+          {{ i18n "footer_play_link" }}
+        </a>
+      </div>
+      <div>
+        <p class="label-small">{{ i18n "nav_features" }}</p>
+        <ul class="site-footer__links body-medium">
+          <li><a href="#why">{{ i18n "nav_why" }}</a></li>
+          <li><a href="#features">{{ i18n "nav_features" }}</a></li>
+          <li><a href="#privacy">{{ i18n "nav_privacy" }}</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="label-small">{{ .Site.Params.siteName }}</p>
+        <ul class="site-footer__links body-medium">
+          <li><a href="{{ .Site.Params.privacyPolicyUrl }}" rel="noopener">{{ i18n "footer_privacy_link" }}</a></li>
+          <li><a href="{{ .Site.Params.githubUrl }}" rel="noopener">{{ i18n "footer_github_link" }}</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__bottom body-medium">
+      <span>{{ .Params.footer.copyright }}</span>
+      {{ partial "language-switcher.html" . }}
+    </div>
+  </div>
+</footer>

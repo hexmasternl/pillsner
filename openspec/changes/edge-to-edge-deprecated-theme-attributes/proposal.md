@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #14 (https://github.com/hexmasternl/pillsner/issues/14)
+**Pull Request:** #17 (https://github.com/hexmasternl/pillsner/pull/17)
 
 Google Play's pre-launch report flags two Android 15 (API 35+) edge-to-edge warnings for Pillsner: "Edge-to-edge may not display for all users" (#14) and "Your app uses deprecated APIs or parameters for edge-to-edge" (#15, closed as a duplicate of #14). Investigation found a single root cause: `Theme.Pillsner` still sets `android:statusBarColor`, `android:navigationBarColor` and `android:windowLightStatusBar` directly in `themes.xml` and `values-night/themes.xml`. These attributes are deprecated for edge-to-edge apps on API 35+ (this app compiles against and targets API 37) and are redundant with the runtime bar handling `ui/theme/Theme.kt` already performs correctly via `WindowInsetsControllerCompat`. Fixing this now keeps the app compliant with Play Store policy and avoids inconsistent bar rendering across OS versions and OEMs.
 

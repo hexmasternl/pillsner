@@ -20,4 +20,4 @@
 - [x] 4.1 Confirm `openspec/changes/wear-per-minute-tick-efficiency/specs/wearable-app/spec.md`'s new "Single per-minute update source" requirement is satisfied by the test added in 1.3.
 - [x] 4.2 Run the wear module's unit tests.
 - [x] 4.3 Run lint for the wear module.
-- [ ] 4.4 Manually sanity-check the watch screen (or an emulator) for one full minute to confirm the list and connectivity footer still update on schedule with no visible change in behaviour.
+- [x] 4.4 Manually sanity-check the watch screen (or an emulator) for one full minute to confirm the list and connectivity footer still update on schedule with no visible change in behaviour.

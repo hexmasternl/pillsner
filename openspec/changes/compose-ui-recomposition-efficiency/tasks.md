@@ -13,7 +13,7 @@
 
 - [x] 3.1 Read the diagnostics entry model used by `ReminderDiagnosticsScreen.kt` to confirm which field(s) are guaranteed unique across entries (e.g. timestamp, or timestamp + outcome).
 - [x] 3.2 Replace `itemsIndexed(entries, key = { index, _ -> index })` with a stable per-entry key derived from that field (e.g. `entry.at.toEpochMilli()`, or a composite key if timestamps can collide).
-- [ ] 3.3 Manually verify: adding a new diagnostic entry does not visibly recompose/flicker existing rows, and no duplicate-key crash occurs.
+- [x] 3.3 Manually verify: adding a new diagnostic entry does not visibly recompose/flicker existing rows, and no duplicate-key crash occurs.
 
 ## 4. Verification
 

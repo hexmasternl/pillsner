@@ -1,5 +1,7 @@
 ## Why
 
+**GitHub Issue:** #21 (https://github.com/hexmasternl/pillsner/issues/21)
+
 Cutting a release means opening a `development` → `main` pull request, and `development` usually carries several finished OpenSpec changes at once by the time that happens. Nobody currently writes down what actually shipped: the reviewer merging that PR, and anyone reading the eventual Google Play listing, has no summary of what changed beyond scrolling commit history. `release.yml` already reads `distribution/whatsnew/whatsnew-en-US` and `whatsnew-nl-NL` for the Play "what's new" text on every release, but today those two files are static leftovers from the 1.0 launch copy and are never updated, so every release currently ships the same day-one notes regardless of what it actually contains.
 
 ## What Changes

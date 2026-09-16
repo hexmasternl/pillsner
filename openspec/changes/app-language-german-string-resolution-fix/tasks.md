@@ -14,7 +14,7 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Run `LanguageSectionTest` in isolation and confirm all tests pass, including `aGermanPhoneReadsGermanWithoutAnyChoice` and `theRestartNoticeIsTranslatedIntoANewLanguage`.
+- [x] 3.1 Run `LanguageSectionTest` in isolation and confirm all tests pass, including `aGermanPhoneReadsGermanWithoutAnyChoice` and `theRestartNoticeIsTranslatedIntoANewLanguage`. (11/11 pass, 100% — `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=...LanguageSectionTest`.)
 - [ ] 3.2 Run the full instrumented suite (`./gradlew :app:connectedDebugAndroidTest`) and confirm no other test regresses, especially other locale-sensitive tests (Dutch, French, Spanish, Portuguese paths).
 - [ ] 3.3 Run the full unit test suite and lint.
 - [ ] 3.4 Update the GitHub issue (#8) with the confirmed root cause and close it once the fix is verified.

@@ -90,7 +90,11 @@ class ReminderCoordinator(
     private val lock = Mutex()
 
     /**
-     * How many wakes in a row have not completed — run out of time or thrown (design D2).
+     * How many wakes in a row have timed out (design D2).
+     *
+     * An exception is not a timeout (`reminder-scheduling` "A wake that does not complete is
+     * retried"): a step throwing still lets the wake settle what it could and reconcile the alarm
+     * set normally, so only running out of the time budget counts here.
      *
      * In memory on purpose: a retry sequence lives inside one episode of trouble, and a fresh
      * process is a fresh attempt. Erring towards delivering the reminder is the right direction.
@@ -141,10 +145,13 @@ class ReminderCoordinator(
                     consecutiveFailures = 0
                     reconcileAlarms(outcome.result)
                 }
-                // A wake that threw has, like one that ran out of time, not announced what was due,
-                // and every step of it is idempotent, so running it again shortly is safe and is
-                // the only thing that can still deliver the reminder on time.
-                WakeOutcome.Failed, WakeOutcome.TimedOut -> armRetryOrGiveUp()
+                // A wake that threw is not a timeout (`reminder-scheduling` "An exception is not a
+                // timeout"): every step is idempotent, so the alarm set is still reconciled
+                // normally from what is stored rather than treated as a reason to retry.
+                WakeOutcome.Failed -> reconcileAlarms()
+                // A wake that ran out of its time budget has not announced what was due, so it is
+                // retried shortly instead of being treated as complete.
+                WakeOutcome.TimedOut -> armRetryOrGiveUp()
             }
 
             // The wake has just settled what is still to be taken, so this is the moment the

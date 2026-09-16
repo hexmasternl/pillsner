@@ -21,11 +21,11 @@
 ## 4. Single-subscription theme StateFlow (D4)
 
 - [x] 4.1 Rework `AppContainer.theme` so `themeRepository.observeTheme()` is collected exactly once, with the initial synchronous value and the hot `StateFlow` both derived from that single collection (see design.md D4).
-- [ ] 4.2 Manually verify cold start still shows the correct theme with no flash of the other scheme (light stored + phone in dark mode, and vice versa), since `AppContainer` isn't unit-testable in isolation from Android context.
+- [x] 4.2 Manually verify cold start still shows the correct theme with no flash of the other scheme (light stored + phone in dark mode, and vice versa), since `AppContainer` isn't unit-testable in isolation from Android context.
 
 ## 5. Verification
 
 - [x] 5.1 Run the full unit test suite (`./gradlew testDebugUnitTest` from `src/`) and confirm it passes.
 - [x] 5.2 Run lint (`./gradlew lintDebug` from `src/`) and confirm it is clean.
-- [ ] 5.3 Run the `applock` instrumented tests (`./gradlew connectedDebugAndroidTest` or the relevant module task) since Keystore-backed PIN verification changed.
-- [ ] 5.4 Manually verify: PIN unlock, PIN change, and biometric fallback all still work correctly end to end on a device/emulator.
+- [x] 5.3 Run the `applock` instrumented tests (`./gradlew connectedDebugAndroidTest` or the relevant module task) since Keystore-backed PIN verification changed.
+- [x] 5.4 Manually verify: PIN unlock, PIN change, and biometric fallback all still work correctly end to end on a device/emulator.

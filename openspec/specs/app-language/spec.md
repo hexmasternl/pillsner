@@ -128,6 +128,14 @@ All user-facing text, dates, times, weekday names, number formats and alphabetic
 - **WHEN** the app starts in French
 - **THEN** the bottom navigation and Settings title are shown in French
 
+#### Scenario: German screen text through the localised context helper
+- **WHEN** the app's language resolves to German, whether chosen explicitly or matched from the phone's own languages, and a string is read through the app's localised context helper
+- **THEN** the string returned is the German translation, not the English default
+
+#### Scenario: German restart notice
+- **WHEN** the user chooses German in the language section
+- **THEN** the restart notice reads "Starte Pillsner neu, um die neue Sprache zu verwenden", matching the checked-in `values-de` resource, not the English default
+
 ### Requirement: Translation completeness
 Every translatable string resource SHALL have a Dutch, German, French, Spanish and Portuguese translation, and a missing or extra translation for any supported language MUST fail the project's lint task.
 
@@ -145,4 +153,11 @@ The language setting SHALL be stored in the app's general settings store on the 
 #### Scenario: Separate storage
 - **WHEN** the app lock settings file is excluded from backup
 - **THEN** the language setting is unaffected by that exclusion and remains in its own file
+
+### Requirement: Re-applying the language on a system locale change does not stall the UI
+When the phone's locale changes while the app is running, re-applying the app's already-resolved language SHALL NOT perform a blocking storage read on the main thread, since the stored language cannot change without an app restart. Re-applying the language SHALL use the value already resolved for the running process.
+
+#### Scenario: Phone language changes while the app is in the foreground
+- **WHEN** the phone's system language changes while the app is running
+- **THEN** the app reapplies its already-resolved language to the new configuration without a blocking read from the language setting store
 

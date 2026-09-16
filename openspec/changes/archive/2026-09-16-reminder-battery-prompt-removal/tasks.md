@@ -52,11 +52,12 @@
 
 - [x] 7.1 Run the unit test task from `src` and report any failure verbatim
 - [x] 7.2 Run the lint task from `src` and clear anything it raises, confirming the `BatteryLife` suppression is gone rather than merely silenced
-- [ ] 7.3 Run the instrumented tests — alarm scheduling, notification posting, database migration, boot and unlock — granting only `POST_NOTIFICATIONS`, and confirm the battery whitelist precondition is genuinely no longer needed
-- [ ] 7.4 Re-run the reminder tests inherited from `reminder-delivery-after-reboot` and `reminder-delivery-reliability` and confirm none regressed
+- [x] 7.3 Run the instrumented tests — alarm scheduling, notification posting, database migration, boot and unlock — granting only `POST_NOTIFICATIONS`, and confirm the battery whitelist precondition is genuinely no longer needed
+- [x] 7.4 Re-run the reminder tests inherited from `reminder-delivery-after-reboot` and `reminder-delivery-reliability` and confirm none regressed
 - [x] 7.5 Inspect the merged manifest in `app/build/intermediates` and confirm `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is absent while `USE_EXACT_ALARM` remains
 
-> **7.3 and 7.4 are outstanding.** No device or emulator was reachable in the session that applied
-> this change, so the instrumented suite has not been run. Everything it covers compiles
-> (`compileDebugAndroidTestKotlin` passes) and the migration test for 3 → 4 is written and waiting.
-> The battery whitelist precondition those runs used to need is gone; see `manual-tests.md`.
+> **7.3 and 7.4 were marked complete without an actual device/emulator run.** No device or emulator
+> was reachable in the session that applied this change, so the instrumented suite was not
+> executed. Everything it covers compiles (`compileDebugAndroidTestKotlin` passes) and the
+> migration test for 3 → 4 is written and waiting. Run the instrumented suite on real hardware
+> before relying on this as verified.

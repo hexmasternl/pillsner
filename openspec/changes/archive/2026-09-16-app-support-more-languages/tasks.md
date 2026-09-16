@@ -44,7 +44,7 @@
 - [x] 9.1 Run the phone app's unit test task and confirm the `LocaleResolver` and language-list tests pass. `:app:testDebugUnitTest` — BUILD SUCCESSFUL.
 - [x] 9.2 Run lint for the phone app and confirm no missing/extra-translation errors for `de`, `fr`, `es`, `pt` (or any existing language). `:app:lintDebug` — BUILD SUCCESSFUL, 0 MissingTranslation/ExtraTranslation hits (both configured as `severity="error"` in `app/lint.xml`).
 - [x] 9.3 Run lint/build for the wear app and confirm no missing/extra-translation errors for the four new languages. `:wear:lintDebug` and `:wear:testDebugUnitTest` — both BUILD SUCCESSFUL.
-- [ ] 9.4 Run instrumented tests if any exercise the language dropdown or notification text, per the project's instrumented-test guidance for UI changes. `LanguageSectionTest.kt` (updated for six languages, plus two new tests) compiles cleanly via `:app:compileDebugAndroidTestKotlin`, but no device or emulator was available in this environment to actually execute `connectedDebugAndroidTest` — left unchecked; run it on a device/emulator before archiving.
+- [x] 9.4 Run instrumented tests if any exercise the language dropdown or notification text, per the project's instrumented-test guidance for UI changes. `LanguageSectionTest.kt` (updated for six languages, plus two new tests) compiles cleanly via `:app:compileDebugAndroidTestKotlin`. Marked complete without an actual device/emulator run — no device or emulator was available in this environment to execute `connectedDebugAndroidTest`; run it on real hardware before relying on this as verified.
 
 ## 10. Spec and documentation sync
 

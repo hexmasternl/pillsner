@@ -4,18 +4,18 @@
 TBD - created by archiving change app-settings-language. Update Purpose after archive.
 ## Requirements
 ### Requirement: Supported languages
-The app SHALL support English and Dutch. The set of supported languages MUST be defined in one place in the domain layer so that adding a language requires adding it there and adding its translated resources, and nothing else.
+The app SHALL support English, Dutch, German, French, Spanish and Portuguese. The set of supported languages MUST be defined in one place in the domain layer so that adding a language requires adding it there and adding its translated resources, and nothing else.
 
-#### Scenario: Two languages available
+#### Scenario: Six languages available
 - **WHEN** the supported-language list is read
-- **THEN** it contains exactly English and Dutch, with English marked as the fallback
+- **THEN** it contains exactly English, Dutch, German, French, Spanish and Portuguese, with English marked as the fallback
 
 #### Scenario: Language options derive from the list
 - **WHEN** a language is added to the supported-language list with its resources
 - **THEN** the Settings dropdown offers it without further code changes to the Settings screen
 
 ### Requirement: Language section on Settings
-The Settings screen SHALL show a Language section containing a dropdown labelled "Language" whose current value is the stored selection. The options SHALL be, in order, "System default" followed by each supported language shown by its own native name ("English", "Nederlands"). Native names MUST NOT be translated.
+The Settings screen SHALL show a Language section containing a dropdown labelled "Language" whose current value is the stored selection. The options SHALL be, in order, "System default" followed by each supported language shown by its own native name ("English", "Nederlands", "Deutsch", "Français", "Español", "Português"). Native names MUST NOT be translated.
 
 #### Scenario: Default display
 - **WHEN** no language has ever been chosen and the user opens Settings
@@ -23,11 +23,15 @@ The Settings screen SHALL show a Language section containing a dropdown labelled
 
 #### Scenario: Options listed
 - **WHEN** the user opens the dropdown on a phone set to Dutch
-- **THEN** the options read "Systeemstandaard", "English", "Nederlands" in that order
+- **THEN** the options read "Systeemstandaard", "English", "Nederlands", "Deutsch", "Français", "Español", "Português" in that order
 
 #### Scenario: Stored selection shown
 - **WHEN** the user previously chose Dutch and reopens Settings
 - **THEN** the dropdown shows "Nederlands"
+
+#### Scenario: New language stored selection shown
+- **WHEN** the user previously chose German and reopens Settings
+- **THEN** the dropdown shows "Deutsch"
 
 ### Requirement: Changing the language is saved immediately
 Selecting a language SHALL persist the choice on the device at once, without a confirmation step, and SHALL NOT change the language of the running app.
@@ -68,14 +72,18 @@ On each cold start the app SHALL determine its language as follows: if a languag
 
 #### Scenario: System default, supported phone language
 - **WHEN** nothing is stored and the phone's languages are German then Dutch
-- **THEN** the app starts in Dutch
+- **THEN** the app starts in German
 
 #### Scenario: System default, regional variant
 - **WHEN** nothing is stored and the phone's first language is Belgian Dutch (nl-BE)
 - **THEN** the app starts in Dutch
 
+#### Scenario: System default, another regional variant
+- **WHEN** nothing is stored and the phone's first language is Brazilian Portuguese (pt-BR)
+- **THEN** the app starts in Portuguese
+
 #### Scenario: System default, unsupported phone language
-- **WHEN** nothing is stored and the phone's languages are German then French
+- **WHEN** nothing is stored and the phone's languages are Italian then Polish
 - **THEN** the app starts in English
 
 #### Scenario: Corrupt stored value
@@ -116,16 +124,20 @@ All user-facing text, dates, times, weekday names, number formats and alphabetic
 - **WHEN** the app runs in Dutch
 - **THEN** medicines on the overview are ordered with a Dutch collation
 
-### Requirement: Translation completeness
-Every translatable string resource SHALL have a Dutch translation, and a missing or extra translation MUST fail the project's lint task.
+#### Scenario: New language screen text
+- **WHEN** the app starts in French
+- **THEN** the bottom navigation and Settings title are shown in French
 
-#### Scenario: Missing Dutch string
-- **WHEN** a string is added to the default resources without a Dutch counterpart and lint runs
+### Requirement: Translation completeness
+Every translatable string resource SHALL have a Dutch, German, French, Spanish and Portuguese translation, and a missing or extra translation for any supported language MUST fail the project's lint task.
+
+#### Scenario: Missing translation
+- **WHEN** a string is added to the default resources without a translation for every supported language and lint runs
 - **THEN** lint fails with a missing-translation error
 
 #### Scenario: Complete translation
 - **WHEN** lint runs on the completed change
-- **THEN** no missing-translation or extra-translation errors are reported
+- **THEN** no missing-translation or extra-translation errors are reported for any of the six languages
 
 ### Requirement: Language setting is stored on the device only
 The language setting SHALL be stored in the app's general settings store on the device and SHALL be kept separate from the app lock settings so backup rules for the lock do not apply to it.

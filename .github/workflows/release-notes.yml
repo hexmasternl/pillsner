@@ -82,7 +82,8 @@ jobs:
             Store listing of a medication-reminder app called Pillsner. Write only the notes
             themselves, as a short list of bullet points (no more than 6), in plain English,
             matching the tone and length of the style reference you are given. Do not invent
-            features that are not described in the input.
+            features that are not described in the input. Respond in English only: no Dutch text,
+            no translation, no headings or labels naming the language, just the bullet points.
           prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
@@ -99,7 +100,9 @@ jobs:
             de Google Play Store-vermelding van een medicatie-herinnerings-app genaamd Pillsner.
             Schrijf alleen de tekst zelf, als een korte lijst met opsommingstekens (maximaal 6),
             in duidelijk Nederlands, met dezelfde toon en lengte als het meegegeven
-            stijlvoorbeeld. Verzin geen functies die niet in de invoer worden beschreven.
+            stijlvoorbeeld. Verzin geen functies die niet in de invoer worden beschreven. Antwoord
+            uitsluitend in het Nederlands: geen Engelse tekst, geen vertaling, geen koppen of
+            labels die de taal noemen, alleen de opsommingstekens.
           prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}

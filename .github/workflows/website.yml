@@ -54,10 +54,7 @@ jobs:
       - name: Provision the resource group and Static Web App
         id: infra
         # Subscription-scoped Bicep deployment: creates the resource group and the Free-tier
-        # Static Web App if they don't exist yet, or no-ops if they already match. The deployment
-        # token is a @secure() output, so it's excluded from deployment history/logging, but it
-        # is still returned to this command's own JSON output - which is why it's captured here
-        # rather than looked up again afterwards.
+        # Static Web App if they don't exist yet, or no-ops if they already match.
         run: |
           OUTPUTS=$(az deployment sub create \
             --name "website-$(date +%s)" \
@@ -65,10 +62,17 @@ jobs:
             --template-file infra/website/main.bicep \
             --parameters resourceGroupName="$SWA_RESOURCE_GROUP" staticWebAppName="$SWA_APP_NAME" location="$AZURE_LOCATION" \
             --query properties.outputs -o json)
-          TOKEN=$(echo "$OUTPUTS" | jq -r '.deploymentToken.value')
-          echo "::add-mask::$TOKEN"
-          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
           echo "hostname=$(echo "$OUTPUTS" | jq -r '.defaultHostname.value')" >> "$GITHUB_OUTPUT"
+
+      - name: Get a deployment token
+        id: token
+        # A @secure() Bicep output round-tripped through this nested-module/subscription-scope
+        # deployment didn't survive intact (swa deploy rejected it as invalid), so the token is
+        # fetched directly instead - the pattern Microsoft's own CI/CD docs recommend for this.
+        run: |
+          TOKEN=$(az staticwebapp secrets list --name "$SWA_APP_NAME" --resource-group "$SWA_RESOURCE_GROUP" --query "properties.apiKey" -o tsv)
+          echo "::add-mask::$TOKEN"
+          echo "value=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Deploy to Azure Static Web Apps
         working-directory: src/website
@@ -77,7 +81,7 @@ jobs:
             --deployment-token "$DEPLOYMENT_TOKEN" \
             --env production
         env:
-          DEPLOYMENT_TOKEN: ${{ steps.infra.outputs.token }}
+          DEPLOYMENT_TOKEN: ${{ steps.token.outputs.value }}
 
       - name: Summary
         run: echo "Deployed to https://${{ steps.infra.outputs.hostname }}" >> "$GITHUB_STEP_SUMMARY"

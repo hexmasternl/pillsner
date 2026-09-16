@@ -71,11 +71,11 @@ The workflow SHALL provision the resource group and the Azure Static Web Apps re
 - **THEN** the workflow fails at that step and no build output is deployed
 
 ### Requirement: Deployment credential is never stored as a long-lived GitHub secret
-The workflow SHALL obtain the Azure Static Web Apps deployment token dynamically, from the provisioning step's output, on every run. The workflow SHALL NOT read a deployment token from a GitHub Actions secret, and the token SHALL NOT be written to deployment history, workflow logs, or any uploaded artifact.
+The workflow SHALL obtain the Azure Static Web Apps deployment token dynamically, by querying the provisioned resource directly, on every run. The workflow SHALL NOT read a deployment token from a GitHub Actions secret, and the token SHALL NOT be written to deployment history, workflow logs, or any uploaded artifact.
 
-#### Scenario: Token sourced from provisioning output
-- **WHEN** the provisioning step completes successfully
-- **THEN** the deployment token it produces is passed directly to the deploy step within the same job run, without being persisted anywhere outside that run
+#### Scenario: Token fetched after provisioning
+- **WHEN** the provisioning step has completed successfully
+- **THEN** the workflow fetches a fresh deployment token for that resource and passes it directly to the deploy step within the same job run, without persisting it anywhere outside that run
 
 #### Scenario: Token does not appear in logs
 - **WHEN** the workflow run's logs are inspected after a successful or failed run

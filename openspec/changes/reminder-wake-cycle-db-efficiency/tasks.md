@@ -40,7 +40,7 @@ changes), not version 2 as the original design assumed — this change adds vers
 
 ## 6. Verification
 
-- [ ] 6.1 Run the full unit test suite for `domain/scheduling`, `data/RoomDoseRepository`, `data/reminders` and confirm every existing scenario in `reminder-scheduling` and `reminder-delivery-resilience` still passes unchanged.
-- [ ] 6.2 Run lint.
-- [ ] 6.3 Run the instrumented tests covering alarm scheduling and Room migrations, since this change touches scheduling and database code (per CLAUDE.md).
-- [ ] 6.4 Manually verify a wake cycle end-to-end on a device or emulator (a dose becomes due, is reminded, is answered, and the next alarm is set) to confirm no observable behaviour changed.
+- [x] 6.1 Run the full unit test suite for `domain/scheduling`, `data/RoomDoseRepository`, `data/reminders` and confirm every existing scenario in `reminder-scheduling` and `reminder-delivery-resilience` still passes unchanged. (`./gradlew :app:testDebugUnitTest --rerun`: 420/420 passing, 0 failures, 0 errors, across the whole app module — not just the touched packages.)
+- [x] 6.2 Run lint. (`./gradlew :app:lintDebug`: 0 errors, 52 warnings, all pre-existing `MissingQuantity`/`PluralsCandidate` translation warnings unrelated to this change.)
+- [ ] 6.3 Run the instrumented tests covering alarm scheduling and Room migrations, since this change touches scheduling and database code (per CLAUDE.md). **Not run**: no Android device or emulator is available in this environment (`adb` is not installed). All new/changed instrumented tests (`PillsnerDatabaseMigrationTest`, `DoseDaoTest`, `ReminderRecoveryTest`, `ReminderWakeTest`, `ReminderWatchdogTest`, `AppResetEffectsTest`) compile cleanly (`./gradlew :app:compileDebugAndroidTestKotlin`) but have not been executed. This must be run before the change is considered done, per CLAUDE.md.
+- [ ] 6.4 Manually verify a wake cycle end-to-end on a device or emulator (a dose becomes due, is reminded, is answered, and the next alarm is set) to confirm no observable behaviour changed. **Not done**: same reason as 6.3, no device/emulator available in this environment.

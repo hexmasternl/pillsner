@@ -228,7 +228,7 @@ fun MedicinesScreen(
                                 )
                             }
                             items(uiState.inactive, key = { it.id.value }) { tile ->
-                                val descriptions = remember(tile.schedules) {
+val descriptions = remember(tile.schedules, formatter) {
                                     tile.schedules.map { formatter.describe(it.summary, it.amount) }
                                 }
                                 SwipeableMedicineTile(

@@ -9,8 +9,8 @@
 
 ## 2. Fix
 
-- [ ] 2.1 Apply the fix in whichever place task 1 identifies as the actual cause (`AppLocale.wrap`, `AppLocale.apply`, the test itself, or build configuration).
-- [ ] 2.2 If the fix changes `AppLocale`'s public behaviour in any way, check every other caller of `AppLocale.wrap`/`apply` (reminder notifications, other locale-sensitive code named in `app-language`'s "Everything follows the app language" requirement) for correctness, not just the failing tests.
+- [x] 2.1 Apply the fix in whichever place task 1 identifies as the actual cause (`AppLocale.wrap`, `AppLocale.apply`, the test itself, or build configuration). (Fixed in `app/build.gradle.kts`: `resourceConfigurations` now lists all six supported languages — `en`, `nl`, `de`, `fr`, `es`, `pt` — instead of only `en`, `nl`.)
+- [x] 2.2 If the fix changes `AppLocale`'s public behaviour in any way, check every other caller of `AppLocale.wrap`/`apply` (reminder notifications, other locale-sensitive code named in `app-language`'s "Everything follows the app language" requirement) for correctness, not just the failing tests. (`AppLocale` itself is untouched — no signature or behaviour change. Callers checked: `ReminderNotifier`, `AppContainer`'s `QuantityFormatter`, `MainActivity.attachBaseContext`, `PillsnerApplication`'s `AppLocale.apply` call — all now simply read correctly-packaged resources for every supported language instead of falling back to English.)
 
 ## 3. Verification
 

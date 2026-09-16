@@ -43,9 +43,9 @@ android {
         versionName = releaseVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // The two languages the app ships. Strips every other locale from library resources, and
-        // makes the fallback chain exactly values-nl to values (English).
-        resourceConfigurations += listOf("en", "nl")
+        // Every language the app ships (SupportedLanguages.all). Strips every other locale from
+        // library resources; anything not listed here silently falls back to values (English).
+        resourceConfigurations += listOf("en", "nl", "de", "fr", "es", "pt")
     }
 
     signingConfigs {

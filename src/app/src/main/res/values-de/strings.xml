@@ -437,4 +437,27 @@
     <string name="usage_history_records_start">Die Aufzeichnungen für dieses Medikament beginnen am %1$s.</string>
     <string name="usage_history_empty_title">Für diesen Zeitraum nichts erfasst</string>
     <string name="usage_history_empty_hint">Versuch einen längeren Zeitraum, oder komm zurück, sobald ein paar Dosen vergangen sind.</string>
+
+    <!-- Zeitliche Genauigkeit (medicine-history-time-deviation) -->
+    <string name="usage_history_timing_title">Zeitliche Genauigkeit</string>
+    <!-- %1$d: die durchschnittliche Abweichung in Minuten über den gesamten Zeitraum. -->
+    <plurals name="usage_history_timing_average">
+        <item quantity="one">%1$d Minute</item>
+        <item quantity="other">%1$d Minuten</item>
+    </plurals>
+    <string name="usage_history_timing_caption">Wie weit eine Dosis im Schnitt vom Zeitplan abwich. Weniger ist besser.</string>
+    <!-- %1$s: der Tag, zum Beispiel 9. September. %2$d: durchschnittliche Abweichung in Minuten. %3$d: eingenommene Dosen. -->
+    <plurals name="usage_history_timing_bar_day">
+        <item quantity="one">%1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosis</item>
+        <item quantity="other">%1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosen</item>
+    </plurals>
+    <!-- %1$s: der Tag, an dem die Woche beginnt. %2$d: durchschnittliche Abweichung in Minuten. %3$d: eingenommene Dosen. -->
+    <plurals name="usage_history_timing_bar_week">
+        <item quantity="one">Woche von %1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosis</item>
+        <item quantity="other">Woche von %1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosen</item>
+    </plurals>
+    <!-- %1$s: der Tag. -->
+    <string name="usage_history_timing_bar_day_empty">%1$s, keine Dosis eingenommen</string>
+    <!-- %1$s: der Tag, an dem die Woche beginnt. -->
+    <string name="usage_history_timing_bar_week_empty">Woche von %1$s, keine Dosis eingenommen</string>
 </resources>

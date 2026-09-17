@@ -28,6 +28,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.domain.model.DoseId
@@ -63,6 +64,7 @@ class MedicineHistoryScreenTest {
     private val clock: Clock =
         Clock.fixed(ZonedDateTime.of(today, LocalTime.NOON, amsterdam).toInstant(), amsterdam)
     private val summarise = SummariseUsageHistory(clock) { DayOfWeek.MONDAY }
+    private val summariseTimeDeviation = SummariseTimeDeviation(clock) { DayOfWeek.MONDAY }
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
 
     private val locale: Locale = Locale.getDefault()
@@ -166,6 +168,57 @@ class MedicineHistoryScreenTest {
     }
 
     @Test
+    fun theTimingAccuracyCardShowsTheAverageAndTheCaption() {
+        showScreen(doses = threeTakenOfFourThisWeek())
+
+        composeRule.onNodeWithTag(MedicineHistoryTestTags.TIMING_HEADER)
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag(MedicineHistoryTestTags.TIMING_AVERAGE)
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("On average, how far off schedule a dose was taken. Less is better.")
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun everyTimingBarNamesItsAverageAndTheDosesItCovers() {
+        showScreen(doses = threeTakenOfFourThisWeek())
+
+        // Monday 14 September holds one taken dose, recorded exactly on time.
+        composeRule.onNode(
+            hasContentDescription("${today.format(longDate)}, 0 minutes off schedule on average, over 1 dose taken"),
+        ).performScrollTo().assertIsDisplayed()
+        // Tuesday 8 September, the first day of the window, has no taken dose.
+        composeRule.onNode(
+            hasContentDescription("${today.minusDays(6).format(longDate)}, no dose taken"),
+        ).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun aWeeklyTimingBarNamesTheWeekAndHowManyDosesItAverages() {
+        showScreen(doses = threeTakenOfFourThisWeek() + twoTakenLastMonth())
+
+        composeRule.onNodeWithTag(period(UsagePeriod.THREE_MONTHS)).performClick()
+
+        // The week opening Monday 7 September holds two taken doses (10 and 11 September); the
+        // 12 September dose in the same week was missed and contributes nothing here.
+        composeRule.onNode(
+            hasContentDescription(
+                "Week of ${today.minusDays(7).format(longDate)}, 0 minutes off schedule on average, over 2 doses taken",
+            ),
+        ).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun theTimingAccuracyCardIsAbsentWhenNothingWasTaken() {
+        showScreen(doses = listOf(dose(1, at(today.minusDays(2)), IntakeOutcome.MISSED)))
+
+        composeRule.onAllNodesWithTag(MedicineHistoryTestTags.TIMING_HEADER).assertCountEquals(0)
+    }
+
+    @Test
     fun theLegendLeavesOutTheCategoriesThePeriodHasNoneOf() {
         showScreen(doses = threeTakenOfFourThisWeek())
 
@@ -228,6 +281,7 @@ class MedicineHistoryScreenTest {
                     medicineName = "Metoprolol",
                     period = period,
                     history = summarise(period, doses, earliestRecordedAt),
+                    timeDeviation = summariseTimeDeviation(period, doses),
                     isLoading = false,
                 ),
                 onPeriodSelected = { period = it },

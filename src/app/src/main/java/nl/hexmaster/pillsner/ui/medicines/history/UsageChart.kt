@@ -309,19 +309,21 @@ private fun TimeDeviationBar(
         // Shifted up by one so a bar for a perfect, zero-minute average still occupies a sliver -
         // Compose's weight modifier rejects zero - rather than vanishing indistinguishably from a
         // bucket with no taken dose at all.
-        val weight = average + 1
-        val busiestWeight = busiest + 1
-        val headroom = (busiestWeight - weight).toFloat()
+val headroom = (busiest - average).toFloat()
         if (headroom > 0f) Spacer(Modifier.weight(headroom))
 
-        Spacer(
-            Modifier
-                .weight(weight.toFloat())
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .border(BAR_BORDER, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small),
-        )
+        if (average == 0) {
+            Spacer(Modifier.height(BAR_BORDER))
+        } else {
+            Spacer(
+                Modifier
+                    .weight(average.toFloat())
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .border(BAR_BORDER, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small),
+            )
+        }
     }
 }
 

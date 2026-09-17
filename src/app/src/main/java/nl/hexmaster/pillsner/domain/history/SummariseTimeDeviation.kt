@@ -80,7 +80,7 @@ class SummariseTimeDeviation(
 
     /** The absolute gap between when a dose was due and when it was taken, rounded to the nearest minute. */
     private fun deviationMinutes(scheduledAt: Instant, recordedAt: Instant): Int =
-        (Duration.between(scheduledAt, recordedAt).abs().seconds / 60.0).roundToInt()
+        (Duration.between(scheduledAt, recordedAt).abs().toMillis() / 60_000.0).roundToInt()
 
     private fun List<Int>.averageMinutesOrNull(): Int? = if (isEmpty()) null else average().roundToInt()
 }

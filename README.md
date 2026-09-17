@@ -1,5 +1,7 @@
 # Pillsner
 
+![Pillsner](docs/feature-graphic.png)
+
 **Your partner in taking your pills.**
 
 Pillsner is a native Android reminder app that helps you take your medication on time, every time. The name is a play on *Pills* and *Partner*: the app is meant to be the reliable companion that taps you on the shoulder when a dose is due, keeps track of what you have taken, and stays out of your way the rest of the time.
@@ -18,6 +20,12 @@ Missing a dose, or taking one twice because you forgot you already did, is a com
 - keeps their medication data private and on their own device.
 
 Pillsner is built around exactly those needs and nothing more.
+
+## Screenshots
+
+| Home | Confirm a dose | Medicines | Usage history |
+| --- | --- | --- | --- |
+| ![Home screen showing the Pillsner logo and the next doses due, soonest first](docs/screens/home-upcoming-doses.png) | ![Dose screen with I took it, Not yet and Not going to buttons](docs/screens/dose-confirmation.png) | ![Medicines screen listing active and inactive medicines](docs/screens/medicines-overview.png) | ![Usage history screen showing adherence percentage and a by-day chart](docs/screens/usage-history.png) |
 
 ## Features
 

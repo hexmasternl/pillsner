@@ -16,6 +16,7 @@
 - [ ] 3.4 Replace the removed developer-setup content with a brief "Contributing" section linking to `CONTRIBUTING.md`.
 - [ ] 3.5 Add a Play Store listing link near the top if a canonical URL is available; otherwise leave the section structured so it can be added later without further restructuring.
 - [ ] 3.6 Update `CLAUDE.md`'s repository layout table to list `CONTRIBUTING.md` alongside `README.md`.
+- [x] 3.7 Give the screen dumps in `docs/screens/` descriptive filenames and embed the app logo (`docs/feature-graphic.png`) plus the most relevant screenshots (home, dose confirmation, medicines, usage history) in `README.md`.
 
 ## 4. Verify
 

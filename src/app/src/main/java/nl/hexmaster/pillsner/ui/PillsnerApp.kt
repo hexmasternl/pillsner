@@ -258,6 +258,8 @@ private fun PillsnerAppContent(
                     onOpenMedication = { id ->
                         navController.navigate(MedicationFormGraph(medicationId = id.value))
                     },
+                    legalAccepted = legalState.accepted,
+                    onLegalRequired = { navController.navigate(AcceptLegal) },
                     onScanLabel = viewModel::scanLabel,
                     onScanResult = { result -> navController.navigate(result.toMedicationFormRoute()) },
                     effects = merge(viewModel.effects, overviewEffects),

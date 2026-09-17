@@ -88,6 +88,8 @@ fun MedicinesScreen(
     modifier: Modifier = Modifier,
     onSetActive: (MedicationId, Boolean) -> Unit = { _, _ -> },
     onOpenMedication: (MedicationId) -> Unit = {},
+    legalAccepted: Boolean = true,
+    onLegalRequired: () -> Unit = {},
     onScanLabel: suspend (Bitmap, Int) -> LabelScanResult = { _, _ -> LabelScanResult() },
     onScanResult: (LabelScanResult) -> Unit = {},
     effects: Flow<MedicinesEffect> = emptyFlow(),
@@ -124,7 +126,12 @@ fun MedicinesScreen(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(Spacing.md),
             ) {
-                LabelScanFab(onScanLabel = onScanLabel, onScanResult = onScanResult)
+                LabelScanFab(
+                    legalAccepted = legalAccepted,
+                    onLegalRequired = onLegalRequired,
+                    onScanLabel = onScanLabel,
+                    onScanResult = onScanResult,
+                )
                 FloatingActionButton(
                     onClick = onAddMedicine,
                     containerColor = MaterialTheme.colorScheme.primaryContainer,

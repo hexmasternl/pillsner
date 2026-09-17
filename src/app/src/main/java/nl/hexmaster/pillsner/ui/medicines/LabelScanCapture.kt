@@ -54,12 +54,18 @@ object LabelScanTestTags {
  * Deliberately not the whole [MedicinesScreen]: this is the one composable that owns Android
  * launchers and file I/O, so the screen itself stays a plain state-in, events-out composable.
  *
+ * @param legalAccepted whether the current legal documents are accepted; a scan always leads to the
+ *   same add-mode form the plain add button does, so it is gated the same way (medicine-add "Add
+ *   medicine form fields").
+ * @param onLegalRequired called instead of starting any capture when [legalAccepted] is false.
  * @param onScanLabel recognizes a decoded photo; the view model's `scanLabel` (or a fake in tests).
  * @param onScanResult called once recognition finishes, successfully or not, with the best-effort
  *   result. The caller decides what to do with it (navigate to a fresh Add medicine form).
  */
 @Composable
 fun LabelScanFab(
+    legalAccepted: Boolean,
+    onLegalRequired: () -> Unit,
     onScanLabel: suspend (Bitmap, Int) -> LabelScanResult,
     onScanResult: (LabelScanResult) -> Unit,
     modifier: Modifier = Modifier,
@@ -127,6 +133,10 @@ fun LabelScanFab(
     FloatingActionButton(
         onClick = {
             if (isScanning) return@FloatingActionButton
+            if (!legalAccepted) {
+                onLegalRequired()
+                return@FloatingActionButton
+            }
             when (decideLabelScanAction(hasCamera(context), context.hasCameraPermission())) {
                 LabelScanAction.LAUNCH_CAMERA ->
                     launchCamera(context) { pendingCapture = it }.let(cameraLauncher::launch)
@@ -212,7 +222,12 @@ private fun decodeUprightBitmap(context: Context, uri: Uri): Pair<Bitmap, Int>? 
 private fun LabelScanFabPreview() {
     PillsnerTheme {
         Surface {
-            LabelScanFab(onScanLabel = { _, _ -> LabelScanResult() }, onScanResult = {})
+            LabelScanFab(
+                legalAccepted = true,
+                onLegalRequired = {},
+                onScanLabel = { _, _ -> LabelScanResult() },
+                onScanResult = {},
+            )
         }
     }
 }

@@ -31,6 +31,7 @@
 - [x] 5.4 Handle cancellation from either path with no navigation and no message left on the Medicines screen
 - [x] 5.5 Show a brief in-progress state while recognition runs, then navigate to `MedicationFormGraph` with the recognized values (or none) and, when nothing was recognized, a message stating the photo could not be read
 - [x] 5.6 Run `pillsner-ui-review` on the new UI before marking this group done
+- [x] 5.7 Gate the scan button behind the legal-acceptance check the add button already uses (medicine-add "Add medicine form fields"; medicine-label-scan "Scanning respects the legal acceptance gate") — a gap found during final review, since scanning also opens the add-mode form
 
 ## 6. Strings and localization
 
@@ -44,4 +45,4 @@
 - [x] 7.3 UI test: nothing recognized opens the Add medicine form with its normal empty defaults and the not-recognized message
 - [ ] 7.4 Manual test case: scan a real label photo per supported language and confirm sensible prefill or a graceful "not recognized" outcome
 - [x] 7.5 Confirm via code review that no path writes the captured image anywhere beyond the deleted temporary file, and that no image ever reaches the saved medicine/draft
-- [ ] 7.6 Run unit tests, lint, and `pillsner-ui-review` before considering the change complete
+- [x] 7.6 Run unit tests, lint, and `pillsner-ui-review` before considering the change complete (unit tests and lint run and passing; instrumented tests compile clean but could not be executed on a device/emulator in this environment — see 7.4)

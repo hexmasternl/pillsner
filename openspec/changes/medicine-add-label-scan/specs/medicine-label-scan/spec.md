@@ -11,6 +11,17 @@ The Medicines screen SHALL show a button, next to the existing add button, with 
 - **WHEN** the user never taps the scan button
 - **THEN** the Medicines screen and the regular add button behave exactly as they did before this capability existed
 
+### Requirement: Scanning respects the legal acceptance gate
+Since a scan always leads to the same add-mode form the regular add button opens, tapping the scan button SHALL be gated exactly like the add button (medicine-add "Add medicine form fields"): when the current legal documents are not accepted, tapping it SHALL lead to the legal acceptance screen instead of starting any capture, and no camera permission SHALL be requested until acceptance is given.
+
+#### Scenario: Scan button leads to the acceptance screen first
+- **WHEN** the current legal documents are not accepted and the user taps the scan button
+- **THEN** the legal acceptance screen is shown, and neither the camera permission dialog nor any capture or picker is started
+
+#### Scenario: Scan proceeds normally once accepted
+- **WHEN** the current legal documents are accepted and the user taps the scan button
+- **THEN** the capture flow starts exactly as described below
+
 ### Requirement: Camera permission is requested only on demand, with a working fallback
 Tapping the scan button SHALL request camera permission only at that moment, not on screen load. Denying it, or the device reporting no camera, SHALL fall back to picking an existing photo. If neither capturing nor picking is possible, or the user cancels either, the Medicines screen SHALL remain exactly as it was, with no navigation and no message left behind.
 

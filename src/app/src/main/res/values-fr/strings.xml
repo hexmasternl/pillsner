@@ -438,4 +438,34 @@
     <string name="usage_history_records_start">Les données de ce médicament commencent le %1$s.</string>
     <string name="usage_history_empty_title">Rien d\'enregistré pour cette période</string>
     <string name="usage_history_empty_hint">Essaie une période plus longue, ou reviens une fois que quelques doses seront passées.</string>
+
+    <!-- Précision horaire (medicine-history-time-deviation) -->
+    <string name="usage_history_timing_title">Précision horaire</string>
+    <!-- %1$d : l'écart moyen en minutes sur toute la période. -->
+    <plurals name="usage_history_timing_average">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <string name="usage_history_timing_caption">En moyenne, l\'écart entre l\'heure prévue et l\'heure de prise. Moins, c\'est mieux.</string>
+    <!-- %1$s : le jour, par exemple 9 septembre. %2$d : écart moyen en minutes. %3$d : doses prises. -->
+    <plurals name="usage_history_timing_bar_day">
+        <item quantity="one">%1$s, en moyenne %2$d minutes d\'écart, sur %3$d dose prise</item>
+        <item quantity="other">%1$s, en moyenne %2$d minutes d\'écart, sur %3$d doses prises</item>
+    </plurals>
+    <!-- %1$s : le jour de début de la semaine. %2$d : écart moyen en minutes. %3$d : doses prises. -->
+    <plurals name="usage_history_timing_bar_week">
+        <item quantity="one">Semaine du %1$s, en moyenne %2$d minutes d\'écart, sur %3$d dose prise</item>
+        <item quantity="other">Semaine du %1$s, en moyenne %2$d minutes d\'écart, sur %3$d doses prises</item>
+    </plurals>
+    <!-- %1$s : le jour. -->
+    <string name="usage_history_timing_bar_day_empty">%1$s, aucune dose prise</string>
+    <!-- %1$s : le jour de début de la semaine. -->
+    <string name="usage_history_timing_bar_week_empty">Semaine du %1$s, aucune dose prise</string>
+
+    <!-- Échelle du graphique (usage-history-chart-scale) -->
+    <!-- %1$d : un nombre de doses, en haut ou en bas de l'axe du graphique d'utilisation. -->
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d dose</item>
+        <item quantity="other">%1$d doses</item>
+    </plurals>
 </resources>

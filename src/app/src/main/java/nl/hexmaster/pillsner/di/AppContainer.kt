@@ -55,6 +55,7 @@ import nl.hexmaster.pillsner.data.reset.RoomAppDataEraser
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreThemeRepository
+import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.intake.AnswerDose
 import nl.hexmaster.pillsner.domain.intake.DoseAnswer
@@ -134,6 +135,9 @@ class AppContainer(
 
     /** Turns a medicine's stored doses into its usage history (app-medicine-usage-history D3). */
     private val summariseUsageHistory = SummariseUsageHistory(clock)
+
+    /** Turns a medicine's stored doses into its timing accuracy (medicine-history-time-deviation D1). */
+    private val summariseTimeDeviation = SummariseTimeDeviation(clock)
 
     // --- Reminders (app-medicine-alarm design D5, D7, D10) ---------------------------------
 
@@ -354,6 +358,7 @@ class AppContainer(
                 medicationRepository = this@AppContainer.medicationRepository,
                 doseRepository = this@AppContainer.doseRepository,
                 summarise = summariseUsageHistory,
+                summariseTimeDeviation = summariseTimeDeviation,
                 savedStateHandle = createSavedStateHandle(),
                 clock = clock,
             )

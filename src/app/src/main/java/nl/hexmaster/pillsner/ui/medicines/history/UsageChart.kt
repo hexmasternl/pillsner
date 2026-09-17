@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.Dp
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.domain.model.TimeDeviationBucket
+import nl.hexmaster.pillsner.domain.model.TimeDeviationHistory
 import nl.hexmaster.pillsner.domain.model.UsageBucket
 import nl.hexmaster.pillsner.domain.model.UsageHistory
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
@@ -37,10 +39,20 @@ import nl.hexmaster.pillsner.ui.theme.Sizes
 import nl.hexmaster.pillsner.ui.theme.Spacing
 import nl.hexmaster.pillsner.ui.theme.intakeStatusColors
 
-/** Test tags for the chart, so semantics tests can reach one bar. */
+/** Test tags for the chart, so semantics tests can reach one bar or the axis. */
 object UsageChartTestTags {
     const val CHART = "usage_chart"
     const val BAR_PREFIX = "usage_chart_bar_"
+    const val AXIS_TOP = "usage_chart_axis_top"
+    const val AXIS_BOTTOM = "usage_chart_axis_bottom"
+}
+
+/** Test tags for the timing accuracy chart, so semantics tests can reach one bar or the axis. */
+object TimeDeviationChartTestTags {
+    const val CHART = "time_deviation_chart"
+    const val BAR_PREFIX = "time_deviation_chart_bar_"
+    const val AXIS_TOP = "time_deviation_chart_axis_top"
+    const val AXIS_BOTTOM = "time_deviation_chart_axis_bottom"
 }
 
 /**
@@ -54,7 +66,9 @@ object UsageChartTestTags {
  *
  * No bar carries a visible date label: thirteen of them cannot survive 200 % font scale. The first
  * and last bucket dates sit beneath the row instead, and every bar states its own date and counts
- * to a screen reader.
+ * to a screen reader. A value axis - the busiest bucket's count at the top, zero at the bottom -
+ * sits to the row's leading edge so a sighted user has a scale to read the bars against
+ * (usage-history-chart-scale design D1-D4).
  */
 @Composable
 fun UsageChart(history: UsageHistory, modifier: Modifier = Modifier) {
@@ -77,6 +91,13 @@ fun UsageChart(history: UsageHistory, modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
             verticalAlignment = Alignment.Bottom,
         ) {
+            ChartValueAxis(
+                topLabel = pluralStringResource(R.plurals.usage_history_axis_doses, busiest, busiest),
+                topTestTag = UsageChartTestTags.AXIS_TOP,
+                bottomLabel = pluralStringResource(R.plurals.usage_history_axis_doses, 0, 0),
+                bottomTestTag = UsageChartTestTags.AXIS_BOTTOM,
+                modifier = Modifier.fillMaxHeight(),
+            )
             history.buckets.forEachIndexed { index, bucket ->
                 UsageBar(
                     bucket = bucket,
@@ -163,11 +184,163 @@ private fun UsageBucket.spokenDescription(format: DateTimeFormatter): String {
 }
 
 /**
+ * A two-point value axis beside a bar chart: the busiest bucket's value at the top, aligned with
+ * the tallest bar, and zero at the bottom, aligned with every bar's baseline (usage-history-chart-
+ * scale design D1-D4). Shared by [UsageChart] and [TimeDeviationChart] rather than written twice.
+ *
+ * Sized to its own content rather than a fixed width, so a longer localised label is never clipped;
+ * not clamped to the chart's fixed height either, so a label has room to grow at large font scales
+ * without being forced to wrap inside a height that isn't built to hold two lines.
+ */
+@Composable
+private fun ChartValueAxis(
+    topLabel: String,
+    topTestTag: String,
+    bottomLabel: String,
+    bottomTestTag: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier, verticalArrangement = Arrangement.SpaceBetween) {
+        Text(
+            text = topLabel,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag(topTestTag),
+        )
+        Text(
+            text = bottomLabel,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag(bottomTestTag),
+        )
+    }
+}
+
+/**
  * The thinnest line the device can draw, so the skipped segment stays legible where its tier sits
  * next to the card's own. A hairline rather than a new dimension token: it is a separator, not a
  * size anything else is measured against.
  */
 private val BAR_BORDER = Dp.Hairline
+
+/**
+ * The timing accuracy period as one bar per bucket, left to right in time order
+ * (medicine-history-time-deviation design D4, D6).
+ *
+ * Every bar is the same colour: unlike the outcome chart, no deviation here is "good" or "bad", so
+ * only height and the spoken minute count carry meaning. A bucket with no taken dose is drawn as an
+ * empty column that keeps its place in the row, exactly as an unscheduled bucket does in
+ * [UsageChart]. A value axis - the busiest bucket's average at the top, zero at the bottom - sits
+ * to the row's leading edge, the same as [UsageChart]'s (usage-history-chart-scale design D1-D4).
+ */
+@Composable
+fun TimeDeviationChart(history: TimeDeviationHistory, modifier: Modifier = Modifier) {
+    val busiest = history.buckets.mapNotNull { it.averageMinutes }.maxOrNull() ?: 0
+    val locale = LocalConfiguration.current.locales[0]
+    val dayFormat = remember(locale) {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
+    }
+    val spokenFormat = remember(locale) {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale)
+    }
+
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(Sizes.usageChartHeight)
+                .testTag(TimeDeviationChartTestTags.CHART),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            ChartValueAxis(
+                topLabel = pluralStringResource(R.plurals.usage_history_timing_average, busiest, busiest),
+                topTestTag = TimeDeviationChartTestTags.AXIS_TOP,
+                bottomLabel = pluralStringResource(R.plurals.usage_history_timing_average, 0, 0),
+                bottomTestTag = TimeDeviationChartTestTags.AXIS_BOTTOM,
+                modifier = Modifier.fillMaxHeight(),
+            )
+            history.buckets.forEachIndexed { index, bucket ->
+                TimeDeviationBar(
+                    bucket = bucket,
+                    busiest = busiest,
+                    description = bucket.spokenDescription(spokenFormat),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .testTag(TimeDeviationChartTestTags.BAR_PREFIX + index),
+                )
+            }
+        }
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = history.firstDay.format(dayFormat),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = history.lastDay.format(dayFormat),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * One column: an empty space, then the bucket's single-colour bar at the bottom. A bucket with no
+ * taken dose keeps its place in the row but draws nothing, so "no data" is never mistaken for "zero
+ * minutes off schedule".
+ */
+@Composable
+private fun TimeDeviationBar(
+    bucket: TimeDeviationBucket,
+    busiest: Int,
+    description: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier.semantics(mergeDescendants = true) { contentDescription = description },
+        verticalArrangement = Arrangement.Bottom,
+    ) {
+        val average = bucket.averageMinutes ?: return@Column
+
+        // Shifted up by one so a bar for a perfect, zero-minute average still occupies a sliver -
+        // Compose's weight modifier rejects zero - rather than vanishing indistinguishably from a
+        // bucket with no taken dose at all.
+val headroom = (busiest - average).toFloat()
+        if (headroom > 0f) Spacer(Modifier.weight(headroom))
+
+        if (average == 0) {
+            Spacer(Modifier.height(BAR_BORDER))
+        } else {
+            Spacer(
+                Modifier
+                    .weight(average.toFloat())
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .border(BAR_BORDER, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small),
+            )
+        }
+    }
+}
+
+/** "9 September, on average 12 minutes off schedule, over 2 doses taken", or the empty wordings. */
+@Composable
+private fun TimeDeviationBucket.spokenDescription(format: DateTimeFormatter): String {
+    val date = start.format(format)
+    val average = averageMinutes
+    return when {
+        average == null && isWeek -> stringResource(R.string.usage_history_timing_bar_week_empty, date)
+        average == null -> stringResource(R.string.usage_history_timing_bar_day_empty, date)
+        // How many taken doses the average is over is what the sentence counts, so it chooses the
+        // plural form.
+        isWeek -> pluralStringResource(R.plurals.usage_history_timing_bar_week, takenCount, date, average, takenCount)
+        else -> pluralStringResource(R.plurals.usage_history_timing_bar_day, takenCount, date, average, takenCount)
+    }
+}
 
 @PreviewLightDark
 @Preview(name = "Large font", fontScale = 2f)
@@ -177,6 +350,20 @@ private fun UsageChartPreview() {
         Surface {
             UsageChart(
                 history = UsageHistoryPreviewData.fullWeek(),
+                modifier = Modifier.padding(Spacing.lg),
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Preview(name = "Large font", fontScale = 2f)
+@Composable
+private fun TimeDeviationChartPreview() {
+    PillsnerTheme {
+        Surface {
+            TimeDeviationChart(
+                history = TimeDeviationPreviewData.fullWeek(),
                 modifier = Modifier.padding(Spacing.lg),
             )
         }

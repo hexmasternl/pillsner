@@ -1,5 +1,6 @@
 package nl.hexmaster.pillsner.ui.medicines.history
 
+import nl.hexmaster.pillsner.domain.model.TimeDeviationHistory
 import nl.hexmaster.pillsner.domain.model.UsageHistory
 import nl.hexmaster.pillsner.domain.model.UsagePeriod
 
@@ -9,11 +10,15 @@ import nl.hexmaster.pillsner.domain.model.UsagePeriod
  *
  * @property medicineName the name of the medicine whose record this is, empty while it loads.
  * @property history the counts and buckets for [period], or null while the first read is running.
+ * @property timeDeviation the timing accuracy for [period], or null while the first read is
+ *   running; its own [TimeDeviationHistory.isEmpty] means no dose was taken in the period, which is
+ *   when the timing accuracy chart is omitted (medicine-history-time-deviation design D4).
  */
 data class MedicineHistoryUiState(
     val medicineName: String = "",
     val period: UsagePeriod = UsagePeriod.WEEK,
     val history: UsageHistory? = null,
+    val timeDeviation: TimeDeviationHistory? = null,
     val isLoading: Boolean = true,
 )
 

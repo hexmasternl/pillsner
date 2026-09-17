@@ -28,7 +28,8 @@ Keep that promise front of mind. When a change makes the app bigger, more connec
 | `.claude/agents/pillsner-designer.md`, `.claude/skills/pillsner-*` | The design agent and the UI skills that enforce the design system. | Hand-maintained. Update when `docs/design-system.md` changes. |
 | `.claude/skills/github-openspec-sync/` | Keeps a GitHub issue, pull request and OpenSpec change in sync: creates the issue on propose, pushes the branch and opens a `development`-targeted pull request with an implementation summary when a change's tasks finish, and closes the issue on archive. | Hand-maintained. Not part of the generated OpenSpec workflow; invoked proactively alongside it. |
 | `.claude/skills/git-workflow/` | Defines the branching model — `main` mirrors production, `development` is the integration branch, feature branches are cut from it per change — and the lifecycle for creating, merging, cleaning up and releasing across them. | Hand-maintained. Update when the branching or release process changes. |
-| `README.md` | Public-facing project description. | Keep accurate. |
+| `README.md` | Public-facing project description: what Pillsner does and why, for prospective users. | Keep accurate. |
+| `CONTRIBUTING.md` | Prerequisites, toolchain, build/run instructions, the OpenSpec development workflow and the branching model, for contributors. | Keep accurate. |
 | `LICENSE` | MIT. | Do not change. |
 
 ## How work gets done: the OpenSpec workflow

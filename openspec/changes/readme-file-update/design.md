@@ -32,3 +32,7 @@
 ## Open Questions
 
 - Is there a canonical Play Store listing URL to include yet? If not, ship without it and note the section is ready for it.
+
+## Correction found during implementation
+
+The "project status: early development" note this design's structure called for is stale: `CHANGELOG.md` and git tags show Pillsner has already shipped releases up to `v1.0.2`, and `.github/workflows/release.yml` publishes every push to `main` to Google Play under application id `nl.hexmaster.pillsner`. Keeping an "early development, expect intent rather than shipped functionality" banner right above a Play Store link and real screenshots would contradict itself and undercut the pitch. The project-status line in that slot was replaced with the Play Store call-to-action itself (task 3.5), which is a stronger, more truthful signal of maturity than a status note would have been.

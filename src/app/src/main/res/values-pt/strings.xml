@@ -106,6 +106,8 @@
     <string name="medicines_active_empty_title">Nenhum medicamento ativo</string>
     <string name="medicines_active_empty_hint">Toca em + para adicionar um.</string>
     <string name="medicines_add_content_description">Adicionar medicamento</string>
+    <string name="medicines_scan_content_description">Digitalizar rótulo do medicamento</string>
+    <string name="medicines_scan_in_progress">A ler o rótulo…</string>
     <string name="medicine_inactive_label">Inativo</string>
     <string name="medicines_action_deactivate">Desativar</string>
     <string name="medicines_action_activate">Ativar</string>
@@ -194,6 +196,7 @@
     <string name="medicine_no_schedules">Ainda não há horários. Este medicamento vai aparecer como tomado conforme necessário.</string>
     <string name="schedule_remove_content_description">Remover horário</string>
     <string name="medicine_save_failed">Não foi possível guardar este medicamento. Tenta novamente.</string>
+    <string name="medicine_scan_not_recognized">Não foi possível ler a foto. Introduz os dados manualmente.</string>
     <string name="medication_form_active">Ativo</string>
     <string name="medication_form_active_supporting">Os medicamentos inativos não têm lembretes</string>
     <string name="medication_form_open_failed">Não foi possível abrir o medicamento</string>

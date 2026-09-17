@@ -31,6 +31,10 @@ data object Medicines
  * null.
  * @property scannedDoseUnit a recognized dose unit to seed a fresh add-mode draft with, or null.
  * Ignored whenever [medicationId] is not null.
+ * @property scanFailed whether this entrance followed a label scan that recognized nothing usable
+ * (medicine-add-label-scan spec, "Nothing usable is recognized"). Distinguishes that outcome from
+ * the plain add button, which also carries every scanned-value field as null: only this flag tells
+ * the form to say the photo could not be read. Ignored whenever [medicationId] is not null.
  */
 @Serializable
 data class MedicationFormGraph(
@@ -38,6 +42,7 @@ data class MedicationFormGraph(
     val scannedName: String? = null,
     val scannedDoseAmount: String? = null,
     val scannedDoseUnit: DoseUnit? = null,
+    val scanFailed: Boolean = false,
 )
 
 /** The medicine form; start destination of [MedicationFormGraph]. */

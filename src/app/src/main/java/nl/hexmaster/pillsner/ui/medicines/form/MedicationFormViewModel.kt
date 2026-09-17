@@ -54,13 +54,19 @@ class MedicationFormViewModel(
             ?: MedicationFormMode.Add
 
     /**
+     * True exactly once, the moment this view model is first created for a brand-new add-mode
+     * draft — never on a rotation or process-death restore, where a saved draft already exists and
+     * re-seeding (or re-announcing a failed scan) would be wrong, and never in edit mode, which
+     * ignores every one of these route arguments.
+     */
+    private val isFreshAddDraft: Boolean =
+        mode == MedicationFormMode.Add && !DraftSaver.hasSavedDraft(savedStateHandle)
+
+    /**
      * A fresh add-mode draft seeds itself from a label scan's guesses, if the route carries any
-     * (medicine-add-label-scan design D3) — never on a rotation or process-death restore, where a
-     * saved draft already exists and re-seeding would silently overwrite whatever the user typed
-     * since, and never in edit mode, which ignores these route arguments entirely.
+     * (medicine-add-label-scan design D3).
      */
     private var draft: MedicationFormDraft = DraftSaver.restore(savedStateHandle, today).let { restored ->
-        val isFreshAddDraft = mode == MedicationFormMode.Add && !DraftSaver.hasSavedDraft(savedStateHandle)
         if (isFreshAddDraft) restored.seededFromScan(savedStateHandle.toRoute<MedicationFormGraph>()) else restored
     }
 
@@ -91,6 +97,9 @@ class MedicationFormViewModel(
             // A half-edited form must never snap back to the stored medicine after a rotation.
             DraftSaver.hasSavedDraft(savedStateHandle) -> Unit
             else -> load(editing.id)
+        }
+        if (isFreshAddDraft && savedStateHandle.toRoute<MedicationFormGraph>().scanFailed) {
+            _effects.trySend(MedicationFormEffect.ScanNotRecognized)
         }
     }
 

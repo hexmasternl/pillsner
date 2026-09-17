@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.di
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
@@ -67,6 +68,7 @@ import nl.hexmaster.pillsner.domain.legal.IsLegalAccepted
 import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.domain.model.AppTheme
 import nl.hexmaster.pillsner.domain.model.DoseId
+import nl.hexmaster.pillsner.domain.model.LabelScanResult
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.LanguageRepository
 import nl.hexmaster.pillsner.domain.repository.LegalRepository
@@ -106,12 +108,15 @@ import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
  * @param medicationRepository overrides the Room-backed default; tests and previews use it.
  * @param doseRepository overrides the Room-backed default.
  * @param upcomingDosesRepository overrides what the Home screen reads.
+ * @param recognizeLabel overrides the real ML Kit-backed [ScanMedicineLabel]; a UI test substitutes
+ * a fixed [LabelScanResult] here without touching ML Kit.
  */
 class AppContainer(
     context: Context,
     medicationRepository: MedicationRepository? = null,
     doseRepository: DoseRepository? = null,
     upcomingDosesRepository: UpcomingDosesRepository? = null,
+    recognizeLabel: (suspend (Bitmap, Int) -> LabelScanResult)? = null,
 ) {
     private val applicationContext = context.applicationContext
     private val clock: Clock = Clock.systemDefaultZone()
@@ -142,7 +147,8 @@ class AppContainer(
      * it can change between scans within the same process.
      */
     private val labelTextRecognizer = LabelTextRecognizer()
-    val scanMedicineLabel = ScanMedicineLabel(labelTextRecognizer, currentLanguage = { AppLocale.inEffect })
+    private val scanMedicineLabel = ScanMedicineLabel(labelTextRecognizer, currentLanguage = { AppLocale.inEffect })
+    val recognizeLabel: suspend (Bitmap, Int) -> LabelScanResult = recognizeLabel ?: scanMedicineLabel::invoke
 
     /** Turns a medicine's stored doses into its usage history (app-medicine-usage-history D3). */
     private val summariseUsageHistory = SummariseUsageHistory(clock)
@@ -353,7 +359,7 @@ class AppContainer(
         initializer {
             MedicinesViewModel(
                 repository = this@AppContainer.medicationRepository,
-                recognizeLabel = scanMedicineLabel::invoke,
+                recognizeLabel = this@AppContainer.recognizeLabel,
             )
         }
         initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }

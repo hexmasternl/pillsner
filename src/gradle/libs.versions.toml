@@ -43,6 +43,10 @@ serialization = "1.11.0"
 # Bundled Latin model only, never the Play-services-backed variant: no network call, ever. Newest
 # stable on 17 September 2026.
 mlkitTextRecognition = "16.0.1"
+# Reads EXIF orientation off a captured or picked label photo before decoding it, so a sideways
+# camera capture is recognized upright (medicine-add-label-scan design D5). Newest stable on 17
+# September 2026.
+exifinterface = "1.4.2"
 
 # Test
 junit = "4.13.2"
@@ -100,6 +104,8 @@ kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "ko
 # On-device text recognition (medicine-add-label-scan design D1): the bundled Latin model, so
 # recognition never needs a network call or an INTERNET permission.
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+# EXIF orientation reading for the label-scan capture flow (medicine-add-label-scan design D5).
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

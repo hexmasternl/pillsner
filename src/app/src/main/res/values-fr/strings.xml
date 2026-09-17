@@ -107,6 +107,8 @@
     <string name="medicines_active_empty_title">Aucun médicament actif</string>
     <string name="medicines_active_empty_hint">Appuie sur + pour en ajouter un.</string>
     <string name="medicines_add_content_description">Ajouter un médicament</string>
+    <string name="medicines_scan_content_description">Scanner l\'étiquette du médicament</string>
+    <string name="medicines_scan_in_progress">Lecture de l\'étiquette…</string>
     <string name="medicine_inactive_label">Inactif</string>
     <string name="medicines_action_deactivate">Désactiver</string>
     <string name="medicines_action_activate">Activer</string>
@@ -195,6 +197,7 @@
     <string name="medicine_no_schedules">Aucun horaire pour le moment. Ce médicament sera alors indiqué comme pris au besoin.</string>
     <string name="schedule_remove_content_description">Supprimer l\'horaire</string>
     <string name="medicine_save_failed">Impossible d\'enregistrer ce médicament. Réessaie.</string>
+    <string name="medicine_scan_not_recognized">Impossible de lire la photo. Saisis les informations à la place.</string>
     <string name="medication_form_active">Actif</string>
     <string name="medication_form_active_supporting">Les médicaments inactifs ne font l\'objet d\'aucun rappel</string>
     <string name="medication_form_open_failed">Impossible d\'ouvrir le médicament</string>

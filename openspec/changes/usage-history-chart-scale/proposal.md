@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #35 (https://github.com/hexmasternl/pillsner/issues/35)
+**Pull Request:** #36 (https://github.com/hexmasternl/pillsner/pull/36)
 
 Both bar charts on the Usage history screen - the outcome chart and the timing accuracy chart added by `medicine-history-time-deviation` - show bars scaled relative to their own busiest bucket, but nothing on screen says what that busiest bar is actually worth. A sighted user can compare bars to each other but cannot read an actual number off either chart without reasoning it out from the figures elsewhere on the screen. A value axis fixes that with no new interaction, which keeps both charts read-only, consistent with the rest of this screen.
 

@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #29 (https://github.com/hexmasternl/pillsner/issues/29)
+**Pull Request:** #36 (https://github.com/hexmasternl/pillsner/pull/36)
 
 The Usage history screen tells the user *whether* a dose was taken, but not *how close to on time* it was. Someone whose adherence is 100% by outcome could still be taking every dose forty minutes late, and has no way to see that drift. A bar chart of the average gap between scheduled and actual intake time gives that visibility without adding any new data to record - the moments already exist on every taken dose.
 

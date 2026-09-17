@@ -32,7 +32,7 @@ class Quantity(val value: BigDecimal, val unit: DoseUnit) {
     }
 
     /** The value without trailing zeros, which is what equality and display are based on. */
-    private val normalizedValue: BigDecimal get() = value.stripTrailingZeros()
+    private val normalizedValue: BigDecimal by lazy { value.stripTrailingZeros() }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

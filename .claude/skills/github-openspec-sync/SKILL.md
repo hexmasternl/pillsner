@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires the gh CLI (authenticated) and the openspec CLI.
 metadata:
   author: pillsner
-  version: "1.1"
+  version: "1.2"
 ---
 
 Keep an OpenSpec change, a GitHub issue, and a pull request in sync, end to end: create the issue
@@ -118,6 +118,10 @@ This mode both comments on the issue and opens the pull request that will close 
    - Confirm which branch holds the change's commits (usually the current branch, named
      `feature/<change-name>` per `CLAUDE.md`'s git conventions and cut from `development` per
      `.claude/skills/git-workflow/SKILL.md`) and that it is based on an up-to-date `development`.
+     Per that same skill, the branch lives checked out in its own worktree
+     (`../pillsner-<change-name>`, sibling to the main checkout), not the main checkout — run the
+     `git log`, `git push` and `gh pr create` commands in this section with that worktree as the
+     working directory.
    - Show the user the branch name, PR title, and PR body — the PR body is the summary from step 4
      plus a closing line `Closes #<issue-number>` and a link to the change folder
      (`openspec/changes/<name>/`) — and ask for confirmation before doing anything that touches the
@@ -203,7 +207,7 @@ when the user just wants to check.
   because they exist to make the issue/PR findable on the next run, not as work in progress; it
   never commits anything else unasked. It never creates or deletes branches, never merges a PR,
   never force-pushes, and never touches any other git remote operation beyond the plain `git push`
-  noted in **Mode: apply-complete** step 5. Branch creation and cleanup are
+  noted in **Mode: apply-complete** step 5. Branch and worktree creation and cleanup are
   `.claude/skills/git-workflow/SKILL.md`'s job, not this skill's.
 - Always show the user the exact branch name, PR title, and PR body before pushing or running
   `gh pr create`, and wait for confirmation — this holds every time this mode runs, whether invoked

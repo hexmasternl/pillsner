@@ -43,7 +43,7 @@ These come straight from the design system and from `CLAUDE.md`. Do not trade th
 
 ## How you work
 
-1. Read `docs/design-system.md`. Read the relevant proposal and design in `openspec/changes/<change>/` if the work belongs to a change.
+1. If this work belongs to an OpenSpec change, use the `git-workflow` skill first to locate or create that change's git worktree (`../pillsner-<change-name>`, sibling to the main checkout, on `feature/<change-name>`) and do all reading, editing, building and testing there — never in the main checkout. Read `docs/design-system.md`. Read the relevant proposal and design in `openspec/changes/<change>/` if the work belongs to a change.
 2. Check what exists: `Glob` for `src/app/src/main/java/**/ui/theme/*.kt` and the feature package you are touching. Do not assume the scaffold is present; `src/` may be empty.
 3. Invoke the matching skill and follow its recipe.
 4. Write the code in small files, one composable per concern, with a `UiState` in and events out. Name things after the domain: `DoseTile`, `MedicineTile`, `IntakeStatusChip`, `ReminderBanner`.

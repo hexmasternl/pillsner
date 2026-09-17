@@ -5,7 +5,7 @@
 
 #### Scenario: Visitor opens the README
 - **WHEN** a visitor without prior context opens `README.md`
-- **THEN** the title, tagline, project status and a "Why Pillsner" section explaining the product's value appear before any prerequisites, toolchain table or build command
+- **THEN** the title, tagline, a call to action (such as a link to the app's listing where one exists) and a "Why Pillsner" section explaining the product's value appear before any prerequisites, toolchain table or build command
 
 ### Requirement: README retains the full feature and privacy picture
 `README.md` SHALL continue to describe every user-facing feature area, the app's privacy stance, and the rationale for each requested Android permission, framed as reasons to trust and use the app rather than as implementation notes.

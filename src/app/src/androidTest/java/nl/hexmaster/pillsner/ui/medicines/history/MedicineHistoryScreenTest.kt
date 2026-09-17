@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -155,6 +156,15 @@ class MedicineHistoryScreenTest {
     }
 
     @Test
+    fun theUsageChartAxisShowsTheBusiestBucketsCountAndZero() {
+        showScreen(doses = threeTakenOfFourThisWeek())
+
+        // Every bucket in this fixture holds at most one dose, so the busiest is 1.
+        composeRule.onNodeWithTag(UsageChartTestTags.AXIS_TOP).assertTextEquals("1 dose")
+        composeRule.onNodeWithTag(UsageChartTestTags.AXIS_BOTTOM).assertTextEquals("0 doses")
+    }
+
+    @Test
     fun aWeeklyBarNamesTheWeekItStartsOn() {
         showScreen(doses = threeTakenOfFourThisWeek())
 
@@ -212,6 +222,18 @@ class MedicineHistoryScreenTest {
     }
 
     @Test
+    fun theTimingAccuracyChartAxisShowsTheBusiestBucketsAverageAndZero() {
+        showScreen(doses = listOf(doseTakenLate(1, at(today), minutesLate = 22)))
+
+        composeRule.onNodeWithTag(TimeDeviationChartTestTags.AXIS_TOP)
+            .performScrollTo()
+            .assertTextEquals("22 minutes")
+        composeRule.onNodeWithTag(TimeDeviationChartTestTags.AXIS_BOTTOM)
+            .performScrollTo()
+            .assertTextEquals("0 minutes")
+    }
+
+    @Test
     fun theTimingAccuracyCardIsAbsentWhenNothingWasTaken() {
         showScreen(doses = listOf(dose(1, at(today.minusDays(2)), IntakeOutcome.MISSED)))
 
@@ -252,6 +274,15 @@ class MedicineHistoryScreenTest {
         amount = mg40,
         scheduledAt = at,
         intake = Intake(outcome, at),
+    )
+
+    private fun doseTakenLate(id: Long, scheduledAt: Instant, minutesLate: Long) = Dose(
+        id = DoseId(id),
+        medicationId = MedicationId(1),
+        medicationName = "Metoprolol",
+        amount = mg40,
+        scheduledAt = scheduledAt,
+        intake = Intake(IntakeOutcome.TAKEN, scheduledAt.plusSeconds(minutesLate * 60)),
     )
 
     private fun at(date: LocalDate): Instant =

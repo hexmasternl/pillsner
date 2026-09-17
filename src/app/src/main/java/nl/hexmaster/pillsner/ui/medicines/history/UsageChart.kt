@@ -39,16 +39,20 @@ import nl.hexmaster.pillsner.ui.theme.Sizes
 import nl.hexmaster.pillsner.ui.theme.Spacing
 import nl.hexmaster.pillsner.ui.theme.intakeStatusColors
 
-/** Test tags for the chart, so semantics tests can reach one bar. */
+/** Test tags for the chart, so semantics tests can reach one bar or the axis. */
 object UsageChartTestTags {
     const val CHART = "usage_chart"
     const val BAR_PREFIX = "usage_chart_bar_"
+    const val AXIS_TOP = "usage_chart_axis_top"
+    const val AXIS_BOTTOM = "usage_chart_axis_bottom"
 }
 
-/** Test tags for the timing accuracy chart, so semantics tests can reach one bar. */
+/** Test tags for the timing accuracy chart, so semantics tests can reach one bar or the axis. */
 object TimeDeviationChartTestTags {
     const val CHART = "time_deviation_chart"
     const val BAR_PREFIX = "time_deviation_chart_bar_"
+    const val AXIS_TOP = "time_deviation_chart_axis_top"
+    const val AXIS_BOTTOM = "time_deviation_chart_axis_bottom"
 }
 
 /**
@@ -62,7 +66,9 @@ object TimeDeviationChartTestTags {
  *
  * No bar carries a visible date label: thirteen of them cannot survive 200 % font scale. The first
  * and last bucket dates sit beneath the row instead, and every bar states its own date and counts
- * to a screen reader.
+ * to a screen reader. A value axis - the busiest bucket's count at the top, zero at the bottom -
+ * sits to the row's leading edge so a sighted user has a scale to read the bars against
+ * (usage-history-chart-scale design D1-D4).
  */
 @Composable
 fun UsageChart(history: UsageHistory, modifier: Modifier = Modifier) {
@@ -85,6 +91,13 @@ fun UsageChart(history: UsageHistory, modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
             verticalAlignment = Alignment.Bottom,
         ) {
+            ChartValueAxis(
+                topLabel = pluralStringResource(R.plurals.usage_history_axis_doses, busiest, busiest),
+                topTestTag = UsageChartTestTags.AXIS_TOP,
+                bottomLabel = pluralStringResource(R.plurals.usage_history_axis_doses, 0, 0),
+                bottomTestTag = UsageChartTestTags.AXIS_BOTTOM,
+                modifier = Modifier.fillMaxHeight(),
+            )
             history.buckets.forEachIndexed { index, bucket ->
                 UsageBar(
                     bucket = bucket,
@@ -171,6 +184,39 @@ private fun UsageBucket.spokenDescription(format: DateTimeFormatter): String {
 }
 
 /**
+ * A two-point value axis beside a bar chart: the busiest bucket's value at the top, aligned with
+ * the tallest bar, and zero at the bottom, aligned with every bar's baseline (usage-history-chart-
+ * scale design D1-D4). Shared by [UsageChart] and [TimeDeviationChart] rather than written twice.
+ *
+ * Sized to its own content rather than a fixed width, so a longer localised label is never clipped;
+ * not clamped to the chart's fixed height either, so a label has room to grow at large font scales
+ * without being forced to wrap inside a height that isn't built to hold two lines.
+ */
+@Composable
+private fun ChartValueAxis(
+    topLabel: String,
+    topTestTag: String,
+    bottomLabel: String,
+    bottomTestTag: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier, verticalArrangement = Arrangement.SpaceBetween) {
+        Text(
+            text = topLabel,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag(topTestTag),
+        )
+        Text(
+            text = bottomLabel,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag(bottomTestTag),
+        )
+    }
+}
+
+/**
  * The thinnest line the device can draw, so the skipped segment stays legible where its tier sits
  * next to the card's own. A hairline rather than a new dimension token: it is a separator, not a
  * size anything else is measured against.
@@ -184,7 +230,8 @@ private val BAR_BORDER = Dp.Hairline
  * Every bar is the same colour: unlike the outcome chart, no deviation here is "good" or "bad", so
  * only height and the spoken minute count carry meaning. A bucket with no taken dose is drawn as an
  * empty column that keeps its place in the row, exactly as an unscheduled bucket does in
- * [UsageChart].
+ * [UsageChart]. A value axis - the busiest bucket's average at the top, zero at the bottom - sits
+ * to the row's leading edge, the same as [UsageChart]'s (usage-history-chart-scale design D1-D4).
  */
 @Composable
 fun TimeDeviationChart(history: TimeDeviationHistory, modifier: Modifier = Modifier) {
@@ -206,6 +253,13 @@ fun TimeDeviationChart(history: TimeDeviationHistory, modifier: Modifier = Modif
             horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
             verticalAlignment = Alignment.Bottom,
         ) {
+            ChartValueAxis(
+                topLabel = pluralStringResource(R.plurals.usage_history_timing_average, busiest, busiest),
+                topTestTag = TimeDeviationChartTestTags.AXIS_TOP,
+                bottomLabel = pluralStringResource(R.plurals.usage_history_timing_average, 0, 0),
+                bottomTestTag = TimeDeviationChartTestTags.AXIS_BOTTOM,
+                modifier = Modifier.fillMaxHeight(),
+            )
             history.buckets.forEachIndexed { index, bucket ->
                 TimeDeviationBar(
                     bucket = bucket,

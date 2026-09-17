@@ -460,4 +460,11 @@
     <string name="usage_history_timing_bar_day_empty">%1$s, geen dosis ingenomen</string>
     <!-- %1$s: de dag waarop de week begint. -->
     <string name="usage_history_timing_bar_week_empty">Week van %1$s, geen dosis ingenomen</string>
+
+    <!-- Schaal van de grafiek (usage-history-chart-scale) -->
+    <!-- %1$d: een aantal doses, boven- of onderaan de as van de gebruiksgrafiek. -->
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d dosis</item>
+        <item quantity="other">%1$d doses</item>
+    </plurals>
 </resources>

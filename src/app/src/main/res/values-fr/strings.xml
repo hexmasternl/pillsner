@@ -461,4 +461,11 @@
     <string name="usage_history_timing_bar_day_empty">%1$s, aucune dose prise</string>
     <!-- %1$s : le jour de début de la semaine. -->
     <string name="usage_history_timing_bar_week_empty">Semaine du %1$s, aucune dose prise</string>
+
+    <!-- Échelle du graphique (usage-history-chart-scale) -->
+    <!-- %1$d : un nombre de doses, en haut ou en bas de l'axe du graphique d'utilisation. -->
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d dose</item>
+        <item quantity="other">%1$d doses</item>
+    </plurals>
 </resources>

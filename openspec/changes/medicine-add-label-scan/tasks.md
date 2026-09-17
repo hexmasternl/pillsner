@@ -1,27 +1,27 @@
 ## 1. Dependency and permission setup
 
-- [ ] 1.1 Add `com.google.mlkit:text-recognition` (bundled Latin model) to `gradle/libs.versions.toml` and `app/build.gradle.kts`; confirm no unbundled/Play-services text-recognition dependency is present
-- [ ] 1.2 Add the `CAMERA` permission to the app manifest, requested only at scan time (no install-time prompt), plus a `FileProvider` entry (and its `file_paths.xml` resource) scoped to a cache subdirectory for the temporary capture file
-- [ ] 1.3 Add a `CAMERA` row to the README permissions table describing it as optional, for the label-scan shortcut only
+- [x] 1.1 Add `com.google.mlkit:text-recognition` (bundled Latin model) to `gradle/libs.versions.toml` and `app/build.gradle.kts`; confirm no unbundled/Play-services text-recognition dependency is present
+- [x] 1.2 Add the `CAMERA` permission to the app manifest, requested only at scan time (no install-time prompt), plus a `FileProvider` entry (and its `file_paths.xml` resource) scoped to a cache subdirectory for the temporary capture file
+- [x] 1.3 Add a `CAMERA` row to the README permissions table describing it as optional, for the label-scan shortcut only
 
 ## 2. Domain: recognized-text parsing
 
-- [ ] 2.1 Define `LabelScanResult` (nullable name, nullable amount+unit) in the domain layer
-- [ ] 2.2 Implement `ParseLabelText`: a pure, Android-free function mapping raw recognized text + current app language to a `LabelScanResult`
-- [ ] 2.3 Build the per-language unit-word vocabulary (mg, g, mcg, ml, tablet, capsule, drop, puff, unit and their Dutch/German/French/Spanish/Portuguese equivalents) alongside the existing `DoseUnit` enum
-- [ ] 2.4 Unit tests for `ParseLabelText`: clear name only, name + valid dose, no usable text, ambiguous/garbled text, one case per supported language
+- [x] 2.1 Define `LabelScanResult` (nullable name, nullable amount+unit) in the domain layer
+- [x] 2.2 Implement `ParseLabelText`: a pure, Android-free function mapping raw recognized text + current app language to a `LabelScanResult`
+- [x] 2.3 Build the per-language unit-word vocabulary (mg, g, mcg, ml, tablet, capsule, drop, puff, unit and their Dutch/German/French/Spanish/Portuguese equivalents) alongside the existing `DoseUnit` enum
+- [x] 2.4 Unit tests for `ParseLabelText`: clear name only, name + valid dose, no usable text, ambiguous/garbled text, one case per supported language
 
 ## 3. Recognition service
 
-- [ ] 3.1 Implement `LabelTextRecognizer` wrapping the ML Kit `TextRecognizer` client, taking an in-memory image and returning raw recognized text or nothing
-- [ ] 3.2 Ensure the temporary capture file (from the camera intent) is deleted immediately after recognition completes, on every outcome including failure; a photo picked from the gallery is read directly with no file written at all
-- [ ] 3.3 Wire `LabelTextRecognizer` and `ParseLabelText` into `AppContainer.kt` the same way existing services are wired
+- [x] 3.1 Implement `LabelTextRecognizer` wrapping the ML Kit `TextRecognizer` client, taking an in-memory image and returning raw recognized text or nothing
+- [ ] 3.2 Ensure the temporary capture file (from the camera intent) is deleted immediately after recognition completes, on every outcome including failure; a photo picked from the gallery is read directly with no file written at all (belongs to the group 5 capture flow: `LabelTextRecognizer` deliberately owns no file I/O, per its KDoc)
+- [x] 3.3 Wire `LabelTextRecognizer` and `ParseLabelText` into `AppContainer.kt` the same way existing services are wired
 
 ## 4. Navigation: carrying a scan result into a fresh Add medicine form
 
-- [ ] 4.1 Add `scannedName`, `scannedDoseAmount` and `scannedDoseUnit` as optional fields on the `MedicationFormGraph` route, alongside its existing `medicationId`
-- [ ] 4.2 Update `MedicationFormViewModel`'s add-mode initial state construction to seed `name`, `doseText` and `doseUnit` from those fields when present, leaving edit mode (`medicationId != null`) entirely unaffected
-- [ ] 4.3 Confirm the seeded values behave as ordinary draft state: they survive rotation/process death via the existing route-argument mechanism, go through the same validation as typed input, and are subject to the existing discard-draft confirmation the same as a manual edit
+- [x] 4.1 Add `scannedName`, `scannedDoseAmount` and `scannedDoseUnit` as optional fields on the `MedicationFormGraph` route, alongside its existing `medicationId`
+- [x] 4.2 Update `MedicationFormViewModel`'s add-mode initial state construction to seed `name`, `doseText` and `doseUnit` from those fields when present, leaving edit mode (`medicationId != null`) entirely unaffected
+- [x] 4.3 Confirm the seeded values behave as ordinary draft state: they survive rotation/process death via the existing route-argument mechanism, go through the same validation as typed input, and are subject to the existing discard-draft confirmation the same as a manual edit
 
 ## 5. UI: scan button and capture flow on the Medicines screen
 

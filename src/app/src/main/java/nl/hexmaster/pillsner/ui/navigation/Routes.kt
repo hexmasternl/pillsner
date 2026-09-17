@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.applock.ui.PinSetupMode
 import nl.hexmaster.pillsner.domain.legal.LegalDocumentId
+import nl.hexmaster.pillsner.domain.model.DoseUnit
 
 /** The welcome screen; start destination. */
 @Serializable
@@ -20,11 +21,24 @@ data object Medicines
  * rather than a single destination so the form and the schedule editor can share one draft: both
  * take their view model from this graph's back-stack entry.
  *
- * @property medicationId the medicine to open, or null to add a new one. One flow, two entrances:
- * the add button opens it empty, a tile opens it filled.
+ * @property medicationId the medicine to open, or null to add a new one. One flow, three entrances:
+ * the add button opens it empty, a tile opens it filled, and the label-scan shortcut opens it
+ * pre-filled from a photo (medicine-add-label-scan design D3).
+ * @property scannedName a recognized medicine name to seed a fresh add-mode draft with, or null.
+ * Ignored whenever [medicationId] is not null.
+ * @property scannedDoseAmount a recognized dose amount, in the same free-text form the dose field
+ * accepts, to seed a fresh add-mode draft with, or null. Ignored whenever [medicationId] is not
+ * null.
+ * @property scannedDoseUnit a recognized dose unit to seed a fresh add-mode draft with, or null.
+ * Ignored whenever [medicationId] is not null.
  */
 @Serializable
-data class MedicationFormGraph(val medicationId: Long? = null)
+data class MedicationFormGraph(
+    val medicationId: Long? = null,
+    val scannedName: String? = null,
+    val scannedDoseAmount: String? = null,
+    val scannedDoseUnit: DoseUnit? = null,
+)
 
 /** The medicine form; start destination of [MedicationFormGraph]. */
 @Serializable

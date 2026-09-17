@@ -37,6 +37,8 @@ import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.data.RoomUpcomingDosesRepository
 import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
+import nl.hexmaster.pillsner.data.labelscan.LabelTextRecognizer
+import nl.hexmaster.pillsner.data.labelscan.ScanMedicineLabel
 import nl.hexmaster.pillsner.data.reminders.AndroidBatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
 import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
@@ -132,6 +134,15 @@ class AppContainer(
 
     val upcomingDosesRepository: UpcomingDosesRepository =
         upcomingDosesRepository ?: RoomUpcomingDosesRepository(this.doseRepository, clock)
+
+    /**
+     * The "Scan medicine label" shortcut (medicine-add-label-scan design D1, D3): recognizes text
+     * entirely on-device with the bundled ML Kit Latin model, then parses it against the app's
+     * current language. `AppLocale.inEffect` is read fresh on every call, not captured here, since
+     * it can change between scans within the same process.
+     */
+    private val labelTextRecognizer = LabelTextRecognizer()
+    val scanMedicineLabel = ScanMedicineLabel(labelTextRecognizer, currentLanguage = { AppLocale.inEffect })
 
     /** Turns a medicine's stored doses into its usage history (app-medicine-usage-history D3). */
     private val summariseUsageHistory = SummariseUsageHistory(clock)
@@ -339,7 +350,12 @@ class AppContainer(
                 clock = clock,
             )
         }
-        initializer { MedicinesViewModel(this@AppContainer.medicationRepository) }
+        initializer {
+            MedicinesViewModel(
+                repository = this@AppContainer.medicationRepository,
+                recognizeLabel = scanMedicineLabel::invoke,
+            )
+        }
         initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }
         initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }

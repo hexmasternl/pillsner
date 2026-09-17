@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -28,6 +29,7 @@ import nl.hexmaster.pillsner.domain.validation.MedicationFormValidator
 import nl.hexmaster.pillsner.domain.validation.ScheduleDraftValidator
 import nl.hexmaster.pillsner.domain.validation.SchedulePattern
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
+import nl.hexmaster.pillsner.ui.navigation.MedicationFormGraph
 
 /**
  * Owns the one draft that the add-medicine form and the schedule editor both edit (design D8).
@@ -51,7 +53,16 @@ class MedicationFormViewModel(
             ?.let { MedicationFormMode.Edit(MedicationId(it)) }
             ?: MedicationFormMode.Add
 
-    private var draft: MedicationFormDraft = DraftSaver.restore(savedStateHandle, today)
+    /**
+     * A fresh add-mode draft seeds itself from a label scan's guesses, if the route carries any
+     * (medicine-add-label-scan design D3) — never on a rotation or process-death restore, where a
+     * saved draft already exists and re-seeding would silently overwrite whatever the user typed
+     * since, and never in edit mode, which ignores these route arguments entirely.
+     */
+    private var draft: MedicationFormDraft = DraftSaver.restore(savedStateHandle, today).let { restored ->
+        val isFreshAddDraft = mode == MedicationFormMode.Add && !DraftSaver.hasSavedDraft(savedStateHandle)
+        if (isFreshAddDraft) restored.seededFromScan(savedStateHandle.toRoute<MedicationFormGraph>()) else restored
+    }
 
     /**
      * What the form opened with. "Has the user changed anything" is this compared with [draft], so

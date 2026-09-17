@@ -30,6 +30,14 @@
         which Pillsner is; where it is not granted the reminder degrades to a heads-up notification.
     -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!--
+        Requested only when the user taps the Medicines screen's "Scan medicine label" button
+        (medicine-add-label-scan design D4); denial falls back to the photo picker, which needs no
+        permission of its own.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- The scan shortcut is optional chrome; a phone with no camera still installs and runs fully. -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
     <!--
         The vendor power-manager screens the Home banner offers on OEMs that ship one (design D3).
@@ -114,6 +122,21 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <!--
+            Gives the system camera intent somewhere to write the temporary label photo
+            (medicine-add-label-scan design D5). Scoped to a cache subdirectory only; the file is
+            deleted immediately after recognition completes and is never registered with MediaStore.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

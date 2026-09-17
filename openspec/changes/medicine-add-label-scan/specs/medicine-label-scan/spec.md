@@ -1,59 +1,59 @@
 ## ADDED Requirements
 
-### Requirement: Scan label entry point on the Add medicine form
-The Add medicine form SHALL show a "Scan label" action, only in add mode, that lets the user capture a photo with the camera or choose an existing photo. The action SHALL be optional: the form SHALL remain fully usable by typing alone whether or not the user ever taps it.
+### Requirement: Scan button on the Medicines screen
+The Medicines screen SHALL show a button, next to the existing add button, with an icon indicating a camera and the content description "Scan medicine label". Tapping it SHALL start the capture flow described below. The Medicines screen itself SHALL remain fully usable, including the regular add button, whether or not the user ever taps this button.
 
-#### Scenario: Action is present in add mode
-- **WHEN** the user opens the Add medicine form
-- **THEN** a "Scan label" action is shown alongside the existing fields
+#### Scenario: Scan button is present
+- **WHEN** the Medicines screen is shown
+- **THEN** a "Scan medicine label" button is shown alongside the existing add button
 
-#### Scenario: Action is absent in edit mode
-- **WHEN** the user opens an existing medicine to edit it
-- **THEN** no "Scan label" action is shown
-
-#### Scenario: Form works without ever scanning
-- **WHEN** the user fills in every field by hand without tapping "Scan label"
-- **THEN** the form behaves exactly as it did before this capability existed, and saving works normally
+#### Scenario: Medicines screen works without ever scanning
+- **WHEN** the user never taps the scan button
+- **THEN** the Medicines screen and the regular add button behave exactly as they did before this capability existed
 
 ### Requirement: Camera permission is requested only on demand, with a working fallback
-Tapping "Scan label" SHALL request camera permission only at that moment, not on form open. Denying it, or having no camera, SHALL fall back to picking an existing photo. If neither capture nor picking is possible or the user cancels, the form SHALL remain exactly as it was, with manual entry unaffected.
+Tapping the scan button SHALL request camera permission only at that moment, not on screen load. Denying it, or the device reporting no camera, SHALL fall back to picking an existing photo. If neither capturing nor picking is possible, or the user cancels either, the Medicines screen SHALL remain exactly as it was, with no navigation and no message left behind.
 
 #### Scenario: First scan requests permission
-- **WHEN** the user taps "Scan label" for the first time and camera permission has not yet been decided
+- **WHEN** the user taps the scan button for the first time and camera permission has not yet been decided
 - **THEN** the system camera permission dialog is shown
 
 #### Scenario: Permission denied falls back to the photo picker
 - **WHEN** the user denies camera permission
 - **THEN** the photo picker opens so the user can choose an existing photo instead
 
-#### Scenario: Cancelling leaves the form untouched
+#### Scenario: Cancelling leaves the Medicines screen untouched
 - **WHEN** the user cancels the camera or the photo picker without selecting an image
-- **THEN** the Add medicine form is shown exactly as it was before "Scan label" was tapped
+- **THEN** the Medicines screen is shown exactly as it was before the scan button was tapped, and no other screen is opened
 
-### Requirement: Recognized text prefills fields but never saves automatically
-Given a photo, the system SHALL recognize text from it entirely on-device and use it to prefill the name field and, when an amount and a recognizable unit are both found, the default dose amount and unit fields. The user MUST review and MAY correct every prefilled field before the medicine can be saved; a scan SHALL NOT save the medicine by itself.
+### Requirement: A recognized photo opens a new Add medicine form prefilled from it
+Given a photo, the system SHALL recognize text from it entirely on-device, then open the Add medicine form in add mode — never editing an existing medicine — with the name field, and, when a recognizable amount and unit are both found, the default dose amount and unit fields, prefilled from what was recognized. Every prefilled field remains an ordinary editable draft value; the user MUST review and MAY correct any of them before the medicine can be saved, and a scan SHALL NOT save a medicine by itself.
 
 #### Scenario: Name is recognized
 - **WHEN** a scanned photo yields a clear medicine name and no clear dose
-- **THEN** the name field is prefilled with that name, the dose fields are left as they were, and the user must still tap Save to store anything
+- **THEN** the Add medicine form opens with the name field prefilled with that name, the dose fields at their normal empty defaults, and the user must still tap Save to store anything
 
 #### Scenario: Name and dose are both recognized
 - **WHEN** a scanned photo yields a name and a recognizable amount with a known unit
-- **THEN** the name, amount and unit fields are all prefilled, and every one of them remains editable
+- **THEN** the Add medicine form opens with the name, amount and unit fields all prefilled, and every one of them remains editable
 
 #### Scenario: Nothing usable is recognized
 - **WHEN** a scanned photo yields no recognizable name or dose
-- **THEN** the form's fields are left exactly as they were, and the user is told the photo could not be read
+- **THEN** the Add medicine form opens with every field at its normal empty default, and a message states the photo could not be read
 
 #### Scenario: Prefilled dose still goes through normal validation
 - **WHEN** a prefilled amount or unit would fail the existing dose validation (for example, an unrecognizable amount)
 - **THEN** the same "fix this field" error the form already shows for a typed invalid dose is shown, and Save does not proceed
 
-### Requirement: The scanned photo is never retained
-The photo used for a scan SHALL exist only for the duration of recognizing its text and SHALL NOT be written to any storage controlled by Pillsner, nor become part of the saved medicine or its draft.
+#### Scenario: Scanning always opens a fresh medicine
+- **WHEN** a scan completes, whatever was or was not recognized
+- **THEN** the Add medicine form opens in add mode, never editing an existing medicine
 
-#### Scenario: Photo is discarded after prefill
-- **WHEN** a scan completes and the form has been prefilled (or not, if nothing was recognized)
+### Requirement: The scanned photo is never retained
+The photo used for a scan SHALL exist only for the duration of recognizing its text and SHALL NOT be written to any storage controlled by Pillsner beyond a temporary file deleted immediately after recognition completes, and SHALL NOT become part of the opened form's draft or any saved medicine.
+
+#### Scenario: Photo is discarded after recognition
+- **WHEN** recognition completes, successfully or not
 - **THEN** no copy of the photo remains accessible to Pillsner
 
 ### Requirement: Recognition works across every supported app language

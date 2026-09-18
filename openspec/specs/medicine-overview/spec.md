@@ -158,7 +158,7 @@ Every medicine tile on the Medicines screen SHALL be draggable horizontally towa
 - **THEN** the list scrolls and no tile is revealed
 
 ### Requirement: Only one tile is revealed at a time
-The Medicines screen SHALL keep at most one tile revealed. Revealing a tile SHALL close any other revealed tile. The revealed state SHALL survive a configuration change and SHALL be cleared when the revealed tile leaves the list or its action is tapped.
+The Medicines screen SHALL keep at most one tile revealed. Revealing a tile SHALL close any other revealed tile. The revealed state SHALL survive a configuration change and SHALL be cleared when the revealed tile leaves the list or its action is tapped. Revealing or closing a tile SHALL NOT change the schedule description shown on any other tile.
 
 #### Scenario: Revealing a second tile
 - **WHEN** one tile is revealed and the user reveals another
@@ -167,6 +167,10 @@ The Medicines screen SHALL keep at most one tile revealed. Revealing a tile SHAL
 #### Scenario: Rotation while revealed
 - **WHEN** a tile is revealed and the device rotates
 - **THEN** the same tile is still revealed afterwards
+
+#### Scenario: Revealing a tile leaves other tiles' content unchanged
+- **WHEN** the active section shows several tiles with their schedule descriptions and the user reveals one tile's swipe action
+- **THEN** every other tile's schedule description on screen stays exactly as it was
 
 ### Requirement: Deactivating and activating a medicine from its tile
 Tapping "Deactivate" on a revealed active tile SHALL set the medicine's active flag to false; tapping "Activate" on a revealed inactive tile SHALL set it to true. The change SHALL be made through the repository, and the screen SHALL reflect it from the repository stream: the tile closes and moves to the other section at its alphabetical position with an animated move. No confirmation MUST be asked. When the write fails, the screen SHALL show a snackbar "Could not update medicine" from a string resource and the tile SHALL stay where it was.

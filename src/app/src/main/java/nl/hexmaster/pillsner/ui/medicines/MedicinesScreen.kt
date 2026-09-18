@@ -1,5 +1,6 @@
 package nl.hexmaster.pillsner.ui.medicines
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.LabelScanResult
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
@@ -86,6 +88,10 @@ fun MedicinesScreen(
     modifier: Modifier = Modifier,
     onSetActive: (MedicationId, Boolean) -> Unit = { _, _ -> },
     onOpenMedication: (MedicationId) -> Unit = {},
+    legalAccepted: Boolean = true,
+    onLegalRequired: () -> Unit = {},
+    onScanLabel: suspend (Bitmap, Int) -> LabelScanResult = { _, _ -> LabelScanResult() },
+    onScanResult: (LabelScanResult) -> Unit = {},
     effects: Flow<MedicinesEffect> = emptyFlow(),
 ) {
     val formatter = rememberScheduleDescriptionFormatter()
@@ -114,17 +120,30 @@ fun MedicinesScreen(
         },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddMedicine,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.testTag(MedicinesScreenTestTags.ADD_FAB),
+            // Grouped bottom right (medicine-overview delta spec, "Both buttons visible together"):
+            // scan sits above add, neither one obscuring the other or the last tile.
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(Spacing.md),
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_add),
-                    contentDescription = stringResource(R.string.medicines_add_content_description),
-                    modifier = Modifier.size(Sizes.iconDefault),
+                LabelScanFab(
+                    legalAccepted = legalAccepted,
+                    onLegalRequired = onLegalRequired,
+                    onScanLabel = onScanLabel,
+                    onScanResult = onScanResult,
                 )
+                FloatingActionButton(
+                    onClick = onAddMedicine,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.testTag(MedicinesScreenTestTags.ADD_FAB),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_add),
+                        contentDescription = stringResource(R.string.medicines_add_content_description),
+                        modifier = Modifier.size(Sizes.iconDefault),
+                    )
+                }
             }
         },
     ) { innerPadding ->
@@ -146,8 +165,9 @@ fun MedicinesScreen(
                 contentPadding = PaddingValues(
                     start = sidePadding,
                     end = sidePadding,
-                    // The last tile must clear the floating action button (section 5).
-                    bottom = Sizes.fab + Spacing.lg,
+                    // The last tile must clear both floating action buttons, stacked (section 5;
+                    // medicine-overview delta spec, "Last tile reachable" now with two buttons).
+                    bottom = Sizes.fab * 2 + Spacing.md + Spacing.lg,
                 ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
             ) {

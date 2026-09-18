@@ -39,6 +39,15 @@ playServicesWearable = "20.0.1"
 coroutines = "1.11.0"
 serialization = "1.11.0"
 
+# On-device text recognition for the label-scan shortcut (medicine-add-label-scan design D1).
+# Bundled Latin model only, never the Play-services-backed variant: no network call, ever. Newest
+# stable on 17 September 2026.
+mlkitTextRecognition = "16.0.1"
+# Reads EXIF orientation off a captured or picked label photo before decoding it, so a sideways
+# camera capture is recognized upright (medicine-add-label-scan design D5). Newest stable on 17
+# September 2026.
+exifinterface = "1.4.2"
+
 # Test
 junit = "4.13.2"
 androidxTestCore = "1.7.0"
@@ -91,6 +100,12 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 # Turns the Play services Task API into suspend functions, so the Data Layer reads like the rest
 # of the codebase rather than like callbacks.
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# On-device text recognition (medicine-add-label-scan design D1): the bundled Latin model, so
+# recognition never needs a network call or an INTERNET permission.
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+# EXIF orientation reading for the label-scan capture flow (medicine-add-label-scan design D5).
+androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

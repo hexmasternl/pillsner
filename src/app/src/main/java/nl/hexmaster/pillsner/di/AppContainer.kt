@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.di
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
@@ -37,6 +38,8 @@ import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.data.RoomUpcomingDosesRepository
 import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
+import nl.hexmaster.pillsner.data.labelscan.LabelTextRecognizer
+import nl.hexmaster.pillsner.data.labelscan.ScanMedicineLabel
 import nl.hexmaster.pillsner.data.reminders.AndroidBatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
 import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
@@ -55,6 +58,7 @@ import nl.hexmaster.pillsner.data.reset.RoomAppDataEraser
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreThemeRepository
+import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.intake.AnswerDose
 import nl.hexmaster.pillsner.domain.intake.DoseAnswer
@@ -64,6 +68,7 @@ import nl.hexmaster.pillsner.domain.legal.IsLegalAccepted
 import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.domain.model.AppTheme
 import nl.hexmaster.pillsner.domain.model.DoseId
+import nl.hexmaster.pillsner.domain.model.LabelScanResult
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.LanguageRepository
 import nl.hexmaster.pillsner.domain.repository.LegalRepository
@@ -103,12 +108,15 @@ import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
  * @param medicationRepository overrides the Room-backed default; tests and previews use it.
  * @param doseRepository overrides the Room-backed default.
  * @param upcomingDosesRepository overrides what the Home screen reads.
+ * @param recognizeLabel overrides the real ML Kit-backed [ScanMedicineLabel]; a UI test substitutes
+ * a fixed [LabelScanResult] here without touching ML Kit.
  */
 class AppContainer(
     context: Context,
     medicationRepository: MedicationRepository? = null,
     doseRepository: DoseRepository? = null,
     upcomingDosesRepository: UpcomingDosesRepository? = null,
+    recognizeLabel: (suspend (Bitmap, Int) -> LabelScanResult)? = null,
 ) {
     private val applicationContext = context.applicationContext
     private val clock: Clock = Clock.systemDefaultZone()
@@ -132,8 +140,21 @@ class AppContainer(
     val upcomingDosesRepository: UpcomingDosesRepository =
         upcomingDosesRepository ?: RoomUpcomingDosesRepository(this.doseRepository, clock)
 
+    /**
+     * The "Scan medicine label" shortcut (medicine-add-label-scan design D1, D3): recognizes text
+     * entirely on-device with the bundled ML Kit Latin model, then parses it against the app's
+     * current language. `AppLocale.inEffect` is read fresh on every call, not captured here, since
+     * it can change between scans within the same process.
+     */
+    private val labelTextRecognizer = LabelTextRecognizer()
+    private val scanMedicineLabel = ScanMedicineLabel(labelTextRecognizer, currentLanguage = { AppLocale.inEffect })
+    val recognizeLabel: suspend (Bitmap, Int) -> LabelScanResult = recognizeLabel ?: scanMedicineLabel::invoke
+
     /** Turns a medicine's stored doses into its usage history (app-medicine-usage-history D3). */
     private val summariseUsageHistory = SummariseUsageHistory(clock)
+
+    /** Turns a medicine's stored doses into its timing accuracy (medicine-history-time-deviation D1). */
+    private val summariseTimeDeviation = SummariseTimeDeviation(clock)
 
     // --- Reminders (app-medicine-alarm design D5, D7, D10) ---------------------------------
 
@@ -335,7 +356,12 @@ class AppContainer(
                 clock = clock,
             )
         }
-        initializer { MedicinesViewModel(this@AppContainer.medicationRepository) }
+        initializer {
+            MedicinesViewModel(
+                repository = this@AppContainer.medicationRepository,
+                recognizeLabel = this@AppContainer.recognizeLabel,
+            )
+        }
         initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }
         initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }
@@ -354,6 +380,7 @@ class AppContainer(
                 medicationRepository = this@AppContainer.medicationRepository,
                 doseRepository = this@AppContainer.doseRepository,
                 summarise = summariseUsageHistory,
+                summariseTimeDeviation = summariseTimeDeviation,
                 savedStateHandle = createSavedStateHandle(),
                 clock = clock,
             )

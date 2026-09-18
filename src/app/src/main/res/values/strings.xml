@@ -105,6 +105,8 @@
     <string name="medicines_active_empty_title">No active medicines</string>
     <string name="medicines_active_empty_hint">Tap + to add one.</string>
     <string name="medicines_add_content_description">Add medicine</string>
+    <string name="medicines_scan_content_description">Scan medicine label</string>
+    <string name="medicines_scan_in_progress">Reading the medicine label…</string>
     <string name="medicine_inactive_label">Inactive</string>
 
     <!-- Add medicine -->
@@ -211,6 +213,7 @@
     <string name="medicine_no_schedules">No schedules yet. This medicine will be listed as taken when needed.</string>
     <string name="schedule_remove_content_description">Remove schedule</string>
     <string name="medicine_save_failed">Could not save this medicine. Try again.</string>
+    <string name="medicine_scan_not_recognized">Could not read the photo. Enter the details instead.</string>
 
     <!-- Add medicine form: validation -->
     <string name="medicine_error_name_required">Enter a name.</string>
@@ -469,4 +472,34 @@
     <string name="usage_history_records_start">Records for this medicine start on %1$s.</string>
     <string name="usage_history_empty_title">Nothing recorded for this period</string>
     <string name="usage_history_empty_hint">Try a longer period, or come back once a few doses have passed.</string>
+
+    <!-- Timing accuracy chart (medicine-history-time-deviation) -->
+    <string name="usage_history_timing_title">Timing accuracy</string>
+    <!-- %1$d: the period's average number of minutes a dose was taken off schedule. -->
+    <plurals name="usage_history_timing_average">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <string name="usage_history_timing_caption">On average, how far off schedule a dose was taken. Less is better.</string>
+    <!-- %1$s: the day, for example 9 September. %2$d: average minutes off schedule. %3$d: taken doses averaged. -->
+    <plurals name="usage_history_timing_bar_day">
+        <item quantity="one">%1$s, %2$d minutes off schedule on average, over %3$d dose taken</item>
+        <item quantity="other">%1$s, %2$d minutes off schedule on average, over %3$d doses taken</item>
+    </plurals>
+    <!-- %1$s: the day the week starts on. %2$d: average minutes off schedule. %3$d: taken doses averaged. -->
+    <plurals name="usage_history_timing_bar_week">
+        <item quantity="one">Week of %1$s, %2$d minutes off schedule on average, over %3$d dose taken</item>
+        <item quantity="other">Week of %1$s, %2$d minutes off schedule on average, over %3$d doses taken</item>
+    </plurals>
+    <!-- %1$s: the day. -->
+    <string name="usage_history_timing_bar_day_empty">%1$s, no dose taken</string>
+    <!-- %1$s: the day the week starts on. -->
+    <string name="usage_history_timing_bar_week_empty">Week of %1$s, no dose taken</string>
+
+    <!-- Chart value axis (usage-history-chart-scale) -->
+    <!-- %1$d: a number of doses, shown at the top or the bottom of the usage chart's axis. -->
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d dose</item>
+        <item quantity="other">%1$d doses</item>
+    </plurals>
 </resources>

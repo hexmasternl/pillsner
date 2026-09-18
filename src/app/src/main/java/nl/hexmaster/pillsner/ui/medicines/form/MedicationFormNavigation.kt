@@ -42,6 +42,7 @@ fun NavGraphBuilder.medicationFormGraph(
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             val snackbarHostState = remember { SnackbarHostState() }
             val saveFailedMessage = stringResource(R.string.medicine_save_failed)
+            val scanNotRecognizedMessage = stringResource(R.string.medicine_scan_not_recognized)
 
             LaunchedEffect(viewModel) {
                 viewModel.effects.collect { effect ->
@@ -52,6 +53,8 @@ fun NavGraphBuilder.medicationFormGraph(
                             onOpenFailed()
                             navController.closeFlow()
                         }
+                        MedicationFormEffect.ScanNotRecognized ->
+                            snackbarHostState.showSnackbar(scanNotRecognizedMessage)
                     }
                 }
             }

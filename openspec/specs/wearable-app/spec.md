@@ -123,3 +123,23 @@ The watch app MUST NOT log medicine names or amounts at info level or above.
 - **WHEN** the watch module is inspected by lint
 - **THEN** no info, warning or error log statement includes a medicine name or amount
 
+### Requirement: Single per-minute update source
+The watch screen SHALL derive all of its per-minute-driven updates (the list contents and the phone-connectivity state) from exactly one per-minute timer per screen session. The app MUST NOT run a second, independent per-minute timer to compute connectivity or any other per-tick value.
+
+#### Scenario: One tick, one connectivity check
+- **WHEN** the per-minute timer fires once
+- **THEN** the phone-connectivity check runs exactly once for that tick, not twice
+
+#### Scenario: One tick, one list recomputation
+- **WHEN** the per-minute timer fires once
+- **THEN** the upcoming-doses list is recomputed exactly once for that tick, not twice
+
+### Requirement: Minimum Wear OS platform version
+
+The wear module SHALL target and build against a minimum SDK of API 30 (Wear OS 3), matching the floor already declared in the project's version catalog and its README Toolchain table. The wear build configuration MUST reference that catalog value rather than the phone module's lower minimum SDK.
+
+#### Scenario: Wear module build configuration
+
+- **WHEN** the wear module is built
+- **THEN** its effective minimum SDK is API 30, read from the version catalog's Wear OS entry
+

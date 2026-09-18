@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.applock.ui.PinSetupMode
 import nl.hexmaster.pillsner.domain.legal.LegalDocumentId
+import nl.hexmaster.pillsner.domain.model.DoseUnit
 
 /** The welcome screen; start destination. */
 @Serializable
@@ -20,11 +21,29 @@ data object Medicines
  * rather than a single destination so the form and the schedule editor can share one draft: both
  * take their view model from this graph's back-stack entry.
  *
- * @property medicationId the medicine to open, or null to add a new one. One flow, two entrances:
- * the add button opens it empty, a tile opens it filled.
+ * @property medicationId the medicine to open, or null to add a new one. One flow, three entrances:
+ * the add button opens it empty, a tile opens it filled, and the label-scan shortcut opens it
+ * pre-filled from a photo (medicine-add-label-scan design D3).
+ * @property scannedName a recognized medicine name to seed a fresh add-mode draft with, or null.
+ * Ignored whenever [medicationId] is not null.
+ * @property scannedDoseAmount a recognized dose amount, in the same free-text form the dose field
+ * accepts, to seed a fresh add-mode draft with, or null. Ignored whenever [medicationId] is not
+ * null.
+ * @property scannedDoseUnit a recognized dose unit to seed a fresh add-mode draft with, or null.
+ * Ignored whenever [medicationId] is not null.
+ * @property scanFailed whether this entrance followed a label scan that recognized nothing usable
+ * (medicine-add-label-scan spec, "Nothing usable is recognized"). Distinguishes that outcome from
+ * the plain add button, which also carries every scanned-value field as null: only this flag tells
+ * the form to say the photo could not be read. Ignored whenever [medicationId] is not null.
  */
 @Serializable
-data class MedicationFormGraph(val medicationId: Long? = null)
+data class MedicationFormGraph(
+    val medicationId: Long? = null,
+    val scannedName: String? = null,
+    val scannedDoseAmount: String? = null,
+    val scannedDoseUnit: DoseUnit? = null,
+    val scanFailed: Boolean = false,
+)
 
 /** The medicine form; start destination of [MedicationFormGraph]. */
 @Serializable

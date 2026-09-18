@@ -106,6 +106,8 @@
     <string name="medicines_active_empty_title">Keine aktiven Medikamente</string>
     <string name="medicines_active_empty_hint">Tippe auf +, um eins hinzuzufügen.</string>
     <string name="medicines_add_content_description">Medikament hinzufügen</string>
+    <string name="medicines_scan_content_description">Medikamentenetikett scannen</string>
+    <string name="medicines_scan_in_progress">Etikett wird gelesen…</string>
     <string name="medicine_inactive_label">Inaktiv</string>
     <string name="medicines_action_deactivate">Deaktivieren</string>
     <string name="medicines_action_activate">Aktivieren</string>
@@ -194,6 +196,7 @@
     <string name="medicine_no_schedules">Noch keine Zeitpläne. Dieses Medikament wird dann als „bei Bedarf“ geführt.</string>
     <string name="schedule_remove_content_description">Zeitplan entfernen</string>
     <string name="medicine_save_failed">Dieses Medikament konnte nicht gespeichert werden. Versuch es noch einmal.</string>
+    <string name="medicine_scan_not_recognized">Das Foto konnte nicht gelesen werden. Gib die Angaben stattdessen ein.</string>
     <string name="medication_form_active">Aktiv</string>
     <string name="medication_form_active_supporting">Für inaktive Medikamente gibt es keine Erinnerung</string>
     <string name="medication_form_open_failed">Medikament konnte nicht geöffnet werden</string>
@@ -437,4 +440,34 @@
     <string name="usage_history_records_start">Die Aufzeichnungen für dieses Medikament beginnen am %1$s.</string>
     <string name="usage_history_empty_title">Für diesen Zeitraum nichts erfasst</string>
     <string name="usage_history_empty_hint">Versuch einen längeren Zeitraum, oder komm zurück, sobald ein paar Dosen vergangen sind.</string>
+
+    <!-- Zeitliche Genauigkeit (medicine-history-time-deviation) -->
+    <string name="usage_history_timing_title">Zeitliche Genauigkeit</string>
+    <!-- %1$d: die durchschnittliche Abweichung in Minuten über den gesamten Zeitraum. -->
+    <plurals name="usage_history_timing_average">
+        <item quantity="one">%1$d Minute</item>
+        <item quantity="other">%1$d Minuten</item>
+    </plurals>
+    <string name="usage_history_timing_caption">Wie weit eine Dosis im Schnitt vom Zeitplan abwich. Weniger ist besser.</string>
+    <!-- %1$s: der Tag, zum Beispiel 9. September. %2$d: durchschnittliche Abweichung in Minuten. %3$d: eingenommene Dosen. -->
+    <plurals name="usage_history_timing_bar_day">
+        <item quantity="one">%1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosis</item>
+        <item quantity="other">%1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosen</item>
+    </plurals>
+    <!-- %1$s: der Tag, an dem die Woche beginnt. %2$d: durchschnittliche Abweichung in Minuten. %3$d: eingenommene Dosen. -->
+    <plurals name="usage_history_timing_bar_week">
+        <item quantity="one">Woche von %1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosis</item>
+        <item quantity="other">Woche von %1$s, im Schnitt %2$d Minuten Abweichung, über %3$d eingenommene Dosen</item>
+    </plurals>
+    <!-- %1$s: der Tag. -->
+    <string name="usage_history_timing_bar_day_empty">%1$s, keine Dosis eingenommen</string>
+    <!-- %1$s: der Tag, an dem die Woche beginnt. -->
+    <string name="usage_history_timing_bar_week_empty">Woche von %1$s, keine Dosis eingenommen</string>
+
+    <!-- Diagrammskala (usage-history-chart-scale) -->
+    <!-- %1$d: eine Anzahl Dosen, oben oder unten an der Achse des Nutzungsdiagramms. -->
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d Dosis</item>
+        <item quantity="other">%1$d Dosen</item>
+    </plurals>
 </resources>

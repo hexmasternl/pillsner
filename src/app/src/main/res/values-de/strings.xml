@@ -106,6 +106,8 @@
     <string name="medicines_active_empty_title">Keine aktiven Medikamente</string>
     <string name="medicines_active_empty_hint">Tippe auf +, um eins hinzuzufügen.</string>
     <string name="medicines_add_content_description">Medikament hinzufügen</string>
+    <string name="medicines_scan_content_description">Medikamentenetikett scannen</string>
+    <string name="medicines_scan_in_progress">Etikett wird gelesen…</string>
     <string name="medicine_inactive_label">Inaktiv</string>
     <string name="medicines_action_deactivate">Deaktivieren</string>
     <string name="medicines_action_activate">Aktivieren</string>
@@ -194,6 +196,7 @@
     <string name="medicine_no_schedules">Noch keine Zeitpläne. Dieses Medikament wird dann als „bei Bedarf“ geführt.</string>
     <string name="schedule_remove_content_description">Zeitplan entfernen</string>
     <string name="medicine_save_failed">Dieses Medikament konnte nicht gespeichert werden. Versuch es noch einmal.</string>
+    <string name="medicine_scan_not_recognized">Das Foto konnte nicht gelesen werden. Gib die Angaben stattdessen ein.</string>
     <string name="medication_form_active">Aktiv</string>
     <string name="medication_form_active_supporting">Für inaktive Medikamente gibt es keine Erinnerung</string>
     <string name="medication_form_open_failed">Medikament konnte nicht geöffnet werden</string>

@@ -106,6 +106,8 @@
     <string name="medicines_active_empty_title">Geen actieve medicijnen</string>
     <string name="medicines_active_empty_hint">Tik op + om er een toe te voegen.</string>
     <string name="medicines_add_content_description">Medicijn toevoegen</string>
+    <string name="medicines_scan_content_description">Medicijnlabel scannen</string>
+    <string name="medicines_scan_in_progress">Label wordt gelezen…</string>
     <string name="medicine_inactive_label">Niet actief</string>
     <string name="medicines_action_deactivate">Stopzetten</string>
     <string name="medicines_action_activate">Hervatten</string>
@@ -194,6 +196,7 @@
     <string name="medicine_no_schedules">Nog geen schema\'s. Dit medicijn staat dan in de lijst als zo nodig.</string>
     <string name="schedule_remove_content_description">Schema verwijderen</string>
     <string name="medicine_save_failed">Dit medicijn kon niet worden opgeslagen. Probeer het opnieuw.</string>
+    <string name="medicine_scan_not_recognized">De foto kon niet worden gelezen. Vul de gegevens zelf in.</string>
     <string name="medication_form_active">Actief</string>
     <string name="medication_form_active_supporting">Voor niet-actieve medicijnen komt geen herinnering</string>
     <string name="medication_form_open_failed">Medicijn kon niet worden geopend</string>

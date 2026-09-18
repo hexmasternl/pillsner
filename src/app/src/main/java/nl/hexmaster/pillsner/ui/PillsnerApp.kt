@@ -62,6 +62,7 @@ import nl.hexmaster.pillsner.ui.navigation.DoseDetail
 import nl.hexmaster.pillsner.ui.navigation.AcceptLegal
 import nl.hexmaster.pillsner.ui.navigation.LegalDocumentRoute
 import nl.hexmaster.pillsner.ui.navigation.MedicationFormGraph
+import nl.hexmaster.pillsner.ui.navigation.toMedicationFormRoute
 import nl.hexmaster.pillsner.ui.navigation.Home
 import nl.hexmaster.pillsner.ui.navigation.Medicines
 import nl.hexmaster.pillsner.ui.navigation.PinSetup
@@ -257,6 +258,10 @@ private fun PillsnerAppContent(
                     onOpenMedication = { id ->
                         navController.navigate(MedicationFormGraph(medicationId = id.value))
                     },
+                    legalAccepted = legalState.accepted,
+                    onLegalRequired = { navController.navigate(AcceptLegal) },
+                    onScanLabel = viewModel::scanLabel,
+                    onScanResult = { result -> navController.navigate(result.toMedicationFormRoute()) },
                     effects = merge(viewModel.effects, overviewEffects),
                 )
             }

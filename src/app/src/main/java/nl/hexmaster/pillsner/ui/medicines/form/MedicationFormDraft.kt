@@ -12,6 +12,7 @@ import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.Schedule
 import nl.hexmaster.pillsner.domain.validation.SchedulePattern
+import nl.hexmaster.pillsner.ui.navigation.MedicationFormGraph
 
 /** Which entrance the user came through, and therefore what Save does. */
 sealed interface MedicationFormMode {
@@ -56,6 +57,20 @@ data class MedicationFormDraft(
         )
     }
 }
+
+/**
+ * Applies a label-scan's optional guesses to a fresh add-mode draft (medicine-add-label-scan
+ * design D3). Only ever called once, at construction, before the draft has anything else in it, so
+ * this can freely overwrite [MedicationFormDraft]'s still-default fields; called again later it
+ * would silently undo whatever the user had typed since.
+ *
+ * A blank recognized name or amount counts as nothing recognized, the same as a null one.
+ */
+fun MedicationFormDraft.seededFromScan(route: MedicationFormGraph): MedicationFormDraft = copy(
+    name = route.scannedName?.takeIf(String::isNotBlank) ?: name,
+    doseText = route.scannedDoseAmount?.takeIf(String::isNotBlank) ?: doseText,
+    doseUnit = route.scannedDoseUnit ?: doseUnit,
+)
 
 /** The medicine this draft describes, under [id]. Only valid once the draft passes validation. */
 fun MedicationFormDraft.toMedication(id: MedicationId, defaultDose: Quantity) = Medication(

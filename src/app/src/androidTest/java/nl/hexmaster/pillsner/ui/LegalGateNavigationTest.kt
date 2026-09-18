@@ -37,6 +37,7 @@ import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
+import nl.hexmaster.pillsner.ui.medicines.LabelScanTestTags
 import nl.hexmaster.pillsner.ui.medicines.MedicinesScreenTestTags
 import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormTestTags
 import nl.hexmaster.pillsner.ui.navigation.LegalDocumentRoute
@@ -149,6 +150,18 @@ class LegalGateNavigationTest {
     }
 
     @Test
+    fun notAccepted_theScanButtonOpensTheGateAndNotTheForm() {
+        start(accepted = false)
+
+        tapScan()
+
+        composeRule.onNodeWithTag(AcceptLegalTestTags.ACCEPT).assertIsDisplayed()
+        composeRule.onNodeWithTag(MedicationFormTestTags.TITLE).assertDoesNotExist()
+        // Not a top-level destination: the bottom navigation bar is gone.
+        composeRule.onNodeWithTag(NavigationTestTags.MEDICINES).assertDoesNotExist()
+    }
+
+    @Test
     fun accepting_reachesTheFormAndBackFromItReturnsToMedicines() {
         start(accepted = false)
         tapAdd()
@@ -257,6 +270,13 @@ class LegalGateNavigationTest {
         composeRule.onNodeWithTag(NavigationTestTags.MEDICINES).performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag(MedicinesScreenTestTags.ADD_FAB).performClick()
+        composeRule.waitForIdle()
+    }
+
+    private fun tapScan() {
+        composeRule.onNodeWithTag(NavigationTestTags.MEDICINES).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(LabelScanTestTags.SCAN_FAB).performClick()
         composeRule.waitForIdle()
     }
 

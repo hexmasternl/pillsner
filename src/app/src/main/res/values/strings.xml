@@ -105,6 +105,8 @@
     <string name="medicines_active_empty_title">No active medicines</string>
     <string name="medicines_active_empty_hint">Tap + to add one.</string>
     <string name="medicines_add_content_description">Add medicine</string>
+    <string name="medicines_scan_content_description">Scan medicine label</string>
+    <string name="medicines_scan_in_progress">Reading the medicine label…</string>
     <string name="medicine_inactive_label">Inactive</string>
 
     <!-- Add medicine -->
@@ -211,6 +213,7 @@
     <string name="medicine_no_schedules">No schedules yet. This medicine will be listed as taken when needed.</string>
     <string name="schedule_remove_content_description">Remove schedule</string>
     <string name="medicine_save_failed">Could not save this medicine. Try again.</string>
+    <string name="medicine_scan_not_recognized">Could not read the photo. Enter the details instead.</string>
 
     <!-- Add medicine form: validation -->
     <string name="medicine_error_name_required">Enter a name.</string>

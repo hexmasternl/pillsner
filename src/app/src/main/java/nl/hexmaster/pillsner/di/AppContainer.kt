@@ -47,6 +47,7 @@ import nl.hexmaster.pillsner.data.reminders.BatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.ReminderAlarmScheduler
 import nl.hexmaster.pillsner.data.reminders.ReminderCoordinator
 import nl.hexmaster.pillsner.data.reminders.ReminderDeliveryLog
+import nl.hexmaster.pillsner.data.reminders.TrustedClockStore
 import nl.hexmaster.pillsner.data.wear.DataLayerSyncTarget
 import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
 import nl.hexmaster.pillsner.data.wear.WearDataClientFactory
@@ -80,6 +81,7 @@ import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
+import nl.hexmaster.pillsner.domain.scheduling.PurgeExpiredDoseHistory
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
 import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
@@ -166,6 +168,10 @@ class AppContainer(
 
     private val recordIntakeUseCase = RecordIntake(this.doseRepository, clock)
     private val snoozeDoseUseCase = SnoozeDose(this.doseRepository, markMissedDoses, clock)
+
+    /** The dose history retention purge and its trusted-clock guard (dose-history-retention D1, D3). */
+    private val trustedClockStore = TrustedClockStore(applicationContext)
+    private val purgeExpiredDoseHistory = PurgeExpiredDoseHistory(this.doseRepository, clock)
 
     val languageRepository: LanguageRepository = DataStoreLanguageRepository(applicationContext)
 
@@ -267,6 +273,8 @@ class AppContainer(
         unlockState = userUnlockState,
         silentlyMissedReminders = reminderPreferences::recordSilentlyMissedReminder,
         deliveryLog = reminderDeliveryLog,
+        trustedClockStore = trustedClockStore,
+        purgeExpiredDoseHistory = purgeExpiredDoseHistory,
     )
 
     /**

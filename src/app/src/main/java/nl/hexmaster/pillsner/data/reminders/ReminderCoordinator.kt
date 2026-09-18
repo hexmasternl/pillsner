@@ -1,5 +1,6 @@
 package nl.hexmaster.pillsner.data.reminders
 
+import android.os.SystemClock
 import android.util.Log
 import java.time.Clock
 import java.time.Duration
@@ -22,7 +23,10 @@ import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.PendingSnapshot
+import nl.hexmaster.pillsner.domain.scheduling.PurgeExpiredDoseHistory
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.domain.scheduling.TrustedNow
+import nl.hexmaster.pillsner.domain.scheduling.TrustedNowResult
 import nl.hexmaster.pillsner.domain.scheduling.buildPendingSnapshot
 import nl.hexmaster.pillsner.domain.scheduling.silentlyMissedReminderAmong
 import nl.hexmaster.pillsner.domain.scheduling.WakeKind
@@ -84,6 +88,13 @@ class ReminderCoordinator(
     private val silentlyMissedReminders: SilentlyMissedReminders = SilentlyMissedReminders {},
     // Null in tests that do not care what was recorded; the real one lives in AppContainer.
     private val deliveryLog: ReminderDeliveryLog? = null,
+    // Null in a build or test that has not wired dose history retention; the purge step is then a
+    // no-op (dose-history-retention design D1).
+    private val trustedClockStore: TrustedClockStore? = null,
+    private val purgeExpiredDoseHistory: PurgeExpiredDoseHistory? = null,
+    // Overridden only by tests that need to simulate a reboot or a span of elapsed time without
+    // waiting for it; the real default reads the platform's own boot clock.
+    private val bootElapsedRealtimeMillis: () -> Long = SystemClock::elapsedRealtime,
 ) {
 
     // One wake at a time: an alarm and an answer from a notification can arrive in the same second.
@@ -250,7 +261,37 @@ WakeOutcome.Failed -> {
             doseRepository.applyReminderOutcomes(outcomeUpdates)
         }
 
+        // Housekeeping only, and never on the path a due reminder's timely posting depends on, so
+        // it runs last and never lets a failure of its own affect anything above.
+        runDoseHistoryPurge()
+
         return WakeResult(snapshot.copy(doses = updatedDoses.values.toList()), refreshResult.medications)
+    }
+
+    /**
+     * The dose history retention purge, guarded by the trusted-now high-water mark rather than the
+     * raw wall clock (dose-history-retention design D1, D3).
+     *
+     * Deliberately tolerant of its own failure, unlike the steps above: purging old history is
+     * never allowed to cost the user a reminder, so any exception here is logged and left for the
+     * next wake to try again, exactly as an ordinary day with nothing to purge would look.
+     */
+    private suspend fun runDoseHistoryPurge() {
+        val store = trustedClockStore ?: return
+        val purge = purgeExpiredDoseHistory ?: return
+        try {
+            val previous = store.read()
+            when (val result = TrustedNow(previous, clock.instant(), bootElapsedRealtimeMillis())) {
+                is TrustedNowResult.Reseed -> store.write(result.newSample)
+                is TrustedNowResult.Advanced -> {
+                    store.write(result.newSample)
+                    val purged = purge(result.trustedNow)
+                    if (purged > 0) Log.d(TAG, "Dose history purge removed $purged dose(s)")
+                }
+            }
+        } catch (error: Exception) {
+            Log.d(TAG, "Dose history purge did not complete: ${error::class.simpleName}")
+        }
     }
 
     /**

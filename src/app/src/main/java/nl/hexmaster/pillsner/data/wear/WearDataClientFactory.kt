@@ -16,13 +16,31 @@ import com.google.android.gms.wearable.Wearable
  */
 object WearDataClientFactory {
 
-    fun create(context: Context): DataClient? {
-        val status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
-        if (status != ConnectionResult.SUCCESS) {
-            Log.d(TAG, "No watch sync: Play services status $status")
-            return null
+    fun create(context: Context): DataClient? = create(
+        context = context,
+        playServicesStatus = { checkedContext ->
+            GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(checkedContext)
+        },
+        dataClientFactory = { checkedContext -> Wearable.getDataClient(checkedContext.applicationContext) },
+    )
+
+    internal fun create(
+        context: Context,
+        playServicesStatus: (Context) -> Int,
+        dataClientFactory: (Context) -> DataClient,
+    ): DataClient? {
+        return runCatching {
+            val status = playServicesStatus(context)
+            if (status != ConnectionResult.SUCCESS) {
+                Log.d(TAG, "No watch sync: Play services status $status")
+                null
+            } else {
+                dataClientFactory(context)
+            }
+        }.getOrElse { error ->
+            Log.d(TAG, "No watch sync: ${error::class.simpleName}")
+            null
         }
-        return Wearable.getDataClient(context.applicationContext)
     }
 
     private const val TAG = "WearSync"

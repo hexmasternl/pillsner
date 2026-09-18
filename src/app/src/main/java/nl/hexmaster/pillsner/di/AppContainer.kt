@@ -146,8 +146,9 @@ class AppContainer(
      * current language. `AppLocale.inEffect` is read fresh on every call, not captured here, since
      * it can change between scans within the same process.
      */
-    private val labelTextRecognizer = LabelTextRecognizer()
-    private val scanMedicineLabel = ScanMedicineLabel(labelTextRecognizer, currentLanguage = { AppLocale.inEffect })
+    private val scanMedicineLabel by lazy {
+        ScanMedicineLabel(LabelTextRecognizer(), currentLanguage = { AppLocale.inEffect })
+    }
     val recognizeLabel: suspend (Bitmap, Int) -> LabelScanResult = recognizeLabel ?: scanMedicineLabel::invoke
 
     /** Turns a medicine's stored doses into its usage history (app-medicine-usage-history D3). */

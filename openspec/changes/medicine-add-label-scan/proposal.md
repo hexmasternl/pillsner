@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #33 (https://github.com/hexmasternl/pillsner/issues/33)
+**Pull Request:** #38 (https://github.com/hexmasternl/pillsner/pull/38)
 
 Adding a medicine today means typing everything by hand — name, dose amount and unit — which is real friction for anyone managing several medications, especially with a long or unfamiliar drug name. Filed as [issue #33](https://github.com/hexmasternl/pillsner/issues/33) and refined through `/opsx:explore`: an on-device text recognizer can remove that typing without sending anything off the device, if it uses the bundled (not Play-services-downloaded) ML Kit model, which keeps the "no internet permission at all" promise intact at the cost of roughly 4MB of APK size. Pillsner's six supported languages are all Latin-script, so one bundled model covers recognition for all of them; only the smaller step of turning recognized text into a name/dose/unit guess needs per-language unit-word handling.
 

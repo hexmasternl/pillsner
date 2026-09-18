@@ -1,6 +1,5 @@
 package nl.hexmaster.pillsner.data.wear
 
-import android.test.mock.MockContext
 import com.google.android.gms.common.ConnectionResult
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -10,11 +9,9 @@ class WearDataClientFactoryTest {
 
     @Test
     fun `returns null when play services are unavailable`() {
-        val context = MockContext()
         var dataClientRequested = false
 
         val client = WearDataClientFactory.create(
-            context = context,
             playServicesStatus = { ConnectionResult.SERVICE_MISSING },
             dataClientFactory = {
                 dataClientRequested = true
@@ -28,10 +25,7 @@ class WearDataClientFactoryTest {
 
     @Test
     fun `returns null when availability check throws`() {
-        val context = MockContext()
-
         val client = WearDataClientFactory.create(
-            context = context,
             playServicesStatus = { throw IllegalStateException("boom") },
             dataClientFactory = { throw AssertionError("DataClient must not be requested on failure") },
         )

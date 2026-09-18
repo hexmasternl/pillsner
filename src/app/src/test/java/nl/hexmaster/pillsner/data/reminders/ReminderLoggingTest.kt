@@ -63,6 +63,9 @@ class ReminderLoggingTest {
             "\$action",
             "\$reason",
             "\${error::class.simpleName}",
+            // How many dose history rows the retention purge removed: a count, never a medicine or
+            // an amount (dose-history-retention design D1).
+            "\$purged",
         )
     }
 }

@@ -455,6 +455,57 @@ class DoseDaoTest {
         )
     }
 
+    @Test
+    fun deletingHistoryBeforeACutoff_removesRowsBeforeItAndKeepsRowsOnOrAfterIt() = runBlocking {
+        val id = medications.add(medication())
+        val cutoff = Instant.parse("2025-09-14T00:00:00Z")
+        val before = cutoff.minusSeconds(1)
+        doses.insertPlanned(listOf(planned(id, before), planned(id, cutoff)), plannedAt = before)
+        val all = doses.pending()
+        val beforeId = all.first { it.scheduledAt == before }.id
+        val onCutoffId = all.first { it.scheduledAt == cutoff }.id
+        doses.recordIntake(beforeId, IntakeOutcome.TAKEN, before)
+        doses.recordIntake(onCutoffId, IntakeOutcome.MISSED, cutoff)
+
+        val deleted = doses.deleteHistoryBefore(cutoff)
+
+        assertEquals(1, deleted)
+        assertNull("The row before the cutoff is gone", doses.get(beforeId))
+        assertEquals(
+            "The row exactly on the cutoff is kept",
+            IntakeOutcome.MISSED,
+            doses.get(onCutoffId)?.intake?.outcome,
+        )
+    }
+
+    @Test
+    fun deletingHistoryBeforeACutoff_leavesAPendingRowUntouched() = runBlocking {
+        val id = medications.add(medication())
+        val cutoff = Instant.parse("2025-09-14T00:00:00Z")
+        // A pending dose, as it always is in practice: scheduled well after the cutoff, and with
+        // no outcome yet.
+        doses.insertPlanned(listOf(planned(id, cutoff.plusSeconds(86_400))), plannedAt = cutoff)
+
+        val deleted = doses.deleteHistoryBefore(cutoff)
+
+        assertEquals(0, deleted)
+        assertEquals(1, doses.pending().size)
+    }
+
+    @Test
+    fun deletingHistoryBeforeACutoff_isANoOpTheSecondTime() = runBlocking {
+        val id = medications.add(medication())
+        val cutoff = Instant.parse("2025-09-14T00:00:00Z")
+        doses.insertPlanned(listOf(planned(id, cutoff.minusSeconds(1))), plannedAt = cutoff.minusSeconds(1))
+        doses.recordIntake(doses.pending().single().id, IntakeOutcome.TAKEN, cutoff.minusSeconds(1))
+
+        val firstRun = doses.deleteHistoryBefore(cutoff)
+        val secondRun = doses.deleteHistoryBefore(cutoff)
+
+        assertEquals(1, firstRun)
+        assertEquals(0, secondRun)
+    }
+
     private fun medication() = NewMedication(
         name = "Ibuprofen",
         defaultDose = mg40,

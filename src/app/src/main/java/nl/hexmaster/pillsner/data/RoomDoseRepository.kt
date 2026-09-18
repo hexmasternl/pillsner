@@ -101,6 +101,8 @@ class RoomDoseRepository(
     override suspend fun earliestScheduledAt(medicationId: MedicationId): Instant? =
         dao.earliestScheduledAt(medicationId.value)
 
+    override suspend fun deleteHistoryBefore(cutoff: Instant): Int = dao.deleteHistoryBefore(cutoff)
+
     private companion object {
         /**
          * The planning window never reaches beyond tomorrow, so "everything pending" and

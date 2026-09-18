@@ -150,4 +150,14 @@ interface DoseRepository {
      * a medicine taken rarely, not a record that is missing.
      */
     suspend fun earliestScheduledAt(medicationId: MedicationId): Instant?
+
+    /**
+     * Deletes every dose row scheduled before [cutoff] — taken, skipped and missed alike — and
+     * returns how many rows were removed (dose-history-retention design D4).
+     *
+     * A pending dose is never old enough to qualify in practice: the rolling planning window
+     * never lets one reach anywhere near a year old. `Medication` and `Schedule` rows are never
+     * touched by this call.
+     */
+    suspend fun deleteHistoryBefore(cutoff: Instant): Int
 }

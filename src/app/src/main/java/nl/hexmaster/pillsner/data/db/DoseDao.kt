@@ -284,4 +284,14 @@ interface DoseDao {
     /** Only for tests and for the debug preview data; production never removes a dose. */
     @Query("DELETE FROM doses")
     suspend fun deleteAll()
+
+    /**
+     * Deletes every dose row scheduled before [cutoff] — taken, skipped and missed alike — as the
+     * dose history retention purge (dose-history-retention design D4).
+     *
+     * Served by the existing `(outcome, scheduled_at)` index (schema v5) as a range scan on
+     * `scheduled_at`, so no new schema version or migration is needed for this query.
+     */
+    @Query("DELETE FROM doses WHERE scheduled_at < :cutoff")
+    suspend fun deleteHistoryBefore(cutoff: Instant): Int
 }

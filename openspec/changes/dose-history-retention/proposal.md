@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #30 (https://github.com/hexmasternl/pillsner/issues/30)
+**Pull Request:** #41 (https://github.com/hexmasternl/pillsner/pull/41)
 
 Pillsner keeps every dose record forever. The Usage history screen only ever shows up to 3 months, so a year-old (or older) intake record serves the user no purpose while still sitting on the device indefinitely. Per GitHub issue #30, dose/intake history older than 1 year should be removed automatically, and the removal must not be triggered early by a device clock that has been set forward, whether by accident or deliberately.
 

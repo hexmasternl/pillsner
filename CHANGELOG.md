@@ -15,7 +15,7 @@ stores all of it on your own device. Nothing is sent anywhere.
 | | |
 | --- | --- |
 | Phone | Android 8.0 (API 26) or newer |
-| Watch (optional) | Compatible watch devices running API 26 or newer, paired with the phone |
+| Watch (optional) | Google's Wear platform devices, minimum watch API level 26, paired with the phone |
 | Languages | English and Dutch |
 
 ### Medicines

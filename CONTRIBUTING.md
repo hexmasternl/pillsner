@@ -20,7 +20,7 @@ The project pins every tool and library version in `src/gradle/libs.versions.tom
 | Kotlin (with Compose compiler and serialization plugins) | 2.4.20 |
 | KSP | 2.3.12 |
 | `compileSdk` / `targetSdk` | 37 (Android 17) |
-| `minSdk` | 26 (phone), 30 (Wear OS) |
+| `minSdk` | 26 (phone), 26 (Wear OS) |
 | Jetpack Compose BOM | 2026.09.00 (Compose UI/Foundation/Runtime 1.12.1, Material 3 1.4.0) |
 | AndroidX Navigation Compose | 2.10.1 |
 | AndroidX Lifecycle | 2.11.0 |

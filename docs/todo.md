@@ -99,11 +99,6 @@ thumb for small, clearly-scoped fixes.
   `Instant.ofEpochMilli(...)` per dose on every filter call (driven by the minute ticker above,
   so effectively per minute per dose, doubled by the ticker issue). Compare raw epoch millis
   longs instead.
-- [ ] `gradle/libs.versions.toml:14` / `wear/build.gradle.kts:35` — `wearMinSdk = "30"` is
-  declared in the version catalog with a comment noting Wear OS 3+ is the real floor, but
-  `wear/build.gradle.kts` sets `minSdk = libs.versions.minSdk.get()` (26, the phone's value)
-  instead of referencing `wearMinSdk`. Dead catalog entry, and a missed opportunity for D8/R8 to
-  target a narrower baseline for the wear APK.
 
 ## Reviewed, no issues found
 

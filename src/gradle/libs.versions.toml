@@ -10,8 +10,8 @@ jdk = "21"
 compileSdk = "37"
 targetSdk = "37"
 minSdk = "26"
-# Wear OS 3 and later. The watch app is a companion to the phone app, not a standalone.
-wearMinSdk = "30"
+# The watch app stays aligned with the phone floor for compatibility.
+wearMinSdk = "26"
 buildTools = "36.0.0"
 
 # AndroidX and Compose

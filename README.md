@@ -6,7 +6,7 @@
 
 Pillsner is a native Android reminder app that helps you take your medication on time, every time. The name is a play on *Pills* and *Partner*: the app is meant to be the reliable companion that taps you on the shoulder when a dose is due, keeps track of what you have taken, and stays out of your way the rest of the time.
 
-**[Get it on Google Play](https://play.google.com/store/apps/details?id=nl.hexmaster.pillsner)** — free, no account required, available for Android 8.0 (API 26) and newer, with an optional companion app for Wear OS 3 (API 30) and newer.
+**[Get it on Google Play](https://play.google.com/store/apps/details?id=nl.hexmaster.pillsner)** — free, no account required, available for Android 8.0 (API 26) and newer, with an optional companion app for Wear OS (API 26) and newer.
 
 ---
 

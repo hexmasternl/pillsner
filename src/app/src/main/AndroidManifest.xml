@@ -5,7 +5,17 @@
     <!--
         Reminders, and nothing else. There is deliberately no INTERNET permission: nothing about a
         user's medication ever leaves the device.
+
+        ML Kit's bundled (on-device) text-recognition model was added for the label scan shortcut
+        expecting no network permission (medicine-add-label-scan design D1's promise of "no network
+        call, ever"), but its telemetry dependencies (Firebase installations/datatransport, pulled
+        in transitively by com.google.mlkit:text-recognition regardless of model variant) declare
+        INTERNET and ACCESS_NETWORK_STATE in their own manifests, which manifest merging otherwise
+        adds silently. Text recognition itself never touches the network, so both are removed here
+        to hold the line the comment above already promises.
     -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Reserved for apps whose core function is alarms or reminders, which Pillsner's is. -->
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />

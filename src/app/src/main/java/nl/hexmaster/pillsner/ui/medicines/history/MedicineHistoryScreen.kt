@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -42,7 +41,6 @@ import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import nl.hexmaster.pillsner.R
-import nl.hexmaster.pillsner.domain.model.TimeDeviationHistory
 import nl.hexmaster.pillsner.domain.model.UsageHistory
 import nl.hexmaster.pillsner.domain.model.UsagePeriod
 import nl.hexmaster.pillsner.ui.home.EmptyState
@@ -64,8 +62,6 @@ object MedicineHistoryTestTags {
     const val CHART_HEADER = "medicine_history_chart_header"
     const val RECORDS_START = "medicine_history_records_start"
     const val EMPTY = "medicine_history_empty"
-    const val TIMING_HEADER = "medicine_history_timing_header"
-    const val TIMING_AVERAGE = "medicine_history_timing_average"
 }
 
 /**
@@ -160,7 +156,6 @@ fun MedicineHistoryScreen(
                     SummaryCard(history)
                     UsageBreakdown(history)
                     ChartCard(history)
-                    uiState.timeDeviation?.takeUnless { it.isEmpty }?.let { TimeDeviationChartCard(it) }
                 }
             }
         }
@@ -309,67 +304,6 @@ private fun ChartCard(history: UsageHistory, modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * The timing accuracy chart, its own bucketing header, its overall average and the "less is
- * better" caption (medicine-history-time-deviation design D4). Shown only when the medicine has at
- * least one taken dose in the period; a period with nothing taken never reaches this composable.
- */
-@Composable
-private fun TimeDeviationChartCard(timeDeviation: TimeDeviationHistory, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = tileContainerColor()),
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md),
-        ) {
-            Text(
-                text = stringResource(R.string.usage_history_timing_title),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .semantics { heading() }
-                    .testTag(MedicineHistoryTestTags.TIMING_HEADER),
-            )
-
-            val averageMinutes = timeDeviation.averageMinutes
-            if (averageMinutes != null) {
-                Text(
-                    text = pluralStringResource(R.plurals.usage_history_timing_average, averageMinutes, averageMinutes),
-                    style = MaterialTheme.typography.displaySmall.copy(fontFeatureSettings = "tnum"),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.testTag(MedicineHistoryTestTags.TIMING_AVERAGE),
-                )
-                Text(
-                    text = stringResource(R.string.usage_history_timing_caption),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            // States its own bucketing, independent of the usage chart's above (design D3, D4):
-            // "1 month" is daily here even though the usage chart buckets it by week.
-            Text(
-                text = stringResource(
-                    if (timeDeviation.period == UsagePeriod.THREE_MONTHS) {
-                        R.string.usage_history_by_week
-                    } else {
-                        R.string.usage_history_by_day
-                    },
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            TimeDeviationChart(timeDeviation)
-        }
-    }
-}
-
 /** The user-facing label of a period. */
 fun UsagePeriod.labelRes(): Int = when (this) {
     UsagePeriod.WEEK -> R.string.usage_period_week
@@ -388,7 +322,6 @@ private fun MedicineHistoryFullWeekPreview() {
                 medicineName = "Metoprolol",
                 period = UsagePeriod.WEEK,
                 history = UsageHistoryPreviewData.fullWeek(),
-                timeDeviation = TimeDeviationPreviewData.fullWeek(),
                 isLoading = false,
             ),
             onPeriodSelected = {},
@@ -406,7 +339,6 @@ private fun MedicineHistorySparseThreeMonthsPreview() {
                 medicineName = "Colecalciferol",
                 period = UsagePeriod.THREE_MONTHS,
                 history = UsageHistoryPreviewData.sparseThreeMonths(),
-                timeDeviation = TimeDeviationPreviewData.empty(),
                 isLoading = false,
             ),
             onPeriodSelected = {},

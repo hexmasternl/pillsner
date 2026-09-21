@@ -1,6 +1,5 @@
 package nl.hexmaster.pillsner.ui.medicines
 
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import nl.hexmaster.pillsner.domain.model.LabelScanResult
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
@@ -26,20 +24,11 @@ import nl.hexmaster.pillsner.domain.repository.MedicationRepository
  * (design D4). Partitioning and ordering are presentation concerns, so they live here and not in
  * the repository.
  *
- * Also fronts the "Scan medicine label" shortcut (medicine-add-label-scan design D3): the screen
- * hands this view model a decoded photo and gets back a best-effort prefill to navigate with. That
- * is the only thing this view model does with a scan; deciding what to prefill or how to validate
- * it is the Add medicine form's job, unchanged from a typed value.
- *
  * @param locale the locale whose collation orders the names; injectable so tests are deterministic.
- * @param recognizeLabel recognizes and parses a photographed label; injectable so a UI test can
- *   substitute a fixed result without touching ML Kit (`AppContainer` wires the real
- *   `ScanMedicineLabel` use case here).
  */
 class MedicinesViewModel(
     private val repository: MedicationRepository,
     locale: Locale = Locale.getDefault(),
-    private val recognizeLabel: suspend (Bitmap, Int) -> LabelScanResult = { _, _ -> LabelScanResult() },
 ) : ViewModel() {
 
     private val _effects = Channel<MedicinesEffect>(Channel.BUFFERED)
@@ -87,20 +76,6 @@ class MedicinesViewModel(
             }
         }
     }
-
-    /**
-     * Recognizes text from [bitmap] and turns it into a best-effort [LabelScanResult].
-     *
-     * A plain suspend function, not routed through [effects]: the caller needs the value itself to
-     * build the `navigate` call into a fresh add-medicine form, so this is not a fire-and-forget
-     * event the way [MedicinesEffect] is. Never throws: a recognition failure comes back as a
-     * [LabelScanResult] with every field null, exactly like "nothing recognized" does.
-     *
-     * @param rotationDegrees the clockwise rotation, in multiples of 90, needed to make [bitmap]
-     *   upright; the caller owns EXIF correction before decoding.
-     */
-    suspend fun scanLabel(bitmap: Bitmap, rotationDegrees: Int = 0): LabelScanResult =
-        recognizeLabel(bitmap, rotationDegrees)
 
     private fun Medication.toTileState() = MedicineTileState(
         id = id,

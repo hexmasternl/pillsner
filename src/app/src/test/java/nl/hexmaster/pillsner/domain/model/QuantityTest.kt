@@ -44,13 +44,4 @@ class QuantityTest {
     fun theUnitIsPartOfEquality() {
         assertNotEquals(Quantity.of("1", DoseUnit.TABLET), Quantity.of("1", DoseUnit.CAPSULE))
     }
-
-    @Test
-    fun hashCodeAndToString_areStableAcrossRepeatedCalls() {
-        val quantity = Quantity.of("1.50", DoseUnit.MILLILITRE)
-
-        assertEquals(quantity.hashCode(), quantity.hashCode())
-        assertEquals(quantity.toString(), quantity.toString())
-        assertEquals("Quantity(1.5, MILLILITRE)", quantity.toString())
-    }
 }

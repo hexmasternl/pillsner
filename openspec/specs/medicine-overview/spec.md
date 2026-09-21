@@ -82,7 +82,7 @@ The screen SHALL reflect changes to the set of medicines, their names, schedules
 - **THEN** its tile moves from the active section to the inactive section
 
 ### Requirement: Add medicine button
-The Medicines screen SHALL show a large floating action button anchored to the bottom right, above the bottom navigation bar, with an add icon and the content description "Add medicine". Tapping it SHALL navigate to the Add medicine destination. The button MUST remain visible while the list scrolls and MUST NOT obscure the last tile when the list is scrolled to its end. The Medicines screen also shows a "Scan medicine label" button (medicine-label-scan) grouped with it at the bottom right; neither button SHALL obscure the other or the last tile.
+The Medicines screen SHALL show a large floating action button anchored to the bottom right, above the bottom navigation bar, with an add icon and the content description "Add medicine". Tapping it SHALL navigate to the Add medicine destination. The button MUST remain visible while the list scrolls and MUST NOT obscure the last tile when the list is scrolled to its end.
 
 #### Scenario: Button visible with an empty list
 - **WHEN** the screen shows the empty state
@@ -96,20 +96,12 @@ The Medicines screen SHALL show a large floating action button anchored to the b
 - **WHEN** the list holds more tiles than fit on screen and the user scrolls to the end
 - **THEN** the last tile is fully visible and not covered by the button
 
-#### Scenario: Both buttons visible together
-- **WHEN** the Medicines screen is shown
-- **THEN** the add button and the scan button are both visible at the bottom right, neither covering the other nor the last tile when scrolled to the end
-
 ### Requirement: Large font and one-handed use
-The Medicines screen SHALL remain usable at the largest system font scale: the whole content, including both sections, MUST scroll as one list, no text MUST be clipped, and the add button and the scan button MUST remain reachable.
+The Medicines screen SHALL remain usable at the largest system font scale: the whole content, including both sections, MUST scroll as one list, no text MUST be clipped, and the add button MUST remain reachable.
 
 #### Scenario: Largest font scale with both sections
 - **WHEN** the system font scale is at maximum and there are five active and three inactive medicines
 - **THEN** every tile and header is reachable by scrolling, every tile's text is fully visible and the add button stays visible
-
-#### Scenario: Largest font scale with the scan button present
-- **WHEN** the system font scale is at maximum
-- **THEN** both the add button and the scan button stay visible and reachable with one hand
 
 ### Requirement: Medicines are provided through a domain contract
 The Medicines screen SHALL obtain medicines only through the `MedicationRepository` interface, SHALL change a medicine's active flag only through that interface, and SHALL compute partitioning and ordering in its view model. The view model MUST expose a schedule summary, not formatted text, so wording is resolved in the UI layer. The view model MUST NOT update its own state ahead of the repository stream when the active flag changes.
@@ -166,7 +158,7 @@ Every medicine tile on the Medicines screen SHALL be draggable horizontally towa
 - **THEN** the list scrolls and no tile is revealed
 
 ### Requirement: Only one tile is revealed at a time
-The Medicines screen SHALL keep at most one tile revealed. Revealing a tile SHALL close any other revealed tile. The revealed state SHALL survive a configuration change and SHALL be cleared when the revealed tile leaves the list or its action is tapped. Revealing or closing a tile SHALL NOT change the schedule description shown on any other tile.
+The Medicines screen SHALL keep at most one tile revealed. Revealing a tile SHALL close any other revealed tile. The revealed state SHALL survive a configuration change and SHALL be cleared when the revealed tile leaves the list or its action is tapped.
 
 #### Scenario: Revealing a second tile
 - **WHEN** one tile is revealed and the user reveals another
@@ -175,10 +167,6 @@ The Medicines screen SHALL keep at most one tile revealed. Revealing a tile SHAL
 #### Scenario: Rotation while revealed
 - **WHEN** a tile is revealed and the device rotates
 - **THEN** the same tile is still revealed afterwards
-
-#### Scenario: Revealing a tile leaves other tiles' content unchanged
-- **WHEN** the active section shows several tiles with their schedule descriptions and the user reveals one tile's swipe action
-- **THEN** every other tile's schedule description on screen stays exactly as it was
 
 ### Requirement: Deactivating and activating a medicine from its tile
 Tapping "Deactivate" on a revealed active tile SHALL set the medicine's active flag to false; tapping "Activate" on a revealed inactive tile SHALL set it to true. The change SHALL be made through the repository, and the screen SHALL reflect it from the repository stream: the tile closes and moves to the other section at its alphabetical position with an animated move. No confirmation MUST be asked. When the write fails, the screen SHALL show a snackbar "Could not update medicine" from a string resource and the tile SHALL stay where it was.

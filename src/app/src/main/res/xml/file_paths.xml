@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-    Scoped to one cache subdirectory so the FileProvider (medicine-add-label-scan design D5) can
-    never expose anything else the app keeps in cache. The label-scan capture flow creates its
-    temporary file here and deletes it immediately after recognition completes.
--->
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path name="label_scan" path="label_scan/" />
-</paths>

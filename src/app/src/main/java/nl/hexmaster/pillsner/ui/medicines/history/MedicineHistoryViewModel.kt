@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.UsagePeriod
@@ -37,7 +36,6 @@ class MedicineHistoryViewModel(
     medicationRepository: MedicationRepository,
     doseRepository: DoseRepository,
     private val summarise: SummariseUsageHistory,
-    private val summariseTimeDeviation: SummariseTimeDeviation,
     private val savedStateHandle: SavedStateHandle,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : ViewModel() {
@@ -75,7 +73,6 @@ class MedicineHistoryViewModel(
             medicineName = name,
             period = period,
             history = summarise(period, doses, earliest),
-            timeDeviation = summariseTimeDeviation(period, doses),
             isLoading = name.isEmpty(),
         )
     }.stateIn(

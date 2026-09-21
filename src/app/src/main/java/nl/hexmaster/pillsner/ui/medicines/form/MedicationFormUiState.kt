@@ -101,13 +101,6 @@ sealed interface MedicationFormEffect {
 
     /** The medicine could not be opened at all; the flow closes and the overview says so. */
     data object OpenFailed : MedicationFormEffect
-
-    /**
-     * The form opened after a label scan that recognized nothing usable
-     * (medicine-add-label-scan spec, "Nothing usable is recognized"). The form stays open at its
-     * normal empty defaults; this only tells the screen to say so once.
-     */
-    data object ScanNotRecognized : MedicationFormEffect
 }
 
 /**

@@ -163,13 +163,6 @@ dependencies {
     implementation(libs.play.services.wearable)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // On-device label scanning (medicine-add-label-scan design D1). Bundled Latin model only; the
-    // unbundled/Play-services-downloaded variant is deliberately never added, since it needs
-    // network access this app does not otherwise request.
-    implementation(libs.mlkit.text.recognition)
-    // Reads EXIF orientation off a captured or picked label photo before decoding it (design D5).
-    implementation(libs.androidx.exifinterface)
-
     // Unit tests
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

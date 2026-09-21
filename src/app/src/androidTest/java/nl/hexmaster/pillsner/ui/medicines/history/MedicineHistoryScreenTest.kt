@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -29,7 +28,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
-import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.domain.model.DoseId
@@ -65,7 +63,6 @@ class MedicineHistoryScreenTest {
     private val clock: Clock =
         Clock.fixed(ZonedDateTime.of(today, LocalTime.NOON, amsterdam).toInstant(), amsterdam)
     private val summarise = SummariseUsageHistory(clock) { DayOfWeek.MONDAY }
-    private val summariseTimeDeviation = SummariseTimeDeviation(clock) { DayOfWeek.MONDAY }
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
 
     private val locale: Locale = Locale.getDefault()
@@ -156,15 +153,6 @@ class MedicineHistoryScreenTest {
     }
 
     @Test
-    fun theUsageChartAxisShowsTheBusiestBucketsCountAndZero() {
-        showScreen(doses = threeTakenOfFourThisWeek())
-
-        // Every bucket in this fixture holds at most one dose, so the busiest is 1.
-        composeRule.onNodeWithTag(UsageChartTestTags.AXIS_TOP).assertTextEquals("1 dose")
-        composeRule.onNodeWithTag(UsageChartTestTags.AXIS_BOTTOM).assertTextEquals("0 doses")
-    }
-
-    @Test
     fun aWeeklyBarNamesTheWeekItStartsOn() {
         showScreen(doses = threeTakenOfFourThisWeek())
 
@@ -175,69 +163,6 @@ class MedicineHistoryScreenTest {
         composeRule.onNode(
             hasContentDescription("Week of ${today.minusDays(7).format(longDate)}, 2 of 3 doses taken"),
         ).assertIsDisplayed()
-    }
-
-    @Test
-    fun theTimingAccuracyCardShowsTheAverageAndTheCaption() {
-        showScreen(doses = threeTakenOfFourThisWeek())
-
-        composeRule.onNodeWithTag(MedicineHistoryTestTags.TIMING_HEADER)
-            .performScrollTo()
-            .assertIsDisplayed()
-        composeRule.onNodeWithTag(MedicineHistoryTestTags.TIMING_AVERAGE)
-            .performScrollTo()
-            .assertIsDisplayed()
-        composeRule.onNodeWithText("On average, how far off schedule a dose was taken. Less is better.")
-            .performScrollTo()
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun everyTimingBarNamesItsAverageAndTheDosesItCovers() {
-        showScreen(doses = threeTakenOfFourThisWeek())
-
-        // Monday 14 September holds one taken dose, recorded exactly on time.
-        composeRule.onNode(
-            hasContentDescription("${today.format(longDate)}, 0 minutes off schedule on average, over 1 dose taken"),
-        ).performScrollTo().assertIsDisplayed()
-        // Tuesday 8 September, the first day of the window, has no taken dose.
-        composeRule.onNode(
-            hasContentDescription("${today.minusDays(6).format(longDate)}, no dose taken"),
-        ).performScrollTo().assertIsDisplayed()
-    }
-
-    @Test
-    fun aWeeklyTimingBarNamesTheWeekAndHowManyDosesItAverages() {
-        showScreen(doses = threeTakenOfFourThisWeek() + twoTakenLastMonth())
-
-        composeRule.onNodeWithTag(period(UsagePeriod.THREE_MONTHS)).performClick()
-
-        // The week opening Monday 7 September holds two taken doses (10 and 11 September); the
-        // 12 September dose in the same week was missed and contributes nothing here.
-        composeRule.onNode(
-            hasContentDescription(
-                "Week of ${today.minusDays(7).format(longDate)}, 0 minutes off schedule on average, over 2 doses taken",
-            ),
-        ).performScrollTo().assertIsDisplayed()
-    }
-
-    @Test
-    fun theTimingAccuracyChartAxisShowsTheBusiestBucketsAverageAndZero() {
-        showScreen(doses = listOf(doseTakenLate(1, at(today), minutesLate = 22)))
-
-        composeRule.onNodeWithTag(TimeDeviationChartTestTags.AXIS_TOP)
-            .performScrollTo()
-            .assertTextEquals("22 minutes")
-        composeRule.onNodeWithTag(TimeDeviationChartTestTags.AXIS_BOTTOM)
-            .performScrollTo()
-            .assertTextEquals("0 minutes")
-    }
-
-    @Test
-    fun theTimingAccuracyCardIsAbsentWhenNothingWasTaken() {
-        showScreen(doses = listOf(dose(1, at(today.minusDays(2)), IntakeOutcome.MISSED)))
-
-        composeRule.onAllNodesWithTag(MedicineHistoryTestTags.TIMING_HEADER).assertCountEquals(0)
     }
 
     @Test
@@ -276,15 +201,6 @@ class MedicineHistoryScreenTest {
         intake = Intake(outcome, at),
     )
 
-    private fun doseTakenLate(id: Long, scheduledAt: Instant, minutesLate: Long) = Dose(
-        id = DoseId(id),
-        medicationId = MedicationId(1),
-        medicationName = "Metoprolol",
-        amount = mg40,
-        scheduledAt = scheduledAt,
-        intake = Intake(IntakeOutcome.TAKEN, scheduledAt.plusSeconds(minutesLate * 60)),
-    )
-
     private fun at(date: LocalDate): Instant =
         ZonedDateTime.of(date, LocalTime.of(8, 0), amsterdam).toInstant()
 
@@ -312,7 +228,6 @@ class MedicineHistoryScreenTest {
                     medicineName = "Metoprolol",
                     period = period,
                     history = summarise(period, doses, earliestRecordedAt),
-                    timeDeviation = summariseTimeDeviation(period, doses),
                     isLoading = false,
                 ),
                 onPeriodSelected = { period = it },

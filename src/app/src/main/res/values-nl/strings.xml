@@ -106,8 +106,6 @@
     <string name="medicines_active_empty_title">Geen actieve medicijnen</string>
     <string name="medicines_active_empty_hint">Tik op + om er een toe te voegen.</string>
     <string name="medicines_add_content_description">Medicijn toevoegen</string>
-    <string name="medicines_scan_content_description">Medicijnlabel scannen</string>
-    <string name="medicines_scan_in_progress">Label wordt gelezen…</string>
     <string name="medicine_inactive_label">Niet actief</string>
     <string name="medicines_action_deactivate">Stopzetten</string>
     <string name="medicines_action_activate">Hervatten</string>
@@ -196,7 +194,6 @@
     <string name="medicine_no_schedules">Nog geen schema\'s. Dit medicijn staat dan in de lijst als zo nodig.</string>
     <string name="schedule_remove_content_description">Schema verwijderen</string>
     <string name="medicine_save_failed">Dit medicijn kon niet worden opgeslagen. Probeer het opnieuw.</string>
-    <string name="medicine_scan_not_recognized">De foto kon niet worden gelezen. Vul de gegevens zelf in.</string>
     <string name="medication_form_active">Actief</string>
     <string name="medication_form_active_supporting">Voor niet-actieve medicijnen komt geen herinnering</string>
     <string name="medication_form_open_failed">Medicijn kon niet worden geopend</string>
@@ -440,34 +437,4 @@
     <string name="usage_history_records_start">De gegevens van dit medicijn beginnen op %1$s.</string>
     <string name="usage_history_empty_title">Niets vastgelegd in deze periode</string>
     <string name="usage_history_empty_hint">Probeer een langere periode, of kom terug als er een paar doses voorbij zijn.</string>
-
-    <!-- Tijdsafwijking (medicine-history-time-deviation) -->
-    <string name="usage_history_timing_title">Tijdsnauwkeurigheid</string>
-    <!-- %1$d: het gemiddeld aantal minuten dat een dosis afweek van het schema, over de hele periode. -->
-    <plurals name="usage_history_timing_average">
-        <item quantity="one">%1$d minuut</item>
-        <item quantity="other">%1$d minuten</item>
-    </plurals>
-    <string name="usage_history_timing_caption">Gemiddeld hoeveel een dosis afweek van het schema. Minder is beter.</string>
-    <!-- %1$s: de dag, bijvoorbeeld 9 september. %2$d: gemiddelde afwijking in minuten. %3$d: aantal ingenomen doses. -->
-    <plurals name="usage_history_timing_bar_day">
-        <item quantity="one">%1$s, gemiddeld %2$d minuten afwijking, over %3$d ingenomen dosis</item>
-        <item quantity="other">%1$s, gemiddeld %2$d minuten afwijking, over %3$d ingenomen doses</item>
-    </plurals>
-    <!-- %1$s: de dag waarop de week begint. %2$d: gemiddelde afwijking in minuten. %3$d: aantal ingenomen doses. -->
-    <plurals name="usage_history_timing_bar_week">
-        <item quantity="one">Week van %1$s, gemiddeld %2$d minuten afwijking, over %3$d ingenomen dosis</item>
-        <item quantity="other">Week van %1$s, gemiddeld %2$d minuten afwijking, over %3$d ingenomen doses</item>
-    </plurals>
-    <!-- %1$s: de dag. -->
-    <string name="usage_history_timing_bar_day_empty">%1$s, geen dosis ingenomen</string>
-    <!-- %1$s: de dag waarop de week begint. -->
-    <string name="usage_history_timing_bar_week_empty">Week van %1$s, geen dosis ingenomen</string>
-
-    <!-- Schaal van de grafiek (usage-history-chart-scale) -->
-    <!-- %1$d: een aantal doses, boven- of onderaan de as van de gebruiksgrafiek. -->
-    <plurals name="usage_history_axis_doses">
-        <item quantity="one">%1$d dosis</item>
-        <item quantity="other">%1$d doses</item>
-    </plurals>
 </resources>

@@ -17,7 +17,6 @@ import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryDoseRepository
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
 import nl.hexmaster.pillsner.domain.MutableTestClock
-import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.domain.model.DoseId
@@ -77,8 +76,6 @@ class MedicineHistoryViewModelTest {
         // Two doses in the last seven days, one of them taken.
         assertEquals(2, state.history?.scheduled)
         assertEquals(1, state.history?.taken)
-        // The one taken dose in the last seven days was recorded at exactly its scheduled moment.
-        assertEquals(0, state.timeDeviation?.averageMinutes)
     }
 
     @Test
@@ -91,27 +88,6 @@ class MedicineHistoryViewModelTest {
         val state = viewModel.uiState.first { it.period == UsagePeriod.MONTH }
         assertEquals(4, state.history?.scheduled)
         assertEquals(3, state.history?.taken)
-        assertEquals(0, state.timeDeviation?.averageMinutes)
-    }
-
-    @Test
-    fun `no taken dose in the period leaves timing accuracy empty`() = runTest {
-        val id = storedMedicationId()
-        val onlyMissed = listOf(
-            Dose(
-                id = DoseId(1),
-                medicationId = id,
-                medicationName = "Metoprolol",
-                amount = mg40,
-                scheduledAt = day(3),
-                intake = Intake(IntakeOutcome.MISSED, day(3)),
-            ),
-        )
-
-        val viewModel = viewModel(SavedStateHandle(), onlyMissed)
-        val state = viewModel.uiState.first { !it.isLoading }
-
-        assertEquals(true, state.timeDeviation?.isEmpty)
     }
 
     @Test
@@ -132,7 +108,6 @@ class MedicineHistoryViewModelTest {
             medicationRepository = medications,
             doseRepository = InMemoryDoseRepository(),
             summarise = SummariseUsageHistory(clock) { DayOfWeek.MONDAY },
-            summariseTimeDeviation = SummariseTimeDeviation(clock) { DayOfWeek.MONDAY },
             savedStateHandle = handle,
             clock = clock,
         )
@@ -190,7 +165,6 @@ class MedicineHistoryViewModelTest {
             medicationRepository = medications,
             doseRepository = InMemoryDoseRepository(doses),
             summarise = SummariseUsageHistory(clock) { DayOfWeek.MONDAY },
-            summariseTimeDeviation = SummariseTimeDeviation(clock) { DayOfWeek.MONDAY },
             savedStateHandle = handle,
             clock = clock,
         )

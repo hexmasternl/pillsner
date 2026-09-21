@@ -106,8 +106,6 @@
     <string name="medicines_active_empty_title">No hay medicamentos activos</string>
     <string name="medicines_active_empty_hint">Toca + para añadir uno.</string>
     <string name="medicines_add_content_description">Añadir medicamento</string>
-    <string name="medicines_scan_content_description">Escanear etiqueta del medicamento</string>
-    <string name="medicines_scan_in_progress">Leyendo la etiqueta…</string>
     <string name="medicine_inactive_label">Inactivo</string>
     <string name="medicines_action_deactivate">Desactivar</string>
     <string name="medicines_action_activate">Activar</string>
@@ -196,7 +194,6 @@
     <string name="medicine_no_schedules">Aún no hay horarios. Este medicamento aparecerá como de uso cuando sea necesario.</string>
     <string name="schedule_remove_content_description">Eliminar horario</string>
     <string name="medicine_save_failed">No se pudo guardar este medicamento. Inténtalo de nuevo.</string>
-    <string name="medicine_scan_not_recognized">No se pudo leer la foto. Introduce los datos en su lugar.</string>
     <string name="medication_form_active">Activo</string>
     <string name="medication_form_active_supporting">Los medicamentos inactivos no generan recordatorios</string>
     <string name="medication_form_open_failed">No se pudo abrir el medicamento</string>
@@ -440,34 +437,4 @@
     <string name="usage_history_records_start">Los registros de este medicamento empiezan el %1$s.</string>
     <string name="usage_history_empty_title">No hay nada registrado en este periodo</string>
     <string name="usage_history_empty_hint">Prueba con un periodo más largo, o vuelve cuando hayan pasado algunas dosis.</string>
-
-    <!-- Precisión horaria (medicine-history-time-deviation) -->
-    <string name="usage_history_timing_title">Precisión horaria</string>
-    <!-- %1$d: la desviación media en minutos de todo el periodo. -->
-    <plurals name="usage_history_timing_average">
-        <item quantity="one">%1$d minuto</item>
-        <item quantity="other">%1$d minutos</item>
-    </plurals>
-    <string name="usage_history_timing_caption">Cuánto se desvió una dosis del horario, de media. Cuanto menos, mejor.</string>
-    <!-- %1$s: el día, por ejemplo 9 de septiembre. %2$d: desviación media en minutos. %3$d: dosis tomadas. -->
-    <plurals name="usage_history_timing_bar_day">
-        <item quantity="one">%1$s, %2$d minutos de desviación de media, sobre %3$d dosis tomada</item>
-        <item quantity="other">%1$s, %2$d minutos de desviación de media, sobre %3$d dosis tomadas</item>
-    </plurals>
-    <!-- %1$s: el día en que empieza la semana. %2$d: desviación media en minutos. %3$d: dosis tomadas. -->
-    <plurals name="usage_history_timing_bar_week">
-        <item quantity="one">Semana del %1$s, %2$d minutos de desviación de media, sobre %3$d dosis tomada</item>
-        <item quantity="other">Semana del %1$s, %2$d minutos de desviación de media, sobre %3$d dosis tomadas</item>
-    </plurals>
-    <!-- %1$s: el día. -->
-    <string name="usage_history_timing_bar_day_empty">%1$s, ninguna dosis tomada</string>
-    <!-- %1$s: el día en que empieza la semana. -->
-    <string name="usage_history_timing_bar_week_empty">Semana del %1$s, ninguna dosis tomada</string>
-
-    <!-- Escala del gráfico (usage-history-chart-scale) -->
-    <!-- %1$d: un número de dosis, en la parte superior o inferior del eje del gráfico de uso. -->
-    <plurals name="usage_history_axis_doses">
-        <item quantity="one">%1$d dosis</item>
-        <item quantity="other">%1$d dosis</item>
-    </plurals>
 </resources>

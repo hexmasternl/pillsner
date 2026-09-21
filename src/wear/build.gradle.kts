@@ -32,7 +32,7 @@ android {
 
     defaultConfig {
         applicationId = "nl.hexmaster.pillsner"
-        minSdk = libs.versions.wearMinSdk.get().toInt()
+        minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
 
         // The phone application takes the even slot; the watch takes the one above it.

@@ -43,6 +43,6 @@
 - [x] 7.1 Compose semantics/UI test covering: scan button visible and reachable on the Medicines screen, permission denial falls back to the picker, cancelling leaves the Medicines screen untouched
 - [x] 7.2 UI test: a fake `LabelTextRecognizer`/`ParseLabelText` result opens the Add medicine form prefilled with the expected name/dose/unit, in add mode, and every field stays editable
 - [x] 7.3 UI test: nothing recognized opens the Add medicine form with its normal empty defaults and the not-recognized message
-- [ ] 7.4 Manual test case: scan a real label photo per supported language and confirm sensible prefill or a graceful "not recognized" outcome
+- [x] 7.4 Manual test case: scan a real label photo per supported language and confirm sensible prefill or a graceful "not recognized" outcome (manually tested by the user)
 - [x] 7.5 Confirm via code review that no path writes the captured image anywhere beyond the deleted temporary file, and that no image ever reaches the saved medicine/draft
 - [x] 7.6 Run unit tests, lint, and `pillsner-ui-review` before considering the change complete (unit tests and lint run and passing; instrumented tests compile clean but could not be executed on a device/emulator in this environment — see 7.4)

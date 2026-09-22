@@ -7,6 +7,8 @@ import nl.hexmaster.pillsner.domain.model.DoseUnit
 import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
+import nl.hexmaster.pillsner.domain.model.StockBatchId
+import nl.hexmaster.pillsner.domain.stock.StockState
 import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.domain.validation.ScheduleDraftError
 import nl.hexmaster.pillsner.domain.validation.SchedulePattern
@@ -37,6 +39,14 @@ data class MedicationFormUiState(
     val isSaving: Boolean = false,
     val hasEdits: Boolean = false,
     val showDiscardDialog: Boolean = false,
+    /** Only meaningful in edit mode: an unsaved medicine cannot hold stock. */
+    val stockBatches: List<StockBatchRowState> = emptyList(),
+    /** The medicine's live stock picture, or null when it has no batches (`medicine-stock-tracking`). */
+    val stockState: StockState? = null,
+    /** Non-null while the Add stock form is open. */
+    val addStockState: AddStockUiState? = null,
+    /** Non-null while the removal confirmation dialog is open for this batch (`medicine-stock-tracking`). */
+    val pendingStockRemoval: StockBatchId? = null,
 ) {
     /**
      * Whether the draft would pass validation. The Save button stays tappable regardless, because
@@ -55,6 +65,56 @@ data class ScheduleRowState(
     val summary: ScheduleSummary,
     val amount: Quantity,
 )
+
+/**
+ * One stock batch as the Stock section lists it, ordered by expiry date ascending.
+ *
+ * @property strengthPerUnit how much of the medicine's default dose unit one [unit] is worth; 1
+ *   when [unit] matches that default dose unit, in which case the row shows no strength at all.
+ */
+data class StockBatchRowState(
+    val id: StockBatchId,
+    val remaining: java.math.BigDecimal,
+    val unit: DoseUnit,
+    val strengthPerUnit: java.math.BigDecimal,
+    val expiryDate: LocalDate,
+)
+
+/**
+ * The Add stock form (`medicine-stock-tracking`).
+ *
+ * @property defaultDoseUnit the medicine's own default dose unit; [unit] defaults to it and the
+ *   strength field appears only once [unit] is changed away from it.
+ * @property unit the batch's own unit, chosen from the same fixed list the rest of the app uses.
+ * @property strengthText how much of [defaultDoseUnit] one [unit] is worth, e.g. "20" for 20 mg per
+ *   tablet; only meaningful, shown and validated when [unit] differs from [defaultDoseUnit].
+ * @property quantityError and [strengthError] reuse [MedicationFieldError]'s dose-amount values,
+ *   since the rule is identical for both (a decimal greater than zero); the Add stock dialog gives
+ *   them their own wording.
+ * @property expiryPastWarning advisory only, never blocking: an expiry date already in the past is
+ *   still accepted.
+ */
+data class AddStockUiState(
+    val quantityText: String = "",
+    val defaultDoseUnit: DoseUnit = DoseUnit.MILLIGRAM,
+    val unit: DoseUnit = DoseUnit.MILLIGRAM,
+    val strengthText: String = "",
+    val expiryDate: LocalDate? = null,
+    val showErrors: Boolean = false,
+    val quantityError: MedicationFieldError? = null,
+    val strengthError: MedicationFieldError? = null,
+    val expiryPastWarning: Boolean = false,
+    val isSaving: Boolean = false,
+) {
+    /** Whether the strength field applies at all: only when the batch's unit differs from the dose's. */
+    val needsStrength: Boolean get() = unit != defaultDoseUnit
+
+    val canSave: Boolean
+        get() = !isSaving &&
+            quantityError == null &&
+            (!needsStrength || strengthError == null) &&
+            expiryDate != null
+}
 
 /**
  * What the schedule editor shows. [firstError] is what the preview area displays instead of the

@@ -30,6 +30,7 @@ import java.util.Locale
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.UpcomingDose
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
@@ -58,7 +59,14 @@ fun WelcomeScreen(
     timeFormatter: UpcomingDoseTimeFormatter = remember { UpcomingDoseTimeFormatter() },
     onOpenReminderSettings: () -> Unit = {},
     onOpenDose: (DoseId) -> Unit = {},
+    onStockWarningOk: (MedicationId) -> Unit = {},
+    onStockWarningOrderedNew: (MedicationId) -> Unit = {},
 ) {
+    uiState.stockWarning?.let { warning ->
+        StockWarningDialog(warning = warning, onOk = onStockWarningOk, onOrderedNew = onStockWarningOrderedNew)
+    }
+
+
     BoxWithConstraints(
         modifier
             .fillMaxSize()

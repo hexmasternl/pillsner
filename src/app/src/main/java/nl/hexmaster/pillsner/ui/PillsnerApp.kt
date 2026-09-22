@@ -220,6 +220,8 @@ private fun PillsnerAppContent(
                         context.openReminderSettings(uiState.reminderProblem)
                     },
                     onOpenDose = { navController.navigate(DoseDetail(it.value)) },
+                    onStockWarningOk = viewModel::onStockWarningAcknowledged,
+                    onStockWarningOrderedNew = viewModel::onStockWarningOrderedNew,
                 )
             }
             composable<DoseDetail> {

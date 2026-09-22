@@ -82,6 +82,16 @@ fun NavGraphBuilder.medicationFormGraph(
                     (uiState.mode as? MedicationFormMode.Edit)
                         ?.let { navController.navigate(MedicineHistory(it.id.value)) }
                 },
+                onAddStockClicked = viewModel::onAddStockClicked,
+                onAddStockDismissed = viewModel::onAddStockDismissed,
+                onStockQuantityTextChange = viewModel::onStockQuantityTextChange,
+                onStockUnitChange = viewModel::onStockUnitChange,
+                onStockStrengthTextChange = viewModel::onStockStrengthTextChange,
+                onStockExpiryDateChange = viewModel::onStockExpiryDateChange,
+                onSaveStockBatch = viewModel::onSaveStockBatch,
+                onRemoveStockBatchClicked = viewModel::onRemoveStockBatchClicked,
+                onRemoveStockBatchCancelled = viewModel::onRemoveStockBatchCancelled,
+                onRemoveStockBatchConfirmed = viewModel::onRemoveStockBatchConfirmed,
             )
         }
 

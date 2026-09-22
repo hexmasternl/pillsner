@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #29 (https://github.com/hexmasternl/pillsner/issues/29)
+**Pull Request:** #48 (https://github.com/hexmasternl/pillsner/pull/48)
 
 The Usage history screen tells the user *whether* a dose was taken, but not *how close to on time* it was. Someone whose adherence is 100% by outcome could still be taking every dose forty minutes late, and has no way to see that drift. A bar chart of the average gap between scheduled and actual intake time gives that visibility without adding any new data to record - the moments already exist on every taken dose. Neither this new chart nor the existing outcome chart currently shows what its tallest bar is actually worth, only bars relative to each other, so a sighted user cannot read even an approximate figure off either chart without hunting for it elsewhere on the screen.
 

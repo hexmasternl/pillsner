@@ -29,6 +29,10 @@ interface MedicationDao {
     @Query("UPDATE medications SET is_active = :isActive WHERE id = :id")
     suspend fun setActive(id: Long, isActive: Boolean)
 
+    /** [value] is a [nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement] name, or null. */
+    @Query("UPDATE medications SET low_stock_acknowledgement = :value WHERE id = :id")
+    suspend fun setLowStockAcknowledgement(id: Long, value: String?)
+
     @Update
     suspend fun updateMedication(medication: MedicationEntity): Int
 

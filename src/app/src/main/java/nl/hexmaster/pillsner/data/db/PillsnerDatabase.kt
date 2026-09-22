@@ -13,7 +13,7 @@ import androidx.room.TypeConverters
  * migration and a test against the exported schema, as `CLAUDE.md` requires.
  */
 @Database(
-    entities = [MedicationEntity::class, ScheduleEntity::class, DoseEntity::class],
+    entities = [MedicationEntity::class, ScheduleEntity::class, DoseEntity::class, StockBatchEntity::class],
     version = PillsnerDatabase.VERSION,
     exportSchema = true,
 )
@@ -24,8 +24,10 @@ abstract class PillsnerDatabase : RoomDatabase() {
 
     abstract fun doseDao(): DoseDao
 
+    abstract fun stockBatchDao(): StockBatchDao
+
     companion object {
-        const val VERSION = 5
+        const val VERSION = 6
         const val NAME = "pillsner.db"
 
         /**

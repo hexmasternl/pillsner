@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
@@ -52,6 +53,10 @@ class InMemoryMedicationRepository(
 
     override suspend fun setActive(id: MedicationId, isActive: Boolean) {
         update(id) { it.copy(isActive = isActive) }
+    }
+
+    override suspend fun setLowStockAcknowledgement(id: MedicationId, value: LowStockAcknowledgement?) {
+        update(id) { it.copy(lowStockAcknowledgement = value) }
     }
 
     /** Adds [medication], or replaces the one that already has its identifier. */

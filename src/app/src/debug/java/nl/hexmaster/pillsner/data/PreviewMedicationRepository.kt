@@ -6,6 +6,7 @@ import java.time.LocalTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
@@ -36,6 +37,9 @@ class PreviewMedicationRepository(
         error("PreviewMedicationRepository does not change medications")
 
     override suspend fun setActive(id: MedicationId, isActive: Boolean): Unit =
+        error("PreviewMedicationRepository does not change medications")
+
+    override suspend fun setLowStockAcknowledgement(id: MedicationId, value: LowStockAcknowledgement?): Unit =
         error("PreviewMedicationRepository does not change medications")
 
     companion object {

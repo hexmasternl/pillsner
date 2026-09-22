@@ -88,6 +88,40 @@ object Migrations {
         }
     }
 
+    /**
+     * Adds stock batches (`medicine-stock-tracking`): a `stock_batches` table, one row per batch of
+     * a medicine's physical stock — including a `strength_per_unit` column recording how much of the
+     * medicine's default dose unit one unit of that batch is worth, so a batch's own unit can differ
+     * from the dose's — and a nullable `low_stock_acknowledgement` column on `medications` for the
+     * "I ordered new" suppression. Both are additive; every existing medication row keeps its data
+     * and starts with no acknowledgement and no batches.
+     */
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `medications` ADD COLUMN `low_stock_acknowledgement` TEXT")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `stock_batches` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `medication_id` INTEGER NOT NULL,
+                    `remaining_value` TEXT NOT NULL,
+                    `remaining_unit` TEXT NOT NULL,
+                    `strength_per_unit` TEXT NOT NULL,
+                    `expiry_date` TEXT NOT NULL,
+                    `added_at` INTEGER NOT NULL,
+                    FOREIGN KEY(`medication_id`) REFERENCES `medications`(`id`)
+                        ON UPDATE NO ACTION ON DELETE CASCADE
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS " +
+                    "`index_stock_batches_medication_id_expiry_date` ON `stock_batches` (`medication_id`, `expiry_date`)",
+            )
+        }
+    }
+
     /** Every migration the database knows about, in order. */
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+    val ALL: Array<Migration> =
+        arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
 }

@@ -51,5 +51,5 @@ Additive and content-only: no data model, no schema, nothing to roll back beyond
 
 ## Open Questions
 
-- Should stock/refill tracking get its own page instead of living under Medicines? Default here is to keep it under Medicines; revisit if that page gets crowded.
+- Should the pre-existing "stock tracking and refill reminders" claim in `README.md` and the current home page be corrected now that it's known to describe a capability that doesn't exist yet? Left out of this change's scope (it predates this proposal and touches copy this change isn't otherwise editing); worth a small follow-up.
 - Should the report-a-bug/request-a-feature pages also mention the Play Store support-address channel (`PRIVACY.md` §14) as a fallback for visitors without a GitHub account? Left out of this change; a small follow-up if it turns out to matter.

@@ -20,7 +20,7 @@
 
 ## 4. Content pages: Medicines, Schedules & reminders, Tracking, Wearable, Privacy & security
 
-- [ ] 4.1 Author `content/en/medicines.md` (add/edit a medicine, active/inactive without deletion, multiple schedules per medicine, stock tracking and refill heads-up)
+- [ ] 4.1 Author `content/en/medicines.md` (add/edit a medicine, active/inactive without deletion, multiple schedules per medicine — do not claim stock tracking or refill reminders, since neither exists in `medicine-add`, `medicine-details` or `medicine-overview`)
 - [ ] 4.2 Author `content/en/schedules.md` (fixed times/every N hours/weekdays/as-needed, exact alarms surviving reboot/DST/time zone changes, one-tap take/snooze/skip, missed-dose rule)
 - [ ] 4.3 Author `content/en/tracking.md` (daily overview, confirming/skipping from notification or app, adherence history)
 - [ ] 4.4 Author `content/en/wearable.md` (Wear OS companion: next-six-hours view, answering stays on phone/watch, follows phone's language)

@@ -1,0 +1,262 @@
+/* Styles for the pages added alongside Home: the shared content page, the FAQ,
+   the bug-report/feature-request forms, the screenshot thumbnails and the
+   full-size image overlay. Tokens only — no hard-coded colours or sizes. */
+
+.page-hero {
+  padding-block: var(--space-xxl) var(--space-lg);
+}
+
+.page-hero__lead {
+  margin-top: var(--space-lg);
+  max-width: 62ch;
+}
+
+.section__body > * + * {
+  margin-top: var(--space-lg);
+}
+
+.section__note {
+  color: var(--color-on-surface-variant);
+  max-width: 62ch;
+}
+
+.section--with-art {
+  display: grid;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .section--with-art {
+    grid-template-columns: 1.4fr 0.6fr;
+  }
+}
+
+.section__art {
+  display: flex;
+  justify-content: center;
+}
+
+.page-cta {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  border-radius: var(--shape-large);
+  padding: var(--space-xl);
+  display: grid;
+  gap: var(--space-lg);
+  justify-items: start;
+}
+
+.page-cta .button--filled {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Screenshots: small by default, full size in the overlay below. */
+
+.screenshot {
+  display: inline-grid;
+  justify-items: center;
+  gap: var(--space-xs);
+  text-decoration: none;
+  color: var(--color-on-surface-variant);
+  cursor: zoom-in;
+}
+
+.screenshot img {
+  max-width: 220px;
+  width: 100%;
+  height: auto;
+  border-radius: var(--shape-large);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 12px 32px -16px rgba(16, 20, 19, 0.45);
+}
+
+.screenshot:hover .screenshot__hint,
+.screenshot:focus-visible .screenshot__hint {
+  color: var(--color-primary);
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: rgba(0, 0, 0, 0.5);
+  cursor: zoom-out;
+}
+
+.lightbox__image {
+  max-width: min(100%, 420px);
+  max-height: 90vh;
+  height: auto;
+  width: auto;
+  border-radius: var(--shape-large);
+  box-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.8);
+}
+
+.lightbox__close {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--shape-full);
+  border: none;
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+body.lightbox-open {
+  overflow: hidden;
+}
+
+/* FAQ: native <details>, so every question opens without JavaScript. */
+
+.faq {
+  display: grid;
+  gap: var(--space-md);
+  max-width: 80ch;
+}
+
+.faq__item {
+  background: var(--color-surface-container-low);
+  border-radius: var(--shape-large);
+  border: 1px solid var(--color-outline-variant);
+}
+
+.faq__item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  min-height: 48px;
+}
+
+.faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq__marker {
+  flex: none;
+  color: var(--color-on-surface-variant);
+}
+
+.faq__item[open] .faq__marker {
+  transform: rotate(180deg);
+  color: var(--color-primary);
+}
+
+.faq__answer {
+  padding: 0 var(--space-lg) var(--space-lg);
+  color: var(--color-on-surface-variant);
+}
+
+.faq__answer > * + * {
+  margin-top: var(--space-md);
+}
+
+/* Report a bug / Request a feature forms. */
+
+.issue-form-wrapper {
+  display: grid;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .issue-form-wrapper {
+    grid-template-columns: 1.4fr 0.6fr;
+  }
+}
+
+.issue-form {
+  display: grid;
+  gap: var(--space-lg);
+  justify-items: start;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.field__help {
+  color: var(--color-on-surface-variant);
+}
+
+.field__control {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-md);
+  border-radius: var(--shape-medium);
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface-container-lowest);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+}
+
+.field__control:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .field__control {
+    background: var(--color-surface-container-high);
+  }
+}
+
+.issue-note {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-radius: var(--shape-large);
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+
+.issue-note > div > * + * {
+  margin-top: var(--space-sm);
+}
+
+.issue-note__icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
+/* Nine navigation entries do not fit a phone in one row, so the header menu
+   scrolls sideways there instead of wrapping into an unreadable block. */
+
+@media (max-width: 899px) {
+  .site-nav {
+    order: 3;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--space-md);
+    padding-bottom: var(--space-xs);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .site-nav a {
+    white-space: nowrap;
+  }
+}
+
+.site-nav a[aria-current="page"] {
+  color: var(--color-primary);
+  font-weight: 600;
+}

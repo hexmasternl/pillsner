@@ -1,7 +1,10 @@
+{{/* Header with the site-wide navigation menu. The menu is configured once in
+     hugo.toml and resolves per locale; labels come from i18n/<lang>.toml, keyed
+     "nav_<identifier>", so a missing translation falls back to English. */}}
 <a class="skip-link label-large" href="#main">{{ i18n "skip_to_content" }}</a>
 <header class="site-header">
   <div class="container site-header__bar">
-    <a class="site-header__brand" href="{{ .Permalink }}">
+    <a class="site-header__brand" href="{{ .Site.Home.RelPermalink }}">
       {{ $icon := resources.Get "images/icon-source.png" }}
       {{ if $icon }}
         {{ $navIcon := $icon.Resize "64x64" }}
@@ -9,10 +12,11 @@
       {{ end }}
       <span>{{ .Site.Params.siteName }}</span>
     </a>
-    <nav class="site-nav" aria-label="{{ .Site.Params.siteName }}">
-      <a href="#why">{{ i18n "nav_why" }}</a>
-      <a href="#features">{{ i18n "nav_features" }}</a>
-      <a href="#privacy">{{ i18n "nav_privacy" }}</a>
+    <nav class="site-nav" aria-label="{{ i18n "nav_label" }}">
+      {{ $page := . }}
+      {{ range .Site.Menus.main }}
+      <a href="{{ .URL }}"{{ if $page.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ i18n (printf "nav_%s" .Identifier) }}</a>
+      {{ end }}
     </nav>
     <div class="site-header__controls">
       {{ partial "language-switcher.html" . }}

@@ -1,5 +1,7 @@
 ## Why
 
+**GitHub Issue:** #30 (https://github.com/hexmasternl/pillsner/issues/30)
+
 The app currently keeps every dose row forever. Nothing in the product surfaces usage data beyond
 "3 months" (`medicine-usage-history`), so a year of dose/intake history is already more than the
 app ever shows, and it is data with no purpose once it has aged past that. Keeping it around
@@ -10,8 +12,6 @@ accepted behaviour — this change revisits that decision now that the retention
 scope). Bounding history to a rolling one year, purged automatically, keeps the app's data
 footprint proportionate to what it actually uses, without adding a new background mechanism or any
 permission the app does not already have.
-
-**GitHub Issue:** #30 (https://github.com/hexmasternl/pillsner/issues/30)
 
 This is a from-scratch re-implementation. An earlier attempt (PR #41, branch
 `feature/dose-history-retention`) was built and closed without merging after review found a

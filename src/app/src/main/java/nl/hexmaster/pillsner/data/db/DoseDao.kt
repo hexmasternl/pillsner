@@ -300,13 +300,22 @@ interface DoseDao {
     suspend fun hasAnyDose(): Boolean
 
     /**
-     * The most recent moment any dose was ever stored, or null when there is none (spec:
-     * dose-history-retention, "Trusted-now clock guard"). `planned_at` rather than `scheduled_at`:
-     * it is a wall-clock reading the app itself took at write time, so it can never be a
-     * projected-future value the way a still-pending dose's `scheduled_at` can be, which is what
-     * makes it safe to use as a real, already-happened lower bound on "now".
+     * The most recent moment any *answered* dose was stored, or null when there is none (spec:
+     * dose-history-retention, "Trusted-now clock guard"). `planned_at` on an answered row is a
+     * wall-clock reading the app itself took no later than the moment it was answered, so it can
+     * never be a future projection the way a still-pending dose's `planned_at` can be for a
+     * migrated, pre-schema-v4 row.
+     *
+     * **Restricted to `outcome IS NOT NULL` on purpose** (correction found in PR review): schema
+     * v4's migration backfilled every existing row's `planned_at` from its own `scheduled_at`
+     * (`Migrations.MIGRATION_3_4`), and a *pending* row's `scheduled_at` can be later than "now" by
+     * design — it is a dose still due today or tomorrow. Without this restriction, a legacy
+     * pending row surviving from before that migration could hand the trusted-clock guard a
+     * floor that is itself a future projection, defeating the whole point of an "already
+     * happened" floor. An answered row's timestamp can never have this problem: nothing records
+     * an outcome before the moment it actually occurred.
      */
-    @Query("SELECT MAX(planned_at) FROM doses")
+    @Query("SELECT MAX(planned_at) FROM doses WHERE outcome IS NOT NULL")
     suspend fun latestKnownMoment(): Instant?
 
     /** Only for tests and for the debug preview data. */

@@ -3,6 +3,7 @@ package nl.hexmaster.pillsner.data.reminders
 import android.util.Log
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -194,6 +195,12 @@ WakeOutcome.Failed -> {
     }
 
     private suspend fun wake(reason: WakeReason): WakeResult {
+        // Read before anything else this wake does, so a dose this very wake is about to insert
+        // (RefreshPlannedDoses, below, using this same clock) can never masquerade as independent
+        // evidence for the trusted-clock guard this wake's own purge step is about to consult
+        // (correction found in PR review: the floor must predate this wake's own writes).
+        val knownGoodFloor = doseRepository.latestKnownMoment()
+
         val lapsed = markMissedDoses()
         lapsed.forEach { dose ->
             notifier.cancel(dose)
@@ -257,7 +264,7 @@ WakeOutcome.Failed -> {
             doseRepository.applyReminderOutcomes(outcomeUpdates)
         }
 
-        runDoseHistoryPurge()
+        runDoseHistoryPurge(knownGoodFloor)
 
         return WakeResult(snapshot.copy(doses = updatedDoses.values.toList()), refreshResult.medications)
     }
@@ -272,11 +279,15 @@ WakeOutcome.Failed -> {
      * let this step silently absorb the wake's own timeout, making a wake that ran out of time
      * falsely report as complete instead of arming its retry
      * (`reminder-scheduling`, "A wake that does not complete is retried").
+     *
+     * @param knownGoodFloor the most recent answered-dose moment from *before* this wake began —
+     *   captured at the top of [wake], never re-read here, so this wake's own writes can never
+     *   feed the guard evidence about itself (correction found in PR review).
      */
-    private suspend fun runDoseHistoryPurge() {
+    private suspend fun runDoseHistoryPurge(knownGoodFloor: Instant?) {
         try {
             val guard = trustedClockGuard ?: return
-            val trustedNow = guard.observe(doseRepository.latestKnownMoment()) ?: return
+            val trustedNow = guard.observe(knownGoodFloor) ?: return
             val purged = doseRepository.deleteHistoryBefore(purgeExpiredDoseHistory(trustedNow))
             if (purged > 0) deliveryLog?.record(DeliveryEvent.HISTORY_PURGED, purged.toString())
         } catch (cancellation: CancellationException) {
@@ -346,13 +357,23 @@ WakeOutcome.Failed -> {
      * When even working out the schedule fails, the alarms already armed are left exactly as they
      * are. They are the app's last good answer, and a reconcile against a schedule that could not
      * be read would cancel every one of them over what may be a passing failure.
+     *
+     * Uses an explicit try/catch rather than `runCatching`, and re-throws [CancellationException]
+     * before the generic catch (correction found in PR review): `runCatching` catches every
+     * `Throwable`, cancellation included, and this method now makes a suspending database call
+     * (`hasAnyDose`) that a cancellation could land inside of. Swallowing it here would let the
+     * caller's own cancellation look like an ordinary schedule failure instead of propagating.
      */
     private suspend fun reconcileAlarms(wakeResult: WakeResult? = null) {
-        val schedule = runCatching {
+        val schedule = try {
             val snapshot = wakeResult?.snapshot ?: buildPendingSnapshot(doseRepository, markMissedDoses)
             val medications = wakeResult?.medications ?: medicationRepository.observeAll().first()
             computeWakeSchedule(snapshot, medications, doseRepository.hasAnyDose())
-        }.getOrNull()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Exception) {
+            null
+        }
         if (schedule == null) {
             deliveryLog?.record(DeliveryEvent.ALARMS_LEFT_AS_IS)
             return

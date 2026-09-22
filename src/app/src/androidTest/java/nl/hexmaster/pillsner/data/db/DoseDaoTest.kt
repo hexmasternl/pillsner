@@ -502,17 +502,28 @@ class DoseDaoTest {
     }
 
     @Test
-    fun latestKnownMoment_isTheMostRecentPlannedAtAcrossEveryDose() = runBlocking {
+    fun latestKnownMoment_isTheMostRecentPlannedAtOfAnAnsweredDoseOnly() = runBlocking {
         assertNull(doses.latestKnownMoment())
 
         val id = medications.add(medication())
         doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+        // Still pending: a legacy, migration-backfilled row could have planned_at set to its own
+        // (possibly still-future) scheduled_at, so a pending row must never be trusted evidence.
+        assertNull(
+            "A pending dose must not count as independent evidence of 'now'",
+            doses.latestKnownMoment(),
+        )
+
+        val answered = doses.pending().single()
+        doses.recordIntake(answered.id, IntakeOutcome.TAKEN, morning)
         assertEquals(plannedBeforeDue, doses.latestKnownMoment())
 
-        // A dose planned more recently moves the floor forward, regardless of its own
-        // scheduled_at, which is not what latestKnownMoment tracks.
+        // A later-answered dose moves the floor forward, regardless of its own scheduled_at, which
+        // is not what latestKnownMoment tracks.
         val laterPlanning = plannedBeforeDue.plusSeconds(3_600)
         doses.insertPlanned(listOf(planned(id, evening)), plannedAt = laterPlanning)
+        val laterDose = doses.pending().single()
+        doses.recordIntake(laterDose.id, IntakeOutcome.TAKEN, evening)
         assertEquals(laterPlanning, doses.latestKnownMoment())
     }
 

@@ -165,10 +165,13 @@ interface DoseRepository {
     suspend fun hasAnyDose(): Boolean
 
     /**
-     * The most recent moment any dose was ever stored, or null when there is none (spec:
-     * dose-history-retention, "Trusted-now clock guard"). This is a wall-clock reading the app
-     * itself already took, independent of whatever the system clock claims right now, which is
-     * what lets the trusted-clock guard clamp a tampered clock down to a value it knows is real.
+     * The most recent moment any *answered* dose was stored, or null when there is none (spec:
+     * dose-history-retention, "Trusted-now clock guard"). Restricted to answered doses because a
+     * pending dose's stored moment can, for a legacy row migrated before schema v4, be a future
+     * projection rather than something that already happened — see `DoseDao.latestKnownMoment`'s
+     * KDoc for the full reasoning. The caller (the wake cycle) must also read this *before* it
+     * writes anything of its own this same cycle, so a dose this very wake is about to insert can
+     * never masquerade as independent evidence for the guard this wake is about to consult.
      */
     suspend fun latestKnownMoment(): Instant?
 }

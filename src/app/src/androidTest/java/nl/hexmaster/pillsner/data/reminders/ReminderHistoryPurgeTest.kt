@@ -21,7 +21,11 @@ import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.domain.model.DoseUnit
 import nl.hexmaster.pillsner.domain.model.Intake
 import nl.hexmaster.pillsner.domain.model.IntakeOutcome
+import nl.hexmaster.pillsner.domain.model.Medication
+import nl.hexmaster.pillsner.domain.model.MedicationId
+import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
+import nl.hexmaster.pillsner.domain.model.Schedule
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
@@ -114,7 +118,7 @@ class ReminderHistoryPurgeTest {
         val tamperedGuard = TrustedClockGuard(
             store,
             wallClockMillis = { TAMPERED_FUTURE_MILLIS },
-            elapsedRealtimeMillis = { android.os.SystemClock.elapsedRealtime() },
+            elapsedRealtimeMillis = { FIXED_ELAPSED_REALTIME_MILLIS },
         )
 
         coordinator(doses, RecordingScheduler(), trustedClockGuard = tamperedGuard).onWake(WakeReason.APP_START)
@@ -124,6 +128,52 @@ class ReminderHistoryPurgeTest {
             listOf(now),
             doses.all().map { it.scheduledAt },
         )
+    }
+
+    @Test
+    fun aRefreshsOwnNewInsertsCannotBeUsedAsTheFloorForTheSameWakesPurge() = runBlocking {
+        // Reproduces a second gap PR #50's review found: runDoseHistoryPurge() used to read
+        // latestKnownMoment() itself, after RefreshPlannedDoses had already run earlier in the same
+        // wake -- and that refresh inserts newly generated doses with plannedAt = clock.instant(),
+        // the very clock this whole guard exists to distrust. On a first observation with an
+        // active schedule and a tampered clock, those brand-new rows would become the "independent"
+        // floor, which is not independent of anything: it is the same wake poisoning its own guard.
+        val tamperedInstant = now.plusSeconds(2L * 365 * 86_400) // ~2 tampered years ahead
+        val tamperedClock = Clock.fixed(tamperedInstant, zone)
+        val activeSchedule = Medication(
+            id = MedicationId(1),
+            name = "Ibuprofen",
+            defaultDose = Quantity.of("40", DoseUnit.MILLIGRAM),
+            usedSince = LocalDate.of(2020, 1, 1),
+            useUntil = null,
+            prescribedBy = Prescriber.SELF,
+            schedules = listOf(Schedule.EveryNDays(Quantity.of("40", DoseUnit.MILLIGRAM), 1, listOf(LocalTime.of(9, 0)))),
+            isActive = true,
+        )
+        val medications = InMemoryMedicationRepository(listOf(activeSchedule))
+        val old = now.minusSeconds(400L * 86_400)
+        val doses = InMemoryDoseRepository(listOf(oldAnsweredDose(1, old, plannedAt = old)))
+        val tamperedGuard = TrustedClockGuard(
+            store,
+            wallClockMillis = { tamperedInstant.toEpochMilli() },
+            elapsedRealtimeMillis = { FIXED_ELAPSED_REALTIME_MILLIS },
+        )
+
+        coordinator(doses, RecordingScheduler(), medications, tamperedClock, tamperedGuard)
+            .onWake(WakeReason.APP_START)
+
+        // RefreshPlannedDoses will have inserted new pending doses for "today"/"tomorrow" as the
+        // tampered clock sees them, using that same tampered clock as their plannedAt. If those
+        // rows were allowed to feed the guard's floor, this genuinely old, real dose would have
+        // been purged too.
+        assertTrue(
+            "A dose this same wake just inserted must never become evidence for its own purge",
+            doses.all().any { it.id == DoseId(1) },
+        )
+
+        // The active schedule means this wake may have posted a real reminder; take it down so it
+        // does not linger past this test.
+        doses.all().forEach { ReminderNotifier(context).cancel(it) }
     }
 
     @Test
@@ -169,13 +219,16 @@ class ReminderHistoryPurgeTest {
     }
 
     private suspend fun seedValidatedSample() {
-        // Ten real minutes behind now, in both clocks, so the next observation advances normally
-        // and validates.
+        // Ten minutes behind the test's own fixed `now`, in both clocks -- not the real machine
+        // clock (correction found in PR review: seeding from System.currentTimeMillis() while the
+        // coordinator's own clock is fixed at a 2026 date is a ticking time bomb, since the two
+        // drift further apart every day this test suite keeps existing) -- so the next observation
+        // advances normally and validates to exactly `now`, deterministically, forever.
         val tenMinutes = 10 * 60_000L
         store.write(
             TrustedNow.Sample(
-                trustedNowMillis = System.currentTimeMillis() - tenMinutes,
-                anchorElapsedRealtimeMillis = android.os.SystemClock.elapsedRealtime() - tenMinutes,
+                trustedNowMillis = now.toEpochMilli() - tenMinutes,
+                anchorElapsedRealtimeMillis = FIXED_ELAPSED_REALTIME_MILLIS - tenMinutes,
             ),
         )
     }
@@ -185,7 +238,11 @@ class ReminderHistoryPurgeTest {
         scheduler: ReminderAlarmScheduler,
         medications: InMemoryMedicationRepository = InMemoryMedicationRepository(),
         clock: Clock = Clock.fixed(now, zone),
-        trustedClockGuard: TrustedClockGuard = TrustedClockGuard(store),
+        trustedClockGuard: TrustedClockGuard = TrustedClockGuard(
+            store,
+            wallClockMillis = { now.toEpochMilli() },
+            elapsedRealtimeMillis = { FIXED_ELAPSED_REALTIME_MILLIS },
+        ),
     ): ReminderCoordinator {
         val markMissed = MarkMissedDoses(doses, clock)
         return ReminderCoordinator(
@@ -232,5 +289,8 @@ class ReminderHistoryPurgeTest {
     private companion object {
         /** A wall-clock reading no legitimate elapsed-time delta could ever justify. */
         const val TAMPERED_FUTURE_MILLIS = 100_000_000_000_000L
+
+        /** An arbitrary, fixed boot-clock reading, paired with the fixed `now` throughout. */
+        const val FIXED_ELAPSED_REALTIME_MILLIS = 10_000_000L
     }
 }

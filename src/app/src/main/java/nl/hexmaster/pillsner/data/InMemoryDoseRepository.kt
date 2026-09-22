@@ -149,6 +149,8 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
 
     override suspend fun hasAnyDose(): Boolean = doses.value.isNotEmpty()
 
+    override suspend fun latestKnownMoment(): Instant? = doses.value.maxOfOrNull { it.plannedAt }
+
     /** Everything stored, answered doses included, for assertions. */
     fun all(): List<Dose> = doses.value.sortedBy { it.scheduledAt }
 

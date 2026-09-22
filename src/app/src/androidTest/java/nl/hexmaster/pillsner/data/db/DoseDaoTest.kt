@@ -502,6 +502,21 @@ class DoseDaoTest {
     }
 
     @Test
+    fun latestKnownMoment_isTheMostRecentPlannedAtAcrossEveryDose() = runBlocking {
+        assertNull(doses.latestKnownMoment())
+
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+        assertEquals(plannedBeforeDue, doses.latestKnownMoment())
+
+        // A dose planned more recently moves the floor forward, regardless of its own
+        // scheduled_at, which is not what latestKnownMoment tracks.
+        val laterPlanning = plannedBeforeDue.plusSeconds(3_600)
+        doses.insertPlanned(listOf(planned(id, evening)), plannedAt = laterPlanning)
+        assertEquals(laterPlanning, doses.latestKnownMoment())
+    }
+
+    @Test
     fun pendingQuery_usesTheOutcomeScheduledAtIndex() = runBlocking {
         val id = medications.add(medication())
         doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)

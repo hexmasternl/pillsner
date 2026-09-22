@@ -22,11 +22,21 @@ class TrustedClockGuard(
     /**
      * One observation: reads the last persisted sample, advances it, persists the result, and
      * returns the trusted-now instant safe to purge with — or null on the one occasion nothing
-     * safe exists yet (the very first observation this device has ever made).
+     * safe exists yet (no prior sample and no dose history for [knownGoodFloor] to draw on).
+     *
+     * @param knownGoodFloor the most recent moment the app independently knows really happened
+     *   (in practice, [nl.hexmaster.pillsner.domain.repository.DoseRepository.latestKnownMoment]),
+     *   or null when there is none. See [TrustedNow]'s class doc for why this is what closes the
+     *   gap a first, unvalidated wall-clock reading would otherwise leave open.
      */
-    suspend fun observe(): Instant? {
+    suspend fun observe(knownGoodFloor: Instant?): Instant? {
         val previous = store.read()
-        val observation = TrustedNow.observe(previous, wallClockMillis(), elapsedRealtimeMillis())
+        val observation = TrustedNow.observe(
+            previous = previous,
+            currentWallMillis = wallClockMillis(),
+            currentElapsedRealtimeMillis = elapsedRealtimeMillis(),
+            knownGoodFloorMillis = knownGoodFloor?.toEpochMilli(),
+        )
         store.write(observation.sample)
         return observation.validated
     }

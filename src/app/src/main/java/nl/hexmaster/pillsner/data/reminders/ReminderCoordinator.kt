@@ -275,7 +275,8 @@ WakeOutcome.Failed -> {
      */
     private suspend fun runDoseHistoryPurge() {
         try {
-            val trustedNow = trustedClockGuard?.observe() ?: return
+            val guard = trustedClockGuard ?: return
+            val trustedNow = guard.observe(doseRepository.latestKnownMoment()) ?: return
             val purged = doseRepository.deleteHistoryBefore(purgeExpiredDoseHistory(trustedNow))
             if (purged > 0) deliveryLog?.record(DeliveryEvent.HISTORY_PURGED, purged.toString())
         } catch (cancellation: CancellationException) {

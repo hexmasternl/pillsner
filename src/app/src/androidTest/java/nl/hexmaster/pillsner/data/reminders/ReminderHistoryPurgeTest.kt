@@ -48,6 +48,12 @@ import org.junit.runner.RunWith
  * no persisted trusted-clock sample, a later wake that actually purges, a purge failure that must
  * not block the rest of the wake, and a wake that times out while the purge is running still being
  * retried rather than falsely reported complete.
+ *
+ * Also covers the gap PR #50's review found in this PR's own first draft: a genuinely first-ever
+ * observation, with no prior sample *and* no existing dose history, must still skip the purge
+ * (nothing to clamp a tampered seed against), but one with existing dose history to draw a floor
+ * from must clamp a tampered seed and be trusted immediately, rather than only "eventually" via a
+ * small elapsed-time delta added on top of an already-wrong baseline.
  */
 @RunWith(AndroidJUnit4::class)
 class ReminderHistoryPurgeTest {
@@ -69,25 +75,55 @@ class ReminderHistoryPurgeTest {
     @After
     fun tearDown() = runBlocking { store.clear() }
 
-    private fun oldAnsweredDose(id: Long, scheduledAt: Instant) = Dose(
+    private fun oldAnsweredDose(id: Long, scheduledAt: Instant, plannedAt: Instant = scheduledAt) = Dose(
         id = DoseId(id),
         medicationId = null,
         medicationName = "Ibuprofen",
         amount = Quantity.of("40", DoseUnit.MILLIGRAM),
         scheduledAt = scheduledAt,
+        plannedAt = plannedAt,
         intake = Intake(IntakeOutcome.TAKEN, scheduledAt.plusSeconds(60)),
     )
 
     @Test
-    fun aFirstWakeWithNoPriorSample_seedsTheClockAndSkipsThePurgeButStillCompletes() = runBlocking {
-        val old = now.minusSeconds(400L * 86_400)
-        val doses = InMemoryDoseRepository(listOf(oldAnsweredDose(1, old)))
+    fun aFirstWakeWithNoDoseHistoryAtAll_seedsTheClockAndSkipsThePurgeButStillCompletes() = runBlocking {
+        // Nothing stored yet at all, so there is neither a prior sample nor any dose history to
+        // draw a floor from -- the one case where skipping the purge is genuinely the only safe
+        // option, and also genuinely harmless: there is nothing yet a wrong seed could delete.
+        val doses = InMemoryDoseRepository()
         val scheduler = RecordingScheduler()
 
         coordinator(doses, scheduler).onWake(WakeReason.APP_START)
 
-        assertEquals("Nothing was validated yet, so nothing should have been purged", 1, doses.all().size)
+        assertTrue("Nothing was validated yet, so nothing should have been purged", doses.all().isEmpty())
         assertNotNull("The guard should have seeded a sample for next time", store.read())
+    }
+
+    @Test
+    fun aFirstWakeWithExistingDoseHistory_clampsATamperedSeedAndPurgesImmediately() = runBlocking {
+        // Reproduces the gap PR #50's review found: a device whose wall clock is already tampered
+        // far into the future on the very first observation this install ever makes (no prior
+        // trusted-clock sample), but which already has real dose history from before the tamper.
+        // That history is exactly the independent evidence the fix clamps the seed against, so the
+        // purge must run correctly on this very first wake rather than only "eventually".
+        val recentReal = now.minusSeconds(3_600)
+        val old = now.minusSeconds(400L * 86_400)
+        val doses = InMemoryDoseRepository(
+            listOf(oldAnsweredDose(1, old, plannedAt = old), oldAnsweredDose(2, now, plannedAt = recentReal)),
+        )
+        val tamperedGuard = TrustedClockGuard(
+            store,
+            wallClockMillis = { TAMPERED_FUTURE_MILLIS },
+            elapsedRealtimeMillis = { android.os.SystemClock.elapsedRealtime() },
+        )
+
+        coordinator(doses, RecordingScheduler(), trustedClockGuard = tamperedGuard).onWake(WakeReason.APP_START)
+
+        assertEquals(
+            "The old dose is purged immediately, clamped by the recent dose's own plannedAt floor",
+            listOf(now),
+            doses.all().map { it.scheduledAt },
+        )
     }
 
     @Test
@@ -149,6 +185,7 @@ class ReminderHistoryPurgeTest {
         scheduler: ReminderAlarmScheduler,
         medications: InMemoryMedicationRepository = InMemoryMedicationRepository(),
         clock: Clock = Clock.fixed(now, zone),
+        trustedClockGuard: TrustedClockGuard = TrustedClockGuard(store),
     ): ReminderCoordinator {
         val markMissed = MarkMissedDoses(doses, clock)
         return ReminderCoordinator(
@@ -161,7 +198,7 @@ class ReminderHistoryPurgeTest {
             notifier = ReminderNotifier(context),
             scheduler = scheduler,
             clock = clock,
-            trustedClockGuard = TrustedClockGuard(store),
+            trustedClockGuard = trustedClockGuard,
             purgeExpiredDoseHistory = PurgeExpiredDoseHistory(clock),
         )
     }
@@ -190,5 +227,10 @@ class ReminderHistoryPurgeTest {
             delay(500)
             return delegate.deleteHistoryBefore(cutoff)
         }
+    }
+
+    private companion object {
+        /** A wall-clock reading no legitimate elapsed-time delta could ever justify. */
+        const val TAMPERED_FUTURE_MILLIS = 100_000_000_000_000L
     }
 }

@@ -14,7 +14,7 @@ import org.junit.Test
 class TrustedNowTest {
 
     @Test
-    fun `first run seeds trusted-now but reports nothing validated`() {
+    fun `first run with no floor seeds trusted-now but reports nothing validated`() {
         val observation = TrustedNow.observe(
             previous = null,
             currentWallMillis = TAMPERED_FUTURE,
@@ -26,6 +26,56 @@ class TrustedNowTest {
             observation.validated,
         )
         assertEquals(TrustedNow.Sample(TAMPERED_FUTURE, 1_000L), observation.sample)
+    }
+
+    @Test
+    fun `first run with a dose-history floor clamps a tampered seed and validates immediately`() {
+        // Real dose history already exists from before this observation, dated 1_000_000 -- proof
+        // that "now" had already reached at least that point, however far forward the wall clock
+        // has since been moved (this is exactly what a first-launch tamper the previous "no floor"
+        // case could not catch).
+        val observation = TrustedNow.observe(
+            previous = null,
+            currentWallMillis = TAMPERED_FUTURE,
+            currentElapsedRealtimeMillis = 1_000L,
+            knownGoodFloorMillis = 1_000_000L,
+        )
+
+        assertEquals(
+            "A floor lets the very first observation validate safely, without waiting a wake",
+            Instant.ofEpochMilli(1_000_000L),
+            observation.validated,
+        )
+        assertEquals(1_000_000L, observation.sample.trustedNowMillis)
+    }
+
+    @Test
+    fun `first run with an honest wall clock later than the floor still prefers the floor`() {
+        // The floor only ever pulls a seed down, even when the current reading looks honest: this
+        // is a harmless, one-time conservatism (the very next ordinary observation catches up
+        // within its own real elapsed delta), not a correctness problem.
+        val observation = TrustedNow.observe(
+            previous = null,
+            currentWallMillis = 2_000_000L,
+            currentElapsedRealtimeMillis = 1_000L,
+            knownGoodFloorMillis = 1_000_000L,
+        )
+
+        assertEquals(Instant.ofEpochMilli(1_000_000L), observation.validated)
+    }
+
+    @Test
+    fun `first run with a floor later than the current wall clock prefers the earlier reading`() {
+        // The floor must never push an already-lower current reading up; only ever pull a higher
+        // one down.
+        val observation = TrustedNow.observe(
+            previous = null,
+            currentWallMillis = 500_000L,
+            currentElapsedRealtimeMillis = 1_000L,
+            knownGoodFloorMillis = 1_000_000L,
+        )
+
+        assertEquals(Instant.ofEpochMilli(500_000L), observation.validated)
     }
 
     @Test

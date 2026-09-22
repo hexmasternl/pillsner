@@ -163,4 +163,12 @@ interface DoseRepository {
 
     /** Whether the app has ever stored a dose, answered or not. */
     suspend fun hasAnyDose(): Boolean
+
+    /**
+     * The most recent moment any dose was ever stored, or null when there is none (spec:
+     * dose-history-retention, "Trusted-now clock guard"). This is a wall-clock reading the app
+     * itself already took, independent of whatever the system clock claims right now, which is
+     * what lets the trusted-clock guard clamp a tampered clock down to a value it knows is real.
+     */
+    suspend fun latestKnownMoment(): Instant?
 }

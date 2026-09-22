@@ -299,6 +299,16 @@ interface DoseDao {
     @Query("SELECT EXISTS(SELECT 1 FROM doses LIMIT 1)")
     suspend fun hasAnyDose(): Boolean
 
+    /**
+     * The most recent moment any dose was ever stored, or null when there is none (spec:
+     * dose-history-retention, "Trusted-now clock guard"). `planned_at` rather than `scheduled_at`:
+     * it is a wall-clock reading the app itself took at write time, so it can never be a
+     * projected-future value the way a still-pending dose's `scheduled_at` can be, which is what
+     * makes it safe to use as a real, already-happened lower bound on "now".
+     */
+    @Query("SELECT MAX(planned_at) FROM doses")
+    suspend fun latestKnownMoment(): Instant?
+
     /** Only for tests and for the debug preview data. */
     @Query("DELETE FROM doses")
     suspend fun deleteAll()

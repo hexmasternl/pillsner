@@ -469,4 +469,26 @@
     <string name="usage_history_records_start">Records for this medicine start on %1$s.</string>
     <string name="usage_history_empty_title">Nothing recorded for this period</string>
     <string name="usage_history_empty_hint">Try a longer period, or come back once a few doses have passed.</string>
+    <!-- %1$d: the busiest bucket's scheduled dose count, or 0 for the axis baseline. -->
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d dose</item>
+        <item quantity="other">%1$d doses</item>
+    </plurals>
+    <string name="usage_history_timing_by_day">Timing accuracy, by day</string>
+    <string name="usage_history_timing_by_week">Timing accuracy, by week</string>
+    <!-- %1$d: minutes off schedule, on average. Used for the overall figure, the axis labels and
+         the per-bar description. -->
+    <plurals name="usage_history_timing_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <string name="usage_history_timing_caption">Lower is better</string>
+    <!-- %1$s: the day. %2$s: the average deviation, e.g. "13 minutes". %3$s: the dose count, e.g. "9 doses". -->
+    <string name="usage_history_timing_bar_day">%1$s, %2$s off schedule on average, over %3$s</string>
+    <!-- %1$s: the day the week starts on. %2$s: the average deviation. %3$s: the dose count. -->
+    <string name="usage_history_timing_bar_week">Week of %1$s, %2$s off schedule on average, over %3$s</string>
+    <!-- %1$s: the day. -->
+    <string name="usage_history_timing_bar_day_empty">%1$s, no doses recorded taken</string>
+    <!-- %1$s: the day the week starts on. -->
+    <string name="usage_history_timing_bar_week_empty">Week of %1$s, no doses recorded taken</string>
 </resources>

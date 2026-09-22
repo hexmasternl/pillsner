@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryDoseRepository
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
 import nl.hexmaster.pillsner.domain.MutableTestClock
+import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.domain.model.DoseId
@@ -108,6 +109,7 @@ class MedicineHistoryViewModelTest {
             medicationRepository = medications,
             doseRepository = InMemoryDoseRepository(),
             summarise = SummariseUsageHistory(clock) { DayOfWeek.MONDAY },
+            summariseTimeDeviation = SummariseTimeDeviation(clock) { DayOfWeek.MONDAY },
             savedStateHandle = handle,
             clock = clock,
         )
@@ -165,6 +167,7 @@ class MedicineHistoryViewModelTest {
             medicationRepository = medications,
             doseRepository = InMemoryDoseRepository(doses),
             summarise = SummariseUsageHistory(clock) { DayOfWeek.MONDAY },
+            summariseTimeDeviation = SummariseTimeDeviation(clock) { DayOfWeek.MONDAY },
             savedStateHandle = handle,
             clock = clock,
         )

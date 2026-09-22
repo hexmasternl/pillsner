@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -41,6 +42,7 @@ import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.domain.model.TimeDeviationHistory
 import nl.hexmaster.pillsner.domain.model.UsageHistory
 import nl.hexmaster.pillsner.domain.model.UsagePeriod
 import nl.hexmaster.pillsner.ui.home.EmptyState
@@ -62,6 +64,8 @@ object MedicineHistoryTestTags {
     const val CHART_HEADER = "medicine_history_chart_header"
     const val RECORDS_START = "medicine_history_records_start"
     const val EMPTY = "medicine_history_empty"
+    const val TIMING_CHART_HEADER = "medicine_history_timing_chart_header"
+    const val TIMING_OVERALL = "medicine_history_timing_overall"
 }
 
 /**
@@ -156,6 +160,9 @@ fun MedicineHistoryScreen(
                     SummaryCard(history)
                     UsageBreakdown(history)
                     ChartCard(history)
+                    uiState.timeDeviation
+                        ?.takeIf { it.averageMinutes != null }
+                        ?.let { TimeDeviationChartCard(it) }
                 }
             }
         }
@@ -304,6 +311,64 @@ private fun ChartCard(history: UsageHistory, modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * The timing accuracy chart, its own header naming both the chart and its bucketing, and the
+ * overall average-deviation figure with its "lower is better" caption (medicine-history-time-
+ * deviation design D4).
+ *
+ * Only shown by the caller when [TimeDeviationHistory.averageMinutes] is non-null; a null average
+ * means no dose was taken anywhere in the period, and the whole card is omitted rather than shown
+ * with nothing to say.
+ */
+@Composable
+private fun TimeDeviationChartCard(history: TimeDeviationHistory, modifier: Modifier = Modifier) {
+    val average = history.averageMinutes
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = tileContainerColor()),
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+        ) {
+            Text(
+                text = stringResource(
+                    if (history.period == UsagePeriod.THREE_MONTHS) {
+                        R.string.usage_history_timing_by_week
+                    } else {
+                        R.string.usage_history_timing_by_day
+                    },
+                ),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .semantics { heading() }
+                    .testTag(MedicineHistoryTestTags.TIMING_CHART_HEADER),
+            )
+
+            if (average != null) {
+                Text(
+                    text = pluralStringResource(R.plurals.usage_history_timing_minutes, average, average),
+                    style = MaterialTheme.typography.displaySmall.copy(fontFeatureSettings = "tnum"),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.testTag(MedicineHistoryTestTags.TIMING_OVERALL),
+                )
+                Text(
+                    text = stringResource(R.string.usage_history_timing_caption),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            TimeDeviationChart(history)
+        }
+    }
+}
+
 /** The user-facing label of a period. */
 fun UsagePeriod.labelRes(): Int = when (this) {
     UsagePeriod.WEEK -> R.string.usage_period_week
@@ -322,6 +387,7 @@ private fun MedicineHistoryFullWeekPreview() {
                 medicineName = "Metoprolol",
                 period = UsagePeriod.WEEK,
                 history = UsageHistoryPreviewData.fullWeek(),
+                timeDeviation = UsageHistoryPreviewData.fullWeekTiming(),
                 isLoading = false,
             ),
             onPeriodSelected = {},
@@ -339,6 +405,7 @@ private fun MedicineHistorySparseThreeMonthsPreview() {
                 medicineName = "Colecalciferol",
                 period = UsagePeriod.THREE_MONTHS,
                 history = UsageHistoryPreviewData.sparseThreeMonths(),
+                timeDeviation = UsageHistoryPreviewData.sparseThreeMonthsTiming(),
                 isLoading = false,
             ),
             onPeriodSelected = {},

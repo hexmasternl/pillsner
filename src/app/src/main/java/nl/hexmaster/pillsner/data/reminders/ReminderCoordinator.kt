@@ -3,6 +3,7 @@ package nl.hexmaster.pillsner.data.reminders
 import android.util.Log
 import java.time.Clock
 import java.time.Duration
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +23,7 @@ import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.PendingSnapshot
+import nl.hexmaster.pillsner.domain.scheduling.PurgeExpiredDoseHistory
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
 import nl.hexmaster.pillsner.domain.scheduling.buildPendingSnapshot
 import nl.hexmaster.pillsner.domain.scheduling.silentlyMissedReminderAmong
@@ -84,6 +86,11 @@ class ReminderCoordinator(
     private val silentlyMissedReminders: SilentlyMissedReminders = SilentlyMissedReminders {},
     // Null in tests that do not care what was recorded; the real one lives in AppContainer.
     private val deliveryLog: ReminderDeliveryLog? = null,
+    // Null in tests that do not care about the dose-history purge; the real one lives in
+    // AppContainer. A null guard means [wake] never has a validated trusted-now to purge with,
+    // which is the same as the purge never running (spec: dose-history-retention).
+    private val trustedClockGuard: TrustedClockGuard? = null,
+    private val purgeExpiredDoseHistory: PurgeExpiredDoseHistory = PurgeExpiredDoseHistory(clock),
 ) {
 
     // One wake at a time: an alarm and an answer from a notification can arrive in the same second.
@@ -250,7 +257,33 @@ WakeOutcome.Failed -> {
             doseRepository.applyReminderOutcomes(outcomeUpdates)
         }
 
+        runDoseHistoryPurge()
+
         return WakeResult(snapshot.copy(doses = updatedDoses.values.toList()), refreshResult.medications)
+    }
+
+    /**
+     * Housekeeping only, and never on the path a due reminder's timely posting depends on, so it
+     * runs last and never lets a failure of its own affect anything above (spec:
+     * dose-history-retention, "Purge runs without costing a reminder").
+     *
+     * [CancellationException] (and its subtype [TimeoutCancellationException], thrown by the
+     * `withTimeout` this runs inside of) is re-thrown rather than caught here: swallowing it would
+     * let this step silently absorb the wake's own timeout, making a wake that ran out of time
+     * falsely report as complete instead of arming its retry
+     * (`reminder-scheduling`, "A wake that does not complete is retried").
+     */
+    private suspend fun runDoseHistoryPurge() {
+        try {
+            val trustedNow = trustedClockGuard?.observe() ?: return
+            val purged = doseRepository.deleteHistoryBefore(purgeExpiredDoseHistory(trustedNow))
+            if (purged > 0) deliveryLog?.record(DeliveryEvent.HISTORY_PURGED, purged.toString())
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Exception) {
+            Log.d(TAG, "Dose history purge did not complete: ${error::class.simpleName}")
+            deliveryLog?.record(DeliveryEvent.HISTORY_PURGE_FAILED, "${error::class.simpleName}")
+        }
     }
 
     /**
@@ -317,7 +350,7 @@ WakeOutcome.Failed -> {
         val schedule = runCatching {
             val snapshot = wakeResult?.snapshot ?: buildPendingSnapshot(doseRepository, markMissedDoses)
             val medications = wakeResult?.medications ?: medicationRepository.observeAll().first()
-            computeWakeSchedule(snapshot, medications)
+            computeWakeSchedule(snapshot, medications, doseRepository.hasAnyDose())
         }.getOrNull()
         if (schedule == null) {
             deliveryLog?.record(DeliveryEvent.ALARMS_LEFT_AS_IS)

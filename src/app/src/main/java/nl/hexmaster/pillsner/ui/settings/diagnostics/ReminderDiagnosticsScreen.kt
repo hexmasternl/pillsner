@@ -222,6 +222,8 @@ private val DeliveryEvent.label: Int
         DeliveryEvent.GAVE_UP -> R.string.reminder_diagnostics_event_gave_up
         DeliveryEvent.ALARMS_ARMED -> R.string.reminder_diagnostics_event_alarms_armed
         DeliveryEvent.ALARMS_LEFT_AS_IS -> R.string.reminder_diagnostics_event_alarms_left_as_is
+        DeliveryEvent.HISTORY_PURGED -> R.string.reminder_diagnostics_event_history_purged
+        DeliveryEvent.HISTORY_PURGE_FAILED -> R.string.reminder_diagnostics_event_history_purge_failed
     }
 
 private val previewEntries = listOf(

@@ -394,6 +394,8 @@
     <string name="reminder_diagnostics_event_gave_up">Erneute Versuche gestoppt</string>
     <string name="reminder_diagnostics_event_alarms_armed">Alarme gesetzt</string>
     <string name="reminder_diagnostics_event_alarms_left_as_is">Alarme unverändert gelassen</string>
+    <string name="reminder_diagnostics_event_history_purged">Verlauf bereinigt</string>
+    <string name="reminder_diagnostics_event_history_purge_failed">Verlaufsbereinigung fehlgeschlagen</string>
     <string name="about_name_origin">Der Name setzt sich aus zwei englischen Wörtern zusammen: Pills und Partner. Das ist es, was die App sein möchte: ein Partner, der sich an deine Dosen erinnert, damit du das nicht musst.</string>
     <!-- %1$s: Versionsname. %2$d: Versionscode. Die Zeile heißt bereits „Version“. -->
     <string name="about_version_value">%1$s (%2$d)</string>

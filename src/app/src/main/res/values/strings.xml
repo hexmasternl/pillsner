@@ -432,6 +432,8 @@
     <string name="reminder_diagnostics_event_gave_up">Stopped trying again</string>
     <string name="reminder_diagnostics_event_alarms_armed">Alarms set</string>
     <string name="reminder_diagnostics_event_alarms_left_as_is">Alarms left as they were</string>
+    <string name="reminder_diagnostics_event_history_purged">History purged</string>
+    <string name="reminder_diagnostics_event_history_purge_failed">History purge failed</string>
 
     <!-- Medicine usage history -->
     <string name="usage_history_title">Usage history</string>

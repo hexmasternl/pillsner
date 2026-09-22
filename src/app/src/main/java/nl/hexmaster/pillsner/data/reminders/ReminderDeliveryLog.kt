@@ -160,4 +160,10 @@ enum class DeliveryEvent {
 
     /** Reconciling failed and the alarms already armed were left as they were. */
     ALARMS_LEFT_AS_IS,
+
+    /** The dose-history purge removed at least one row; the detail is how many. */
+    HISTORY_PURGED,
+
+    /** The dose-history purge did not complete; the detail is the exception type. */
+    HISTORY_PURGE_FAILED,
 }

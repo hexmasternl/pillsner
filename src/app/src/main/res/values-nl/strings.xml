@@ -394,6 +394,8 @@
     <string name="reminder_diagnostics_event_gave_up">Gestopt met opnieuw proberen</string>
     <string name="reminder_diagnostics_event_alarms_armed">Alarmen gezet</string>
     <string name="reminder_diagnostics_event_alarms_left_as_is">Alarmen gelaten zoals ze waren</string>
+    <string name="reminder_diagnostics_event_history_purged">Geschiedenis opgeschoond</string>
+    <string name="reminder_diagnostics_event_history_purge_failed">Opschonen van geschiedenis mislukt</string>
     <string name="about_name_origin">De naam is een samenvoeging van twee Engelse woorden: Pills en Partner. Dat is wat de app wil zijn, een partner die je doses onthoudt, zodat jij dat niet hoeft.</string>
     <!-- %1$s: versienaam. %2$d: versiecode. De rij heet al "Versie". -->
     <string name="about_version_value">%1$s (%2$d)</string>

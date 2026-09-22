@@ -19,3 +19,11 @@
 
 - [x] 4.1 Preview both `README.md` and `CONTRIBUTING.md` rendered as Markdown (e.g. via `gh` or a local Markdown preview) and confirm the embedded screenshots render at a uniform size and all links resolve.
 - [x] 4.2 Confirm no application code, `src/`, or spec content outside `openspec/changes/readme-marketing-rewrite/` changed.
+
+## 5. Stronger visual pitch (follow-up)
+
+- [x] 5.1 Replace the plain `# Pillsner` heading with `docs/feature-graphic.png` (the wordmark plus tagline banner) as a centered hero image at the top of `README.md`.
+- [x] 5.2 Add a link to the informational website `https://pillsner.hexmaster.nl` alongside the existing Google Play link.
+- [x] 5.3 Add GitHub status badges near the top of `README.md`: CI workflow status, release workflow status, and license, each linking to the page it reports on.
+- [x] 5.4 Remove em dashes from `README.md` and `CONTRIBUTING.md`, rephrasing with commas, colons, parentheses or separate sentences instead.
+- [x] 5.5 Re-verify: badges render, links resolve, `docs/feature-graphic.png` and `docs/icon.png` exist and are referenced correctly, and `openspec validate --strict` still passes.

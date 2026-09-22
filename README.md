@@ -1,10 +1,16 @@
-# Pillsner
+<p align="center">
+  <img src="docs/feature-graphic.png" alt="Pillsner: your partner in taking your pills" width="600">
+</p>
 
-**Your partner in taking your pills.**
+<p align="center">
+  <a href="https://github.com/hexmasternl/pillsner/actions/workflows/ci.yml"><img src="https://github.com/hexmasternl/pillsner/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/hexmasternl/pillsner/actions/workflows/release.yml"><img src="https://github.com/hexmasternl/pillsner/actions/workflows/release.yml/badge.svg" alt="Release status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/hexmasternl/pillsner" alt="License: MIT"></a>
+</p>
 
-Pillsner is a native Android app that reminds you to take your medication — reliably, on the exact minute, even while your phone is asleep — and lets you confirm a dose in one tap, right from the notification. No account, no cloud, no ads: every medicine, every schedule and every dose you have ever recorded stays on your device.
+Pillsner is a native Android app that reminds you to take your medication, reliably, on the exact minute, even while your phone is asleep, and lets you confirm a dose in one tap, right from the notification. No account, no cloud, no ads: every medicine, every schedule and every dose you have ever recorded stays on your device.
 
-[**Get it on Google Play**](https://play.google.com/store/apps/details?id=nl.hexmaster.pillsner)
+[**Get it on Google Play**](https://play.google.com/store/apps/details?id=nl.hexmaster.pillsner) &nbsp;&middot;&nbsp; [**Visit pillsner.hexmaster.nl**](https://pillsner.hexmaster.nl)
 
 > **Project status: early development.** The feature list below describes the intended product; the repository currently holds the app as it is being built, incrementally, through the change proposals in `openspec/`. Expect gaps until a first release is tagged.
 
@@ -43,8 +49,8 @@ Pillsner is built around exactly those needs and nothing more.
 - Reliable local notifications that fire on the exact minute, including when the device is dozing, and that survive a reboot, an app update, a clock change and a move to another time zone.
 - Answer a reminder in one tap, without opening the app: **I took it**, **Not yet** (a 15-minute snooze) or **Not going to**. A dose you never answer becomes missed when the next one is due, or 24 hours later, whichever comes first.
 - A reminder you do not answer asks again every 15 minutes, four times at most, and never past the moment the dose lapses. Any of the three answers stops it at once, and **Not yet** starts the quarter of an hour over.
-- **A scheduled medicine puts an alarm icon in your status bar.** Pillsner sets its reminders as real alarms, the one kind Android and the phone makers do not defer or drop — which is the whole point of an app that reminds you to take medication. The icon is the honest consequence: you have set an alarm.
-- Pillsner never opens a system dialog you did not ask for. If a dose ever comes due and no reminder arrives, the Home screen says so, with a button that takes you to the background settings where you can stop it happening again — the phone maker's own auto-start screen where there is one, Android's battery-optimisation list otherwise. Until that happens there is nothing to report and nothing is shown.
+- **A scheduled medicine puts an alarm icon in your status bar.** Pillsner sets its reminders as real alarms, the one kind Android and the phone makers do not defer or drop, which is the whole point of an app that reminds you to take medication. The icon is the honest consequence: you have set an alarm.
+- Pillsner never opens a system dialog you did not ask for. If a dose ever comes due and no reminder arrives, the Home screen says so, with a button that takes you to the background settings where you can stop it happening again (the phone maker's own auto-start screen where there is one, Android's battery-optimisation list otherwise). Until that happens there is nothing to report and nothing is shown.
 - The same reminder, with the same three answers, appears on a paired Wear OS watch.
 
 **On your wrist**
@@ -73,7 +79,7 @@ Pillsner is built around exactly those needs and nothing more.
 - All data lives on the device. There is no account, no cloud sync and no analytics unless explicitly added and clearly disclosed in a future release.
 - With the watch app installed, the names, amounts and times of the doses you still have to take also travel to your watch. They go over the direct Bluetooth or local network link between the two paired devices, through Google Play services, which stores them on the watch; nothing goes to a server, and neither app asks for internet access. Uninstalling the watch app removes them.
 - An optional app lock protects the app with a PIN and, once set up, biometric unlock. Screenshots and the recent apps thumbnail are hidden while it is on.
-- You can change your PIN in Settings without turning the lock off. Changing the PIN, turning biometric unlock off and turning the lock off each ask you to confirm it is you first — with your fingerprint or face where you have one, and with the PIN itself for turning the lock off. Each confirmation is good for that one change.
+- You can change your PIN in Settings without turning the lock off. Changing the PIN, turning biometric unlock off and turning the lock off each ask you to confirm it is you first, with your fingerprint or face where you have one, and with the PIN itself for turning the lock off. Each confirmation is good for that one change.
 - On the lock screen a reminder can show only "Time for your medicine", never the name or the amount, whenever your phone is set to hide sensitive notifications.
 
 **Starting over**
@@ -113,7 +119,7 @@ Pillsner is a native Android application written in Kotlin.
 
 Any change to this table should go through the spec-driven workflow described in `CONTRIBUTING.md`, so that the reasoning is recorded alongside the decision.
 
-Alongside the Android app, `src/website/` holds a separate, self-contained deliverable: a static, single-page, six-language marketing site describing Pillsner and linking to its Google Play listing. It is built with [Hugo](https://gohugo.io/) and has no runtime server, no analytics and no third-party trackers — see `src/website/README.md`. It is not a Gradle module and does not affect the app's toolchain, build or permissions in any way.
+Alongside the Android app, `src/website/` holds a separate, self-contained deliverable: a static, single-page, six-language marketing site describing Pillsner and linking to its Google Play listing. It is built with [Hugo](https://gohugo.io/) and has no runtime server, no analytics and no third-party trackers; see `src/website/README.md`. It is not a Gradle module and does not affect the app's toolchain, build or permissions in any way.
 
 | Area | Choice |
 | --- | --- |
@@ -129,10 +135,10 @@ Alongside the Android app, `src/website/` holds a separate, self-contained deliv
 | `src/app/` | The phone application. |
 | `src/wear/` | The Wear OS companion application. It shares its application id and signing with the phone app, which is what lets the two talk. |
 | `src/shared/` | Plain Kotlin: the phone-to-watch sync contract, so both apps compile against one wire format. |
-| `src/website/` | The public marketing website: a static, single-page, six-language Hugo site. It is **not** part of the Gradle project — its own toolchain, own config, no shared files with `src/app`/`src/wear`/`src/shared` — but lives under `src/` at the maintainers' direction. See `src/website/README.md`. |
+| `src/website/` | The public marketing website: a static, single-page, six-language Hugo site. It is **not** part of the Gradle project (its own toolchain, own config, no shared files with `src/app`/`src/wear`/`src/shared`), but lives under `src/` at the maintainers' direction. See `src/website/README.md`. |
 | `openspec/` | Spec-driven planning: `specs/` holds the agreed behaviour of the app, `changes/` holds in-progress change proposals, and `changes/archive/` holds completed ones. |
 | `docs/` | The design system (`design-system.md`) and its visual companion (`design-system.html`): colours, typography, components and accessibility rules for the app. `docs/screens/` holds the phone screenshots used above and elsewhere. |
-| `.github/workflows/` | `ci.yml` tests, lints and assembles every pull request and push to `main` that touches anything outside `src/website/`; `release.yml` builds, signs and publishes both bundles to Google Play on every such push to `main`, then tags the commit and creates the GitHub release; `release-notes.yml` drafts brief, bilingual (EN/NL) Play "what's new" text from the OpenSpec changes shipped in a `development` → `main` pull request and posts it as an updatable PR comment for a human to review and hand-copy — it never commits or blocks the release; `website.yml` builds the Hugo site and deploys it to Azure Static Web Apps on every push to `main` that changes `src/website/**`. The two sets of workflows never both run for the same push. |
+| `.github/workflows/` | `ci.yml` tests, lints and assembles every pull request and push to `main` that touches anything outside `src/website/`; `release.yml` builds, signs and publishes both bundles to Google Play on every such push to `main`, then tags the commit and creates the GitHub release; `release-notes.yml` drafts brief, bilingual (EN/NL) Play "what's new" text from the OpenSpec changes shipped in a `development` → `main` pull request and posts it as an updatable PR comment for a human to review and hand-copy (it never commits or blocks the release); `website.yml` builds the Hugo site and deploys it to Azure Static Web Apps on every push to `main` that changes `src/website/**`. The two sets of workflows never both run for the same push. |
 | `distribution/whatsnew/` | Play release notes, one plain-text file per listing language. Update them in the change that earns them. |
 | `GitVersion.yml` | How the release version is derived: every commit on `main` bumps the patch, and the tag written by a successful release becomes the next baseline. |
 | `.claude/` | Configuration for AI-assisted development: skills and slash commands for the OpenSpec workflow, the branching-model skill (`git-workflow`), the GitHub sync skill, plus the design agent and UI skills that enforce the design system. |

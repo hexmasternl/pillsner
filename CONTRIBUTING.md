@@ -1,11 +1,11 @@
 # Contributing to Pillsner
 
-Thanks for your interest in Pillsner. This document covers everything you need to build, run and contribute to the project. For what Pillsner *is* — the product, its features and its privacy stance — see [`README.md`](README.md).
+Thanks for your interest in Pillsner. This document covers everything you need to build, run and contribute to the project. For what Pillsner *is* (the product, its features and its privacy stance), see [`README.md`](README.md).
 
 To keep the project coherent:
 
 - Start non-trivial work with a change proposal rather than a surprise pull request.
-- Branch from `development`, not `main`, and open pull requests against `development` — see [Branching model](#branching-model) below.
+- Branch from `development`, not `main`, and open pull requests against `development`, see [Branching model](#branching-model) below.
 - Keep the app small and focused. A feature that does not directly help someone take their medication correctly probably belongs in a different app.
 - Preserve the privacy stance. Do not introduce network access, third-party SDKs or telemetry without an accepted proposal that explains the trade-off.
 - Write tests for scheduling and intake logic. Reminder timing is the one thing this app must never get wrong.
@@ -60,7 +60,7 @@ From a terminal inside the `src` folder, the usual Gradle wrapper tasks apply: `
 
 ## Permissions the app asks for
 
-Pillsner needs permission to post notifications and to schedule exact alarms. Both are essential to its purpose. It asks for nothing else: no location, no contacts, no network, and — since it never opens the dialog — not the battery-optimisation exemption either. Reaching that setting is something you can do from the Home banner if a reminder ever fails to arrive; the app does not ask for it, and holds no permission to. The full list, with the reason for each, is in [Permissions](README.md#permissions) in the README.
+Pillsner needs permission to post notifications and to schedule exact alarms. Both are essential to its purpose. It asks for nothing else: no location, no contacts, no network, and, since it never opens the dialog, not the battery-optimisation exemption either. Reaching that setting is something you can do from the Home banner if a reminder ever fails to arrive; the app does not ask for it, and holds no permission to. The full list, with the reason for each, is in [Permissions](README.md#permissions) in the README.
 
 ## Development workflow
 
@@ -76,7 +76,7 @@ The `openspec/specs/` folder is therefore the living description of how Pillsner
 
 ## Branching model
 
-- **`main`** always mirrors what's running in production. `release.yml` builds, signs and publishes to Google Play on every push to it, so nothing commits there directly — it's only updated by a `development` → `main` pull request, opened manually when a release is due.
+- **`main`** always mirrors what's running in production. `release.yml` builds, signs and publishes to Google Play on every push to it, so nothing commits there directly: it's only updated by a `development` → `main` pull request, opened manually when a release is due.
 - **`development`** is the integration branch. Every finished feature lands here first, by pull request.
 - **Feature branches** are cut from `development`, one per OpenSpec change (or trivial fix), named `feature/<change-name>`, and merge back into `development` by pull request once done.
 

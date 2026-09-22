@@ -7,12 +7,26 @@ import java.time.LocalDate
 value class MedicationId(val value: Long)
 
 /**
+ * How the user has responded to a standing low-stock warning for one medicine
+ * (`medicine-stock-tracking`).
+ *
+ * There is deliberately only one value, not a "not ordered" one: the absence of an acknowledgement
+ * (`null` on [Medication.lowStockAcknowledgement]) already means that, and is what makes an "OK"
+ * response leave the warning free to return on the next taken dose.
+ */
+enum class LowStockAcknowledgement {
+    /** The user said they had ordered more; the low-stock warning is suppressed until stock is added. */
+    ACKNOWLEDGED_ORDERED,
+}
+
+/**
  * Something the user takes, together with the rules that say when it is due.
  *
  * @property id identity of the medication.
  * @property name the medication's display name, exactly as the user entered it. Never blank.
  * @property defaultDose the amount a dose is unless a schedule says otherwise. Also the amount of
- *   an as-needed medication.
+ *   an as-needed medication, and the unit every stock batch of this medicine is recorded in
+ *   (`medicine-stock-tracking`).
  * @property usedSince the day the user started, or starts, taking it. Also the anchor day that
  *   [Schedule.EveryNDays] counts its intervals from.
  * @property useUntil the last day it is taken, or null when it is open-ended.
@@ -22,6 +36,9 @@ value class MedicationId(val value: Long)
  * @property isActive whether this medication currently produces doses. An inactive medication is
  *   kept for reference and history: the overview lists it under Inactive and the dose generator
  *   ignores it. It is never a deletion.
+ * @property lowStockAcknowledgement null unless the user has said they ordered more while stock was
+ *   low; see [LowStockAcknowledgement]. Meaningless for a medicine with no stock batches, which the
+ *   feature never touches at all.
  * @throws IllegalArgumentException when the name is blank or [useUntil] is before [usedSince].
  */
 data class Medication(
@@ -33,6 +50,7 @@ data class Medication(
     val prescribedBy: Prescriber,
     val schedules: List<Schedule>,
     val isActive: Boolean,
+    val lowStockAcknowledgement: LowStockAcknowledgement? = null,
 ) {
     init {
         requireValidMedicationFields(name, usedSince, useUntil)

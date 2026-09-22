@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
@@ -53,4 +54,12 @@ interface MedicationRepository {
      * the stream will correct the screen anyway.
      */
     suspend fun setActive(id: MedicationId, isActive: Boolean)
+
+    /**
+     * Sets, or with null clears, the low-stock acknowledgement of the medication with [id]
+     * (`medicine-stock-tracking`). Choosing "OK" on the low-stock warning leaves this unset, so the
+     * warning returns on the next taken dose that still leaves stock low; choosing "I ordered new"
+     * sets it, and adding a new stock batch always clears it again. An unknown [id] does nothing.
+     */
+    suspend fun setLowStockAcknowledgement(id: MedicationId, value: LowStockAcknowledgement?)
 }

@@ -45,7 +45,7 @@ class SummariseUsageHistory(
         val windowStart = firstDay.atStartOfDay(zone).toInstant()
 
         val counts = MutableCounts()
-        val bucketStarts = bucketStarts(period, firstDay, today)
+        val bucketStarts = bucketStarts(firstDay, today, period.bucketsByWeek, firstDayOfWeek())
         val buckets = bucketStarts.map { MutableCounts() }
 
         doses.forEach { dose ->
@@ -77,40 +77,6 @@ class SummariseUsageHistory(
                 buckets[i].toBucket(start, isWeek = period.bucketsByWeek)
             },
         )
-    }
-
-    /**
-     * The first day of every bucket, in time order. A week period gives one bucket per day; the
-     * longer periods give one per week aligned to [firstDayOfWeek], except the earliest, which
-     * starts on the window's own first day when that falls mid-week.
-     */
-    private fun bucketStarts(period: UsagePeriod, firstDay: LocalDate, today: LocalDate): List<LocalDate> {
-        if (!period.bucketsByWeek) {
-            return generateSequence(firstDay) { it.plusDays(1) }
-                .takeWhile { !it.isAfter(today) }
-                .toList()
-        }
-        val weekStart = firstDayOfWeek()
-        // The first whole week that begins inside the window; the partial stretch before it is the
-        // earliest bucket, starting on the window's first day.
-        var secondStart = firstDay
-        while (secondStart.dayOfWeek != weekStart) secondStart = secondStart.plusDays(1)
-        if (secondStart == firstDay) secondStart = firstDay.plusWeeks(1)
-
-        val starts = mutableListOf(firstDay)
-        var start = secondStart
-        while (!start.isAfter(today)) {
-            starts += start
-            start = start.plusWeeks(1)
-        }
-        return starts
-    }
-
-    /** The bucket [day] falls in, or -1 when it falls outside every bucket. */
-    private fun bucketIndex(starts: List<LocalDate>, day: LocalDate): Int {
-        if (starts.isEmpty() || day.isBefore(starts.first())) return -1
-        val after = starts.indexOfFirst { it.isAfter(day) }
-        return if (after < 0) starts.lastIndex else after - 1
     }
 
     /** The four outcomes of one bucket or of the whole period, tallied as the doses go by. */

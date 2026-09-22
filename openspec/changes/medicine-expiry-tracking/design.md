@@ -1,43 +1,73 @@
 ## Context
 
-Medicines are stored in Room with name, default dose, used since/until, prescriber and their schedules (`medicine-add`, `medicine-details`). There is no stock/remaining-quantity concept anywhere in the current specs, so this design does not build on or reuse a refill-warning mechanism — none exists yet. It does establish a presentation pattern (a per-medicine heads-up state, shown on the tile and on the details screen) that a future refill feature can reuse, kept distinct by wording and icon so the two are never conflated.
+Medicines are stored in Room with name, default dose, used since/until, prescriber and their schedules (`medicine-add`, `medicine-details`, `medication-schedule-model`). Doses are generated from schedules and recorded as taken, skipped or missed through one shared code path used identically by the dose detail screen, the reminder notification and a paired wearable (`dose-detail`, `medicine-reminders`, `dose-records`). There is no concept of remaining stock anywhere today.
+
+This design supersedes an earlier draft of this same change that added a single, per-medicine, informational expiry date with explicit non-goals of "no stock/remaining-quantity tracking" and "no per-batch expiry." Both are reversed here at the user's direction: expiry only matters in relation to a specific batch of stock, and stock only matters if the app knows how much is used and how fast.
+
+This design deliberately does not modify the `dose-detail`, `medicine-reminders` or `dose-records` specs. Those capabilities already fully own how an outcome is recorded; this change hooks into that existing, shared recording path as a side effect for a "taken" outcome, the same way `medicine-usage-history` reads dose data without modifying `dose-records`.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Let the user record an optional expiry date per medicine.
-- Classify a medicine's expiry state as none, approaching, or past, and surface that state on the Medicines screen and the details screen.
-- Keep expiry fully inert with respect to reminders, dose generation and scheduling.
+- Let the user record one or more stock batches per medicine, each an amount + unit and an expiry date.
+- Deduct a taken dose's amount from stock automatically, always from the batch expiring soonest first (FEFO).
+- Warn when remaining stock would not cover the next 7 days of scheduled usage, every time a dose is taken while that holds, until either resolved by fresh stock or explicitly acknowledged as ordered.
+- Warn, separately, when the batch actually drawn from is within 30 days of, or past, its expiry date.
+- Do all of the above only for a medicine that has at least one stock batch; leave every other medicine's behaviour completely unchanged.
 
 **Non-Goals:**
-- No stock/remaining-quantity tracking or refill warning — out of scope, a separate future proposal.
-- No barcode/label scanning to read the expiry date (tracked separately as issue #33's OCR proposal, which this pairs with naturally but does not depend on).
+- No manual editing or removal of a stock batch once added — only automatic FEFO consumption changes a batch's remaining amount. Manual correction is left as a future proposal if requested.
+- No configurable low-stock lead time (fixed at 7 days) or expiry lead time (fixed at 30 days, same constant the superseded draft chose) — avoids a new settings surface for v1.
+- No unit conversion: a stock batch's unit must match the medicine's default dose unit; the app does not convert between units (e.g. ml to mg).
+- No initial-stock fields on the Add medicine form. Stock is always added afterwards from the Medicine details screen's new Stock section, including for a medicine just created — this keeps the Add flow's atomic save exactly as it is today and puts all stock behaviour in one place.
+- No barcode/label scanning to read a batch's expiry date (tracked separately as issue #33's OCR proposal).
 - No medical judgement about whether an expired medicine is still safe to take.
-- No per-batch or per-dose expiry — one expiry date per medicine, same granularity as every other medicine-level field.
+- No change to how doses are generated, reminded or missed. Stock is read, never a scheduling input.
+- No wearable-surfaced stock warning; the warning is a phone-app dialog only (see Decisions).
 
 ## Decisions
 
-- **Data model**: add `expiryDate: LocalDate?` to the `Medication` and `NewMedication` domain models and to the Room entity (nullable, same representation as `useUntil`), so the Add and details forms' save paths can carry it into the repository the same way every other field already does. Room migration adds the column with a `NULL` default; existing rows are unaffected. A migration test asserts the new column exists and existing rows survive the migration with `expiryDate = null`.
-- **Expiry state classification**: a pure domain function `expiryState(expiryDate: LocalDate?, today: LocalDate, approachingWindow: Duration = 30.days): ExpiryState` returning `NONE`, `APPROACHING`, or `PAST`. Thirty days is chosen as a fixed, non-configurable lead time for this first version — simple, predictable, and avoids a new settings surface; a configurable window is left as a follow-up if requested. This mirrors the existing domain-layer pattern of pure, Android-free functions covering date-boundary edge cases (unit-tested around midnight, month and year boundaries, and leap days per CLAUDE.md's testing expectations).
-- **Validation**: expiry date, when set, must not be before "used since" — mirrors the existing "use until must not be before used since" rule in `medicine-add`. No relationship is enforced against "use until": a medicine can be marked inactive (used until a date) independently of its pack's physical expiry.
-- **Presentation**: `APPROACHING` and `PAST` render as a small badge/icon on the medicine tile (Medicines screen) and as inline text on the details screen, using distinct wording ("Expires soon" / "Expired") from any future refill wording, and never using colour alone to distinguish the two states from each other or from the default tile (per the existing accessibility rule that inactive tiles "MUST NOT rely on colour alone" — the same bar applies here). Exact tokens, icon and copy are decided by the `pillsner-designer` agent against `docs/design-system.md` during implementation, not fixed in this design.
-- **No scheduling interaction**: the dose-generation and reminder pipelines (`reminder-scheduling`, `medicine-reminders`) are untouched; expiry state is read only by the UI layer at render time, never consulted when generating or delivering a dose.
+- **Data model**: add a `StockBatch` domain type (`id`, `medicationId`, `remaining: Quantity`, `expiryDate: LocalDate`, `addedAt: Instant`) and a Room `stock_batches` table (FK to `medications`, cascade delete — moot in practice since medications are never deleted outside the full app reset, but consistent with how `schedules` cascades). Add a nullable `lowStockAcknowledgement` enum column to `medications` (`ACKNOWLEDGED_ORDERED` or unset). Both ship in one schema version bump with one migration and one migration test, per `medication-persistence`.
+
+- **Unit consistency enforced at entry, not at consumption**: the Add stock form fixes the batch's unit to the medicine's current default dose unit (shown read-only, not chosen by the user), so the consumption function can assume every batch of a medicine shares one unit and never needs to convert.
+
+- **Feature gating**: a medicine is under stock tracking if and only if it has at least one `stock_batches` row, regardless of that row's remaining amount. A medicine with none behaves exactly as before this change in every respect — no consumption, no projection, no warning, no tile heads-up.
+
+- **Batches are never deleted by consumption**: when FEFO consumption exhausts a batch to zero remaining, the row is kept at zero rather than removed. This is deliberate: if exhausted batches were deleted, a medicine that runs completely out (last batch consumed to zero) would revert to "no stock recorded" and silently stop warning the user at the exact moment the warning matters most. Keeping the zero row means the gate in the previous decision stays satisfied and the low-stock check keeps firing every time the medicine is taken with nothing left.
+
+- **FEFO consumption**: a pure function orders a medicine's batches by `expiryDate` ascending, then `addedAt` ascending to break ties, and deducts the taken dose's amount across them in that order, never taking a batch below zero and skipping batches already at zero. It reports the total actually deducted (which may be less than requested if total stock is insufficient — deducted stock simply floors at zero across all batches, there is no negative stock) and which batch it drew from first (used for the expiry-at-use check below). This runs in the same transaction that records the intake, so a dose is never recorded taken without its stock effect, and never partially.
+
+- **Weekly sufficiency**: after consumption, sum every batch's remaining amount for the medicine and compare it against a **projected weekly usage**: the total amount of doses the existing dose generator (`dose-records`' "Dose generation from schedules" requirement) produces for that medicine over the 7 calendar days starting today, in the device time zone. This reuses already-specified, already-tested schedule-expansion logic instead of inventing a second rate calculation, and it automatically handles every-N-days anchoring, weekday schedules and every-N-hours schedules the same way the rest of the app does. A medicine with no schedules (as-needed) has no projected weekly usage and is exempt from the low-stock check entirely — there is no reliable rate to project.
+
+- **Low-stock acknowledgement is per medicine, not per event**: `lowStockAcknowledgement` is unset by default. Whenever a taken dose leaves stock insufficient for the week and the flag is unset, the low-stock warning is shown; tapping "OK" leaves the flag unset (so the same check will warn again next time); tapping "I ordered new" sets it. While set, the low-stock check still runs (so the tile heads-up and the details screen still reflect reality) but the warning dialog is not shown. Adding any new stock batch — regardless of amount or whether it actually restores sufficiency — always clears the flag back to unset, per the user's own description of the suppression.
+
+- **Expiry-at-use is independent of the low-stock acknowledgement**: after consumption, the batch FEFO drew from first is classified `NONE` / `APPROACHING` (within 30 days) / `PAST` using the same three-state shape the superseded draft defined, now evaluated per batch instead of per medicine. `APPROACHING` or `PAST` always shows the expiry-at-use warning on that take, with no suppression mechanism — only using up or replacing that batch changes the underlying fact, so there is nothing sensible to acknowledge away.
+
+- **Warning presentation**: when a taken dose triggers the low-stock warning, the expiry-at-use warning, or both, the app shows one dialog listing whichever apply, since both stem from the same take. When the app was not in the foreground at the moment of recording (the dose was answered from the notification, or from a wearable), the warning is not lost: it is shown the next time the app is opened, evaluated fresh against the medicine's stock state at that later moment rather than replayed as a stale event. If several such takes happen while the app is backgrounded, they collapse into a single warning per medicine when the app is next opened, since only the current state, not the history of events, is meaningful to the user.
+
+- **Tile and details-screen heads-up is a live read, not an event**: unlike the warning dialog, the Medicines screen tile and the Medicine details screen's Stock section always reflect the medicine's *current* stock and expiry state, recomputed whenever they are shown, independent of whether or when a dose was last taken. This mirrors `medicine-overview`'s existing "Overview updates live" requirement.
+
+- **Add stock form**: quantity (decimal, greater than zero, unit fixed to the medicine's dose unit) and expiry date (required, date picker). An expiry date already in the past is accepted with a non-blocking warning, consistent with the advisory-warning pattern `dose-detail` already uses elsewhere in the app, rather than being rejected outright — a user may be entering stock they already know is expired.
 
 ## Risks / Trade-offs
 
-- [A fixed 30-day window may not suit every medicine (e.g. a short-course antibiotic vs. a multi-month supply)] → Acceptable for v1 since it mirrors how CLAUDE.md already treats this kind of lead time as a detail to settle in design rather than a blocking requirement; revisit if user feedback asks for it.
-- [Adding a badge to an already-dense tile risks visual clutter] → Only one expiry badge state is ever shown per tile (approaching or past, never both), and it is omitted entirely when there is no expiry date, so unaffected medicines are unchanged.
-- [Users may confuse "use until" (when a medicine is deactivated) with "expiry date" (when the physical pack goes bad)] → Distinct field labels and inline help text on the form; details screen shows both when present so the distinction is visible, not implicit.
+- [Keeping zero-remaining batches means a long-lived medicine can accumulate many exhausted rows] → Acceptable: rows are small and the count is bounded by how many times a user restocks a medicine over the app's lifetime, not by dose frequency.
+- [A fixed 7-day and 30-day window may not suit every medicine] → Same trade-off the superseded draft accepted for its 30-day window; revisit if user feedback asks for configurability.
+- [Deferring the warning until the app is foregrounded means a dose answered from the notification does not warn immediately] → Necessary: there is no reliable way to show an interactive, two-choice dialog without the app's UI. This keeps the reminder/notification path exactly as simple and reliable as CLAUDE.md requires, at the cost of a short delay before the warning is seen.
+- [An as-needed medicine's stock can run out with no low-stock warning, since there is no schedule to project from] → Accepted as a Non-Goal; the expiry-at-use warning still applies to as-needed medicines with stock, so expiry is still covered.
 
 ## Migration Plan
 
-1. Ship the Room schema migration (add nullable `expiryDate` column) with its migration test.
-2. Add the domain `expiryState` function and its unit tests.
-3. Add the form field to Add medicine / Medicine details.
-4. Add the tile and details-screen presentation.
-No rollback concerns beyond a standard schema migration: the column is nullable and additive, so a future revert simply stops reading/writing it.
+1. Ship the Room schema migration (new `stock_batches` table, new nullable `lowStockAcknowledgement` column on `medications`) with its migration test.
+2. Add the domain types and pure functions: `StockBatch`, FEFO consumption, weekly-usage projection (via the existing dose generator), sufficiency check, batch expiry classification.
+3. Hook consumption + sufficiency + expiry-at-use evaluation into the existing shared "record taken" path, atomically with the intake write.
+4. Add the warning dialog, including the deferred-display path for app-backgrounded takes.
+5. Add the Medicine details Stock section and Add stock form.
+6. Add the Medicines screen tile heads-up.
+
+No rollback concerns beyond a standard additive schema migration: the new table and column are additive and nullable/empty by default, so a revert simply stops reading and writing them.
 
 ## Open Questions
 
-- Whether the 30-day approaching-window should become configurable later, and if so, whether it should share a mechanism with a future refill lead-time setting.
-- Whether a future refill/low-stock feature should reuse the `ExpiryState`-style three-state model for its own warning, once it exists.
+- Whether the 7-day and 30-day windows should become user-configurable later.
+- Whether manual batch correction (edit or remove a mistaken entry) should be a follow-up proposal.

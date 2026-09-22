@@ -44,6 +44,8 @@ import nl.hexmaster.pillsner.data.reminders.BatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.ReminderAlarmScheduler
 import nl.hexmaster.pillsner.data.reminders.ReminderCoordinator
 import nl.hexmaster.pillsner.data.reminders.ReminderDeliveryLog
+import nl.hexmaster.pillsner.data.reminders.TrustedClockGuard
+import nl.hexmaster.pillsner.data.reminders.TrustedClockStore
 import nl.hexmaster.pillsner.data.wear.DataLayerSyncTarget
 import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
 import nl.hexmaster.pillsner.data.wear.WearDataClientFactory
@@ -76,6 +78,7 @@ import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DoseGenerator
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
+import nl.hexmaster.pillsner.domain.scheduling.PurgeExpiredDoseHistory
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
 import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
@@ -146,6 +149,10 @@ class AppContainer(
         RefreshPlannedDoses(this.medicationRepository, this.doseRepository, DoseGenerator(), clock)
     private val dueDoses = DueDoses(clock)
     private val computeWakeSchedule = ComputeWakeSchedule(clock)
+
+    /** The clock-tamper guard the dose-history purge relies on (spec: dose-history-retention). */
+    private val trustedClockGuard = TrustedClockGuard(TrustedClockStore(applicationContext))
+    private val purgeExpiredDoseHistory = PurgeExpiredDoseHistory(clock)
 
     private val recordIntakeUseCase = RecordIntake(this.doseRepository, clock)
     private val snoozeDoseUseCase = SnoozeDose(this.doseRepository, markMissedDoses, clock)
@@ -250,6 +257,8 @@ class AppContainer(
         unlockState = userUnlockState,
         silentlyMissedReminders = reminderPreferences::recordSilentlyMissedReminder,
         deliveryLog = reminderDeliveryLog,
+        trustedClockGuard = trustedClockGuard,
+        purgeExpiredDoseHistory = purgeExpiredDoseHistory,
     )
 
     /**

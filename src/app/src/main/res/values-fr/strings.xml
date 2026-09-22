@@ -395,6 +395,8 @@
     <string name="reminder_diagnostics_event_gave_up">Arrêt des tentatives</string>
     <string name="reminder_diagnostics_event_alarms_armed">Alarmes programmées</string>
     <string name="reminder_diagnostics_event_alarms_left_as_is">Alarmes laissées telles quelles</string>
+    <string name="reminder_diagnostics_event_history_purged">Historique purgé</string>
+    <string name="reminder_diagnostics_event_history_purge_failed">Échec de la purge de l\'historique</string>
     <string name="about_name_origin">Le nom associe deux mots anglais : Pills et Partner. C\'est ce que l\'application veut être, un partenaire qui se souvient de tes doses, pour que tu n\'aies pas à le faire.</string>
     <!-- %1$s : nom de version. %2$d : code de version. La ligne s\'appelle déjà « Version ». -->
     <string name="about_version_value">%1$s (%2$d)</string>

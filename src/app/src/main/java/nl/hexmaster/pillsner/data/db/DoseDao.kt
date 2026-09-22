@@ -281,7 +281,44 @@ interface DoseDao {
     @Query("SELECT MIN(scheduled_at) FROM doses WHERE medication_id = :medicationId")
     suspend fun earliestScheduledAt(medicationId: Long): Instant?
 
-    /** Only for tests and for the debug preview data; production never removes a dose. */
+    /**
+     * Deletes every dose scheduled before [cutoff] (spec: dose-history-retention).
+     *
+     * Production removes a dose in exactly this one case: history the app has never shown beyond
+     * three months and now bounds at one year. Served by the single-column index on `scheduled_at`
+     * (schema v5) — a `WHERE scheduled_at < ?` range scan, not the composite `(outcome,
+     * scheduled_at)` index added for pending-dose lookups, which cannot serve a range scan on its
+     * non-leading column.
+     *
+     * @return how many rows were removed.
+     */
+    @Query("DELETE FROM doses WHERE scheduled_at < :cutoff")
+    suspend fun deleteHistoryBefore(cutoff: Instant): Int
+
+    /** Whether the app has ever stored a dose, answered or not. A cheap existence check. */
+    @Query("SELECT EXISTS(SELECT 1 FROM doses LIMIT 1)")
+    suspend fun hasAnyDose(): Boolean
+
+    /**
+     * The most recent moment any *answered* dose was stored, or null when there is none (spec:
+     * dose-history-retention, "Trusted-now clock guard"). `planned_at` on an answered row is a
+     * wall-clock reading the app itself took no later than the moment it was answered, so it can
+     * never be a future projection the way a still-pending dose's `planned_at` can be for a
+     * migrated, pre-schema-v4 row.
+     *
+     * **Restricted to `outcome IS NOT NULL` on purpose** (correction found in PR review): schema
+     * v4's migration backfilled every existing row's `planned_at` from its own `scheduled_at`
+     * (`Migrations.MIGRATION_3_4`), and a *pending* row's `scheduled_at` can be later than "now" by
+     * design — it is a dose still due today or tomorrow. Without this restriction, a legacy
+     * pending row surviving from before that migration could hand the trusted-clock guard a
+     * floor that is itself a future projection, defeating the whole point of an "already
+     * happened" floor. An answered row's timestamp can never have this problem: nothing records
+     * an outcome before the moment it actually occurred.
+     */
+    @Query("SELECT MAX(planned_at) FROM doses WHERE outcome IS NOT NULL")
+    suspend fun latestKnownMoment(): Instant?
+
+    /** Only for tests and for the debug preview data. */
     @Query("DELETE FROM doses")
     suspend fun deleteAll()
 }

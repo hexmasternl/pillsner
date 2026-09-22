@@ -3,6 +3,8 @@ package nl.hexmaster.pillsner.data.reminders
 import android.util.Log
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +24,7 @@ import nl.hexmaster.pillsner.domain.scheduling.ComputeWakeSchedule
 import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.PendingSnapshot
+import nl.hexmaster.pillsner.domain.scheduling.PurgeExpiredDoseHistory
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
 import nl.hexmaster.pillsner.domain.scheduling.buildPendingSnapshot
 import nl.hexmaster.pillsner.domain.scheduling.silentlyMissedReminderAmong
@@ -84,6 +87,11 @@ class ReminderCoordinator(
     private val silentlyMissedReminders: SilentlyMissedReminders = SilentlyMissedReminders {},
     // Null in tests that do not care what was recorded; the real one lives in AppContainer.
     private val deliveryLog: ReminderDeliveryLog? = null,
+    // Null in tests that do not care about the dose-history purge; the real one lives in
+    // AppContainer. A null guard means [wake] never has a validated trusted-now to purge with,
+    // which is the same as the purge never running (spec: dose-history-retention).
+    private val trustedClockGuard: TrustedClockGuard? = null,
+    private val purgeExpiredDoseHistory: PurgeExpiredDoseHistory = PurgeExpiredDoseHistory(clock),
 ) {
 
     // One wake at a time: an alarm and an answer from a notification can arrive in the same second.
@@ -187,6 +195,19 @@ WakeOutcome.Failed -> {
     }
 
     private suspend fun wake(reason: WakeReason): WakeResult {
+        // Read before anything else this wake does, so a dose this very wake is about to insert
+        // (RefreshPlannedDoses, below, using this same clock) can never masquerade as independent
+        // evidence for the trusted-clock guard this wake's own purge step is about to consult
+        // (correction found in PR review: the floor must predate this wake's own writes).
+        val knownGoodFloor = try {
+            doseRepository.latestKnownMoment()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Exception) {
+            Log.d(TAG, "Could not read dose-history clock floor: ${error::class.simpleName}")
+            null
+        }
+
         val lapsed = markMissedDoses()
         lapsed.forEach { dose ->
             notifier.cancel(dose)
@@ -250,7 +271,38 @@ WakeOutcome.Failed -> {
             doseRepository.applyReminderOutcomes(outcomeUpdates)
         }
 
+        runDoseHistoryPurge(knownGoodFloor)
+
         return WakeResult(snapshot.copy(doses = updatedDoses.values.toList()), refreshResult.medications)
+    }
+
+    /**
+     * Housekeeping only, and never on the path a due reminder's timely posting depends on, so it
+     * runs last and never lets a failure of its own affect anything above (spec:
+     * dose-history-retention, "Purge runs without costing a reminder").
+     *
+     * [CancellationException] (and its subtype [TimeoutCancellationException], thrown by the
+     * `withTimeout` this runs inside of) is re-thrown rather than caught here: swallowing it would
+     * let this step silently absorb the wake's own timeout, making a wake that ran out of time
+     * falsely report as complete instead of arming its retry
+     * (`reminder-scheduling`, "A wake that does not complete is retried").
+     *
+     * @param knownGoodFloor the most recent answered-dose moment from *before* this wake began —
+     *   captured at the top of [wake], never re-read here, so this wake's own writes can never
+     *   feed the guard evidence about itself (correction found in PR review).
+     */
+    private suspend fun runDoseHistoryPurge(knownGoodFloor: Instant?) {
+        try {
+            val guard = trustedClockGuard ?: return
+            val trustedNow = guard.observe(knownGoodFloor) ?: return
+            val purged = doseRepository.deleteHistoryBefore(purgeExpiredDoseHistory(trustedNow))
+            if (purged > 0) deliveryLog?.record(DeliveryEvent.HISTORY_PURGED, purged.toString())
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Exception) {
+            Log.d(TAG, "Dose history purge did not complete: ${error::class.simpleName}")
+            deliveryLog?.record(DeliveryEvent.HISTORY_PURGE_FAILED, "${error::class.simpleName}")
+        }
     }
 
     /**
@@ -312,13 +364,23 @@ WakeOutcome.Failed -> {
      * When even working out the schedule fails, the alarms already armed are left exactly as they
      * are. They are the app's last good answer, and a reconcile against a schedule that could not
      * be read would cancel every one of them over what may be a passing failure.
+     *
+     * Uses an explicit try/catch rather than `runCatching`, and re-throws [CancellationException]
+     * before the generic catch (correction found in PR review): `runCatching` catches every
+     * `Throwable`, cancellation included, and this method now makes a suspending database call
+     * (`hasAnyDose`) that a cancellation could land inside of. Swallowing it here would let the
+     * caller's own cancellation look like an ordinary schedule failure instead of propagating.
      */
     private suspend fun reconcileAlarms(wakeResult: WakeResult? = null) {
-        val schedule = runCatching {
+        val schedule = try {
             val snapshot = wakeResult?.snapshot ?: buildPendingSnapshot(doseRepository, markMissedDoses)
             val medications = wakeResult?.medications ?: medicationRepository.observeAll().first()
-            computeWakeSchedule(snapshot, medications)
-        }.getOrNull()
+            computeWakeSchedule(snapshot, medications, doseRepository.hasAnyDose())
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Exception) {
+            null
+        }
         if (schedule == null) {
             deliveryLog?.record(DeliveryEvent.ALARMS_LEFT_AS_IS)
             return

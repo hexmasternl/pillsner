@@ -281,7 +281,25 @@ interface DoseDao {
     @Query("SELECT MIN(scheduled_at) FROM doses WHERE medication_id = :medicationId")
     suspend fun earliestScheduledAt(medicationId: Long): Instant?
 
-    /** Only for tests and for the debug preview data; production never removes a dose. */
+    /**
+     * Deletes every dose scheduled before [cutoff] (spec: dose-history-retention).
+     *
+     * Production removes a dose in exactly this one case: history the app has never shown beyond
+     * three months and now bounds at one year. Served by the single-column index on `scheduled_at`
+     * (schema v5) — a `WHERE scheduled_at < ?` range scan, not the composite `(outcome,
+     * scheduled_at)` index added for pending-dose lookups, which cannot serve a range scan on its
+     * non-leading column.
+     *
+     * @return how many rows were removed.
+     */
+    @Query("DELETE FROM doses WHERE scheduled_at < :cutoff")
+    suspend fun deleteHistoryBefore(cutoff: Instant): Int
+
+    /** Whether the app has ever stored a dose, answered or not. A cheap existence check. */
+    @Query("SELECT EXISTS(SELECT 1 FROM doses LIMIT 1)")
+    suspend fun hasAnyDose(): Boolean
+
+    /** Only for tests and for the debug preview data. */
     @Query("DELETE FROM doses")
     suspend fun deleteAll()
 }

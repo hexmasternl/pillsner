@@ -141,6 +141,14 @@ class InMemoryDoseRepository(initial: List<Dose> = emptyList()) : DoseRepository
     override suspend fun earliestScheduledAt(medicationId: MedicationId): Instant? =
         doses.value.filter { it.medicationId == medicationId }.minOfOrNull { it.scheduledAt }
 
+    override suspend fun deleteHistoryBefore(cutoff: Instant): Int {
+        val before = doses.value.size
+        doses.update { current -> current.filterNot { it.scheduledAt.isBefore(cutoff) } }
+        return before - doses.value.size
+    }
+
+    override suspend fun hasAnyDose(): Boolean = doses.value.isNotEmpty()
+
     /** Everything stored, answered doses included, for assertions. */
     fun all(): List<Dose> = doses.value.sortedBy { it.scheduledAt }
 

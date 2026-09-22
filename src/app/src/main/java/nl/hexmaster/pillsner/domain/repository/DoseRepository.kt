@@ -139,8 +139,10 @@ interface DoseRepository {
 
     /**
      * Every stored dose of [medicationId] scheduled in `[from, to)`, oldest first, answered and
-     * unanswered alike. Read-only: nothing here changes a dose, and history is never withdrawn, so
-     * what comes back is what happened. Re-emits when an outcome is recorded while it is collected.
+     * unanswered alike. Read-only: nothing here changes a dose, and a dose is never withdrawn from
+     * here, so what comes back is what happened — except for [deleteHistoryBefore]'s one-year
+     * retention purge, which this can no longer promise to keep forever. Re-emits when an outcome
+     * is recorded while it is collected.
      */
     fun observeHistoryFor(medicationId: MedicationId, from: Instant, to: Instant): Flow<List<Dose>>
 
@@ -150,4 +152,15 @@ interface DoseRepository {
      * a medicine taken rarely, not a record that is missing.
      */
     suspend fun earliestScheduledAt(medicationId: MedicationId): Instant?
+
+    /**
+     * Deletes every dose scheduled before [cutoff] and returns how many were removed (spec:
+     * dose-history-retention). The one deliberate exception to doses otherwise never being removed:
+     * bounding history to a rolling year, since nothing in the app shows usage data beyond three
+     * months. Never touches a `Medication` or `Schedule` row.
+     */
+    suspend fun deleteHistoryBefore(cutoff: Instant): Int
+
+    /** Whether the app has ever stored a dose, answered or not. */
+    suspend fun hasAnyDose(): Boolean
 }

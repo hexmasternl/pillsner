@@ -21,6 +21,7 @@ import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.repository.ReminderOutcomeUpdate
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -433,6 +434,71 @@ class DoseDaoTest {
         assertEquals("The first-told moment never moves", morning, repeated.firstRemindedAt)
         assertEquals(morning.plusSeconds(900), repeated.lastRemindedAt)
         assertEquals(1, repeated.reminderCount)
+    }
+
+    @Test
+    fun deletingHistoryBeforeACutoff_removesOnlyTheOlderRows() = runBlocking {
+        val id = medications.add(medication())
+        val old = morning.minusSeconds(400L * 86_400)
+        doses.insertPlanned(listOf(planned(id, old), planned(id, morning)), plannedAt = plannedBeforeDue)
+        doses.recordIntake(doses.pending().first { it.scheduledAt == old }.id, IntakeOutcome.TAKEN, old)
+
+        val purged = doses.deleteHistoryBefore(cutoff = morning.minusSeconds(86_400))
+
+        assertEquals(1, purged)
+        assertEquals(listOf(morning), doses.observeHistoryFor(id, old.minusSeconds(1), morning.plusSeconds(1)).first().map { it.scheduledAt })
+    }
+
+    @Test
+    fun deletingHistoryBeforeACutoff_isANoOpWhenNothingQualifies() = runBlocking {
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+
+        val purged = doses.deleteHistoryBefore(cutoff = morning.minusSeconds(86_400))
+
+        assertEquals(0, purged)
+        assertEquals(1, doses.pending().size)
+    }
+
+    @Test
+    fun deletingHistoryBeforeACutoff_neverTouchesTheMedicationRow() = runBlocking {
+        val id = medications.add(medication())
+        val old = morning.minusSeconds(400L * 86_400)
+        doses.insertPlanned(listOf(planned(id, old)), plannedAt = plannedBeforeDue)
+        doses.recordIntake(doses.pending().single().id, IntakeOutcome.TAKEN, old)
+
+        doses.deleteHistoryBefore(cutoff = morning)
+
+        assertEquals("Ibuprofen", medications.get(id)?.name)
+    }
+
+    @Test
+    fun deleteHistoryBeforeQuery_usesTheScheduledAtIndex() = runBlocking {
+        val plan = database.openHelper.writableDatabase
+            .query("EXPLAIN QUERY PLAN DELETE FROM doses WHERE scheduled_at < 0")
+            .use { cursor ->
+                val detail = cursor.getColumnIndexOrThrow("detail")
+                buildString {
+                    while (cursor.moveToNext()) appendLine(cursor.getString(detail))
+                }
+            }
+
+        assertTrue(
+            "Expected the doses(scheduled_at) index in the query plan, got:\n$plan",
+            plan.contains("index_doses_scheduled_at"),
+        )
+    }
+
+    @Test
+    fun hasAnyDose_reflectsWhetherAnythingHasEverBeenStored() = runBlocking {
+        assertFalse(doses.hasAnyDose())
+
+        val id = medications.add(medication())
+        doses.insertPlanned(listOf(planned(id, morning)), plannedAt = plannedBeforeDue)
+        assertTrue(doses.hasAnyDose())
+
+        database.doseDao().deleteAll()
+        assertFalse(doses.hasAnyDose())
     }
 
     @Test

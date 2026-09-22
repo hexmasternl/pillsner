@@ -1,9 +1,10 @@
-## 1. Data layer
+## 1. Domain and data layer
 
-- [ ] 1.1 Add a nullable `expiryDate` column to the medicine Room entity
-- [ ] 1.2 Write the Room migration adding the column, defaulting existing rows to `NULL`
-- [ ] 1.3 Write a migration test asserting the schema change and that existing rows survive with `expiryDate = null`
-- [ ] 1.4 Extend the medicine repository's read/write mapping to carry `expiryDate` through unchanged
+- [ ] 1.1 Add a nullable `expiryDate: LocalDate?` field to the `Medication` and `NewMedication` domain models, default `null`
+- [ ] 1.2 Add a nullable `expiryDate` column to the medicine Room entity
+- [ ] 1.3 Write the Room migration adding the column, defaulting existing rows to `NULL`
+- [ ] 1.4 Write a migration test asserting the schema change and that existing rows survive with `expiryDate = null`
+- [ ] 1.5 Extend the medicine repository's read/write mapping to carry `expiryDate` through unchanged, both the `Medication` and `NewMedication` sides
 
 ## 2. Domain layer
 

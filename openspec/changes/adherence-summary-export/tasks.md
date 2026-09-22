@@ -1,8 +1,9 @@
 ## 1. Domain: report model and builder
 
 - [ ] 1.1 Add an `AdherenceReport` domain data class (medicine name, schedule text, period label, scheduled/taken/skipped/missed/unanswered counts, adherence percentage, optional per-dose rows) with no Android dependency
-- [ ] 1.2 Add an `AdherenceReportBuilder` that maps the Usage history screen's existing state (figures, breakdown, per-dose data) plus an "include doses" flag into an `AdherenceReport`
-- [ ] 1.3 Unit test `AdherenceReportBuilder`: summary-only vs. with-doses mapping, figures matching the source state exactly, empty-doses list when detail is off
+- [ ] 1.2 Extend `MedicineHistoryUiState` with `doses: List<Dose>` and `scheduleDescription: String`, populated in `MedicineHistoryViewModel`'s existing `combine` block from data it already reads (the discarded `doses` list and the `Medication` read in `init`, formatted with `ScheduleDescriptionFormatter`) — no new repository query
+- [ ] 1.3 Add an `AdherenceReportBuilder` that maps the extended `MedicineHistoryUiState` (figures, breakdown, per-dose data, schedule text) plus an "include doses" flag into an `AdherenceReport`
+- [ ] 1.4 Unit test `AdherenceReportBuilder`: summary-only vs. with-doses mapping, figures matching the source state exactly, empty-doses list when detail is off
 
 ## 2. PDF export
 
@@ -32,4 +33,4 @@
 
 - [ ] 6.1 Run `pillsner-ui-review` against the new top app bar action and dialog
 - [ ] 6.2 Run unit tests, lint, and instrumented tests for the sharing/file-provider path
-- [ ] 6.3 Manually verify: export with and without dose detail, PDF and CSV, on a device with no app installed that can open a PDF (share sheet still offers "Save to Files" / print) and on one that can
+- [ ] 6.3 Manually verify: export with and without dose detail, PDF and CSV, on a device with no app installed that can open a PDF (share sheet still offers "Save to Files" / print) and on one that can (confirm the shared PDF opens in a PDF viewer and the shared CSV opens in a spreadsheet or text app)

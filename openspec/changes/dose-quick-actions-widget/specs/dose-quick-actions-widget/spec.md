@@ -63,6 +63,17 @@ While the app's PIN or biometric lock is enabled, the widget SHALL NOT display a
 - **WHEN** the app lock is disabled
 - **THEN** the widget shows full dose details as specified above
 
+#### Scenario: Enabling the lock refreshes an already-shown widget
+- **WHEN** the app lock is turned on while the widget is currently showing full dose details
+- **THEN** the widget refreshes to the masked state immediately, without waiting for a dose to be answered or a reminder to post
+
+### Requirement: Widget answer actions are rejected once the app lock is enabled
+A widget's answer action MUST re-check the app lock's current enabled/disabled state at the moment it is invoked, not rely on whatever the widget last rendered. A launcher may retain a stale copy of the widget's `RemoteViews` from before the lock was enabled; its action `PendingIntent`s remain callable even after the widget has been told to mask itself.
+
+#### Scenario: A stale widget cannot answer a dose once the lock is enabled
+- **WHEN** the app lock is enabled after the widget last rendered full dose details, and the retained action is then invoked
+- **THEN** the action does not record an outcome, and the widget refreshes to the masked state
+
 ### Requirement: Widget shows the single soonest dose when several are due
 When more than one dose is due or overdue at once, the widget SHALL show only the soonest-due one of them, keeping the widget's layout fixed-size, consistent with the app not needing a scrolling list at this scale.
 

@@ -1,4 +1,4 @@
-GitHub issue: [#33](https://github.com/hexmasternl/pillsner/issues/33)
+**GitHub Issue:** #33 (https://github.com/hexmasternl/pillsner/issues/33)
 
 ## Why
 

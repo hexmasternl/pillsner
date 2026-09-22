@@ -8,6 +8,7 @@
 - [ ] 2.1 Define the widget's Glance state (next dose / due dose / nothing due / masked-locked) as a small domain-facing data model, mapped from the existing dose repository/Flow — no new query logic
 - [ ] 2.2 Wire state updates so `updateAll`/`update` is invoked after: a dose is answered (app or notification), a reminder is posted, and the planning-window refresh runs — with no periodic polling anywhere in the widget code
 - [ ] 2.3 Read the app lock's enabled/disabled state and apply the masked rendering whenever it's enabled, per the `dose-quick-actions-widget` spec
+- [ ] 2.4 Trigger a widget `updateAll`/`update` when the app lock is turned on or off, alongside the existing answer/reminder/refresh triggers — masking must apply immediately, not only the next time some other event happens to redraw the widget
 
 ## 3. Widget content
 
@@ -19,7 +20,7 @@
 
 ## 4. Answer actions
 
-- [ ] 4.1 Implement a Glance `ActionCallback` for each of the three actions that calls the same domain use case the notification's `BroadcastReceiver` already calls, with no duplicated recording logic
+- [ ] 4.1 Implement a Glance `ActionCallback` for each of the three actions that first re-checks the app lock's *current* enabled/disabled state — not whatever the widget last rendered — and only then calls the same domain use case the notification's `BroadcastReceiver` already calls, with no duplicated recording logic. A stale `RemoteViews` a launcher retained from before the lock was enabled must not be able to answer a dose without the app lock re-checked first.
 - [ ] 4.2 Verify "Not yet" from the widget produces the identical snooze/repeat-reset behaviour as "Not yet" from the notification, and that it removes/updates the notification consistently
 - [ ] 4.3 Verify answering from the widget updates any currently-shown reminder notification for the same dose, and vice versa
 
@@ -29,6 +30,7 @@
 - [ ] 5.2 Unit test that the masked/locked state never includes medicine name, amount, or actions
 - [ ] 5.3 Instrumented test: tapping each widget action records the same intake outcome as the equivalent notification action, and updates the notification/widget consistently
 - [ ] 5.4 Instrumented test: the widget updates after an answer or a new reminder without any manual refresh, and does not update on any timer in the absence of such an event
+- [ ] 5.5 Instrumented test: enabling the app lock refreshes an already-shown widget to the masked state, and invoking a stale action retained from before the lock was enabled does not record an outcome
 
 ## 6. Verification
 

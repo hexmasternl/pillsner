@@ -22,9 +22,11 @@ Pillsner has no PDF or file-sharing code today. `android.graphics.pdf.PdfDocumen
 
 ## Decisions
 
-### D1. Report content comes from the existing `UsageHistoryUiState`, not a new query
+### D1. Report content comes from the existing `MedicineHistoryUiState`, not a new query
 
-The export action reads the same `UsageHistoryUiState` (or equivalent state holder) the screen is already displaying for its current medicine and period. A dedicated `AdherenceReportBuilder` (domain layer, no Android dependency) maps that state plus the medicine's schedule description into a small `AdherenceReport` data class: medicine name, schedule text, period label, scheduled/taken/skipped/missed/unanswered counts, adherence percentage, and — only when the caller asks for it — the ordered list of per-dose rows (due time, answered time, outcome). This keeps "what the report says" mechanically tied to "what the screen already says," and keeps the mapping unit-testable without Android.
+The export action reads the same `MedicineHistoryUiState` the Usage history screen is already displaying for its current medicine and period. Today that state (`MedicineHistoryUiState.kt`) holds only `medicineName`, `history` and `timeDeviation`; the per-dose list is read inside `MedicineHistoryViewModel`'s `combine` block but discarded rather than retained, and there is no schedule text at all. This change extends `MedicineHistoryUiState` with two fields the `combine` block already has the inputs for: `doses: List<Dose>` (the same list the `combine` already receives from `doseRepository.observeHistoryFor(...)`, simply kept instead of dropped) and `scheduleDescription: String` (the medicine's schedule, formatted with the existing `ScheduleDescriptionFormatter` from the `Medication` already read in `init`). Neither addition triggers a new repository query — both values are already being fetched for the screen's own use; only the retention changes.
+
+A dedicated `AdherenceReportBuilder` (domain layer, no Android dependency) then maps that extended state into a small `AdherenceReport` data class: medicine name, schedule text, period label, scheduled/taken/skipped/missed/unanswered counts, adherence percentage, and — only when the caller asks for it — the ordered list of per-dose rows (due time, answered time, outcome). This keeps "what the report says" mechanically tied to "what the screen already says," and keeps the mapping unit-testable without Android.
 
 ### D2. PDF via `PdfDocument`, not a third-party library
 

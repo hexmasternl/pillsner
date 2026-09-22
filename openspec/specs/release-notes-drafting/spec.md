@@ -37,6 +37,8 @@ The system SHALL identify the OpenSpec changes included in a release pull reques
 ### Requirement: Release notes are drafted in English and Dutch using GitHub Copilot
 The system SHALL send the collected change summaries to GitHub Copilot, via the GitHub Copilot CLI authenticated with a dedicated repository secret (`GIHUB_COPILOT_API_KEY`), and SHALL request two brief, non-technical, user-facing summaries suitable for a Play Store "what's new" listing: one in English and one in Dutch.
 
+`GIHUB_COPILOT_API_KEY` is a known misspelling of `GITHUB_COPILOT_API_KEY` (missing a T), carried here deliberately because it matches the actual repository secret's name and the workflow's current reference to it. Renaming either the secret or the workflow alone, without the other, breaks this requirement; a future change proposal should rename both together rather than this spec silently drifting from what the workflow actually reads.
+
 #### Scenario: Successful draft generation
 - **WHEN** the collected change summaries are sent to GitHub Copilot
 - **THEN** the response contains a brief English summary and a brief Dutch summary, each written as user-facing "what's new" style text

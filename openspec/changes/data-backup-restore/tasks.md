@@ -1,18 +1,20 @@
 ## 1. Domain: backup snapshot model and use cases
 
-- [ ] 1.1 Define a domain-layer `BackupSnapshot` model covering every medication, schedule, intake record and stock/refill value, independent of Room entities.
-- [ ] 1.2 Implement an `ExportBackupUseCase` that reads the current repository state into a `BackupSnapshot`.
-- [ ] 1.3 Implement an `ImportBackupUseCase` that replaces the repository state from a `BackupSnapshot` in a single transaction, rolling back entirely on any failure.
-- [ ] 1.4 Add unit tests for both use cases covering an empty dataset, a populated dataset, and a transaction failure during import leaving prior data intact.
+- [ ] 1.1 Define a domain-layer `BackupSnapshot` model covering every medication, schedule and intake record, independent of Room entities. Each medication carries an export-local `String` identifier generated at export time (not a Room row ID); each dose references its medication, if any, by that same identifier rather than a database ID.
+- [ ] 1.2 Implement an `ExportBackupUseCase` that reads the current repository state into a `BackupSnapshot`, assigning each medication its export-local identifier.
+- [ ] 1.3 Add a `BackupDataStore` domain interface (`replaceAll(snapshot: BackupSnapshot)`) and a `RoomBackupDataStore` implementation that, in one `withTransaction` block over `PillsnerDatabase`, clears every table and reinserts the snapshot's medications and doses, resolving each dose's `medicationId` from the snapshot's export-local identifiers to the newly-assigned Room IDs — following the same domain-interface-over-Room shape `AppDataEraser`/`RoomAppDataEraser` already use for `app-reset`.
+- [ ] 1.4 Implement an `ImportBackupUseCase` that calls `BackupDataStore.replaceAll` with the deserialised `BackupSnapshot`, rolling back entirely on any failure.
+- [ ] 1.5 Add unit tests for the use cases and `RoomBackupDataStore` covering an empty dataset, a populated dataset with doses referencing medications by export-local identifier, a dose whose medication was already gone at export time (`null` reference), and a transaction failure during import leaving prior data intact.
 
 ## 2. Data: file format, versioning and encryption
 
 - [ ] 2.1 Define the `.pill` file header (format version, salt, KDF iteration count, nonce) and a format-version-1 JSON payload schema for `BackupSnapshot`.
-- [ ] 2.2 Implement PBKDF2-HMAC-SHA256 key derivation and AES-256-GCM encrypt/decrypt using `javax.crypto`, with a random salt and nonce generated per export.
+- [ ] 2.2 Implement PBKDF2-HMAC-SHA256 key derivation and AES-256-GCM encrypt/decrypt using `javax.crypto`, with a random salt and nonce generated per export and a fixed iteration count of 600,000 written to the header.
 - [ ] 2.3 Implement the format-version-1 serialiser/deserialiser for `BackupSnapshot`.
 - [ ] 2.4 Implement version-mismatch handling: fail with a clear, distinguishable error when the file's format version is newer than any this app version deserialises.
 - [ ] 2.5 Implement wrong-passphrase and corrupted-file handling: any GCM authentication failure surfaces as one clear "could not be read" error, never a partial result.
-- [ ] 2.6 Add unit tests for encrypt/decrypt round-trip, wrong passphrase, corrupted ciphertext, and an unrecognised format version.
+- [ ] 2.6 Reject a header whose iteration count falls outside 100,000–2,000,000 before attempting PBKDF2, surfacing the same clear "could not be read" error.
+- [ ] 2.7 Add unit tests for encrypt/decrypt round-trip, wrong passphrase, corrupted ciphertext, an unrecognised format version, and an out-of-range iteration count rejected without deriving a key.
 
 ## 3. Platform: Storage Access Framework integration
 

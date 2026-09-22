@@ -23,7 +23,7 @@ Tapping "Export data" SHALL first ask the user to enter and confirm a passphrase
 - **THEN** no file is created and no data is modified
 
 ### Requirement: The exported file contains user data only, excluding device-only state
-The exported file SHALL contain every medication (active and inactive), every schedule, every recorded intake with its outcome and timestamp, and current stock/refill state. It MUST NOT contain the app lock PIN verifier or biometric-unlock setting, the accepted-legal-document timestamps, or any Wear OS pairing state.
+The exported file SHALL contain every medication (active and inactive), every schedule, and every recorded intake with its outcome and timestamp. It MUST NOT contain the app lock PIN verifier or biometric-unlock setting, the accepted-legal-document timestamps, or any Wear OS pairing state. There is no stock/refill field to export: `Medication` and `MedicationEntity` do not track stock today, so the backup contract has nothing to carry for it until a future change adds that field.
 
 #### Scenario: User data is included
 - **WHEN** a dataset with medicines, schedules and a mix of taken, skipped and missed doses is exported
@@ -34,7 +34,7 @@ The exported file SHALL contain every medication (active and inactive), every sc
 - **THEN** the resulting file, once decrypted, contains neither the PIN verifier, the biometric setting, nor any watch pairing state
 
 ### Requirement: The exported file is encrypted and carries a plaintext format version
-The app SHALL derive an AES-256-GCM key from the export passphrase using PBKDF2-HMAC-SHA256 with a random per-export salt, and SHALL encrypt the entire data payload with that key and a random per-export nonce. The salt, the KDF iteration count, the nonce and an explicit integer format version SHALL be stored in an unencrypted header; none of these fields is treated as secret.
+The app SHALL derive an AES-256-GCM key from the export passphrase using PBKDF2-HMAC-SHA256 with a random per-export salt and a fixed iteration count of 600,000 (the current OWASP-recommended minimum for PBKDF2-HMAC-SHA256), and SHALL encrypt the entire data payload with that key and a random per-export nonce. The salt, the KDF iteration count, the nonce and an explicit integer format version SHALL be stored in an unencrypted header; none of these fields is treated as secret. On import, the app MUST reject a header whose iteration count is outside a fixed allowed range (100,000 to 2,000,000) before attempting PBKDF2, rather than spending CPU deriving a key from an untrusted, unbounded count.
 
 #### Scenario: Header is readable without the passphrase
 - **WHEN** an exported file is inspected without its passphrase
@@ -43,6 +43,10 @@ The app SHALL derive an AES-256-GCM key from the export passphrase using PBKDF2-
 #### Scenario: Same passphrase, different files
 - **WHEN** the same passphrase is used to export twice
 - **THEN** the two resulting files use different salts and different nonces
+
+#### Scenario: An out-of-range iteration count is rejected before key derivation
+- **WHEN** a selected `.pill` file's header declares an iteration count outside the 100,000–2,000,000 allowed range
+- **THEN** the import fails with a clear message and no PBKDF2 derivation is attempted
 
 ### Requirement: Import requires the export passphrase and fails loudly on mismatch or corruption
 Tapping "Import data" SHALL open the Storage Access Framework's document picker to choose a `.pill` file, then ask for the passphrase used to create it. A wrong passphrase, a corrupted file, or a file whose authentication check fails SHALL be reported as a single clear failure before any existing data is touched, and MUST NOT partially apply any part of the file.

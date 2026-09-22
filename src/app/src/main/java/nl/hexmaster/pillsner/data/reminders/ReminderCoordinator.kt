@@ -199,7 +199,14 @@ WakeOutcome.Failed -> {
         // (RefreshPlannedDoses, below, using this same clock) can never masquerade as independent
         // evidence for the trusted-clock guard this wake's own purge step is about to consult
         // (correction found in PR review: the floor must predate this wake's own writes).
-        val knownGoodFloor = doseRepository.latestKnownMoment()
+        val knownGoodFloor = try {
+            doseRepository.latestKnownMoment()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Exception) {
+            Log.d(TAG, "Could not read dose-history clock floor: ${error::class.simpleName}")
+            null
+        }
 
         val lapsed = markMissedDoses()
         lapsed.forEach { dose ->

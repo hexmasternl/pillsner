@@ -437,4 +437,19 @@
     <string name="usage_history_records_start">Die Aufzeichnungen für dieses Medikament beginnen am %1$s.</string>
     <string name="usage_history_empty_title">Für diesen Zeitraum nichts erfasst</string>
     <string name="usage_history_empty_hint">Versuch einen längeren Zeitraum, oder komm zurück, sobald ein paar Dosen vergangen sind.</string>
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d Dosis</item>
+        <item quantity="other">%1$d Dosen</item>
+    </plurals>
+    <string name="usage_history_timing_by_day">Einnahmegenauigkeit, nach Tag</string>
+    <string name="usage_history_timing_by_week">Einnahmegenauigkeit, nach Woche</string>
+    <plurals name="usage_history_timing_minutes">
+        <item quantity="one">%1$d Minute</item>
+        <item quantity="other">%1$d Minuten</item>
+    </plurals>
+    <string name="usage_history_timing_caption">Weniger ist besser</string>
+    <string name="usage_history_timing_bar_day">%1$s, im Schnitt %2$s vom Zeitplan abweichend, über %3$s</string>
+    <string name="usage_history_timing_bar_week">Woche von %1$s, im Schnitt %2$s vom Zeitplan abweichend, über %3$s</string>
+    <string name="usage_history_timing_bar_day_empty">%1$s, keine eingenommene Dosis erfasst</string>
+    <string name="usage_history_timing_bar_week_empty">Woche von %1$s, keine eingenommene Dosis erfasst</string>
 </resources>

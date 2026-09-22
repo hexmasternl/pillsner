@@ -437,4 +437,19 @@
     <string name="usage_history_records_start">De gegevens van dit medicijn beginnen op %1$s.</string>
     <string name="usage_history_empty_title">Niets vastgelegd in deze periode</string>
     <string name="usage_history_empty_hint">Probeer een langere periode, of kom terug als er een paar doses voorbij zijn.</string>
+    <plurals name="usage_history_axis_doses">
+        <item quantity="one">%1$d dosis</item>
+        <item quantity="other">%1$d doses</item>
+    </plurals>
+    <string name="usage_history_timing_by_day">Tijdigheid, per dag</string>
+    <string name="usage_history_timing_by_week">Tijdigheid, per week</string>
+    <plurals name="usage_history_timing_minutes">
+        <item quantity="one">%1$d minuut</item>
+        <item quantity="other">%1$d minuten</item>
+    </plurals>
+    <string name="usage_history_timing_caption">Lager is beter</string>
+    <string name="usage_history_timing_bar_day">%1$s, gemiddeld %2$s afwijking van het schema, over %3$s</string>
+    <string name="usage_history_timing_bar_week">Week van %1$s, gemiddeld %2$s afwijking van het schema, over %3$s</string>
+    <string name="usage_history_timing_bar_day_empty">%1$s, geen ingenomen doses geregistreerd</string>
+    <string name="usage_history_timing_bar_week_empty">Week van %1$s, geen ingenomen doses geregistreerd</string>
 </resources>

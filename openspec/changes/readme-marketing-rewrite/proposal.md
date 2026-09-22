@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #27 (https://github.com/hexmasternl/pillsner/issues/27)
+**Pull Request:** #53 (https://github.com/hexmasternl/pillsner/pull/53)
 
 The README currently reads like a developer onboarding guide: prerequisites, toolchain tables, Gradle commands and the branching model come before a visitor even finishes learning what Pillsner does for them. Anyone landing on the repository from the Play Store listing, a GitHub search or a link shared by a user sees setup instructions first and the product pitch second. The README should sell the app to the people it is for — people who want a reliable medication reminder — and only then, briefly, point contributors elsewhere for the developer detail. (GitHub issue #27)
 

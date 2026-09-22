@@ -16,23 +16,39 @@ params:
       - "Houdt je medicatiegegevens privé en op je eigen toestel, altijd"
   features:
     heading: "Wat Pillsner doet"
+    intro: "Een korte rondleiding. Elk onderdeel heeft een eigen pagina met alle details."
     items:
       - icon: "medication"
-        title: "Medicijnbeheer"
-        description: "Voeg elk medicijn toe met dosis, eenheid, data en voorschrijver. Onderverdeeld in actief en inactief, met voorraadbeheer en herinneringen voor bijbestellen. Er wordt nooit iets verwijderd."
+        title: "Je medicijnen"
+        description: "Voeg elk medicijn toe met dosis, eenheid, data en voorschrijver, geef het zoveel schema's als het nodig heeft, en stop er een zonder ooit te verliezen wat je hebt ingenomen."
+        link:
+          url: "medicines/"
+          label: "Over je medicijnen"
       - icon: "schedule"
         title: "Schema's en herinneringen"
-        description: "Vaste tijden, elke N uur, specifieke weekdagen, of zo nodig. Herinneringen zijn echte, exacte alarmen die een herstart, tijdzonewissel of klokverandering overleven."
+        description: "Vaste tijden, elke N uur, specifieke weekdagen, of zo nodig. Herinneringen komen als echte, exacte alarmen die een herstart, tijdzonewissel of klokverandering overleven."
+        link:
+          url: "schedules/"
+          label: "Over schema's en herinneringen"
+      - icon: "history"
+        title: "Je voortgang bijhouden"
+        description: "Beantwoord een dosis met één tik, zie wat er vandaag nog moet, en kijk terug op wat je hebt ingenomen, overgeslagen of gemist."
+        link:
+          url: "tracking/"
+          label: "Over bijhouden"
       - icon: "watch"
         title: "Aan je pols"
-        description: "Een Wear OS-app toont wat er de komende zes uur moet gebeuren en laat je direct vanaf je horloge bevestigen, uitstellen of overslaan."
-      - icon: "history"
-        title: "Inname bijhouden"
-        description: "Bevestig, stel uit of sla over met één tik, en bekijk een dagoverzicht en je innamegeschiedenis over tijd."
+        description: "Een Wear OS-app toont wat er de komende zes uur moet gebeuren, direct op je horloge."
+        link:
+          url: "wearable/"
+          label: "Over de horloge-app"
   privacy:
     heading: "Privacy als standaard"
     body: "Alle gegevens blijven op je toestel. Er is geen account, geen cloudsynchronisatie en geen analytics. Pillsner vraagt helemaal geen internettoestemming en vraagt alleen om wat nodig is om je betrouwbaar te herinneren. Nooit om je locatie, contacten of netwerktoegang."
-    link_label: "Lees het privacybeleid"
+    link_label: "Hoe Pillsner je gegevens beschermt"
+  help:
+    heading: "Vragen, fouten en ideeën"
+    body: "Lees de antwoorden op de vragen die mensen het vaakst stellen, laat ons weten wat er misging, of stel voor wat Pillsner hierna zou moeten doen."
   footer:
     tagline: "Jouw partner bij het innemen van je pillen."
     copyright: "© 2026 Pillsner. Alle rechten voorbehouden."

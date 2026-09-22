@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "src/website/**"
+      # The site renders the app screenshots straight from docs/screens/ (mounted
+      # into Hugo's assets), so a new or updated screenshot has to redeploy it too.
+      - "docs/screens/**"
   workflow_dispatch:
 
 permissions:

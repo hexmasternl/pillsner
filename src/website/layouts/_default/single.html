@@ -1,0 +1,51 @@
+{{ define "main" }}
+{{ partial "header.html" . }}
+
+<main id="main">
+  {{ partial "page-hero.html" . }}
+
+  {{ range $index, $section := .Params.sections }}
+  <section class="section container{{ if $section.screenshot }} section--with-art{{ end }}"{{ with $section.id }} id="{{ . }}"{{ end }}>
+    <div class="section__body">
+      <div class="section__heading">
+        <h2 class="headline-large">{{ $section.heading }}</h2>
+        {{ with $section.body }}<p class="body-large">{{ . }}</p>{{ end }}
+      </div>
+      {{ with $section.points }}
+      <ul class="why__points">
+        {{ range . }}
+        <li>
+          <span class="check">{{ partial "icon.html" "check" }}</span>
+          <span class="body-large">{{ . }}</span>
+        </li>
+        {{ end }}
+      </ul>
+      {{ end }}
+      {{ with $section.note }}<p class="body-medium section__note">{{ . }}</p>{{ end }}
+      {{ with $section.link }}
+      {{/* An internal link is written relative ("faq/") and resolved inside the
+           current locale; a param link points at a site param such as the full
+           privacy policy on GitHub. */}}
+      {{ $url := "" }}
+      {{ with .url }}
+        {{ $url = cond (strings.HasPrefix . "http") . (relLangURL .) }}
+      {{ end }}
+      {{ with .param }}{{ $url = index $.Site.Params . }}{{ end }}
+      <p class="body-large section__link">
+        <a href="{{ $url }}" rel="noopener">{{ .label }}</a>
+      </p>
+      {{ end }}
+    </div>
+    {{ with $section.screenshot }}
+    <div class="section__art">
+      {{ partial "screenshot.html" (dict "image" .image "alt" .alt) }}
+    </div>
+    {{ end }}
+  </section>
+  {{ end }}
+
+  {{ partial "page-cta.html" . }}
+</main>
+
+{{ partial "footer.html" . }}
+{{ end }}

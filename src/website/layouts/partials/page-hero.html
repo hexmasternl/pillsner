@@ -1,0 +1,6 @@
+{{/* The heading block every non-home page opens with. */}}
+<section class="page-hero container">
+  {{ with .Params.hero.eyebrow }}<span class="section__eyebrow label-large">{{ . }}</span>{{ end }}
+  <h1 class="display-large">{{ .Params.hero.heading | default .Title }}</h1>
+  {{ with .Params.hero.lead }}<p class="body-large page-hero__lead">{{ . }}</p>{{ end }}
+</section>

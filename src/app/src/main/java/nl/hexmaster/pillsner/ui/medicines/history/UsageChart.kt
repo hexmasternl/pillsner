@@ -257,8 +257,11 @@ fun TimeDeviationChart(history: TimeDeviationHistory, modifier: Modifier = Modif
     }
 }
 
-/** One column: an empty space, then a single neutral bar. A bucket with nothing taken keeps its
- * place in the row but draws nothing, so "no data" and "zero minutes off" are never confused. */
+/**
+ * One column: an empty space, then a single neutral bar. A bucket with nothing taken renders no
+ * bar at all, keeping its place in the row; a bucket taken exactly on time still draws a minimal
+ * sliver rather than nothing, so "no data" and "zero minutes off" are never confused.
+ */
 @Composable
 private fun TimeDeviationBar(
     bucket: TimeDeviationBucket,
@@ -270,15 +273,19 @@ private fun TimeDeviationBar(
         modifier.semantics(mergeDescendants = true) { contentDescription = description },
         verticalArrangement = Arrangement.Bottom,
     ) {
-        val average = bucket.averageMinutes
-        if (average == null || busiest == 0) return@Column
+        val average = bucket.averageMinutes ?: return@Column
 
-        val headroom = (busiest - average).toFloat()
+        // Compose's weight must be positive, but zero minutes is real data (taken exactly on
+        // time), not the absence of it - so the bar's own weight is floored at one unit rather
+        // than collapsing to nothing.
+        val barWeight = average.coerceAtLeast(1)
+        val scale = busiest.coerceAtLeast(barWeight)
+        val headroom = (scale - barWeight).toFloat()
         if (headroom > 0f) Spacer(Modifier.weight(headroom))
 
         Spacer(
             Modifier
-                .weight(average.toFloat())
+                .weight(barWeight.toFloat())
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.small)
                 .border(BAR_BORDER, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)

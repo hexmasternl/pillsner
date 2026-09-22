@@ -170,3 +170,51 @@ Re-verified after the fix: `:app:testDebugUnitTest` (438/438 pass), `:app:lintDe
 `:app:assembleDebug` (builds), `:app:compileDebugAndroidTestKotlin` (compiles clean) — same
 environment and same caveat as 6.3: no emulator/device available, so the new and changed
 instrumented tests remain compile-checked only.
+
+### Four more findings in the same review round
+
+The same PR #50 review pass raised four more high-severity/correctness comments once the seed fix
+above was pushed. All four were real:
+
+1. **`latestKnownMoment()` was not always independent evidence.** Schema v4's migration
+   (`Migrations.MIGRATION_3_4`) backfills every pre-existing row's `planned_at` from its own
+   `scheduled_at`, and a pending row's `scheduled_at` is, by design, a dose still due today or
+   tomorrow — a future value, not something that already happened. A legacy pending row surviving
+   from before that migration could hand the guard a floor that is itself a future projection.
+   Fixed by restricting `DoseDao.latestKnownMoment` to `WHERE outcome IS NOT NULL` (an answered
+   dose's stored moment can never be a future projection), mirrored in
+   `InMemoryDoseRepository.latestKnownMoment` (`!it.isPending`).
+2. **The floor was read after the same wake had already written to the table.**
+   `runDoseHistoryPurge()` used to call `doseRepository.latestKnownMoment()` itself, at the point
+   the purge runs — after `RefreshPlannedDoses` has already inserted new pending doses earlier in
+   the same `wake()`, with `plannedAt = clock.instant()` (the very clock the guard exists to
+   distrust). On a first observation with an active schedule — the ordinary case, not an edge case
+   — those brand-new rows would become the "independent" floor, which is the wake poisoning its own
+   guard with evidence manufactured from the thing being distrusted. Fixed by reading
+   `latestKnownMoment()` as the very first statement of `wake()`, before any step writes anything,
+   and threading that captured value into `runDoseHistoryPurge(knownGoodFloor)` as a parameter.
+3. **`reconcileAlarms()`'s `runCatching` also swallowed cancellation.** Unrelated to the purge step
+   itself, but introduced by this change: `reconcileAlarms()` now calls `doseRepository.hasAnyDose()`
+   (for the D5 gate), a new suspend call its existing `runCatching { ... }.getOrNull()` could absorb
+   a cancellation from, same class of bug as the purge step's own fix. Fixed the same way: an
+   explicit `try`/`catch` re-throwing `CancellationException` before the generic `catch`.
+4. **`ReminderHistoryPurgeTest.seedValidatedSample()` was a ticking time bomb.** It seeded from
+   `System.currentTimeMillis()`/`SystemClock.elapsedRealtime()` (the real machine clock) while the
+   coordinator under test used a `Clock` fixed at a 2026 date — so the guard's validated trusted-now
+   actually tracked the *real* run date, not the test's fixed date, and the gap between the two
+   grows every day this test suite keeps existing. Fixed by seeding from the test's own fixed `now`
+   and a fixed elapsed-realtime constant throughout, via `TrustedClockGuard`'s injectable
+   `wallClockMillis`/`elapsedRealtimeMillis` lambdas, making the test deterministic regardless of
+   which real date it runs on.
+
+New/changed beyond the previous fix: `DoseDao.kt`, `DoseRepository.kt`, `InMemoryDoseRepository.kt`
+(restricted `latestKnownMoment`), `ReminderCoordinator.kt` (floor captured up front,
+`reconcileAlarms` cancellation fix), `DoseDaoTest.kt` (updated to prove a pending dose is excluded),
+`ReminderHistoryPurgeTest.kt` (deterministic clock wiring throughout, +1 new case reproducing the
+same-wake-poisoning scenario end to end), `specs/dose-history-retention/spec.md` (the clock-guard
+requirement now says "answered dose" explicitly and adds scenarios for both the pending-dose and
+same-wake exclusions).
+
+Re-verified again: `:app:testDebugUnitTest` (438/438 pass — no unit tests changed this round),
+`:app:lintDebug` (clean), `:app:assembleDebug` (builds), `:app:compileDebugAndroidTestKotlin`
+(compiles clean). Same caveat as before: no emulator/device available in this environment.

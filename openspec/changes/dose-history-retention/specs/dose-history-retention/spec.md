@@ -49,12 +49,15 @@ guarded against; it can only delay a purge further, never remove data early. The
 require no Android permission beyond what the app already holds and SHALL make no network request.
 
 A first observation with no persisted sample yet SHALL NOT trust the raw wall clock outright: when
-the app already has stored dose history, the most recent moment any dose was stored SHALL be used
-as independent evidence of how far real time has already reached, and the seed SHALL be clamped
-down to whichever of the two readings is earlier. Only when neither a persisted sample nor any
-stored dose history exists SHALL the seed be taken from the raw wall clock, with no purge run on
-that observation, since there is nothing yet to validate that reading against and nothing yet a
-wrong seed could delete.
+the app already has an *answered* dose in storage, the most recent moment any answered dose was
+stored SHALL be used as independent evidence of how far real time has already reached, and the seed
+SHALL be clamped down to whichever of the two readings is earlier. A still-pending dose's stored
+moment MUST NOT be used as this evidence, since it can be a projection of a future moment rather
+than something that has already happened. This evidence MUST be drawn only from what existed before
+the current wake began; a dose the current wake itself stores MUST NOT be used as evidence for that
+same wake's own observation. Only when neither a persisted sample nor any qualifying answered dose
+exists SHALL the seed be taken from the raw wall clock, with no purge run on that observation, since
+there is nothing yet to validate that reading against and nothing yet a wrong seed could delete.
 
 #### Scenario: Ordinary elapsed time
 - **WHEN** ten real minutes pass between two observations and the wall clock also advanced by ten
@@ -83,10 +86,21 @@ wrong seed could delete.
   nothing yet a wrong seed could delete
 
 #### Scenario: First run with existing dose history clamps a tampered seed and purges immediately
-- **WHEN** the app has no persisted trusted-now sample, but dose history already exists from before
-  this observation, and the wall clock now reads far later than that history's most recent moment
-- **THEN** the seed is clamped to that most recent moment rather than the tampered wall clock, and
-  the purge runs on this same wake using the clamped value
+- **WHEN** the app has no persisted trusted-now sample, but an answered dose already exists from
+  before this observation, and the wall clock now reads far later than that dose's stored moment
+- **THEN** the seed is clamped to that stored moment rather than the tampered wall clock, and the
+  purge runs on this same wake using the clamped value
+
+#### Scenario: A still-pending dose is never used as the floor
+- **WHEN** the app has no persisted trusted-now sample and no answered dose, but a still-pending
+  dose exists whose own stored moment projects into the future
+- **THEN** that pending dose's stored moment is not used to clamp the seed, and this observation
+  behaves as though no dose history existed at all
+
+#### Scenario: A dose the current wake itself just stored is never used as its own evidence
+- **WHEN** the current wake stores a new dose before this observation runs
+- **THEN** that newly stored dose is not used as evidence for this same observation; only doses that
+  existed before the current wake began may be
 
 #### Scenario: A later wake purges normally after the first-run seed
 - **WHEN** a subsequent housekeeping wake observes real elapsed time since the first-run seed

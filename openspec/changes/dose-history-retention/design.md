@@ -158,6 +158,32 @@ ever recorded*, and left tampered indefinitely, leaves no independent evidence t
 all. That residual gap is recorded under Risks below rather than left implicit, since it is a
 genuine limitation of a zero-network-access design, not an oversight.
 
+**Two further corrections found in the same review round**, both about the floor not being as
+independent as first claimed:
+
+1. **The floor query itself could return a future projection.** `DoseDao.latestKnownMoment`'s first
+   draft was `SELECT MAX(planned_at) FROM doses`, with no restriction on outcome. Schema v4's
+   migration (`Migrations.MIGRATION_3_4`) backfills every pre-existing row's `planned_at` from its
+   own `scheduled_at` — and a *pending* row's `scheduled_at` is, by design, a dose still due today
+   or tomorrow, which can be later than "now". A legacy pending row surviving from before that
+   migration could therefore hand the guard a floor that is itself a future value, undermining the
+   whole "already happened" premise. Fixed by restricting the query to `WHERE outcome IS NOT NULL`:
+   an answered dose's stored moment can never be a future projection, because nothing records an
+   outcome before the moment it actually occurred. `InMemoryDoseRepository.latestKnownMoment`
+   mirrors the same restriction (`!it.isPending`).
+2. **The floor was read after this same wake had already written to the table.** The first draft
+   had `runDoseHistoryPurge()` call `doseRepository.latestKnownMoment()` itself, at the point the
+   purge step runs — which is *after* `RefreshPlannedDoses` has already run earlier in the same
+   `wake()` call. `RefreshPlannedDoses.insertPlanned` writes new pending doses with
+   `plannedAt = clock.instant()` — the exact same (possibly tampered) clock the guard exists to
+   distrust. On a first observation with an active medication schedule (the ordinary case for any
+   real user, not an edge case), those brand-new rows would become the "independent" floor,
+   which is not independent of anything: the wake would be poisoning its own guard with evidence it
+   just manufactured from the thing being distrusted. Fixed by reading `latestKnownMoment()` as the
+   very first statement of `wake()`, before any step that writes anything, and threading that
+   captured value down to `runDoseHistoryPurge(knownGoodFloor)` as a parameter rather than letting
+   the purge step re-query it itself.
+
 **Alternative considered**: reseed to the wall clock on reboot but skip the purge for that one
 wake only, resuming on the next. Rejected in favour of freezing `trustedNowMillis` instead:
 freezing needs no extra "skip once" flag (the frozen value is unconditionally safe to purge with,
@@ -195,6 +221,16 @@ existing due-dose and refresh steps' error handling elsewhere in `wake()`.
 Running last, after reminders have already been posted and outcomes already recorded, means the
 purge can never delay or block anything the user is waiting on; its own failure changes nothing
 about the rest of the wake, which has already completed by the time it runs.
+
+**Correction found in the same review round**: the same `runCatching`-swallows-cancellation class
+of bug was also present one level up, in `reconcileAlarms()` — unrelated to the purge step itself,
+but introduced by this change all the same, since `reconcileAlarms()` now makes a new suspending
+call (`doseRepository.hasAnyDose()`, for D5's `hasDoseHistory` gate) that a cancellation could land
+inside of. Its `runCatching { ... }.getOrNull()` caught every `Throwable`, cancellation included,
+which would let an external cancellation of the coroutine `reconcileAlarms()` runs in look like an
+ordinary "could not compute the schedule" failure instead of propagating. Fixed the same way as the
+purge step: an explicit `try`/`catch` that re-throws `CancellationException` before the generic
+`catch (error: Exception)`.
 
 ### D4: `DoseRepository.deleteHistoryBefore` — one indexed delete, no schema change
 

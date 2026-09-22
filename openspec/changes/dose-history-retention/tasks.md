@@ -88,8 +88,8 @@
 
 ## 6. Verification
 
-- [x] 6.1 Ran the unit test task (`:app:testDebugUnitTest`): **all 435 tests pass**, including the
-  new and changed ones from this change (7 `TrustedNowTest`, 4 `PurgeExpiredDoseHistoryTest`, 3 new
+- [x] 6.1 Ran the unit test task (`:app:testDebugUnitTest`): **all 438 tests pass**, including the
+  new and changed ones from this change (10 `TrustedNowTest`, 4 `PurgeExpiredDoseHistoryTest`, 3 new
   and 13 updated `ComputeWakeScheduleTest` cases).
 - [x] 6.2 Ran the lint task (`:app:lintDebug`): **clean** — 0 errors, only the same 53 pre-existing
   deprecation warnings this repository already carries (Compose adaptive-info/menu-anchor API
@@ -131,3 +131,42 @@
   installed) Android SDK; every instrumented test compiles; nothing was executed on an emulator or
   device, so 6.3's compile-only status and 6.5's manual test case are what still need a real device
   before this change can be considered fully verified end to end.
+
+### Fix found in PR #50 review
+
+Copilot's review of PR #50 found a real, high-severity gap this change's first draft had missed:
+`TrustedNow`'s first observation (no persisted sample) seeded `trustedNowMillis` straight from the
+raw wall clock. That observation itself correctly skipped the purge, but the reasoning stopped
+there — the *next*, ordinary observation treated that seed as an already-trusted baseline and
+advanced it by only a small real elapsed delta, handing it back fully validated. A wall clock
+tampered forward before the very first observation would therefore still drive a purge, just one
+wake later than immediately, exactly the kind of "eventually validated from a wrong starting point"
+gap the original design missed.
+
+Fixed by adding a `knownGoodFloorMillis` parameter to `TrustedNow.observe`, sourced from a new
+`DoseRepository.latestKnownMoment()` (`MAX(planned_at)` across every stored dose — a wall-clock
+reading the app itself already took, so it cannot postdate a tamper that happens later). A first
+observation now clamps its seed to `min(currentWallMillis, knownGoodFloorMillis)` and validates
+immediately when a floor exists; only a genuinely history-free first run (nothing yet a wrong seed
+could delete) still seeds-and-skips as before. Full reasoning in `design.md` D2's "Correction found
+during PR review", including the one residual gap this cannot close (a clock tampered before the
+very first dose is ever recorded, and left tampered forever after) recorded honestly under Risks
+rather than left implicit.
+
+Also fixed, per the same review pass: `PurgeExpiredDoseHistoryTest`'s "reads the zone fresh, never
+caches" test used two separate `PurgeExpiredDoseHistory` instances, each queried once — which would
+pass even if the class cached its zone in a field, since neither instance was ever asked twice. It
+now uses one instance queried twice, with the underlying clock's zone mutated in between.
+
+New/changed: `TrustedNow.kt`, `TrustedClockGuard.kt`, `ReminderCoordinator.kt` (pass the floor
+through), `DoseDao.kt`/`DoseRepository.kt`/`RoomDoseRepository.kt`/`InMemoryDoseRepository.kt`
+(`latestKnownMoment`), `TrustedNowTest.kt` (+3 cases), `PurgeExpiredDoseHistoryTest.kt` (1 case
+strengthened), `DoseDaoTest.kt` (+1 case), `ReminderHistoryPurgeTest.kt` (1 case split in two, +1
+new case reproducing the exact scenario the review described and proving it is now closed),
+`specs/dose-history-retention/spec.md` (the "Trusted-now clock guard" requirement and its first-run
+scenarios updated to match).
+
+Re-verified after the fix: `:app:testDebugUnitTest` (438/438 pass), `:app:lintDebug` (clean),
+`:app:assembleDebug` (builds), `:app:compileDebugAndroidTestKotlin` (compiles clean) — same
+environment and same caveat as 6.3: no emulator/device available, so the new and changed
+instrumented tests remain compile-checked only.

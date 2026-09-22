@@ -134,6 +134,30 @@ before that guard has already passed. `TrustedClockStore` is modelled on the pla
 device-protected singleton plumbing needed), which is simpler and does not overstate what this
 store has to survive.
 
+**Correction found during PR review**: the first draft's `previous == null` branch always seeded
+`trustedNowMillis` from the raw wall clock and reported it unvalidated, on the reasoning that
+skipping the purge for that one observation was enough. Review (PR #50) found this incomplete: the
+*seed itself* was never validated, only its future advances were — so a wall clock already
+tampered forward before the very first observation would still be adopted verbatim, and the very
+next ordinary observation would advance it by a small real elapsed delta and hand it back as fully
+validated. The advance was correctly bounded; the baseline it advanced from was not.
+
+There is no way to independently verify a wall-clock reading at all without a network time source,
+which this feature deliberately does not have. What the app *does* have, though, is its own dose
+history: a dose already stored before this observation began carries `plannedAt`, a wall-clock
+reading the app itself took at write time, and could not have been written under a clock tampered
+*after* it was. `TrustedNow.observe` now takes an additional `knownGoodFloorMillis` parameter — in
+practice `DoseRepository.latestKnownMoment()`'s `MAX(planned_at)` — and, on a first observation,
+clamps the seed to `min(currentWallMillis, knownGoodFloorMillis)` when a floor exists, validating
+it immediately rather than only "eventually". Only when there is truly no floor (a fresh install
+with no dose history at all) does the original skip-and-seed behavior apply — which remains
+correct on its own terms, since an empty history has nothing a wrong seed could delete yet.
+
+This does not, and cannot, close every gap: a clock tampered forward *before the very first dose is
+ever recorded*, and left tampered indefinitely, leaves no independent evidence to clamp against at
+all. That residual gap is recorded under Risks below rather than left implicit, since it is a
+genuine limitation of a zero-network-access design, not an oversight.
+
 **Alternative considered**: reseed to the wall clock on reboot but skip the purge for that one
 wake only, resuming on the next. Rejected in favour of freezing `trustedNowMillis` instead:
 freezing needs no extra "skip once" flag (the frozen value is unconditionally safe to purge with,
@@ -225,8 +249,18 @@ than introducing a second background mechanism," and a second alarm is exactly t
 
 - **[Risk] The trusted-clock guard adds a new persisted state that could itself drift or corrupt.**
   → Mitigation: only two longs, in the same DataStore pattern as the already-shipped
-  `ArmedAlarmStore`; a corrupt or unreadable value is treated as "no prior sample" (case 2 above),
-  which safely re-seeds and skips one purge rather than failing in an unsafe direction.
+  `ReminderPreferences`; a corrupt or unreadable value is treated as "no prior sample" (case 2
+  above), which safely falls back to the dose-history floor when one exists, or re-seeds and skips
+  one purge when it doesn't, rather than failing in an unsafe direction.
+- **[Risk] A clock tampered forward before the very first dose is ever recorded, and left tampered
+  indefinitely, leaves no independent evidence for the seed-clamping fix (D2) to draw on.** →
+  Accepted, and stated plainly rather than implied: this is a genuine limit of a zero-network-access
+  design, not an oversight (see D2's "Correction found during PR review"). It requires the clock to
+  already be wrong *before the app ever writes a single dose*, and stay wrong forever after; the
+  moment any real dose history exists — which for an actual user happens almost immediately — the
+  clamp fully protects it from that point forward. Nothing a user has ever seen the app record
+  under a consistently tampered clock is inconsistent with what the app deletes under that same
+  clock, so no data the user perceived as real is lost.
 - **[Risk] Freezing `trustedNowMillis` across a reboot could delay a purge indefinitely if the
   device reboots very frequently.** → Accepted: each reboot only costs the *delta since the last
   sample*, not the whole history; ordinary elapsed time between reboots (which still counts,

@@ -12,6 +12,7 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -28,6 +29,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.domain.model.DoseId
@@ -63,6 +65,7 @@ class MedicineHistoryScreenTest {
     private val clock: Clock =
         Clock.fixed(ZonedDateTime.of(today, LocalTime.NOON, amsterdam).toInstant(), amsterdam)
     private val summarise = SummariseUsageHistory(clock) { DayOfWeek.MONDAY }
+    private val summariseTimeDeviation = SummariseTimeDeviation(clock) { DayOfWeek.MONDAY }
     private val mg40 = Quantity.of("40", DoseUnit.MILLIGRAM)
 
     private val locale: Locale = Locale.getDefault()
@@ -176,6 +179,69 @@ class MedicineHistoryScreenTest {
         composeRule.onAllNodesWithTag(row(UsageCategory.UNANSWERED)).assertCountEquals(0)
     }
 
+    @Test
+    fun theTimingAccuracyChartShowsTheOverallFigureAndItsCaption() {
+        showScreen(doses = mixedTimingThisWeek())
+
+        // (0 + 10 + 6) minutes over three taken doses averages to 5.
+        composeRule.onNodeWithTag(MedicineHistoryTestTags.TIMING_CHART_HEADER)
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag(MedicineHistoryTestTags.TIMING_OVERALL)
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("5 minutes").assertIsDisplayed()
+        composeRule.onNodeWithText("Lower is better").assertIsDisplayed()
+    }
+
+    @Test
+    fun theTimingAccuracyChartIsOmittedWhenNothingWasTaken() {
+        showScreen(doses = oneSkippedThisWeek())
+
+        // A skipped dose means the period is not empty, but nothing was taken to time.
+        composeRule.onNodeWithTag(MedicineHistoryTestTags.ADHERENCE).assertIsDisplayed()
+        composeRule.onAllNodesWithTag(MedicineHistoryTestTags.TIMING_CHART_HEADER).assertCountEquals(0)
+    }
+
+    @Test
+    fun aTimingBarNamesItsBucketTheAverageAndTheDoseCount() {
+        showScreen(doses = mixedTimingThisWeek())
+
+        // Tuesday 8 September (today minus 6) holds no taken dose.
+        composeRule.onNode(
+            hasContentDescription("${today.minusDays(6).format(longDate)}, no doses recorded taken"),
+        ).assertIsDisplayed()
+        // today minus 3 was taken ten minutes late: one dose backs its average.
+        composeRule.onNode(
+            hasContentDescription(
+                "${today.minusDays(3).format(longDate)}, 10 minutes off schedule on average, over 1 dose",
+            ),
+        ).assertIsDisplayed()
+    }
+
+    @Test
+    fun choosingThreeMonthsBucketsTheTimingChartByWeekWhileAMonthStaysDaily() {
+        showScreen(doses = mixedTimingThisWeek())
+
+        composeRule.onNodeWithTag(period(UsagePeriod.MONTH)).performClick()
+        composeRule.onNodeWithText("Timing accuracy, by day").performScrollTo().assertIsDisplayed()
+
+        composeRule.onNodeWithTag(period(UsagePeriod.THREE_MONTHS)).performClick()
+        composeRule.onNodeWithText("Timing accuracy, by week").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun bothChartsShowAValueAxisStatingItsUnit() {
+        showScreen(doses = mixedTimingThisWeek())
+
+        // Outcome chart: the busiest day holds one scheduled dose.
+        composeRule.onAllNodesWithText("1 dose").onFirst().assertIsDisplayed()
+        composeRule.onAllNodesWithText("0 doses").onFirst().assertIsDisplayed()
+        // Timing chart: the busiest bucket averaged ten minutes off schedule.
+        composeRule.onNodeWithText("10 minutes").performScrollTo().assertIsDisplayed()
+        composeRule.onAllNodesWithText("0 minutes").onFirst().performScrollTo().assertIsDisplayed()
+    }
+
     // --- Fixtures -------------------------------------------------------------------------
 
     /** Four doses this week: three taken, one missed. The first day of the window holds none. */
@@ -192,6 +258,23 @@ class MedicineHistoryScreenTest {
         dose(6, at(today.minusDays(30)), IntakeOutcome.TAKEN),
     )
 
+    /**
+     * Three taken doses this week with known deviations - on time, ten minutes late, six minutes
+     * early - and one missed dose that contributes no timing data. Overall average: (0 + 10 + 6) /
+     * 3, rounded to 5 minutes; the busiest single bucket is the ten-minute one.
+     */
+    private fun mixedTimingThisWeek(): List<Dose> = listOf(
+        takenWithDeviation(1, at(today.minusDays(4)), deviationMinutes = 0),
+        takenWithDeviation(2, at(today.minusDays(3)), deviationMinutes = 10),
+        dose(3, at(today.minusDays(2)), IntakeOutcome.MISSED),
+        takenWithDeviation(4, at(today), deviationMinutes = -6),
+    )
+
+    /** One skipped dose this week: the period is not empty, but nothing was taken. */
+    private fun oneSkippedThisWeek(): List<Dose> = listOf(
+        dose(1, at(today.minusDays(2)), IntakeOutcome.SKIPPED),
+    )
+
     private fun dose(id: Long, at: Instant, outcome: IntakeOutcome) = Dose(
         id = DoseId(id),
         medicationId = MedicationId(1),
@@ -199,6 +282,16 @@ class MedicineHistoryScreenTest {
         amount = mg40,
         scheduledAt = at,
         intake = Intake(outcome, at),
+    )
+
+    /** A taken dose recorded [deviationMinutes] after its scheduled moment; negative is early. */
+    private fun takenWithDeviation(id: Long, scheduledAt: Instant, deviationMinutes: Long) = Dose(
+        id = DoseId(id),
+        medicationId = MedicationId(1),
+        medicationName = "Metoprolol",
+        amount = mg40,
+        scheduledAt = scheduledAt,
+        intake = Intake(IntakeOutcome.TAKEN, scheduledAt.plusSeconds(deviationMinutes * 60)),
     )
 
     private fun at(date: LocalDate): Instant =
@@ -228,6 +321,7 @@ class MedicineHistoryScreenTest {
                     medicineName = "Metoprolol",
                     period = period,
                     history = summarise(period, doses, earliestRecordedAt),
+                    timeDeviation = summariseTimeDeviation(period, doses),
                     isLoading = false,
                 ),
                 onPeriodSelected = { period = it },

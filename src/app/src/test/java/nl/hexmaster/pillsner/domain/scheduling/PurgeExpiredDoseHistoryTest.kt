@@ -50,13 +50,17 @@ class PurgeExpiredDoseHistoryTest {
 
     @Test
     fun `the current zone is read fresh on every call, never cached`() {
+        // One PurgeExpiredDoseHistory instance, queried twice, with the clock's zone changed in
+        // between: proves the instance itself holds no cached ZoneId field from construction time.
+        // Two separate instances, each queried once, would pass even with such a field, since
+        // neither would ever be asked twice.
         val trustedNow = ZonedDateTime.of(2026, 9, 20, 12, 0, 0, 0, ZoneOffset.UTC).toInstant()
-        val purge = PurgeExpiredDoseHistory(MutableZoneClock(trustedNow, ZoneOffset.UTC))
+        val clock = MutableZoneClock(trustedNow, ZoneOffset.UTC)
+        val purge = PurgeExpiredDoseHistory(clock)
 
         val utcCutoff = purge(trustedNow)
-
-        val amsterdamClock = MutableZoneClock(trustedNow, amsterdam)
-        val amsterdamCutoff = PurgeExpiredDoseHistory(amsterdamClock)(trustedNow)
+        clock.setZone(amsterdam)
+        val amsterdamCutoff = purge(trustedNow)
 
         assertEquals(
             "A different system zone must change the very next cutoff, never a stale one",
@@ -66,10 +70,11 @@ class PurgeExpiredDoseHistoryTest {
         assertEquals(ZonedDateTime.of(2025, 9, 20, 0, 0, 0, 0, amsterdam).toInstant(), amsterdamCutoff)
     }
 
-    /** A fixed instant whose zone can be swapped, to prove the cutoff never caches it. */
+    /** A fixed instant whose zone can be mutated in place, to prove the cutoff never caches it. */
     private class MutableZoneClock(private val instant: Instant, private var zoneId: ZoneId) : Clock() {
         override fun getZone(): ZoneId = zoneId
         override fun withZone(zone: ZoneId): Clock = MutableZoneClock(instant, zone)
         override fun instant(): Instant = instant
+        fun setZone(zone: ZoneId) { zoneId = zone }
     }
 }

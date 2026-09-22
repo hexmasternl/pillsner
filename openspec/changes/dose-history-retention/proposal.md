@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #30 (https://github.com/hexmasternl/pillsner/issues/30)
+**Pull Request:** #50 (https://github.com/hexmasternl/pillsner/pull/50)
 
 The app currently keeps every dose row forever. Nothing in the product surfaces usage data beyond
 "3 months" (`medicine-usage-history`), so a year of dose/intake history is already more than the

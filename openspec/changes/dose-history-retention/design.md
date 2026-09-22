@@ -121,9 +121,18 @@ what closes the hole — first run has no anchor to check against (skip the purg
 anchor exists), while a reboot **does** have a previously-validated value to fall back on (freeze
 it, don't discard it).
 
-Persisted in `TrustedClockStore`, a DataStore file modelled directly on the existing
-`ArmedAlarmStore` (`data/reminders/`): two long preference keys, in device-protected storage,
-holding nothing but epoch-millisecond timestamps — no dose id, no medicine name, no amount.
+Persisted in `TrustedClockStore` (`data/reminders/`): two long preference keys, holding nothing but
+epoch-millisecond timestamps — no dose id, no medicine name, no amount.
+
+**Correction found during implementation**: the paragraph above originally said this store would be
+modelled on `ArmedAlarmStore`, in device-protected storage, so it could be read before the first
+unlock after a reboot. Tracing where the purge actually runs shows that is unnecessary:
+`ReminderCoordinator.onWake` returns immediately, before calling into `wake()` at all, whenever
+`unlockState.isUnlocked()` is false — the purge step lives inside `wake()`, so it can never run
+before that guard has already passed. `TrustedClockStore` is modelled on the plain
+`ReminderPreferences` DataStore instead (an ordinary, credential-encrypted preferences file, no
+device-protected singleton plumbing needed), which is simpler and does not overstate what this
+store has to survive.
 
 **Alternative considered**: reseed to the wall clock on reboot but skip the purge for that one
 wake only, resuming on the next. Rejected in favour of freezing `trustedNowMillis` instead:

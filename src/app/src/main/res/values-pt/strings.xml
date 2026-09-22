@@ -32,6 +32,7 @@
     <!-- Ações partilhadas -->
     <string name="action_back">Voltar</string>
     <string name="action_cancel">Cancelar</string>
+    <string name="action_remove">Remover</string>
     <string name="action_save">Guardar</string>
     <string name="action_done">Concluído</string>
     <string name="action_ok">OK</string>
@@ -454,4 +455,38 @@
     <string name="usage_history_timing_bar_week">Semana de %1$s, %2$s de desvio médio em relação ao horário, ao longo de %3$s</string>
     <string name="usage_history_timing_bar_day_empty">%1$s, sem doses tomadas registadas</string>
     <string name="usage_history_timing_bar_week_empty">Semana de %1$s, sem doses tomadas registadas</string>
+
+    <string name="medicine_stock_header">Estoque</string>
+    <string name="medicine_stock_none">Nenhum estoque é monitorado para este medicamento.</string>
+    <string name="medicine_stock_add">Adicionar estoque</string>
+    <string name="medicine_stock_low_note">O estoque está acabando.</string>
+    <string name="medicine_stock_expiring_note">O próximo lote vence em breve.</string>
+    <string name="medicine_stock_expired_note">O próximo lote venceu.</string>
+    <string name="medicine_stock_batch_row">%1$s, vence em %2$s</string>
+    <string name="medicine_stock_batch_row_strength">%1$s por %2$s</string>
+    <string name="medicine_stock_remove_content_description">Remover este lote de estoque</string>
+    <string name="medicine_stock_remove_title">Remover este estoque?</string>
+    <string name="medicine_stock_remove_body">Este lote será removido permanentemente. Esta ação não pode ser desfeita.</string>
+
+    <string name="medicine_stock_add_title">Adicionar estoque</string>
+    <string name="medicine_stock_field_quantity">Quantidade</string>
+    <string name="medicine_stock_field_strength">Concentração</string>
+    <string name="medicine_stock_strength_suffix">%1$s por %2$s</string>
+    <string name="medicine_stock_field_expiry">Data de validade</string>
+    <string name="medicine_stock_error_quantity_required">Insira uma quantidade.</string>
+    <string name="medicine_stock_error_quantity_not_a_number">Insira a quantidade como um número.</string>
+    <string name="medicine_stock_error_quantity_not_positive">Insira uma quantidade maior que zero.</string>
+    <string name="medicine_stock_error_strength_required">Insira uma concentração.</string>
+    <string name="medicine_stock_error_strength_not_a_number">Insira a concentração como um número.</string>
+    <string name="medicine_stock_error_strength_not_positive">Insira uma concentração maior que zero.</string>
+    <string name="medicine_stock_expiry_past_warning">Esta data já passou. Você ainda pode salvá-la.</string>
+
+    <string name="medicine_tile_low_stock">Estoque baixo</string>
+    <string name="medicine_tile_expiring_soon">Vence em breve</string>
+    <string name="medicine_tile_expired">Vencido</string>
+
+    <string name="stock_warning_low_stock_message">O estoque de %1$s está acabando e não será suficiente para esta semana.</string>
+    <string name="stock_warning_expiring_message">O estoque de %1$s que você acabou de usar vence em breve.</string>
+    <string name="stock_warning_expired_message">O estoque de %1$s que você acabou de usar venceu.</string>
+    <string name="stock_warning_action_ordered_new">Já pedi mais</string>
 </resources>

@@ -36,6 +36,7 @@
     <!-- Shared actions -->
     <string name="action_back">Back</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_remove">Remove</string>
 
     <!-- App lock: unlock screen -->
     <string name="applock_unlock_title">Enter your PIN</string>
@@ -493,4 +494,46 @@
     <string name="usage_history_timing_bar_day_empty">%1$s, no doses recorded taken</string>
     <!-- %1$s: the day the week starts on. -->
     <string name="usage_history_timing_bar_week_empty">Week of %1$s, no doses recorded taken</string>
+
+    <!-- Stock tracking: the Stock section on Medicine details (medicine-stock-tracking) -->
+    <string name="medicine_stock_header">Stock</string>
+    <string name="medicine_stock_none">No stock is tracked for this medicine.</string>
+    <string name="medicine_stock_add">Add stock</string>
+    <string name="medicine_stock_low_note">Stock is running low.</string>
+    <string name="medicine_stock_expiring_note">The soonest batch expires soon.</string>
+    <string name="medicine_stock_expired_note">The soonest batch has expired.</string>
+    <!-- %1$s: the remaining amount, e.g. "12 tablets". %2$s: the expiry date. -->
+    <string name="medicine_stock_batch_row">%1$s, expires %2$s</string>
+    <!-- %1$s: how much of the dose unit, e.g. "20 mg". %2$s: the batch's own unit, e.g. "tablet". -->
+    <string name="medicine_stock_batch_row_strength">%1$s per %2$s</string>
+    <string name="medicine_stock_remove_content_description">Remove this stock batch</string>
+    <string name="medicine_stock_remove_title">Remove this stock?</string>
+    <string name="medicine_stock_remove_body">This batch will be permanently removed. This cannot be undone.</string>
+
+    <!-- Stock tracking: the Add stock form -->
+    <string name="medicine_stock_add_title">Add stock</string>
+    <string name="medicine_stock_field_quantity">Quantity</string>
+    <string name="medicine_stock_field_strength">Strength</string>
+    <!-- %1$s: the medicine's own dose unit, e.g. "mg". %2$s: the batch's own unit, e.g. "tablet". -->
+    <string name="medicine_stock_strength_suffix">%1$s per %2$s</string>
+    <string name="medicine_stock_field_expiry">Expiry date</string>
+    <string name="medicine_stock_error_quantity_required">Enter an amount.</string>
+    <string name="medicine_stock_error_quantity_not_a_number">Enter the amount as a number.</string>
+    <string name="medicine_stock_error_quantity_not_positive">Enter an amount greater than zero.</string>
+    <string name="medicine_stock_error_strength_required">Enter a strength.</string>
+    <string name="medicine_stock_error_strength_not_a_number">Enter the strength as a number.</string>
+    <string name="medicine_stock_error_strength_not_positive">Enter a strength greater than zero.</string>
+    <string name="medicine_stock_expiry_past_warning">This date has already passed. You can still save it.</string>
+
+    <!-- Stock tracking: the Medicines screen tile heads-up -->
+    <string name="medicine_tile_low_stock">Low stock</string>
+    <string name="medicine_tile_expiring_soon">Expires soon</string>
+    <string name="medicine_tile_expired">Expired</string>
+
+    <!-- Stock tracking: the warning shown after a taken dose -->
+    <!-- %1$s: the medicine name -->
+    <string name="stock_warning_low_stock_message">%1$s is running low and won\'t last the week at this rate.</string>
+    <string name="stock_warning_expiring_message">The stock you just used of %1$s expires soon.</string>
+    <string name="stock_warning_expired_message">The stock you just used of %1$s has expired.</string>
+    <string name="stock_warning_action_ordered_new">I ordered new</string>
 </resources>

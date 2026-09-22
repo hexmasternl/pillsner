@@ -32,6 +32,7 @@
     <!-- Gemeinsame Aktionen -->
     <string name="action_back">Zurück</string>
     <string name="action_cancel">Abbrechen</string>
+    <string name="action_remove">Entfernen</string>
     <string name="action_save">Speichern</string>
     <string name="action_done">Fertig</string>
     <string name="action_ok">OK</string>
@@ -454,4 +455,38 @@
     <string name="usage_history_timing_bar_week">Woche von %1$s, im Schnitt %2$s vom Zeitplan abweichend, über %3$s</string>
     <string name="usage_history_timing_bar_day_empty">%1$s, keine eingenommene Dosis erfasst</string>
     <string name="usage_history_timing_bar_week_empty">Woche von %1$s, keine eingenommene Dosis erfasst</string>
+
+    <string name="medicine_stock_header">Vorrat</string>
+    <string name="medicine_stock_none">Für dieses Medikament wird kein Vorrat erfasst.</string>
+    <string name="medicine_stock_add">Vorrat hinzufügen</string>
+    <string name="medicine_stock_low_note">Der Vorrat wird knapp.</string>
+    <string name="medicine_stock_expiring_note">Die nächste Charge läuft bald ab.</string>
+    <string name="medicine_stock_expired_note">Die nächste Charge ist abgelaufen.</string>
+    <string name="medicine_stock_batch_row">%1$s, läuft ab am %2$s</string>
+    <string name="medicine_stock_batch_row_strength">%1$s pro %2$s</string>
+    <string name="medicine_stock_remove_content_description">Diesen Vorratsposten entfernen</string>
+    <string name="medicine_stock_remove_title">Diesen Vorrat entfernen?</string>
+    <string name="medicine_stock_remove_body">Dieser Posten wird dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.</string>
+
+    <string name="medicine_stock_add_title">Vorrat hinzufügen</string>
+    <string name="medicine_stock_field_quantity">Menge</string>
+    <string name="medicine_stock_field_strength">Stärke</string>
+    <string name="medicine_stock_strength_suffix">%1$s pro %2$s</string>
+    <string name="medicine_stock_field_expiry">Ablaufdatum</string>
+    <string name="medicine_stock_error_quantity_required">Gib eine Menge ein.</string>
+    <string name="medicine_stock_error_quantity_not_a_number">Gib die Menge als Zahl ein.</string>
+    <string name="medicine_stock_error_quantity_not_positive">Gib eine Menge größer als null ein.</string>
+    <string name="medicine_stock_error_strength_required">Gib eine Stärke ein.</string>
+    <string name="medicine_stock_error_strength_not_a_number">Gib die Stärke als Zahl ein.</string>
+    <string name="medicine_stock_error_strength_not_positive">Gib eine Stärke größer als null ein.</string>
+    <string name="medicine_stock_expiry_past_warning">Dieses Datum liegt bereits in der Vergangenheit. Du kannst es trotzdem speichern.</string>
+
+    <string name="medicine_tile_low_stock">Wenig Vorrat</string>
+    <string name="medicine_tile_expiring_soon">Läuft bald ab</string>
+    <string name="medicine_tile_expired">Abgelaufen</string>
+
+    <string name="stock_warning_low_stock_message">Der Vorrat von %1$s wird knapp und reicht nicht für diese Woche.</string>
+    <string name="stock_warning_expiring_message">Der Vorrat von %1$s, den du gerade verwendet hast, läuft bald ab.</string>
+    <string name="stock_warning_expired_message">Der Vorrat von %1$s, den du gerade verwendet hast, ist abgelaufen.</string>
+    <string name="stock_warning_action_ordered_new">Ich habe neuen bestellt</string>
 </resources>

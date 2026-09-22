@@ -1,0 +1,44 @@
+## Context
+
+Pillsner is on-device only: no account, no server, no sync. That is the product's privacy pitch, but it means the only copy of a person's medicines, schedules and months of intake history lives in one Room database on one phone. `app-reset` already lets a user erase all of that deliberately; there is no equivalent way to preserve it before an uninstall, a factory reset, or a move to a new device. This design covers a manual, user-initiated export to a single encrypted file and an import that restores from one, both routed through the Android Storage Access Framework (SAF) so the file's destination is always the user's own choice and never something Pillsner uploads itself.
+
+## Goals / Non-Goals
+
+**Goals:**
+- Let a user write the complete on-device dataset (medications, schedules, intake history, stock/refill state) to one file they place wherever they choose via SAF.
+- Protect that file with a user-supplied passphrase so it is safe to pass through a third-party app (email, cloud drive, cable transfer) the user picks — Pillsner never transmits it itself.
+- Let a user restore that dataset on the same or a different install, with a loud, unambiguous failure on a wrong passphrase, a corrupted file, or an incompatible format version.
+- Keep the feature entirely first-party: SAF for file access, `javax.crypto` (PBKDF2 + AES-256-GCM) for encryption, `kotlinx.serialization` (already a first-party Kotlin library, not a new third-party dependency class) or an equivalent JSON writer for the payload.
+
+**Non-Goals:**
+- No scheduled or automatic backups — export and import are both explicit, foreground user actions.
+- No cloud storage integration built into the app; SAF hands the file to whatever the user picks, the app never talks to a cloud API directly.
+- No merge-on-import; import always replaces the on-device dataset wholesale.
+- No passphrase recovery or escrow, on-device or off.
+- No cross-device sync; each export/import is a one-shot, user-driven file operation.
+
+## Decisions
+
+- **File format: versioned, encrypted JSON, not a raw Room database copy.** A raw `.db` file copy would tie the backup format to the exact Room schema version at export time, breaking the moment the app ships a migration. A structured JSON payload — serialising domain models, not table rows — lets a future app version read an older `.pill` file by mapping old fields to the current schema, the same way a Room migration maps old columns forward. The trade-off is that export/import must serialise through the domain layer rather than doing a byte-level file copy, which is more code but is the only approach that survives schema evolution.
+- **Encryption: PBKDF2-HMAC-SHA256 → AES-256-GCM, both from `javax.crypto`.** No new dependency: both algorithms are built into the JDK/Android runtime. A per-export random salt and iteration count go in a small plaintext header along with a random nonce; none of those are secret, and GCM's authentication tag means a wrong passphrase or a tampered file fails the decrypt outright rather than silently yielding garbage — there's no way to "partially" succeed. Alternative considered: a device-derived key (e.g. Android Keystore) instead of a passphrase — rejected because a Keystore key never leaves the device that created it, making the file unreadable after exactly the scenario this feature exists for (moving to a new phone).
+- **No passphrase recovery.** Any recovery mechanism (a recovery code, a device-derived escrow key) would mean the passphrase isn't actually the only thing protecting the file, undermining the reason to encrypt it at all. This is stated explicitly in the export flow's copy so the consequence is the user's informed choice, not a surprise.
+- **Format version independent of, but tracked against, the Room schema version.** The `.pill` file header carries its own integer format version. The import path keeps one deserialiser per format version it still supports (starting with exactly one, format version 1, at ship time) and fails loudly — a clear "this backup is from a newer version of Pillsner" message, nothing partially imported — on any version it doesn't recognise, rather than guessing at a best-effort partial read.
+- **Import replaces, never merges.** Merge semantics (de-duplicating medicines, reconciling overlapping intake history) are a materially larger problem — matching records across two independent datasets with no shared ID space — and the issue's own resolved design defers them explicitly. Replace-only keeps the transaction simple: it's the same "erase, then repopulate in one transaction" shape `app-reset` already uses for erasure, just followed by a repopulate step instead of stopping at empty.
+- **Confirmation dialog modeled on `app-reset`'s existing pattern.** Reusing a user-facing pattern that already exists (name exactly what will be overwritten, require it before the destructive action proceeds) rather than inventing a new confirmation style keeps the app's few high-stakes actions consistent for the person using it.
+- **Excluded fields mirror what `app-reset` already keeps.** The app lock PIN verifier, accepted-legal-document timestamps and Wear OS pairing state are device-specific or security-sensitive in a way that shouldn't travel in a file the user might hand to a pharmacist or store in a personal cloud drive; `app-reset` already draws exactly this line for what survives a local erase, so this change draws the same line for what travels in an export.
+- **Post-import rescheduling reuses the existing reminder-rebuild path.** `app-reset` already rebuilds alarm state from scratch after changing the dataset out from under the scheduler; import triggers the same rebuild (and the same watch re-sync) rather than introducing a second code path for "the dataset changed, reconcile the alarms."
+
+## Risks / Trade-offs
+
+- [A lost passphrase makes the backup permanently unreadable] → Mitigation: this is a deliberate trade-off, stated plainly in the export UI at the moment the user sets the passphrase, not discovered later at import.
+- [SAF write/read on a large dataset (many years of intake history) could be slow enough to need a progress indicator] → Mitigation: run export/import as a suspend function off the main thread with a determinate or indeterminate progress state in the UI; exact UX detail left to implementation, not a blocker to this design.
+- [A tampered or truncated file could, in principle, be crafted to pass GCM authentication for a subset of the payload] → Mitigation: GCM authenticates the entire ciphertext as one unit (no chunking), so a truncated or altered file fails authentication as a whole; the import path treats any decrypt/auth failure as a single "this file could not be read" outcome, never a partial import.
+- [Replace-only import means a user who imports by mistake loses whatever was on the device before] → Mitigation: the confirmation dialog states this explicitly before the import runs, matching how `app-reset`'s confirmation already treats irreversible data loss.
+
+## Migration Plan
+
+No Room schema change and no migration of existing data — this adds a new export/import capability, not a change to how data is stored. Format version 1 is the only `.pill` version at ship time; later app versions add new deserialisers alongside it as the format evolves, never replace the existing one, so older backups keep working. Rollback is a plain revert; no data was moved or changed in place by this change.
+
+## Open Questions
+
+None — the issue's own "Resolved design questions" section (file format, encryption, replace-vs-merge) settles the questions that would otherwise be open here.

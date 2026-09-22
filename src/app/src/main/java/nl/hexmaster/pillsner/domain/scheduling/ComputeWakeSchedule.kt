@@ -31,8 +31,18 @@ class ComputeWakeSchedule(
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
 
-    /** @return every moment to wake at, or the empty set when there is nothing to wake up for. */
-    operator fun invoke(snapshot: PendingSnapshot, medications: List<Medication>): WakeSchedule {
+    /**
+     * @param hasDoseHistory whether the app has ever stored a dose at all (spec:
+     *   dose-history-retention, "Daily refresh"). Without it, a user with no currently active
+     *   scheduled medication would get no daily wake at all, and any dose history they still have
+     *   would never be visited by the purge that rides this wake.
+     * @return every moment to wake at, or the empty set when there is nothing to wake up for.
+     */
+    operator fun invoke(
+        snapshot: PendingSnapshot,
+        medications: List<Medication>,
+        hasDoseHistory: Boolean,
+    ): WakeSchedule {
         val now = clock.instant()
         val moments = mutableSetOf<WakeMoment>()
         val housekeeping = mutableListOf<Instant>()
@@ -60,7 +70,7 @@ class ComputeWakeSchedule(
             lapseAt.takeIf { it.isAfter(now) }?.let { housekeeping += it }
         }
 
-        if (anyMedicineProducesDoses(medications)) housekeeping += nextDailyRefresh(now)
+        if (anyMedicineProducesDoses(medications) || hasDoseHistory) housekeeping += nextDailyRefresh(now)
 
         // One housekeeping alarm rather than one per dose: nothing the user sees depends on it
         // firing to the minute, and the wake it triggers settles everything that has lapsed at

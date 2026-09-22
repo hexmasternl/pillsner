@@ -2,6 +2,9 @@ package nl.hexmaster.pillsner.domain.intake
 
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.data.InMemoryDoseRepository
+import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
+import nl.hexmaster.pillsner.data.stock.InMemoryStockWarningQueue
 import nl.hexmaster.pillsner.domain.MutableTestClock
 import nl.hexmaster.pillsner.domain.model.Dose
 import nl.hexmaster.pillsner.domain.model.DoseId
@@ -10,6 +13,8 @@ import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.SchedulingTestSupport.amsterdam
 import nl.hexmaster.pillsner.domain.scheduling.SchedulingTestSupport.at
 import nl.hexmaster.pillsner.domain.scheduling.SchedulingTestSupport.dose
+import nl.hexmaster.pillsner.domain.stock.ConsumeStockOnTaken
+import nl.hexmaster.pillsner.domain.stock.EvaluateStockWarning
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -110,6 +115,18 @@ class AnswerDoseTest {
         doseRepository = doses,
         recordIntake = RecordIntake(doses, clock),
         snoozeDose = SnoozeDose(doses, MarkMissedDoses(doses, clock), clock),
+        // No medication or stock batch is registered for these fixture doses, so consumption is a
+        // no-op in every test here; stock behaviour has its own test suite.
+        consumeStockOnTaken = run {
+            val medications = InMemoryMedicationRepository()
+            val batches = InMemoryStockBatchRepository()
+            ConsumeStockOnTaken(
+                stockBatchRepository = batches,
+                medicationRepository = medications,
+                stockWarningQueue = InMemoryStockWarningQueue(),
+                evaluateStockWarning = EvaluateStockWarning(medications, batches, clock = clock),
+            )
+        },
         onAnswered = { answered += it },
     )
 }

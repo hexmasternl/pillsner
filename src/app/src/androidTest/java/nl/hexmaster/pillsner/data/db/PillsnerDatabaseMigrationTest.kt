@@ -4,6 +4,7 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -198,6 +199,66 @@ class PillsnerDatabaseMigrationTest {
             "SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'index_doses_outcome_scheduled_at'",
         ).use { cursor ->
             assertEquals("The new composite index exists", 1, cursor.count)
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate5To6_addsStockBatchesAndTheAcknowledgementColumn() {
+        helper.createDatabase(TEST_DATABASE, 5).use { db ->
+            db.execSQL(
+                """
+                INSERT INTO medications
+                    (id, name, default_dose_value, default_dose_unit, used_since, use_until,
+                     prescribed_by, is_active)
+                VALUES (1, 'Ibuprofen', '400', 'MILLIGRAM', '2026-09-14', NULL,
+                        'GENERAL_PRACTITIONER', 1)
+                """.trimIndent(),
+            )
+            db.execSQL(
+                """
+                INSERT INTO schedules
+                    (id, medication_id, position, kind, amount_value, amount_unit, interval_days,
+                     interval_hours, days, times, first_dose_at)
+                VALUES (1, 1, 0, 'EVERY_N_DAYS', '400', 'MILLIGRAM', 1, NULL, NULL, '08:00,20:00', NULL)
+                """.trimIndent(),
+            )
+            db.execSQL(
+                """
+                INSERT INTO doses
+                    (id, medication_id, medication_name, amount_value, amount_unit, scheduled_at,
+                     planned_at, outcome, recorded_at, snoozed_until, first_reminded_at,
+                     last_reminded_at, reminder_count)
+                VALUES (1, 1, 'Ibuprofen', '400', 'MILLIGRAM', 1789200000000, 1789200000000,
+                        NULL, NULL, NULL, NULL, NULL, 0)
+                """.trimIndent(),
+            )
+        }
+
+        val migrated = helper.runMigrationsAndValidate(TEST_DATABASE, 6, true, Migrations.MIGRATION_5_6)
+
+        migrated.query("SELECT name, low_stock_acknowledgement FROM medications").use { cursor ->
+            assertEquals(1, cursor.count)
+            cursor.moveToFirst()
+            assertEquals("Ibuprofen", cursor.getString(0))
+            assertTrue("Existing rows start with no acknowledgement", cursor.isNull(1))
+        }
+        migrated.query("SELECT COUNT(*) FROM schedules").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals(1, cursor.getInt(0))
+        }
+        migrated.query("SELECT medication_name FROM doses").use { cursor ->
+            assertEquals("The dose row survives an additive migration", 1, cursor.count)
+        }
+        migrated.query("SELECT COUNT(*) FROM stock_batches").use { cursor ->
+            cursor.moveToFirst()
+            assertEquals("No medicine has ever had stock recorded yet", 0, cursor.getInt(0))
+        }
+        migrated.query(
+            "SELECT name FROM sqlite_master WHERE type = 'index' " +
+                "AND name = 'index_stock_batches_medication_id_expiry_date'",
+        ).use { cursor ->
+            assertEquals("The new stock batch index exists", 1, cursor.count)
         }
         migrated.close()
     }

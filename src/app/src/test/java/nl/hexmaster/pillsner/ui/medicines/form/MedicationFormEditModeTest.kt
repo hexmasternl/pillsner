@@ -234,5 +234,9 @@ class MedicationFormEditModeTest {
         override suspend fun add(medication: NewMedication): MedicationId = error("no database")
         override suspend fun update(medication: Medication): Unit = error("no database")
         override suspend fun setActive(id: MedicationId, isActive: Boolean): Unit = error("no database")
+        override suspend fun setLowStockAcknowledgement(
+            id: MedicationId,
+            value: nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement?,
+        ): Unit = error("no database")
     }
 }

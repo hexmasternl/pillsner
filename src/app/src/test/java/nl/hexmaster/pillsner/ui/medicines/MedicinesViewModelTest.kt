@@ -13,6 +13,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
@@ -34,6 +36,7 @@ class MedicinesViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val repository = InMemoryMedicationRepository()
+    private val stockBatchRepository = InMemoryStockBatchRepository()
 
     @Before
     fun setUp() {
@@ -47,7 +50,7 @@ class MedicinesViewModelTest {
 
     @Test
     fun `initial state is loading with no medicines`() {
-        val viewModel = MedicinesViewModel(repository, Locale.UK)
+        val viewModel = MedicinesViewModel(repository, stockBatchRepository, Locale.UK)
 
         val state = viewModel.uiState.value
 
@@ -184,7 +187,7 @@ class MedicinesViewModelTest {
     @Test
     fun `a failing repository reports it once and leaves the screen as it was`() = runTest(dispatcher) {
         val failing = FailingRepository(medication(1, "Ibuprofen"))
-        val viewModel = MedicinesViewModel(failing, Locale.UK)
+        val viewModel = MedicinesViewModel(failing, stockBatchRepository, Locale.UK)
         backgroundScope.launch { viewModel.uiState.collect {} }
         val effects = mutableListOf<MedicinesEffect>()
         backgroundScope.launch { viewModel.effects.collect { effects += it } }
@@ -196,7 +199,7 @@ class MedicinesViewModelTest {
     }
 
     private fun TestScope.collecting(): MedicinesViewModel {
-        val viewModel = MedicinesViewModel(repository, Locale.UK)
+        val viewModel = MedicinesViewModel(repository, stockBatchRepository, Locale.UK)
         backgroundScope.launch { viewModel.uiState.collect {} }
         return viewModel
     }
@@ -209,5 +212,7 @@ class MedicinesViewModelTest {
         override suspend fun update(medication: Medication): Unit = error("no database")
         override suspend fun add(medication: NewMedication): MedicationId = error("no database")
         override suspend fun setActive(id: MedicationId, isActive: Boolean): Unit = error("no database")
+        override suspend fun setLowStockAcknowledgement(id: MedicationId, value: LowStockAcknowledgement?): Unit =
+            error("no database")
     }
 }

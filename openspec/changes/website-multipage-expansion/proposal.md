@@ -16,7 +16,8 @@ The marketing website (`src/website/`) is currently one single page per locale t
   - **On your wrist** (`/wearable/`): the Wear OS companion app.
   - **Privacy & security** (`/privacy/`): on-device-only data, no account/cloud/analytics, no internet permission, the optional app lock, linking to the full `PRIVACY.md`.
 - Add a new FAQ page (`/faq/`) with a translated question-and-answer list.
-- Add a new "Report a bug" page (`/report-a-bug/`) and a new "Request a feature" page (`/request-a-feature/`): each a small static form that, on submit, assembles a prefilled `https://github.com/hexmasternl/pillsner/issues/new?title=...&body=...&labels=...` URL client-side (`bug` / `feature` label respectively) and sends the visitor there to finish filing it with their own GitHub account — no backend, no token, no data collected by the site itself.
+- Add a new "Report a bug" page (`/report-a-bug/`) and a new "Request a feature" page (`/request-a-feature/`): each a small static form that submits to `https://github.com/hexmasternl/pillsner/issues/new`, carrying the GitHub Issue Form template and the `bug` / `feature` label in hidden fields, so the visitor lands on a prefilled, correctly-labelled new-issue page and finishes filing it with their own GitHub account — no backend, no token, no data collected by the site itself. Two new templates, `.github/ISSUE_TEMPLATE/bug_report.yml` and `.github/ISSUE_TEMPLATE/feature_request.yml`, back those two pages.
+- Illustrate the content pages with the app screenshots already in `docs/screens/`, mounted into Hugo's assets rather than copied: each is shown small and opens full size, centred on a 50%-black backdrop that any click closes.
 - Extend per-page SEO/Open Graph metadata, `hreflang` alternates and the generated `sitemap.xml` to cover every new page in every locale (the existing per-locale, per-page requirements already specified for the home page apply the same way to each new page).
 - Update `src/website/README.md`'s project-layout table for the new content/page structure.
 
@@ -32,6 +33,7 @@ The marketing website (`src/website/`) is currently one single page per locale t
 ## Impact
 
 - **Changed code**: `src/website/content/<lang>/` gains one content file/bundle per new page per locale; `src/website/layouts/` gains templates for the new page types (content page, FAQ, and the two issue-reporting forms) alongside the existing `index.html`; `src/website/i18n/<lang>.toml` gains navigation and form-chrome strings; `src/website/hugo.toml` needs its `disableKinds`/`outputs` settings revisited since they currently assume a single home-only page.
-- **New client-side JS**: a small script (no external requests) to build the prefilled GitHub issue URL from the report-a-bug/request-a-feature form fields.
+- **New client-side JS**: two small scripts (no external requests) — one to build the prefilled GitHub issue URL from the report-a-bug/request-a-feature form fields, one for the screenshot overlay.
+- **New GitHub Issue Forms**: `.github/ISSUE_TEMPLATE/bug_report.yml` and `.github/ISSUE_TEMPLATE/feature_request.yml`; `.github/workflows/website.yml` gains `docs/screens/**` to its path filter so a screenshot change redeploys the site.
 - **No changes** to `src/app`, `src/wear`, `src/shared`, or any Android behaviour — this is a website-only change.
 - **No new dependencies, no backend, no analytics** — the site remains a static Hugo build with no runtime server dependency.

@@ -478,6 +478,7 @@
     <string name="medicine_stock_error_quantity_required">Saisissez une quantité.</string>
     <string name="medicine_stock_error_quantity_not_a_number">Saisissez la quantité sous forme de nombre.</string>
     <string name="medicine_stock_error_quantity_not_positive">Saisissez une quantité supérieure à zéro.</string>
+    <string name="medicine_stock_error_quantity_not_whole">Saisissez un nombre entier de comprimés ou de gélules.</string>
     <string name="medicine_stock_error_strength_required">Saisissez un dosage.</string>
     <string name="medicine_stock_error_strength_not_a_number">Saisissez le dosage sous forme de nombre.</string>
     <string name="medicine_stock_error_strength_not_positive">Saisissez un dosage supérieur à zéro.</string>

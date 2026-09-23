@@ -274,6 +274,58 @@ class MedicationFormEditModeTest {
     }
 
     @Test
+    fun `a fractional tablet or capsule quantity is rejected`() = runTest(dispatcher) {
+        val id = store()
+        val viewModel = stockAware(editHandle(id))
+
+        listOf(DoseUnit.TABLET, DoseUnit.CAPSULE).forEach { unit ->
+            viewModel.onAddStockClicked()
+            viewModel.onStockUnitChange(unit)
+            viewModel.onStockQuantityTextChange("20.5")
+            viewModel.onStockStrengthTextChange("20")
+            viewModel.onStockExpiryDateChange(LocalDate.of(2027, 1, 1))
+            viewModel.onSaveStockBatch()
+
+            assertEquals(
+                MedicationFieldError.STOCK_NOT_WHOLE_PILLS,
+                viewModel.uiState.value.addStockState?.quantityError,
+            )
+            viewModel.onAddStockDismissed()
+        }
+        assertTrue(runBlocking { stockBatches.batches(id) }.isEmpty())
+    }
+
+    @Test
+    fun `a whole tablet quantity written with a decimal point is accepted`() = runTest(dispatcher) {
+        val id = store()
+        val viewModel = stockAware(editHandle(id))
+
+        viewModel.onAddStockClicked()
+        viewModel.onStockUnitChange(DoseUnit.TABLET)
+        viewModel.onStockQuantityTextChange("20.0")
+        viewModel.onStockStrengthTextChange("20")
+        viewModel.onStockExpiryDateChange(LocalDate.of(2027, 1, 1))
+        viewModel.onSaveStockBatch()
+
+        assertEquals(1, runBlocking { stockBatches.batches(id) }.size)
+    }
+
+    @Test
+    fun `a fractional quantity is accepted for a continuous unit`() = runTest(dispatcher) {
+        val id = store()
+        val viewModel = stockAware(editHandle(id))
+
+        viewModel.onAddStockClicked()
+        viewModel.onStockUnitChange(DoseUnit.MILLILITRE)
+        viewModel.onStockQuantityTextChange("150.5")
+        viewModel.onStockStrengthTextChange("2")
+        viewModel.onStockExpiryDateChange(LocalDate.of(2027, 1, 1))
+        viewModel.onSaveStockBatch()
+
+        assertEquals(BigDecimal("150.5"), runBlocking { stockBatches.batches(id) }.single().remaining)
+    }
+
+    @Test
     fun `add mode shows no active switch and still stores a new medicine`() = runTest(dispatcher) {
         val viewModel = viewModel(SavedStateHandle())
         assertFalse(viewModel.uiState.value.showsActiveSwitch)

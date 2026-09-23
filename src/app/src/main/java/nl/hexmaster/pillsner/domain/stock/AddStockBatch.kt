@@ -5,6 +5,7 @@ import java.time.Clock
 import java.time.LocalDate
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
+import nl.hexmaster.pillsner.domain.model.isWholePill
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
 import nl.hexmaster.pillsner.domain.repository.TransactionRunner
@@ -44,9 +45,13 @@ class AddStockBatch(
             strengthPerUnit
         }
         // Checked here, not only on the form: this is the domain's own boundary, and a batch with a
-        // non-positive strength breaks every conversion that later divides by it. The amount needs
-        // no check of its own; a Quantity is always greater than zero.
+        // non-positive strength breaks every conversion that later divides by it. A Quantity is
+        // always greater than zero, but one counted in pills must also be whole
+        // (`medicine-stock-tracking`'s "Whole-pill units" requirement).
         require(effectiveStrength > BigDecimal.ZERO) { "A stock batch's strength must be greater than zero" }
+        require(!amount.unit.isWholePill || amount.value.stripTrailingZeros().scale() <= 0) {
+            "A stock batch counted in tablets or capsules must hold a whole number of them"
+        }
         stockBatchRepository.addBatch(medicationId, amount, effectiveStrength, expiryDate, clock.instant())
         medicationRepository.setLowStockAcknowledgement(medicationId, null)
     }

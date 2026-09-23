@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.domain.model
 
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 
@@ -43,8 +44,19 @@ data class StockBatch(
         require(strengthPerUnit > BigDecimal.ZERO) { "A stock batch's strength must be greater than zero" }
     }
 
-    /** [remaining], converted to the medication's default dose unit via [strengthPerUnit]. */
-    val remainingInDoseUnits: BigDecimal get() = remaining * strengthPerUnit
+    /**
+     * What this batch can actually still give, in its own [unit]: [remaining] rounded down to a
+     * whole number when [unit] is a whole-pill unit, otherwise [remaining] itself. A tablet batch
+     * can only hold a fraction if it was recorded before whole-pill deduction existed (49.92
+     * tablets, say); that fraction is a pill already used, so it reads as 49 everywhere and is
+     * written back as a whole number the next time a dose is drawn from this batch
+     * (`medicine-stock-tracking`'s "Whole-pill units" requirement).
+     */
+    val usableRemaining: BigDecimal
+        get() = if (unit.isWholePill) remaining.setScale(0, RoundingMode.FLOOR) else remaining
+
+    /** [usableRemaining], converted to the medication's default dose unit via [strengthPerUnit]. */
+    val remainingInDoseUnits: BigDecimal get() = usableRemaining * strengthPerUnit
 }
 
 /**

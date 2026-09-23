@@ -477,6 +477,7 @@
     <string name="medicine_stock_error_quantity_required">Gib eine Menge ein.</string>
     <string name="medicine_stock_error_quantity_not_a_number">Gib die Menge als Zahl ein.</string>
     <string name="medicine_stock_error_quantity_not_positive">Gib eine Menge größer als null ein.</string>
+    <string name="medicine_stock_error_quantity_not_whole">Gib eine ganze Zahl an Tabletten oder Kapseln ein.</string>
     <string name="medicine_stock_error_strength_required">Gib eine Stärke ein.</string>
     <string name="medicine_stock_error_strength_not_a_number">Gib die Stärke als Zahl ein.</string>
     <string name="medicine_stock_error_strength_not_positive">Gib eine Stärke größer als null ein.</string>

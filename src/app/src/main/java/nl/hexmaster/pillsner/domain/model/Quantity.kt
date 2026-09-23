@@ -16,6 +16,15 @@ enum class DoseUnit {
 }
 
 /**
+ * Whether stock counted in this unit holds and loses only whole units (`medicine-stock-tracking`'s
+ * "Whole-pill units" requirement). True for tablets and capsules only: once any part of a pill is
+ * used it cannot go back into the box, so a partly used pill counts as a whole one. Every other
+ * unit is either continuous (a weight or a volume) or never split in practice (a drop, a puff), and
+ * keeps exact decimal arithmetic.
+ */
+val DoseUnit.isWholePill: Boolean get() = this == DoseUnit.TABLET || this == DoseUnit.CAPSULE
+
+/**
  * How much of a medication one dose is: an exact decimal amount greater than zero, in a [DoseUnit].
  *
  * [BigDecimal] rather than a floating-point type so that "0.5 tablet" and "2.5 ml" round-trip

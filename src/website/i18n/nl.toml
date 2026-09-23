@@ -73,6 +73,15 @@ other = "Een fout melden"
 [nav_request_a_feature]
 other = "Een functie aanvragen"
 
+[nav_help]
+other = "Hulp"
+
+[nav_menu_open]
+other = "Menu"
+
+[nav_menu_close]
+other = "Menu sluiten"
+
 [footer_explore]
 other = "Verkennen"
 

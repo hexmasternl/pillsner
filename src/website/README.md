@@ -39,11 +39,15 @@ hugo --minify            # production build, output in ./public
 | `layouts/` | Templates: `_default/baseof.html` (page shell), `index.html` (home), `_default/single.html` (the shared content page), `faq/single.html`, `issue-report/single.html`, and `partials/` (SEO, Open Graph, favicons, header with the site navigation, page hero, screenshot, call to action, footer, language switcher). |
 | `assets/css/` | Design tokens ported from `docs/design-system.md`, the type scale, and layout/component styles. |
 | `assets/images/` | Source images (`icon-source.png`, `feature-source.png`, copied from `docs/`) that Hugo resizes at build time into favicons and the Open Graph share image. No other raster processing tool is required. |
-| `assets/js/` | `language.js` (remembers a manually chosen language), `lightbox.js` (shows a screenshot full size on a dimmed backdrop) and `issue-report.js` (builds the prefilled GitHub "new issue" URL). All three are bundled into one script; none makes an external request. |
+| `assets/js/` | `language.js` (remembers a manually chosen language), `lightbox.js` (shows a screenshot full size on a dimmed backdrop), `issue-report.js` (builds the prefilled GitHub "new issue" URL) and `navigation.js` (drives the header's Menu button and dropdown groups). All four are bundled into one script; none makes an external request. `_default/baseof.html` also carries a one-line inline script that marks `<html>` with a `js` class before first paint, so the header can switch from its no-JS layout without a flash. |
 | `../../docs/screens/` | The app screenshots shown on the content pages. They are not copied here: `hugo.toml` mounts that folder as `assets/images/screens`, and Hugo resizes each one into a thumbnail plus a larger version for the overlay. |
 | `static/fonts/` | The same bundled Montserrat/Raleway static TTFs the Android app uses, served directly — no external font requests. |
 | `layouts/alias.html` | The language-neutral root page (`/`). Hugo generates this page itself whenever `defaultContentLanguageInSubdir = true` (a built-in redirect to the default language) and silently overwrites a plain `static/index.html`, so this template is Hugo's documented override point for it instead. It detects the browser's language client-side, redirects into the matching `/<lang>/` page (default `/en/`), and has a no-JS `<noscript>` fallback with a manual language list. |
 | `static/robots.txt` | Allows crawling and points at the generated sitemap. |
+
+## Adding a page to the menu
+
+The header menu is the `[[menus.main]]` list in `hugo.toml`. It shows at most four top-level entries (Home, Features, Privacy, Help) so it fits on one row from 960 px in every locale; below 960 px it collapses behind a Menu button. A new page therefore joins a group: give its entry `parent = "features"` or `parent = "help"` and a `weight` inside that group's range, and add its `nav_<identifier>` label to every `i18n/<lang>.toml`. The footer lists every page automatically. The look and behaviour of the menu are defined in section 8.14 of [`docs/design-system.md`](../../docs/design-system.md).
 
 ## Adding or updating a translation
 

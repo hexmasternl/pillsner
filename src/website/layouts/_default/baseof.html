@@ -6,6 +6,11 @@
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#1B7F5C" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101413" media="(prefers-color-scheme: dark)">
+  {{/* Marks the page as script-capable before first paint, so the header's
+       Menu button replaces the expanded no-JS menu without a flash. It holds
+       no data and makes no request; if a Content-Security-Policy is ever
+       added, this inline script needs a hash in script-src. */}}
+  <script>document.documentElement.classList.add("js")</script>
   {{ partial "seo.html" . }}
   {{ partial "opengraph.html" . }}
   {{ partial "favicons.html" . }}
@@ -29,7 +34,8 @@
   {{ $lang := resources.Get "js/language.js" }}
   {{ $lightbox := resources.Get "js/lightbox.js" }}
   {{ $issueReport := resources.Get "js/issue-report.js" }}
-  {{ $js := slice $lang $lightbox $issueReport | resources.Concat "js/site.js" }}
+  {{ $navigation := resources.Get "js/navigation.js" }}
+  {{ $js := slice $lang $lightbox $issueReport $navigation | resources.Concat "js/site.js" }}
   {{ if hugo.IsProduction }}
     {{ $js = $js | js.Build | minify | fingerprint }}
   {{ else }}

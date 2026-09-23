@@ -125,6 +125,7 @@
   --type-label-small-tracking: 0.5px;
 
   /* Section 4 shape */
+  --shape-small: 8px;
   --shape-medium: 12px;
   --shape-large: 16px;
   --shape-extra-large: 28px;

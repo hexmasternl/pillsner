@@ -1,19 +1,28 @@
 /* Page structure. Mobile-first; single side gutter via .container. */
 
 .container {
+  --container-gutter: var(--space-lg);
   width: 100%;
   max-width: 1080px;
   margin-inline: auto;
-  padding-inline: var(--space-lg);
+  padding-inline: var(--container-gutter);
 }
 
 @media (min-width: 768px) {
   .container {
-    padding-inline: var(--space-xl);
+    --container-gutter: var(--space-xl);
   }
 }
 
+/* Site header and navigation — section 8.14 of the design system.
+   Narrow first: brand, language switcher and a Menu button, with the nav as a
+   panel under the bar. From 960 px (the one breakpoint for this header) the
+   nav sits inline as a single row with dropdown groups. Without JavaScript
+   (no .js on <html>) the Menu button stays hidden and the narrow nav is shown
+   expanded, so every page is always reachable. */
+
 .site-header {
+  --site-header-bar-height: 65px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -24,16 +33,18 @@
 .site-header__bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  padding-block: var(--space-md);
   flex-wrap: wrap;
+  gap: 0 var(--space-sm);
+  min-height: 64px;
+  padding-block: var(--space-sm);
 }
 
 .site-header__brand {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  min-height: 48px;
+  margin-inline-end: auto;
   text-decoration: none;
   color: var(--color-on-surface);
 }
@@ -50,21 +61,274 @@
   font-size: 22px;
 }
 
-.site-nav {
+.site-header__controls {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
-  flex-wrap: wrap;
+  gap: var(--space-sm);
 }
 
-.site-nav a {
+.site-header__menu-button {
+  display: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--shape-full);
+  background: transparent;
+  color: var(--color-on-surface);
+  cursor: pointer;
+}
+
+.js .site-header__menu-button {
+  display: inline-grid;
+}
+
+.site-header__menu-button:hover {
+  background: var(--color-surface-container-highest);
+}
+
+.site-header__menu-icon {
+  display: inline-flex;
+}
+
+.site-header__menu-icon--close,
+.site-header__menu-button[aria-expanded="true"] .site-header__menu-icon--open {
+  display: none;
+}
+
+.site-header__menu-button[aria-expanded="true"] .site-header__menu-icon--close {
+  display: inline-flex;
+}
+
+/* Narrow: the nav is a full-width panel under the bar. */
+
+.site-nav {
+  order: 3;
+  flex-basis: 100%;
+  margin-inline: calc(-1 * var(--container-gutter));
+  margin-block-end: calc(-1 * var(--space-sm));
+  padding: var(--space-sm) var(--container-gutter) var(--space-lg);
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.js .site-nav {
+  display: none;
+  max-height: calc(100vh - var(--site-header-bar-height));
+  max-height: calc(100dvh - var(--site-header-bar-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.js .site-header.is-menu-open .site-nav {
+  display: block;
+}
+
+.site-nav__list,
+.site-nav__menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.site-nav__link,
+.site-nav__sublink {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding-inline: var(--space-md);
+  border-radius: var(--shape-medium);
   text-decoration: none;
+  color: var(--color-on-surface);
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus-visible,
+.site-nav__sublink:hover,
+.site-nav__sublink:focus-visible,
+.site-nav__link[aria-current="page"],
+.site-nav__sublink[aria-current="page"] {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+}
+
+.site-nav__link[aria-current="page"],
+.site-nav__sublink[aria-current="page"] {
+  font-weight: 600;
+}
+
+/* A group's summary is its heading in the panel; every group starts open
+   there (navigation.js), so all pages are listed at once. */
+.site-nav__summary {
+  list-style: none;
+  cursor: pointer;
+  justify-content: space-between;
+  margin-block-start: var(--space-sm);
+  font-size: var(--type-label-small-size);
+  font-weight: var(--type-label-small-weight);
+  line-height: var(--type-label-small-line);
+  letter-spacing: var(--type-label-small-tracking);
+  text-transform: uppercase;
   color: var(--color-on-surface-variant);
 }
 
-.site-nav a:hover,
-.site-nav a:focus-visible {
-  color: var(--color-primary);
+.site-nav__summary::-webkit-details-marker {
+  display: none;
+}
+
+.site-nav__summary svg {
+  flex: none;
+}
+
+.site-nav__group[open] > .site-nav__summary svg {
+  transform: rotate(180deg);
+}
+
+/* A top-level entry after a group gets a divider, so it does not read as
+   the group's last child. */
+.site-nav__item--group + .site-nav__item:not(.site-nav__item--group) {
+  margin-block-start: var(--space-sm);
+  padding-block-start: var(--space-sm);
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+@media (max-width: 959.98px) {
+  /* Without JavaScript the expanded menu would make a sticky header cover
+     most of a phone screen, so it scrolls away with the page instead. */
+  html:not(.js) .site-header {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .js .site-header.is-menu-open .site-nav {
+    animation: switcher-in 0.15s ease;
+  }
+}
+
+/* Wide: one row — brand, the four entries centred, language switcher. */
+
+@media (min-width: 960px) {
+  .site-header__bar {
+    flex-wrap: nowrap;
+    gap: var(--space-lg);
+  }
+
+  .site-header__brand {
+    margin-inline-end: 0;
+  }
+
+  .site-nav,
+  .js .site-nav {
+    order: 0;
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .js .site-header__menu-button {
+    display: none;
+  }
+
+  .site-nav__list {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .site-nav__item {
+    position: relative;
+  }
+
+  /* Top-level pills: 40 px visible, 48 px hit area. */
+  .site-nav__link {
+    position: relative;
+    isolation: isolate;
+    gap: var(--space-xs);
+    margin: 0;
+    padding-inline: var(--space-lg);
+    border-radius: var(--shape-full);
+    white-space: nowrap;
+    font-size: var(--type-label-large-size);
+    font-weight: var(--type-label-large-weight);
+    line-height: var(--type-label-large-line);
+    letter-spacing: var(--type-label-large-tracking);
+    text-transform: none;
+    color: var(--color-on-surface-variant);
+  }
+
+  .site-nav__link::before {
+    content: "";
+    position: absolute;
+    inset: var(--space-xs) 0;
+    z-index: -1;
+    border-radius: var(--shape-full);
+  }
+
+  .site-nav__link:hover,
+  .site-nav__link:focus-visible,
+  .site-nav__link[aria-current="page"] {
+    background: transparent;
+  }
+
+  .site-nav__link:hover::before,
+  .site-nav__link:focus-visible::before,
+  .site-nav__link[aria-current="page"]::before,
+  .site-nav__summary.is-current::before,
+  .site-nav__group[open] > .site-nav__summary::before {
+    background: var(--color-secondary-container);
+  }
+
+  .site-nav__link:hover,
+  .site-nav__link:focus-visible,
+  .site-nav__link[aria-current="page"],
+  .site-nav__summary.is-current,
+  .site-nav__group[open] > .site-nav__summary {
+    color: var(--color-on-secondary-container);
+  }
+
+  .site-nav__link[aria-current="page"] {
+    font-weight: var(--type-label-large-weight);
+  }
+
+  .site-nav__item--group + .site-nav__item:not(.site-nav__item--group) {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* Group dropdown, sharing the language switcher menu's surface. */
+  .site-nav__menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1;
+    min-width: 220px;
+    padding: var(--space-xs);
+    background: var(--color-surface-container-high);
+    border-radius: var(--shape-medium);
+    box-shadow: 0 8px 24px -8px rgba(16, 20, 19, 0.4);
+  }
+
+  .site-nav__sublink {
+    border-radius: var(--shape-small);
+    white-space: nowrap;
+    font-size: var(--type-body-medium-size);
+    line-height: var(--type-body-medium-line);
+    letter-spacing: var(--type-body-medium-tracking);
+  }
+}
+
+@media (min-width: 960px) and (prefers-reduced-motion: no-preference) {
+  .site-nav__group[open] > .site-nav__menu {
+    animation: switcher-in 0.15s ease;
+  }
 }
 
 main {

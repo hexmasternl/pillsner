@@ -73,6 +73,15 @@ other = "Informar de un fallo"
 [nav_request_a_feature]
 other = "Solicitar una función"
 
+[nav_help]
+other = "Ayuda"
+
+[nav_menu_open]
+other = "Menú"
+
+[nav_menu_close]
+other = "Cerrar menú"
+
 [footer_explore]
 other = "Explorar"
 

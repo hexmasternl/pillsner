@@ -23,20 +23,29 @@ class EvaluateStockWarning(
     private val projectWeeklyUsage: ProjectWeeklyUsage = ProjectWeeklyUsage(),
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
-    suspend operator fun invoke(medicationId: MedicationId): StockWarning? {
+    /**
+     * @param drawnBatchExpiry the expiry date of the batch the triggering take drew from first
+     *   (`medicine-stock-tracking`'s "Expiry-at-use warning" requirement). That batch may be empty
+     *   by now, so it is classified directly rather than looked up among the batches with stock
+     *   left; the classification itself is still made against today. Null falls back to the
+     *   soonest-expiring batch that still has stock.
+     */
+    suspend operator fun invoke(medicationId: MedicationId, drawnBatchExpiry: LocalDate? = null): StockWarning? {
         val medication = medicationRepository.get(medicationId) ?: return null
         val batches = stockBatchRepository.batches(medicationId)
         if (batches.isEmpty()) return null
 
-        val state = stockState(batches, medication, LocalDate.now(clock), clock.zone, projectWeeklyUsage)
+        val today = LocalDate.now(clock)
+        val state = stockState(batches, medication, today, clock.zone, projectWeeklyUsage)
         val lowStock = state.isLow && medication.lowStockAcknowledgement == null
-        if (!lowStock && state.nearestExpiry == BatchExpiryState.NONE) return null
+        val expiryState = drawnBatchExpiry?.let { batchExpiryState(it, today) } ?: state.nearestExpiry
+        if (!lowStock && expiryState == BatchExpiryState.NONE) return null
 
         return StockWarning(
             medicationId = medicationId,
             medicationName = medication.name,
             lowStock = lowStock,
-            expiryState = state.nearestExpiry,
+            expiryState = expiryState,
         )
     }
 }

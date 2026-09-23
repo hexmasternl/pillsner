@@ -1,7 +1,9 @@
 package nl.hexmaster.pillsner.ui.home
 
+import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -12,12 +14,21 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
+import nl.hexmaster.pillsner.data.stock.InMemoryStockWarningQueue
 import nl.hexmaster.pillsner.domain.MutableTestClock
+import nl.hexmaster.pillsner.domain.model.BatchExpiryState
 import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
+import nl.hexmaster.pillsner.domain.model.StockBatch
+import nl.hexmaster.pillsner.domain.model.StockBatchId
+import nl.hexmaster.pillsner.domain.model.TestFixtures
 import nl.hexmaster.pillsner.domain.model.UpcomingDose
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
+import nl.hexmaster.pillsner.domain.stock.EvaluateStockWarning
 import nl.hexmaster.pillsner.ui.theme.IntakeStatus
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -202,6 +213,41 @@ class HomeViewModelTest {
 
         assertEquals("Ibuprofen 400", viewModel.uiState.value.upcomingDoses.single().medicationName)
     }
+
+    @Test
+    fun `a deferred warning names the expiry of the batch the take drew from, even once it is empty`() =
+        runTest(dispatcher) {
+            val medication = TestFixtures.medication(id = 1L)
+            val medications = InMemoryMedicationRepository().apply { upsert(medication) }
+            // The batch the take drew from is used up; what is left is far from expiry.
+            val batches = InMemoryStockBatchRepository(
+                listOf(
+                    stockBatch(1, remaining = "0", expiry = LocalDate.of(2026, 9, 20)),
+                    stockBatch(2, remaining = "400", expiry = LocalDate.of(2027, 6, 1)),
+                ),
+            )
+            val queue = InMemoryStockWarningQueue(mapOf(medication.id to LocalDate.of(2026, 9, 20)))
+            val viewModel = HomeViewModel(
+                repository,
+                clock = clock,
+                stockWarningQueue = queue,
+                evaluateStockWarning = EvaluateStockWarning(medications, batches, clock = clock),
+                medicationRepository = medications,
+            )
+            backgroundScope.launch { viewModel.uiState.collect {} }
+
+            assertEquals(BatchExpiryState.APPROACHING, viewModel.uiState.value.stockWarning?.expiryState)
+        }
+
+    private fun stockBatch(id: Long, remaining: String, expiry: LocalDate) = StockBatch(
+        id = StockBatchId(id),
+        medicationId = MedicationId(1),
+        remaining = BigDecimal(remaining),
+        unit = DoseUnit.MILLIGRAM,
+        strengthPerUnit = BigDecimal.ONE,
+        expiryDate = expiry,
+        addedAt = Instant.EPOCH,
+    )
 
     private fun kotlinx.coroutines.test.TestScope.collecting(): HomeViewModel {
         val viewModel = HomeViewModel(repository, clock = clock)

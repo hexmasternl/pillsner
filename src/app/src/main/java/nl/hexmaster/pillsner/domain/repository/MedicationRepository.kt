@@ -40,6 +40,11 @@ interface MedicationRepository {
      * already taken is history, and what is still only planned is re-planned by the reminder layer
      * on the next emission.
      *
+     * The one field this leaves as stored is [Medication.lowStockAcknowledgement]: only
+     * [setLowStockAcknowledgement] changes it. A form that loaded the medicine earlier would otherwise
+     * write back an acknowledgement that adding stock has since cleared (`medicine-stock-tracking`'s
+     * "Add stock form" requirement).
+     *
      * @throws IllegalStateException when no medication has that identifier. Unlike [setActive] this
      *   never fails quietly: it carries a form the user has spent time on.
      */

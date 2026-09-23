@@ -205,6 +205,7 @@
     <string name="medicine_error_dose_required">Saisis une quantité.</string>
     <string name="medicine_error_dose_not_a_number">Saisis la quantité sous forme de nombre.</string>
     <string name="medicine_error_dose_not_positive">Saisis une quantité supérieure à zéro.</string>
+    <string name="medicine_error_dose_unit_locked_by_stock">L\'unité ne peut pas changer tant que du stock est enregistré. Supprimez d\'abord les lots de stock.</string>
     <string name="medicine_error_use_until_before_used_since">Doit être à la date de début d\'utilisation ou après.</string>
 
     <!-- Abandonner un brouillon -->

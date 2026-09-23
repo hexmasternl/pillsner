@@ -33,6 +33,9 @@ interface MedicationDao {
     @Query("UPDATE medications SET low_stock_acknowledgement = :value WHERE id = :id")
     suspend fun setLowStockAcknowledgement(id: Long, value: String?)
 
+    @Query("SELECT low_stock_acknowledgement FROM medications WHERE id = :id")
+    suspend fun lowStockAcknowledgement(id: Long): String?
+
     @Update
     suspend fun updateMedication(medication: MedicationEntity): Int
 
@@ -61,12 +64,16 @@ interface MedicationDao {
      * `medications`, never `schedules` — so replacing them cannot disturb a single dose. **Any
      * future table that does reference `schedules` has to revisit this method.**
      *
+     * The low-stock acknowledgement is re-read and kept as stored, whatever [medication] carries:
+     * only [setLowStockAcknowledgement] changes it (`medicine-stock-tracking`).
+     *
      * @throws IllegalStateException when no medication has that identifier, which rolls the whole
      *   transaction back.
      */
     @Transaction
     suspend fun update(medication: MedicationEntity, schedules: List<ScheduleEntity>) {
-        check(updateMedication(medication) == 1) { "No medication row with id ${medication.id}" }
+        val kept = medication.copy(lowStockAcknowledgement = lowStockAcknowledgement(medication.id))
+        check(updateMedication(kept) == 1) { "No medication row with id ${medication.id}" }
         deleteSchedulesFor(medication.id)
         insertSchedules(schedules.map { it.copy(medicationId = medication.id) })
     }

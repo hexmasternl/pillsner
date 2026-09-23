@@ -8,6 +8,7 @@ import nl.hexmaster.pillsner.domain.model.StockBatch
 import nl.hexmaster.pillsner.domain.model.StockBatchId
 import nl.hexmaster.pillsner.domain.repository.BatchRemainingUpdate
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -150,5 +151,45 @@ class FefoConsumptionTest {
         val result = consumeFefo(batches, BigDecimal("25"))
 
         assertEquals(BigDecimal("98.75"), result.updates.single().remaining)
+    }
+
+    @Test
+    fun `a conversion that does not terminate never deducts more than the dose`() {
+        // 2 mg against 3 mg tablets is 0.666666… tablets; rounding up would take 2.000001 mg.
+        val batches = listOf(batch(1, "10", "2027-01-01", strengthPerUnit = "3"))
+
+        val result = consumeFefo(batches, BigDecimal("2"))
+
+        assertEquals(BigDecimal("9.333334"), result.updates.single().remaining)
+        assertTrue("Consumed ${result.consumed} must not exceed the 2 mg dose", result.consumed <= BigDecimal("2"))
+    }
+
+    @Test
+    fun `a rounding remainder does not spill into the next batch`() {
+        val batches = listOf(
+            batch(1, "10", "2027-01-01", strengthPerUnit = "3"),
+            batch(2, "30", "2027-06-01"),
+        )
+
+        val result = consumeFefo(batches, BigDecimal("2"))
+
+        assertTrue("The later batch is not touched", result.updates.none { it.batchId == StockBatchId(2) })
+    }
+
+    @Test
+    fun `the first drawn batch is reported even when the dose exhausts it`() {
+        val soonest = batch(1, "1", "2026-09-20")
+        val batches = listOf(soonest, batch(2, "30", "2027-06-01"))
+
+        val result = consumeFefo(batches, BigDecimal("2"))
+
+        assertEquals(soonest, result.firstDrawn)
+    }
+
+    @Test
+    fun `nothing to draw from reports no first drawn batch`() {
+        val result = consumeFefo(listOf(batch(1, "0", "2027-01-01")), BigDecimal.ONE)
+
+        assertNull(result.firstDrawn)
     }
 }

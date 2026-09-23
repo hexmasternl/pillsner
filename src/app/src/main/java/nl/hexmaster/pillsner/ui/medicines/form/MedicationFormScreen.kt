@@ -253,7 +253,8 @@ fun MedicationFormScreen(
                     unit = uiState.doseUnit,
                     onAmountChange = onDoseTextChange,
                     onUnitChange = onDoseUnitChange,
-                    errorMessage = uiState.doseError.messageOrNull(uiState.showErrors),
+                    errorMessage = uiState.doseError.messageOrNull(uiState.showErrors)
+                        ?: uiState.doseUnitError.messageOrNull(show = true),
                     testTagPrefix = MedicationFormTestTags.DOSE_PREFIX,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -731,6 +732,7 @@ private fun MedicationFieldError?.messageOrNull(show: Boolean): String? {
             MedicationFieldError.DOSE_REQUIRED -> R.string.medicine_error_dose_required
             MedicationFieldError.DOSE_NOT_A_NUMBER -> R.string.medicine_error_dose_not_a_number
             MedicationFieldError.DOSE_NOT_POSITIVE -> R.string.medicine_error_dose_not_positive
+            MedicationFieldError.DOSE_UNIT_LOCKED_BY_STOCK -> R.string.medicine_error_dose_unit_locked_by_stock
             MedicationFieldError.USE_UNTIL_BEFORE_USED_SINCE -> R.string.medicine_error_use_until_before_used_since
         },
     )

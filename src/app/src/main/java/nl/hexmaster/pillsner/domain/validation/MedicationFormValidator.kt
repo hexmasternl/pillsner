@@ -9,6 +9,9 @@ enum class MedicationFieldError {
     DOSE_REQUIRED,
     DOSE_NOT_A_NUMBER,
     DOSE_NOT_POSITIVE,
+
+    /** The default dose unit was changed while stock batches, whose strengths depend on it, exist. */
+    DOSE_UNIT_LOCKED_BY_STOCK,
     USE_UNTIL_BEFORE_USED_SINCE,
 }
 

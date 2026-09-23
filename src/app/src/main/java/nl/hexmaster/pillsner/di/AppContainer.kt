@@ -39,6 +39,7 @@ import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
 import nl.hexmaster.pillsner.data.stock.DataStoreStockWarningQueue
 import nl.hexmaster.pillsner.data.stock.RoomStockBatchRepository
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
+import nl.hexmaster.pillsner.data.db.RoomTransactionRunner
 import nl.hexmaster.pillsner.data.reminders.AndroidBatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
 import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
@@ -75,6 +76,7 @@ import nl.hexmaster.pillsner.domain.repository.LegalRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
 import nl.hexmaster.pillsner.domain.repository.StockWarningQueue
+import nl.hexmaster.pillsner.domain.repository.TransactionRunner
 import nl.hexmaster.pillsner.domain.repository.ThemeRepository
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
 import nl.hexmaster.pillsner.domain.reset.EraseAllData
@@ -155,6 +157,9 @@ class AppContainer(
 
     val stockWarningQueue: StockWarningQueue =
         stockWarningQueue ?: DataStoreStockWarningQueue(applicationContext)
+
+    /** Makes a taken answer's intake write and its stock deduction one unit (`medicine-stock-tracking`). */
+    private val transactionRunner: TransactionRunner = RoomTransactionRunner(database)
 
     private val projectWeeklyUsage = ProjectWeeklyUsage()
 
@@ -315,6 +320,7 @@ class AppContainer(
         recordIntake = recordIntakeUseCase,
         snoozeDose = snoozeDoseUseCase,
         consumeStockOnTaken = consumeStockOnTaken,
+        transactionRunner = transactionRunner,
         onAnswered = { dose ->
             reminderNotifier.cancel(dose)
             reminderCoordinator.onWake(WakeReason.ACTION)

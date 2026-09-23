@@ -5,19 +5,30 @@ import java.math.RoundingMode
 import nl.hexmaster.pillsner.domain.model.StockBatch
 import nl.hexmaster.pillsner.domain.repository.BatchRemainingUpdate
 
-/** The result of deducting a dose amount from a medicine's stock, first-expiry-first-out. */
+/**
+ * The result of deducting a dose amount from a medicine's stock, first-expiry-first-out.
+ *
+ * @property firstDrawn the batch the dose was drawn from first, as it was before the deduction, or
+ *   null when no batch had anything left to give. It is what the expiry-at-use warning classifies
+ *   (`medicine-stock-tracking`'s "Expiry-at-use warning" requirement): once a dose exhausts that
+ *   batch it no longer counts as the soonest-expiring batch with stock, so it cannot be recovered
+ *   from the batches afterwards.
+ */
 data class StockConsumption(
     val updates: List<BatchRemainingUpdate>,
     val consumed: BigDecimal,
+    val firstDrawn: StockBatch? = null,
 )
 
 /**
  * Decimal places kept when dividing a dose amount by a batch's strength to find how much of that
  * batch's own unit it is worth. Six places is far finer than any real tablet strength or dose
- * needs; a dose that does not divide evenly by a batch's strength (a 25 mg dose against 20 mg
- * tablets, say) can leave a negligible remainder below this precision uncollected rather than
- * spilling a near-zero amount into a further batch (`medicine-stock-tracking` design, "A dose
- * amount that does not divide evenly by a batch's strength").
+ * needs. The division rounds down, never up, so a dose that does not divide evenly by a batch's
+ * strength (a 2 mg dose against 3 mg tablets, say) can leave a negligible remainder below this
+ * precision uncollected, but never deducts more than the dose. A batch that covers what is owed
+ * settles the dose outright, so that remainder never spills as a near-zero amount into a further
+ * batch (`medicine-stock-tracking` design, "A dose amount that does not divide evenly by a batch's
+ * strength").
  */
 private const val CONVERSION_SCALE = 6
 
@@ -46,6 +57,7 @@ fun consumeFefo(batches: List<StockBatch>, doseAmount: BigDecimal): StockConsump
     var owedInDoseUnits = doseAmount
     val updates = mutableListOf<BatchRemainingUpdate>()
     var consumedInDoseUnits = BigDecimal.ZERO
+    var firstDrawn: StockBatch? = null
 
     batches
         .filter { it.remaining > BigDecimal.ZERO }
@@ -59,18 +71,23 @@ fun consumeFefo(batches: List<StockBatch>, doseAmount: BigDecimal): StockConsump
             val owedInBatchUnits = if (noConversionNeeded) {
                 owedInDoseUnits
             } else {
-                // Stripped so a dose that happens to divide evenly (the common case: tablet
-                // strengths are chosen to divide common doses cleanly) reads as "2", not
-                // "2.000000" — a fractional result like 1.25 keeps exactly the digits it needs.
-                owedInDoseUnits.divide(batch.strengthPerUnit, CONVERSION_SCALE, RoundingMode.HALF_UP)
+                // Rounded down so a batch never gives up more than the dose is worth, and stripped
+                // so a dose that happens to divide evenly (the common case: tablet strengths are
+                // chosen to divide common doses cleanly) reads as "2", not "2.000000" — a
+                // fractional result like 1.25 keeps exactly the digits it needs.
+                owedInDoseUnits.divide(batch.strengthPerUnit, CONVERSION_SCALE, RoundingMode.DOWN)
                     .stripTrailingZeros()
             }
+            val coversWhatIsOwed = batch.remaining >= owedInBatchUnits
             val takenInBatchUnits = batch.remaining.min(owedInBatchUnits)
             val takenInDoseUnits = if (noConversionNeeded) takenInBatchUnits else takenInBatchUnits * batch.strengthPerUnit
+            if (firstDrawn == null) firstDrawn = batch
             updates += BatchRemainingUpdate(batch.id, batch.remaining - takenInBatchUnits)
             consumedInDoseUnits += takenInDoseUnits
-            owedInDoseUnits -= takenInDoseUnits
+            // A batch that covers the dose settles it: whatever rounding down left behind is below
+            // the conversion precision and not worth drawing from a further batch.
+            owedInDoseUnits = if (coversWhatIsOwed) BigDecimal.ZERO else owedInDoseUnits - takenInDoseUnits
         }
 
-    return StockConsumption(updates, consumedInDoseUnits)
+    return StockConsumption(updates, consumedInDoseUnits, firstDrawn)
 }

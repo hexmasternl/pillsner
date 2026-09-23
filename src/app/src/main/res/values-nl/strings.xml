@@ -204,6 +204,7 @@
     <string name="medicine_error_dose_required">Vul een hoeveelheid in.</string>
     <string name="medicine_error_dose_not_a_number">Vul de hoeveelheid als getal in.</string>
     <string name="medicine_error_dose_not_positive">Vul een hoeveelheid groter dan nul in.</string>
+    <string name="medicine_error_dose_unit_locked_by_stock">De eenheid kan niet veranderen zolang er voorraad is vastgelegd. Verwijder eerst de voorraadpartijen.</string>
     <string name="medicine_error_use_until_before_used_since">Moet op of na de datum van ingebruikname liggen.</string>
 
     <!-- Een concept weggooien -->

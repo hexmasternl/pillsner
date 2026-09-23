@@ -86,3 +86,19 @@ Added alongside section 8, at the user's request: a batch can now be removed aft
 - [x] 9.6 Add tests: repository removal, and that removing a medicine's last batch takes it out of stock tracking (no consumption, no checks, no indicator)
 - [x] 9.7 Run unit tests and lint from the `src` Gradle project root
 - [ ] 9.8 Manually verify on-device: remove a batch with confirmation, cancel a removal and confirm nothing changed, and remove a medicine's last batch and confirm its tile heads-up and Stock section both revert to "no stock tracked"
+
+## 10. Pull request review fixes
+
+Fixes for the review on pull request #60. Each brings the code in line with requirements the spec already stated (same-transaction consumption, the first-drawn batch for expiry-at-use); the two new scenarios under "Stock unit conversion" cover the rounding and unit-lock fixes.
+
+- [x] 10.1 Add a domain `TransactionRunner` (Room `withTransaction`, in-memory mutex) and run a taken answer's pending re-check, intake write and FEFO read-modify-write inside it in `AnswerDose`; flag the stock warning only after commit
+- [x] 10.2 Round the FEFO unit conversion down, and let a batch that covers the amount owed settle the dose so no rounding remainder spills into a further batch
+- [x] 10.3 Report the first-drawn batch from `consumeFefo`, carry its expiry date through the stock warning queue, and classify that batch in `EvaluateStockWarning` rather than the nearest batch still holding stock
+- [x] 10.4 Replace `firstNotNullOfOrNull` in `HomeViewModel` with an explicit suspend loop over the pending entries
+- [x] 10.5 Make `MedicationRepository.update` keep the stored low-stock acknowledgement, and drop the acknowledgement from the form draft and its saved state
+- [x] 10.6 Reject a default dose unit change on the form while stock batches exist (`DOSE_UNIT_LOCKED_BY_STOCK`, string in all six locales)
+- [x] 10.7 Load the stored medicine and observe its stock when the edit form is restored from a saved draft
+- [x] 10.8 Feed the Medicines screen a `currentDates` flow that re-emits at midnight, so tile expiry states roll over without a data change
+- [x] 10.9 Add unit tests for every fix above and instrumented tests for `update` keeping the acknowledgement and for the transaction runner rolling back
+- [x] 10.10 Run unit tests and lint from the `src` Gradle project root
+- [ ] 10.11 Run the instrumented tests on a device or emulator

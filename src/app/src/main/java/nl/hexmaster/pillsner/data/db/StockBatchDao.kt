@@ -37,6 +37,11 @@ interface StockBatchDao {
     /**
      * [updateRemaining] for every row of [updates], in one transaction instead of one commit per
      * batch, mirroring `DoseDao.applyReminderOutcomes`'s batching pattern.
+     *
+     * The amounts are absolute, computed from an earlier [batches] read, so on its own this does not
+     * stop two takes from overwriting each other's deduction. The caller runs the read, this write
+     * and the intake write in one outer transaction (`AnswerDose`, through `RoomTransactionRunner`),
+     * which Room serialises; this method's own transaction then simply joins it.
      */
     @Transaction
     suspend fun applyConsumption(updates: List<RemainingUpdate>) {

@@ -6,7 +6,6 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import nl.hexmaster.pillsner.domain.model.DoseUnit
-import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Prescriber
@@ -41,13 +40,6 @@ data class MedicationFormDraft(
     val schedules: List<Schedule> = emptyList(),
     /** Only editable in [MedicationFormMode.Edit]; a new medicine is always active. */
     val isActive: Boolean = true,
-    /**
-     * Carried through unchanged from the loaded medicine, never edited on this form: only the Add
-     * stock form and the low-stock warning's own responses change it (`medicine-stock-tracking`).
-     * Without this, saving any other field here would silently reset a standing acknowledgement,
-     * since [toMedication] replaces every field of the stored medicine in one write.
-     */
-    val lowStockAcknowledgement: LowStockAcknowledgement? = null,
 ) {
     companion object {
         /** Opens the form on an existing medicine. */
@@ -61,12 +53,17 @@ data class MedicationFormDraft(
             prescribedBy = medication.prescribedBy,
             schedules = medication.schedules,
             isActive = medication.isActive,
-            lowStockAcknowledgement = medication.lowStockAcknowledgement,
         )
     }
 }
 
-/** The medicine this draft describes, under [id]. Only valid once the draft passes validation. */
+/**
+ * The medicine this draft describes, under [id]. Only valid once the draft passes validation.
+ *
+ * Its low-stock acknowledgement is left unset: the form never edits it, and
+ * [nl.hexmaster.pillsner.domain.repository.MedicationRepository.update] keeps whatever is stored,
+ * so an acknowledgement cleared by adding stock while the form was open stays cleared.
+ */
 fun MedicationFormDraft.toMedication(id: MedicationId, defaultDose: Quantity) = Medication(
     id = id,
     name = name.trim(),
@@ -76,7 +73,6 @@ fun MedicationFormDraft.toMedication(id: MedicationId, defaultDose: Quantity) = 
     prescribedBy = prescribedBy,
     schedules = schedules,
     isActive = isActive,
-    lowStockAcknowledgement = lowStockAcknowledgement,
 )
 
 /**
@@ -178,7 +174,6 @@ object DraftSaver {
     private const val KEY_SCHEDULES = "draft_schedules"
     private const val KEY_MEDICATION_ID = "draft_medication_id"
     private const val KEY_IS_ACTIVE = "draft_is_active"
-    private const val KEY_LOW_STOCK_ACK = "draft_low_stock_acknowledgement"
 
     /** The draft as it was when the form opened, so "has the user changed anything" survives too. */
     private const val INITIAL = "initial_"
@@ -192,7 +187,6 @@ object DraftSaver {
         handle[prefix + KEY_USE_UNTIL] = draft.useUntil?.toString() ?: ""
         handle[prefix + KEY_PRESCRIBED_BY] = draft.prescribedBy.name
         handle[prefix + KEY_IS_ACTIVE] = draft.isActive
-        handle[prefix + KEY_LOW_STOCK_ACK] = draft.lowStockAcknowledgement?.name ?: ""
         handle[prefix + KEY_SCHEDULES] = ArrayList(draft.schedules.map(ScheduleCodec::encode))
     }
 
@@ -226,9 +220,6 @@ object DraftSaver {
             prescribedBy = handle.get<String>(prefix + KEY_PRESCRIBED_BY)?.let(Prescriber::valueOf)
                 ?: Prescriber.GENERAL_PRACTITIONER,
             isActive = handle.get<Boolean>(prefix + KEY_IS_ACTIVE) != false,
-            lowStockAcknowledgement = handle.get<String>(prefix + KEY_LOW_STOCK_ACK)
-                ?.takeIf { it.isNotEmpty() }
-                ?.let(LowStockAcknowledgement::valueOf),
             schedules = handle.get<ArrayList<String>>(prefix + KEY_SCHEDULES).orEmpty().map(ScheduleCodec::decode),
         )
     }

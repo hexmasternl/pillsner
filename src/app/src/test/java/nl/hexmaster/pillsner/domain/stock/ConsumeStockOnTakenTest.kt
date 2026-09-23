@@ -62,7 +62,7 @@ class ConsumeStockOnTakenTest {
         // Taking one more drops remaining to 6, now below the 7-tablet weekly projection.
         consume(scheduledMedication.id, TestFixtures.oneTablet)
 
-        assertEquals(setOf(scheduledMedication.id), queue.observePending().first())
+        assertEquals(setOf(scheduledMedication.id), queue.observePending().first().keys)
         val warning = evaluate(scheduledMedication.id)
         assertEquals(true, warning?.lowStock)
     }
@@ -73,7 +73,7 @@ class ConsumeStockOnTakenTest {
         addStockBatch(scheduledMedication.id, Quantity.of("1", DoseUnit.TABLET), java.math.BigDecimal.ONE, java.time.LocalDate.of(2027, 1, 1))
 
         consume(scheduledMedication.id, TestFixtures.oneTablet)
-        assertEquals(setOf(scheduledMedication.id), queue.observePending().first())
+        assertEquals(setOf(scheduledMedication.id), queue.observePending().first().keys)
 
         // "OK": the warning is dismissed but the acknowledgement is left unset.
         queue.clear(setOf(scheduledMedication.id))
@@ -82,7 +82,7 @@ class ConsumeStockOnTakenTest {
         addStockBatch(scheduledMedication.id, Quantity.of("1", DoseUnit.TABLET), java.math.BigDecimal.ONE, java.time.LocalDate.of(2027, 1, 1))
         consume(scheduledMedication.id, TestFixtures.oneTablet)
 
-        assertEquals("Still low, and unacknowledged, so it warns again", setOf(scheduledMedication.id), queue.observePending().first())
+        assertEquals("Still low, and unacknowledged, so it warns again", setOf(scheduledMedication.id), queue.observePending().first().keys)
     }
 
     @Test
@@ -122,10 +122,26 @@ class ConsumeStockOnTakenTest {
 
         consume(scheduledMedication.id, TestFixtures.oneTablet)
 
-        assertEquals(setOf(scheduledMedication.id), queue.observePending().first())
+        assertEquals(setOf(scheduledMedication.id), queue.observePending().first().keys)
         val warning = evaluate(scheduledMedication.id)
         assertEquals("Low stock is real but suppressed", false, warning?.lowStock)
         assertEquals(nl.hexmaster.pillsner.domain.model.BatchExpiryState.APPROACHING, warning?.expiryState)
+    }
+
+    @Test
+    fun `exhausting an expiring batch still warns about the batch the dose came from`() = runBlocking {
+        medications.upsert(scheduledMedication)
+        // One tablet left in a batch expiring in 10 days, plenty in a batch far from expiry.
+        addStockBatch(scheduledMedication.id, Quantity.of("1", DoseUnit.TABLET), java.math.BigDecimal.ONE, java.time.LocalDate.of(2026, 9, 24))
+        addStockBatch(scheduledMedication.id, Quantity.of("30", DoseUnit.TABLET), java.math.BigDecimal.ONE, java.time.LocalDate.of(2027, 6, 1))
+
+        consume(scheduledMedication.id, TestFixtures.oneTablet)
+
+        val pending = queue.observePending().first()
+        assertEquals(mapOf(scheduledMedication.id to java.time.LocalDate.of(2026, 9, 24)), pending)
+        val warning = evaluate(scheduledMedication.id, pending.getValue(scheduledMedication.id))
+        assertEquals(nl.hexmaster.pillsner.domain.model.BatchExpiryState.APPROACHING, warning?.expiryState)
+        assertEquals("30 tablets cover the week", false, warning?.lowStock)
     }
 
     @Test

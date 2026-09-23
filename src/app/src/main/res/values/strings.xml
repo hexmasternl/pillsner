@@ -218,6 +218,7 @@
     <string name="medicine_error_dose_required">Enter an amount.</string>
     <string name="medicine_error_dose_not_a_number">Enter the amount as a number.</string>
     <string name="medicine_error_dose_not_positive">Enter an amount greater than zero.</string>
+    <string name="medicine_error_dose_unit_locked_by_stock">The unit can\'t change while stock is recorded. Remove the stock batches first.</string>
     <string name="medicine_error_use_until_before_used_since">Must be on or after the used since date.</string>
 
     <!-- Discard a draft -->

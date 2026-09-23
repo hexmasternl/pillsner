@@ -45,10 +45,10 @@ class InMemoryMedicationRepository(
         medications.value.firstOrNull { it.id == id }
 
     override suspend fun update(medication: Medication) {
-        check(medications.value.any { it.id == medication.id }) {
+        val stored = checkNotNull(medications.value.firstOrNull { it.id == medication.id }) {
             "No medication with id ${medication.id.value}"
         }
-        upsert(medication)
+        upsert(medication.copy(lowStockAcknowledgement = stored.lowStockAcknowledgement))
     }
 
     override suspend fun setActive(id: MedicationId, isActive: Boolean) {

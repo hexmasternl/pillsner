@@ -1,12 +1,17 @@
 package nl.hexmaster.pillsner.ui.medicines
 
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDate
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -14,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
 import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
+import nl.hexmaster.pillsner.domain.model.BatchExpiryState
 import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
@@ -182,6 +188,30 @@ class MedicinesViewModelTest {
             viewModel.uiState.value.inactive.map { it.name },
         )
         assertEquals(emptyList<MedicineTileState>(), viewModel.uiState.value.active)
+    }
+
+    @Test
+    fun `a tile's expiry heads-up moves on when the date changes, with no data changing`() = runTest(dispatcher) {
+        repository.replaceAll(listOf(medication(1, "Ibuprofen")))
+        runBlocking {
+            stockBatchRepository.addBatch(
+                MedicationId(1),
+                mg40,
+                BigDecimal.ONE,
+                LocalDate.of(2026, 10, 20),
+                Instant.EPOCH,
+            )
+        }
+        val dates = MutableStateFlow(LocalDate.of(2026, 9, 13))
+        val viewModel = MedicinesViewModel(repository, stockBatchRepository, Locale.UK, dates = dates)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals(BatchExpiryState.NONE, viewModel.uiState.value.active.single().stockState?.nearestExpiry)
+
+        // The screen stays open past midnight into the 30-day window.
+        dates.value = LocalDate.of(2026, 9, 25)
+
+        assertEquals(BatchExpiryState.APPROACHING, viewModel.uiState.value.active.single().stockState?.nearestExpiry)
     }
 
     @Test

@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryDoseRepository
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.InMemoryTransactionRunner
 import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
 import nl.hexmaster.pillsner.data.stock.InMemoryStockWarningQueue
 import nl.hexmaster.pillsner.domain.MutableTestClock
@@ -174,6 +175,7 @@ class DoseDetailViewModelTest {
                     evaluateStockWarning = EvaluateStockWarning(medications, batches, clock = clock),
                 )
             },
+            transactionRunner = InMemoryTransactionRunner(),
             onAnswered = { answered += it.id },
         ),
         savedStateHandle = SavedStateHandle(mapOf(DoseDetailViewModel.DOSE_ID_ARG to 1L)),

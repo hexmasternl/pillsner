@@ -95,6 +95,14 @@ Wherever the stock system compares or totals quantities across batches — the l
 - **WHEN** a medicine is dosed in milligrams, has a batch expiring sooner worth 10 mg per tablet with 1 tablet remaining and a batch expiring later in the medicine's own milligram unit with 30 mg remaining, and a 20 mg dose is recorded taken
 - **THEN** the sooner-expiring batch is exhausted (its one 10 mg tablet fully consumed) and the remaining 10 mg owed is drawn from the later batch, leaving it at 20 mg
 
+#### Scenario: A conversion that does not divide exactly never over-deducts
+- **WHEN** a medicine is dosed in milligrams with a 2 mg dose and has one batch of tablets each worth 3 mg
+- **THEN** the batch gives up at most 2 mg worth of tablets, rounded down at the conversion precision, and any negligible remainder is not drawn from a further batch
+
+#### Scenario: Default dose unit is locked while stock is recorded
+- **WHEN** a medicine has at least one stock batch and the user changes its default dose unit on the Medicine details form
+- **THEN** the form shows an error on the dose field straight away and does not save until the unit is changed back or every stock batch is removed, since each batch's strength is relative to that unit
+
 ### Requirement: First-expiry-first-out consumption
 When a dose is recorded as taken, for a medicine with at least one stock batch, the dose's amount (in the medicine's default dose unit) SHALL be deducted from that medicine's stock in the same transaction as the intake write, always drawing first from the batch with the earliest expiry date, then the next earliest, and so on, breaking a tie between batches with the same expiry date by the order they were added, converting through each batch's own strength per the "Stock unit conversion" requirement. A batch already at zero remaining SHALL be skipped, never taken below zero. If total remaining stock, converted to the medicine's default dose unit, is less than the dose's amount, the deduction SHALL floor at zero across all batches rather than go negative. A batch that reaches zero remaining SHALL be kept, not deleted, so the medicine continues to count as having stock recorded.
 

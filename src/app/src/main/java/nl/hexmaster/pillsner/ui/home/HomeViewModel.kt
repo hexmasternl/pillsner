@@ -3,6 +3,7 @@ package nl.hexmaster.pillsner.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import java.time.Clock
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -68,8 +69,17 @@ class HomeViewModel(
      * warning flagged while the app was backgrounded is never replayed as stale data
      * (`medicine-stock-tracking`'s "Combined warning presentation" requirement).
      */
-    private val nextStockWarning = (stockWarningQueue?.observePending() ?: flowOf(emptySet()))
-        .map { pending -> pending.firstNotNullOfOrNull { evaluateStockWarning?.invoke(it) } }
+    private val nextStockWarning = (stockWarningQueue?.observePending() ?: flowOf(emptyMap()))
+        .map { pending -> firstStockWarning(pending) }
+
+    /** The first pending medicine that still warrants a warning, evaluated one at a time. */
+    private suspend fun firstStockWarning(pending: Map<MedicationId, LocalDate?>): StockWarning? {
+        val evaluate = evaluateStockWarning ?: return null
+        for ((medicationId, drawnBatchExpiry) in pending) {
+            evaluate(medicationId, drawnBatchExpiry)?.let { return it }
+        }
+        return null
+    }
 
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observeUpcoming(limit = MAX_UPCOMING_DOSES),

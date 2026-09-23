@@ -91,14 +91,21 @@ class MedicationFormViewModel(
         val editing = mode as? MedicationFormMode.Edit
         when {
             editing == null -> DraftSaver.saveInitial(savedStateHandle, initialDraft)
-            // A half-edited form must never snap back to the stored medicine after a rotation.
-            DraftSaver.hasSavedDraft(savedStateHandle) -> Unit
-            else -> load(editing.id)
+            // A half-edited form must never snap back to the stored medicine after a rotation or
+            // process death, but the stored medicine is still what the Stock section works on.
+            DraftSaver.hasSavedDraft(savedStateHandle) -> load(editing.id, keepDraft = true)
+            else -> load(editing.id, keepDraft = false)
         }
     }
 
-    private fun load(id: MedicationId) {
-        _uiState.update { it.copy(isLoading = true) }
+    /**
+     * Loads the medicine being edited and starts observing its stock.
+     *
+     * @param keepDraft true when a saved draft was restored: the draft's fields stay exactly as the
+     *   user left them, and only the stored medicine behind the Stock section is loaded.
+     */
+    private fun load(id: MedicationId, keepDraft: Boolean) {
+        if (!keepDraft) _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             val medication = runCatching { repository.get(id) }.getOrNull()
             if (medication == null) {
@@ -108,11 +115,13 @@ class MedicationFormViewModel(
                 _effects.trySend(MedicationFormEffect.OpenFailed)
                 return@launch
             }
-            draft = MedicationFormDraft.from(medication, amountParser.format(medication.defaultDose.value))
-            initialDraft = draft
-            DraftSaver.save(savedStateHandle, draft)
-            DraftSaver.saveInitial(savedStateHandle, initialDraft)
-            _uiState.value = draft.toUiState(showErrors = false)
+            if (!keepDraft) {
+                draft = MedicationFormDraft.from(medication, amountParser.format(medication.defaultDose.value))
+                initialDraft = draft
+                DraftSaver.save(savedStateHandle, draft)
+                DraftSaver.saveInitial(savedStateHandle, initialDraft)
+                _uiState.value = draft.toUiState(showErrors = false)
+            }
             loadedMedication = medication
             observeStock(medication)
         }
@@ -132,7 +141,10 @@ class MedicationFormViewModel(
                     .map { StockBatchRowState(it.id, it.remaining, it.unit, it.strengthPerUnit, it.expiryDate) }
                 val state = batches.takeIf { it.isNotEmpty() }
                     ?.let { stockState(it, medication, today, clock.zone, projectWeeklyUsage) }
-                _uiState.update { it.copy(stockBatches = rows, stockState = state) }
+                // Every batch's strength is relative to the stored default dose unit, so that unit
+                // cannot change on this form while any batch exists.
+                val lockedDoseUnit = medication.defaultDose.unit.takeIf { batches.isNotEmpty() }
+                _uiState.update { it.copy(stockBatches = rows, stockState = state, lockedDoseUnit = lockedDoseUnit) }
             }
         }
     }
@@ -371,6 +383,7 @@ class MedicationFormViewModel(
             showDiscardDialog = previous.showDiscardDialog,
             stockBatches = previous.stockBatches,
             stockState = previous.stockState,
+            lockedDoseUnit = previous.lockedDoseUnit,
             addStockState = previous.addStockState,
             pendingStockRemoval = previous.pendingStockRemoval,
         )
@@ -422,6 +435,7 @@ class MedicationFormViewModel(
         showDiscardDialog: Boolean = false,
         stockBatches: List<StockBatchRowState> = emptyList(),
         stockState: StockState? = null,
+        lockedDoseUnit: DoseUnit? = null,
         addStockState: AddStockUiState? = null,
         pendingStockRemoval: StockBatchId? = null,
     ): MedicationFormUiState {
@@ -453,6 +467,7 @@ class MedicationFormViewModel(
             showDiscardDialog = showDiscardDialog,
             stockBatches = stockBatches,
             stockState = stockState,
+            lockedDoseUnit = lockedDoseUnit,
             addStockState = addStockState,
             pendingStockRemoval = pendingStockRemoval,
         )

@@ -25,6 +25,7 @@ import nl.hexmaster.pillsner.domain.model.ScheduleSummary
 import nl.hexmaster.pillsner.domain.model.summarize
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
+import nl.hexmaster.pillsner.domain.scheduling.currentDates
 import nl.hexmaster.pillsner.domain.stock.ProjectWeeklyUsage
 import nl.hexmaster.pillsner.domain.stock.StockState
 import nl.hexmaster.pillsner.domain.stock.stockState
@@ -35,6 +36,8 @@ import nl.hexmaster.pillsner.domain.stock.stockState
  * the repository.
  *
  * @param locale the locale whose collation orders the names; injectable so tests are deterministic.
+ * @param dates today's date, re-emitted when it changes, so a tile's expiry heads-up moves on at
+ *   midnight while the screen stays open rather than waiting for unrelated data to change.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MedicinesViewModel(
@@ -42,6 +45,7 @@ class MedicinesViewModel(
     private val stockBatchRepository: StockBatchRepository,
     locale: Locale = Locale.getDefault(),
     private val clock: Clock = Clock.systemDefaultZone(),
+    dates: Flow<LocalDate> = currentDates(clock),
 ) : ViewModel() {
 
     private val projectWeeklyUsage = ProjectWeeklyUsage()
@@ -60,10 +64,11 @@ class MedicinesViewModel(
         collator.compare(left.name, right.name)
     }
 
-    val uiState: StateFlow<MedicinesUiState> = repository
-        .observeAll()
-        .flatMapLatest { medications ->
-            observeStockStates(medications).map { stockStates ->
+    val uiState: StateFlow<MedicinesUiState> = combine(repository.observeAll(), dates) { medications, today ->
+        medications to today
+    }
+        .flatMapLatest { (medications, today) ->
+            observeStockStates(medications, today).map { stockStates ->
                 val (active, inactive) = medications
                     .map { it.toTileState(stockStates[it.id]) }
                     .partition { it.isActive }
@@ -83,15 +88,18 @@ class MedicinesViewModel(
     /**
      * Every medicine's current stock state, live: re-emits whenever any medicine's batches change,
      * not only when a dose is taken (`medicine-stock-tracking`'s "Tile ... heads-up is a live read"
-     * decision). A medicine with no batches at all maps to null, which is exactly when the tile
-     * shows no heads-up.
+     * decision), evaluated against [today]. A medicine with no batches at all maps to null, which is
+     * exactly when the tile shows no heads-up.
      */
-    private fun observeStockStates(medications: List<Medication>): Flow<Map<MedicationId, StockState?>> {
+    private fun observeStockStates(
+        medications: List<Medication>,
+        today: LocalDate,
+    ): Flow<Map<MedicationId, StockState?>> {
         if (medications.isEmpty()) return flowOf(emptyMap())
         val perMedicine = medications.map { medication ->
             stockBatchRepository.observeBatches(medication.id).map { batches ->
                 medication.id to batches.takeIf { it.isNotEmpty() }
-                    ?.let { stockState(it, medication, LocalDate.now(clock), clock.zone, projectWeeklyUsage) }
+                    ?.let { stockState(it, medication, today, clock.zone, projectWeeklyUsage) }
             }
         }
         return combine(perMedicine) { pairs -> pairs.toMap() }

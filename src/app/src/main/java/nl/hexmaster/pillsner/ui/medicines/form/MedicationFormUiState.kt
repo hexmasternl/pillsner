@@ -43,17 +43,27 @@ data class MedicationFormUiState(
     val stockBatches: List<StockBatchRowState> = emptyList(),
     /** The medicine's live stock picture, or null when it has no batches (`medicine-stock-tracking`). */
     val stockState: StockState? = null,
+    /**
+     * The stored default dose unit while the medicine has any stock batch, or null when it has none.
+     * Each batch's strength is relative to that unit, so it cannot change until the batches are
+     * removed (`medicine-stock-tracking`'s "Stock unit conversion" requirement).
+     */
+    val lockedDoseUnit: DoseUnit? = null,
     /** Non-null while the Add stock form is open. */
     val addStockState: AddStockUiState? = null,
     /** Non-null while the removal confirmation dialog is open for this batch (`medicine-stock-tracking`). */
     val pendingStockRemoval: StockBatchId? = null,
 ) {
+    /** Set when [doseUnit] has been moved away from [lockedDoseUnit]; shown straight away, not only on save. */
+    val doseUnitError: MedicationFieldError?
+        get() = MedicationFieldError.DOSE_UNIT_LOCKED_BY_STOCK.takeIf { lockedDoseUnit != null && doseUnit != lockedDoseUnit }
+
     /**
      * Whether the draft would pass validation. The Save button stays tappable regardless, because
      * tapping it is what reveals the errors; this decides whether the tap stores anything.
      */
     val canSave: Boolean
-        get() = !isSaving && nameError == null && doseError == null && useUntilError == null
+        get() = !isSaving && nameError == null && doseError == null && doseUnitError == null && useUntilError == null
 
     /** Only an existing medicine can be started and stopped here; a new one is always active. */
     val showsActiveSwitch: Boolean get() = mode is MedicationFormMode.Edit

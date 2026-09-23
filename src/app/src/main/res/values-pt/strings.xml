@@ -204,6 +204,7 @@
     <string name="medicine_error_dose_required">Introduz uma quantidade.</string>
     <string name="medicine_error_dose_not_a_number">Introduz a quantidade como um número.</string>
     <string name="medicine_error_dose_not_positive">Introduz uma quantidade superior a zero.</string>
+    <string name="medicine_error_dose_unit_locked_by_stock">A unidade não pode mudar enquanto houver estoque registado. Remove primeiro os lotes de estoque.</string>
     <string name="medicine_error_use_until_before_used_since">Tem de ser igual ou posterior à data de início de uso.</string>
 
     <!-- Descartar um rascunho -->

@@ -20,7 +20,7 @@ params:
     items:
       - icon: "medication"
         title: "Je medicijnen"
-        description: "Voeg elk medicijn toe met dosis, eenheid, data en voorschrijver, geef het zoveel schema's als het nodig heeft, en stop er een zonder ooit te verliezen wat je hebt ingenomen."
+        description: "Voeg elk medicijn toe met dosis, eenheid, data en voorschrijver, geef het zoveel schema's als het nodig heeft, houd de voorraad en vervaldata bij, en stop er een zonder ooit te verliezen wat je hebt ingenomen."
         link:
           url: "medicines/"
           label: "Over je medicijnen"

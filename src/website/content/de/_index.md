@@ -20,7 +20,7 @@ params:
     items:
       - icon: "medication"
         title: "Deine Medikamente"
-        description: "Füge jedes Medikament mit Dosis, Einheit, Zeitraum und verschreibender Person hinzu, gib ihm so viele Zeitpläne, wie es braucht, und setze eines ab, ohne je zu verlieren, was du eingenommen hast."
+        description: "Füge jedes Medikament mit Dosis, Einheit, Zeitraum und verschreibender Person hinzu, gib ihm so viele Zeitpläne, wie es braucht, behalte Vorrat und Ablaufdaten im Blick, und setze eines ab, ohne je zu verlieren, was du eingenommen hast."
         link:
           url: "medicines/"
           label: "Mehr über deine Medikamente"

@@ -1,6 +1,6 @@
 ---
 title: "Vos médicaments | Pillsner"
-description: "Ajoutez un médicament à Pillsner avec sa dose, son unité, ses dates et son prescripteur, donnez-lui autant d'horaires qu'il en faut, et arrêtez-en un sans jamais perdre les prises déjà enregistrées."
+description: "Ajoutez un médicament à Pillsner avec sa dose, son unité, ses dates et son prescripteur, donnez-lui autant d'horaires qu'il en faut, suivez son stock et ses dates d'expiration, et arrêtez-en un sans jamais perdre les prises déjà enregistrées."
 slug: "medicines"
 params:
   hero:
@@ -29,6 +29,28 @@ params:
       screenshot:
         image: "medicine-details.png"
         alt: "L'écran de détails d'un médicament dans Pillsner, montrant sa dose et ses horaires"
+    - heading: "Suivre votre stock"
+      body: "Indiquez à Pillsner la quantité dont vous disposez, et il fait le décompte pour vous. Chaque prise que vous marquez comme prise est déduite de votre stock : les détails d'un médicament montrent toujours ce qu'il reste et quand chaque lot expire."
+      points:
+        - "Le stock est suivi par lot, chacun avec sa propre quantité et sa date d'expiration"
+        - "Le lot qui expire le premier est toujours utilisé en premier"
+        - "Toute partie d'un comprimé ou d'une gélule utilisée compte comme la pilule entière"
+        - "Les prises sautées ou manquées ne touchent jamais votre stock"
+      screenshot:
+        image: "medicine-details-stock-overview.png"
+        alt: "La section Stock des détails d'un médicament dans Pillsner, avec un lot de 40 comprimés de 40 mg chacun qui expire le 28 janvier 2027"
+    - heading: "Ajouter du stock"
+      body: "Ouvrez un médicament et appuyez sur Ajouter du stock. Saisissez la quantité dont vous disposez, son unité et la date d'expiration inscrite sur l'emballage. Si l'unité n'est pas celle dans laquelle vous dosez, par exemple des comprimés pour une dose en milligrammes, Pillsner demande aussi le dosage d'un comprimé, pour convertir de l'un à l'autre."
+      points:
+        - "Les comprimés et les gélules se comptent en pilules entières ; les liquides et les poudres dans leur propre unité"
+        - "Un dosage comme 40 mg par comprimé relie l'emballage à votre dose"
+        - "Une date d'expiration déjà passée est acceptée, avec un avertissement"
+      screenshot:
+        image: "medicine-details-add-stock.png"
+        alt: "La fenêtre Ajouter du stock dans Pillsner, avec une quantité de 40 comprimés, un dosage de 40 mg par comprimé et une date d'expiration au 28 janvier 2027"
+    - heading: "Un signal avant d'être à court"
+      body: "Quand une prise laisse moins de stock que ce dont la semaine à venir a besoin, Pillsner vous le signale. Appuyez sur OK pour être prévenu à nouveau la prochaine fois, ou sur J'en ai commandé pour ne plus être dérangé jusqu'à ce que vous ajoutiez le nouveau stock. Il vous prévient aussi quand le stock que vous venez d'utiliser expire bientôt ou a déjà expiré, et la vignette du médicament sur l'écran des médicaments affiche le même signal."
+      note: "Le suivi du stock est facultatif. Un médicament sans stock enregistré fonctionne exactement comme avant : rien n'est compté et rien n'est signalé."
     - heading: "Arrêter, pas supprimer"
       body: "Un médicament n'est jamais supprimé. En arrêter un le désactive, et le médicament, ses horaires et chaque prise qu'il a jamais produite restent sur votre appareil. Faites glisser une tuile sur le côté pour l'activer ou la désactiver."
       points:

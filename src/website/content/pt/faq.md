@@ -39,7 +39,12 @@ params:
         - "Uma toma saltada é uma a que respondeu deliberadamente com Não vou tomar. Uma toma falhada é uma a que nunca respondeu, que se torna falhada quando a toma seguinte está prevista ou 24 horas depois, o que ocorrer primeiro."
     - question: "O Pillsner controla o stock ou lembra-me de encomendar uma receita?"
       answer:
-        - "Hoje não. O Pillsner lembra-o de tomar os seus medicamentos e regista o que tomou. O controlo de stock e os avisos de reabastecimento não fazem parte da aplicação."
+        - "Controla o stock, se quiser. Adicione stock a um medicamento e o Pillsner desconta cada toma, a começar pelo lote que expira primeiro. Quando o que resta não chegar para a próxima semana, avisa-o, para que possa tratar da receita a tempo."
+        - "Nunca encomenda nada nem contacta a sua farmácia: o Pillsner não tem qualquer acesso à internet. O aviso é um lembrete; a encomenda fica a seu cargo."
+    - question: "A minha dose é menor do que um comprimido. Como é que o Pillsner a conta?"
+      answer:
+        - "Como um comprimido inteiro. Um comprimido partido não pode voltar para a embalagem, por isso qualquer parte de um comprimido que use conta como o comprimido inteiro. Uma dose de 40 mg de comprimidos de 500 mg retira um comprimido do seu stock."
+        - "Se também tiver comprimidos cuja concentração corresponde à dose, o Pillsner tira a dose desses, para que nenhum comprimido seja desperdiçado. Se partir comprimidos de propósito e tomar a outra metade mais tarde, cada toma conta na mesma como um comprimido inteiro, por isso o Pillsner avisa-o um pouco mais cedo em vez de tarde demais."
     - question: "Que idiomas é que o Pillsner fala?"
       answer:
         - "Inglês, neerlandês, alemão, francês, espanhol e português. A aplicação segue o idioma do seu telemóvel por si só, e pode substituí-lo nas Definições."

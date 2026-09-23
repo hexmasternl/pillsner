@@ -174,7 +174,7 @@
 .language-switcher__menu a {
   display: block;
   padding: var(--space-sm) var(--space-md);
-  border-radius: var(--shape-small, 8px);
+  border-radius: var(--shape-small);
   text-decoration: none;
   color: var(--color-on-surface);
 }

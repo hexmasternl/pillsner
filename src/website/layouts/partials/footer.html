@@ -12,8 +12,16 @@
       <div>
         <p class="label-small">{{ i18n "footer_explore" }}</p>
         <ul class="site-footer__links body-medium">
+          {{/* Flat list of every page: a menu group has no page of its own,
+               so its children are listed in its place. */}}
           {{ range .Site.Menus.main }}
-          <li><a href="{{ .URL }}">{{ i18n (printf "nav_%s" .Identifier) }}</a></li>
+            {{ if .HasChildren }}
+              {{ range .Children }}
+              <li><a href="{{ .URL }}">{{ i18n (printf "nav_%s" .Identifier) }}</a></li>
+              {{ end }}
+            {{ else }}
+            <li><a href="{{ .URL }}">{{ i18n (printf "nav_%s" .Identifier) }}</a></li>
+            {{ end }}
           {{ end }}
         </ul>
       </div>

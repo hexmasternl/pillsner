@@ -73,6 +73,15 @@ other = "Fehler melden"
 [nav_request_a_feature]
 other = "Funktion vorschlagen"
 
+[nav_help]
+other = "Hilfe"
+
+[nav_menu_open]
+other = "Menü"
+
+[nav_menu_close]
+other = "Menü schließen"
+
 [footer_explore]
 other = "Entdecken"
 

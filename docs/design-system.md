@@ -302,6 +302,35 @@ The app name is a blend of **Pills** and Part**ner**, and the wordmark shows it.
 
 Implemented once, in `ui/components/PillsnerWordmark.kt`. Every surface that shows the name uses it; no screen re-implements the split.
 
+### 8.14 Website header navigation
+
+The marketing website (`src/website/`) is not Compose, but it follows the same tokens through `assets/css/tokens.css`, and its header is the web counterpart of the app's navigation (8.6). One `<nav>` is rendered per page and presented two ways.
+
+**Structure.** At most four top-level entries, never more: **Home**, **Features** (Medicines, Schedules, Tracking, On your wrist), **Privacy**, **Help** (FAQ, Report a bug, Request a feature). Groups are declared once in `hugo.toml` with the menu `parent` field. A new page joins a group; it does not become a fifth top-level entry. Top-level labels stay one or two words in every locale.
+
+**Wide (960 px and up).** One row inside the 1080 px content column, on `surfaceContainer` with a 1 px `outlineVariant` bottom border, sticky at the top.
+
+- Start: the product mark (32 px, `medium` corners) and the name in Raleway 300, 22 px.
+- Centre: the four entries as pills - `labelLarge`, `onSurfaceVariant`, 40 px tall, `full` shape, `Spacing.md` / `Spacing.lg` padding, `Spacing.xs` between pills, 48 px hit area.
+- Hover and keyboard focus: `secondaryContainer` background, `onSecondaryContainer` text; focus also shows the site's standard 3 px `primary` focus ring.
+- Current page, and the group that contains it: `secondaryContainer` pill with `onSecondaryContainer` text, plus `aria-current="page"` on the link. Blue means place, as in the app.
+- Groups show a 16 px `chevron-down` after the label that rotates 180° when open. They open a dropdown on `surfaceContainerHigh`, `medium` shape, the language switcher's shadow, at least 220 px wide, `Spacing.xs` inner padding, items `bodyMedium` 48 px tall with `small` corners and the same hover and current treatment. Only one group is open at a time; Escape or a click outside closes it.
+- End: the language switcher (outlined pill, unchanged).
+
+**Narrow (below 960 px).** The bar holds only the mark and name, the language switcher and a 48 × 48 px **Menu** icon button (`menu` icon, `onSurface`, `full`-shape hover layer). Activating it swaps the icon to `close`, changes its accessible name to "Close menu", sets `aria-expanded="true"` and opens a full-width panel directly under the bar:
+
+- `surfaceContainer`, `Spacing.lg` side gutters, `Spacing.sm` above and `Spacing.lg` below, `outlineVariant` bottom border.
+- Every group starts expanded, so every page is listed at once; the group heading keeps its chevron and can still collapse it. Group headings (Features, Help) in `labelSmall`, uppercase, `onSurfaceVariant`, `Spacing.sm` above each, 48 px tall. A top-level entry that follows a group (Privacy) sits below a 1 px `outlineVariant` divider so it does not read as part of the group.
+- Links in `bodyLarge`, `onSurface`, 48 px tall, `medium` corners; current page gets the `secondaryContainer` treatment.
+- The panel scrolls on its own when taller than the viewport; the page behind does not move.
+- Escape, the Menu button or following a link closes it, and focus returns to the Menu button.
+
+**Motion.** Dropdown and panel enter with the short duration (150 ms) as a fade plus a 4 px downward slide, and leave without animation. With `prefers-reduced-motion: reduce` there is no animation at all.
+
+**Without JavaScript.** Groups are native `<details>`/`<summary>`, so they open and close with no script. The Menu button is hidden and the narrow-screen menu is shown in place as a stacked list, with the groups collapsed and the header no longer sticky, so every page stays reachable without covering the screen. A script only adds the toggle, outside-click and Escape behaviour.
+
+**Never.** No red in navigation, no icons in front of menu labels, no hover-only dropdowns, no truncated labels, no horizontally scrolling menu.
+
 ---
 
 ## 9. Motion
@@ -357,3 +386,4 @@ Composables read tokens through `MaterialTheme.colorScheme`, `MaterialTheme.typo
 | Let text wrap at large font sizes | Set `maxLines = 1` on anything but the app bar title |
 | Render the user's stored theme choice, defaulting to the system setting | Add a fourth theme, a schedule or an AMOLED variant without a proposal |
 | Keep dynamic colour off | Call `dynamicLightColorScheme` |
+| Add a new website page to the Features or Help group | Add a fifth top-level entry to the website header |

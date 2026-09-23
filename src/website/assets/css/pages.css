@@ -236,27 +236,3 @@ body.lightbox-open {
   width: 24px;
   height: 24px;
 }
-
-/* Nine navigation entries do not fit a phone in one row, so the header menu
-   scrolls sideways there instead of wrapping into an unreadable block. */
-
-@media (max-width: 899px) {
-  .site-nav {
-    order: 3;
-    width: 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: var(--space-md);
-    padding-bottom: var(--space-xs);
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .site-nav a {
-    white-space: nowrap;
-  }
-}
-
-.site-nav a[aria-current="page"] {
-  color: var(--color-primary);
-  font-weight: 600;
-}

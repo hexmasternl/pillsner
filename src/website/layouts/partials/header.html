@@ -1,6 +1,10 @@
-{{/* Header with the site-wide navigation menu. The menu is configured once in
-     hugo.toml and resolves per locale; labels come from i18n/<lang>.toml, keyed
-     "nav_<identifier>", so a missing translation falls back to English. */}}
+{{/* Header with the site-wide navigation menu (docs/design-system.md, 8.14).
+     The menu is configured once in hugo.toml and resolves per locale; labels
+     come from i18n/<lang>.toml, keyed "nav_<identifier>", so a missing
+     translation falls back to English. Top-level entries with children render
+     as a <details> group, which opens and closes with no JavaScript at all.
+     The Menu button only appears once assets/js/navigation.js can drive it;
+     without it the narrow-screen menu is shown expanded instead. */}}
 <a class="skip-link label-large" href="#main">{{ i18n "skip_to_content" }}</a>
 <header class="site-header">
   <div class="container site-header__bar">
@@ -12,14 +16,47 @@
       {{ end }}
       <span>{{ .Site.Params.siteName }}</span>
     </a>
-    <nav class="site-nav" aria-label="{{ i18n "nav_label" }}">
+    <nav class="site-nav" id="site-nav" aria-label="{{ i18n "nav_label" }}">
       {{ $page := . }}
-      {{ range .Site.Menus.main }}
-      <a href="{{ .URL }}"{{ if $page.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ i18n (printf "nav_%s" .Identifier) }}</a>
-      {{ end }}
+      <ul class="site-nav__list" role="list">
+        {{ range .Site.Menus.main }}
+          {{ $label := i18n (printf "nav_%s" .Identifier) }}
+          {{ if .HasChildren }}
+            <li class="site-nav__item site-nav__item--group">
+              <details class="site-nav__group">
+                <summary class="site-nav__link site-nav__summary{{ if $page.HasMenuCurrent "main" . }} is-current{{ end }}">
+                  {{ $label }}
+                  {{ partial "icon.html" "chevron-down" }}
+                </summary>
+                <ul class="site-nav__menu" role="list">
+                  {{ range .Children }}
+                    <li>
+                      <a class="site-nav__sublink" href="{{ .URL }}"{{ if $page.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ i18n (printf "nav_%s" .Identifier) }}</a>
+                    </li>
+                  {{ end }}
+                </ul>
+              </details>
+            </li>
+          {{ else }}
+            <li class="site-nav__item">
+              <a class="site-nav__link" href="{{ .URL }}"{{ if $page.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ $label }}</a>
+            </li>
+          {{ end }}
+        {{ end }}
+      </ul>
     </nav>
     <div class="site-header__controls">
       {{ partial "language-switcher.html" . }}
+      <button type="button"
+              class="site-header__menu-button"
+              aria-controls="site-nav"
+              aria-expanded="false"
+              aria-label="{{ i18n "nav_menu_open" }}"
+              data-label-open="{{ i18n "nav_menu_open" }}"
+              data-label-close="{{ i18n "nav_menu_close" }}">
+        <span class="site-header__menu-icon site-header__menu-icon--open">{{ partial "icon.html" "menu" }}</span>
+        <span class="site-header__menu-icon site-header__menu-icon--close">{{ partial "icon.html" "close" }}</span>
+      </button>
     </div>
   </div>
 </header>

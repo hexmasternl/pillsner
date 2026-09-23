@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ .Language.Lang }}" dir="{{ .Language.Direction | default "ltr" }}">
+<html lang="{{ .Language.Lang }}" dir="{{ .Language.Direction | default "ltr" }}" data-lightbox-close="{{ i18n "lightbox_close" }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -14,7 +14,8 @@
   {{ $base := resources.Get "css/base.css" }}
   {{ $layout := resources.Get "css/layout.css" }}
   {{ $components := resources.Get "css/components.css" }}
-  {{ $css := slice $tokens $base $layout $components | resources.Concat "css/site.css" }}
+  {{ $pages := resources.Get "css/pages.css" }}
+  {{ $css := slice $tokens $base $layout $components $pages | resources.Concat "css/site.css" }}
   {{ if hugo.IsProduction }}
     {{ $css = $css | minify | fingerprint }}
     <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
@@ -26,11 +27,14 @@
   {{ block "main" . }}{{ end }}
 
   {{ $lang := resources.Get "js/language.js" }}
+  {{ $lightbox := resources.Get "js/lightbox.js" }}
+  {{ $issueReport := resources.Get "js/issue-report.js" }}
+  {{ $js := slice $lang $lightbox $issueReport | resources.Concat "js/site.js" }}
   {{ if hugo.IsProduction }}
-    {{ $lang = $lang | js.Build | minify | fingerprint }}
+    {{ $js = $js | js.Build | minify | fingerprint }}
   {{ else }}
-    {{ $lang = $lang | js.Build }}
+    {{ $js = $js | js.Build }}
   {{ end }}
-  <script src="{{ $lang.RelPermalink }}" {{ if hugo.IsProduction }}integrity="{{ $lang.Data.Integrity }}"{{ end }} defer></script>
+  <script src="{{ $js.RelPermalink }}" {{ if hugo.IsProduction }}integrity="{{ $js.Data.Integrity }}"{{ end }} defer></script>
 </body>
 </html>

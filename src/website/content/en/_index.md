@@ -16,23 +16,39 @@ params:
       - "Keeps your medication data private and on your own device, always"
   features:
     heading: "What Pillsner does"
+    intro: "A short tour. Each part has a page of its own with the details."
     items:
       - icon: "medication"
-        title: "Medication management"
-        description: "Add every medicine with its dose, unit, dates and prescriber. Split into active and inactive, with stock tracking and refill reminders. Nothing is ever deleted."
+        title: "Your medicines"
+        description: "Add every medicine with its dose, unit, dates and prescriber, give it as many schedules as it needs, and stop one without ever losing what you took."
+        link:
+          url: "medicines/"
+          label: "About your medicines"
       - icon: "schedule"
         title: "Schedules & reminders"
         description: "Fixed times, every N hours, specific weekdays, or as-needed. Reminders fire as real, exact alarms that survive a reboot, a time zone change or a clock change."
+        link:
+          url: "schedules/"
+          label: "About schedules & reminders"
+      - icon: "history"
+        title: "Tracking your progress"
+        description: "Answer a dose in one tap, see what is still due today, and look back over what you took, skipped or missed."
+        link:
+          url: "tracking/"
+          label: "About tracking"
       - icon: "watch"
         title: "On your wrist"
-        description: "A Wear OS companion shows what's due in the next six hours and lets you confirm, snooze or skip right from your watch."
-      - icon: "history"
-        title: "Intake tracking"
-        description: "Confirm, snooze or skip in one tap, and see a daily overview and your adherence history over time."
+        description: "A Wear OS companion shows what is due in the next six hours, right on your watch."
+        link:
+          url: "wearable/"
+          label: "About the watch app"
   privacy:
     heading: "Privacy by default"
     body: "All data lives on your device. There is no account, no cloud sync and no analytics. Pillsner declares no internet permission at all, and asks for only what it needs to remind you reliably. It never asks for your location, contacts or network access."
-    link_label: "Read the privacy policy"
+    link_label: "How Pillsner protects your data"
+  help:
+    heading: "Questions, bugs and ideas"
+    body: "Read the answers to the questions people ask most, tell us about something that went wrong, or suggest what Pillsner should do next."
   footer:
     tagline: "Your partner in taking your pills."
     copyright: "© 2026 Pillsner. All rights reserved."

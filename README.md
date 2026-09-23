@@ -119,7 +119,7 @@ Pillsner is a native Android application written in Kotlin.
 
 Any change to this table should go through the spec-driven workflow described in `CONTRIBUTING.md`, so that the reasoning is recorded alongside the decision.
 
-Alongside the Android app, `src/website/` holds a separate, self-contained deliverable: a static, single-page, six-language marketing site describing Pillsner and linking to its Google Play listing. It is built with [Hugo](https://gohugo.io/) and has no runtime server, no analytics and no third-party trackers; see `src/website/README.md`. It is not a Gradle module and does not affect the app's toolchain, build or permissions in any way.
+Alongside the Android app, `src/website/` holds a separate, self-contained deliverable: a static, six-language marketing site describing Pillsner, linking to its Google Play listing, answering common questions, and letting a visitor file a bug report or feature request on GitHub. It is built with [Hugo](https://gohugo.io/) and has no runtime server, no analytics and no third-party trackers; see `src/website/README.md`. It is not a Gradle module and does not affect the app's toolchain, build or permissions in any way.
 
 | Area | Choice |
 | --- | --- |
@@ -135,7 +135,7 @@ Alongside the Android app, `src/website/` holds a separate, self-contained deliv
 | `src/app/` | The phone application. |
 | `src/wear/` | The Wear OS companion application. It shares its application id and signing with the phone app, which is what lets the two talk. |
 | `src/shared/` | Plain Kotlin: the phone-to-watch sync contract, so both apps compile against one wire format. |
-| `src/website/` | The public marketing website: a static, single-page, six-language Hugo site. It is **not** part of the Gradle project (its own toolchain, own config, no shared files with `src/app`/`src/wear`/`src/shared`), but lives under `src/` at the maintainers' direction. See `src/website/README.md`. |
+| `src/website/` | The public marketing website: a static, multi-page, six-language Hugo site. It is **not** part of the Gradle project (its own toolchain, own config, no shared files with `src/app`/`src/wear`/`src/shared`), but lives under `src/` at the maintainers' direction. See `src/website/README.md`. |
 | `openspec/` | Spec-driven planning: `specs/` holds the agreed behaviour of the app, `changes/` holds in-progress change proposals, and `changes/archive/` holds completed ones. |
 | `docs/` | The design system (`design-system.md`) and its visual companion (`design-system.html`): colours, typography, components and accessibility rules for the app. `docs/screens/` holds the phone screenshots used above and elsewhere. |
 | `.github/workflows/` | `ci.yml` tests, lints and assembles every pull request and push to `main` that touches anything outside `src/website/`; `release.yml` builds, signs and publishes both bundles to Google Play on every such push to `main`, then tags the commit and creates the GitHub release; `release-notes.yml` drafts brief, bilingual (EN/NL) Play "what's new" text from the OpenSpec changes shipped in a `development` → `main` pull request and posts it as an updatable PR comment for a human to review and hand-copy (it never commits or blocks the release); `website.yml` builds the Hugo site and deploys it to Azure Static Web Apps on every push to `main` that changes `src/website/**`. The two sets of workflows never both run for the same push. |

@@ -45,3 +45,51 @@ other = "Become a tester"
 
 [beta_banner_delay_note]
 other = "It can take up to 10 minutes after joining the group before you're able to download the app."
+
+[nav_label]
+other = "Main"
+
+[nav_home]
+other = "Home"
+
+[nav_medicines]
+other = "Medicines"
+
+[nav_schedules]
+other = "Schedules"
+
+[nav_tracking]
+other = "Tracking"
+
+[nav_wearable]
+other = "On your wrist"
+
+[nav_faq]
+other = "FAQ"
+
+[nav_report_a_bug]
+other = "Report a bug"
+
+[nav_request_a_feature]
+other = "Request a feature"
+
+[footer_explore]
+other = "Explore"
+
+[cta_default_heading]
+other = "Get Pillsner"
+
+[screenshot_enlarge]
+other = "Tap to enlarge"
+
+[lightbox_close]
+other = "Close image"
+
+[issue_form_submit]
+other = "Continue on GitHub"
+
+[issue_form_note_label]
+other = "Before you continue"
+
+[issue_form_open_github]
+other = "Or open the empty form on GitHub"

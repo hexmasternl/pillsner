@@ -1,0 +1,70 @@
+{{ define "main" }}
+{{ partial "header.html" . }}
+
+{{ $issueBase := printf "%s/issues/new" (strings.TrimSuffix "/" .Site.Params.githubUrl) }}
+<main id="main">
+  {{ partial "page-hero.html" . }}
+
+  <section class="section container">
+    <div class="issue-form-wrapper">
+      {{/* No backend: submitting is a plain GET to GitHub's "new issue" page,
+           which prefills the issue form named by the hidden template field.
+           assets/js/issue-report.js only trims over-long values and builds the
+           same URL itself, so the form works identically without JavaScript. */}}
+      <form class="issue-form"
+            method="get"
+            action="{{ $issueBase }}"
+            data-issue-form
+            data-issue-url="{{ $issueBase }}">
+        <input type="hidden" name="template" value="{{ .Params.issueTemplate }}">
+        <input type="hidden" name="labels" value="{{ .Params.issueLabel }}">
+
+        {{ range .Params.fields }}
+        {{ $id := printf "field-%s" .id }}
+        <div class="field">
+          <label class="field__label label-large" for="{{ $id }}">{{ .label }}</label>
+          {{ with .help }}<span class="field__help body-medium" id="{{ $id }}-help">{{ . }}</span>{{ end }}
+          {{ if eq .type "textarea" }}
+          <textarea class="field__control body-large"
+                    id="{{ $id }}"
+                    name="{{ .id }}"
+                    rows="{{ .rows | default 5 }}"
+                    maxlength="{{ .maxlength | default 2000 }}"
+                    {{ with .help }}aria-describedby="{{ $id }}-help"{{ end }}
+                    {{ if .required }}required{{ end }}></textarea>
+          {{ else }}
+          <input class="field__control body-large"
+                 id="{{ $id }}"
+                 name="{{ .id }}"
+                 type="text"
+                 maxlength="{{ .maxlength | default 200 }}"
+                 {{ with .help }}aria-describedby="{{ $id }}-help"{{ end }}
+                 {{ if .required }}required{{ end }}>
+          {{ end }}
+        </div>
+        {{ end }}
+
+        <button class="button button--filled button--large" type="submit">
+          {{ .Params.submitLabel | default (i18n "issue_form_submit") }}
+        </button>
+      </form>
+
+      <aside class="issue-note" aria-label="{{ i18n "issue_form_note_label" }}">
+        <span class="issue-note__icon">{{ partial "icon.html" "info" }}</span>
+        <div>
+          {{ range .Params.notes }}<p class="body-medium">{{ . }}</p>{{ end }}
+          <p class="body-medium">
+            <a href="{{ $issueBase }}?template={{ .Params.issueTemplate }}&labels={{ .Params.issueLabel }}" rel="noopener">
+              {{ i18n "issue_form_open_github" }}
+            </a>
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {{ partial "page-cta.html" . }}
+</main>
+
+{{ partial "footer.html" . }}
+{{ end }}

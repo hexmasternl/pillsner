@@ -16,23 +16,39 @@ params:
       - "Hält deine Medikationsdaten privat und auf deinem eigenen Gerät, immer"
   features:
     heading: "Was Pillsner kann"
+    intro: "Ein kurzer Rundgang. Jeder Teil hat eine eigene Seite mit allen Details."
     items:
       - icon: "medication"
-        title: "Medikamentenverwaltung"
-        description: "Füge jedes Medikament mit Dosis, Einheit, Zeitraum und verschreibender Person hinzu. Unterteilt in aktiv und inaktiv, mit Bestandsverfolgung und Nachfüllerinnerungen. Nichts wird je gelöscht."
+        title: "Deine Medikamente"
+        description: "Füge jedes Medikament mit Dosis, Einheit, Zeitraum und verschreibender Person hinzu, gib ihm so viele Zeitpläne, wie es braucht, und setze eines ab, ohne je zu verlieren, was du eingenommen hast."
+        link:
+          url: "medicines/"
+          label: "Mehr über deine Medikamente"
       - icon: "schedule"
         title: "Zeitpläne & Erinnerungen"
         description: "Feste Uhrzeiten, alle N Stunden, bestimmte Wochentage oder bei Bedarf. Erinnerungen lösen als echte, exakte Alarme aus, die einen Neustart, einen Zeitzonenwechsel oder eine Uhrzeitänderung überstehen."
+        link:
+          url: "schedules/"
+          label: "Mehr über Zeitpläne & Erinnerungen"
+      - icon: "history"
+        title: "Deinen Verlauf verfolgen"
+        description: "Beantworte eine Einnahme mit einem Tipp, sieh, was heute noch aussteht, und blicke zurück auf das, was du genommen, übersprungen oder verpasst hast."
+        link:
+          url: "tracking/"
+          label: "Mehr über das Verfolgen"
       - icon: "watch"
         title: "Am Handgelenk"
-        description: "Eine Wear-OS-App zeigt, was in den nächsten sechs Stunden fällig ist, und lässt dich direkt von der Uhr aus bestätigen, verschieben oder überspringen."
-      - icon: "history"
-        title: "Einnahmeverlauf"
-        description: "Bestätige, verschiebe oder überspringe mit einem Tipp und sieh dir eine Tagesübersicht sowie deinen Einnahmeverlauf im Zeitverlauf an."
+        description: "Eine Wear-OS-App zeigt, was in den nächsten sechs Stunden fällig ist, direkt auf deiner Uhr."
+        link:
+          url: "wearable/"
+          label: "Mehr über die Uhren-App"
   privacy:
     heading: "Datenschutz von Anfang an"
     body: "Alle Daten bleiben auf deinem Gerät. Es gibt kein Konto, keine Cloud-Synchronisierung und keine Analyse. Pillsner beansprucht überhaupt keine Internetberechtigung und fragt nur das ab, was für zuverlässige Erinnerungen nötig ist. Niemals deinen Standort, deine Kontakte oder Netzwerkzugriff."
-    link_label: "Datenschutzerklärung lesen"
+    link_label: "Wie Pillsner deine Daten schützt"
+  help:
+    heading: "Fragen, Fehler und Ideen"
+    body: "Lies die Antworten auf die häufigsten Fragen, erzähl uns von etwas, das schiefgelaufen ist, oder schlag vor, was Pillsner als Nächstes können soll."
   footer:
     tagline: "Dein Partner bei der Einnahme deiner Medikamente."
     copyright: "© 2026 Pillsner. Alle Rechte vorbehalten."

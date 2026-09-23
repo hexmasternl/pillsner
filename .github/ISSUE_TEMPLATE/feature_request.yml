@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest what Pillsner should do next.
+title: "[Feature]: "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. The fields below match the form on
+        [pillsner.hexmaster.nl](https://pillsner.hexmaster.nl/en/request-a-feature/),
+        so anything you filled in there is already prefilled here.
+
+        Pillsner stays a medication reminder that keeps your data on your
+        device: no account, no cloud, no analytics. Ideas that fit that promise
+        have the best chance.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The situation you are in, and what makes it awkward today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: How you imagine Pillsner solving it. Rough ideas are welcome.
+    validations:
+      required: false

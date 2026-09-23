@@ -27,7 +27,7 @@ The project pins every tool and library version in `src/gradle/libs.versions.tom
 | --- | --- |
 | JDK (Gradle runtime and JVM toolchain) | 21 (LTS) |
 | Gradle wrapper | 9.7.1 |
-| Android Gradle Plugin | 9.4.0 |
+| Android Gradle Plugin | 9.4.1 |
 | Kotlin (with Compose compiler and serialization plugins) | 2.4.20 |
 | KSP | 2.3.12 |
 | `compileSdk` / `targetSdk` | 37 (Android 17) |

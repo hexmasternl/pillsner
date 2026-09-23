@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #67 (https://github.com/hexmasternl/pillsner/issues/67)
+**Pull Request:** #68 (https://github.com/hexmasternl/pillsner/pull/68)
 
 When a dose is smaller than the tablet it's taken from, stock loses only a fraction of a tablet, so the count on screen drifts away from what's actually in the box. For example, a 40 mg dose from a batch of 500 mg tablets deducts 0.08 tablets, so 50 tablets become 49.92 when the user really has 49. A tablet or capsule can't be put back once any part of it has been used, so any part of a pill used should count as the whole pill (issue #67). Because the count is too high, the low-stock warning also fires far too late.
 

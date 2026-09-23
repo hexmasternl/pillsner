@@ -50,6 +50,59 @@ disableKinds = ["taxonomy", "term", "section"]
   changeFreq = "monthly"
   priority = 0.5
 
+# One menu shared by every language: entries resolve per locale through
+# pageRef, and their labels come from i18n/<lang>.toml via the identifier
+# (key "nav_<identifier>"), so English stays the fallback for any locale
+# that has not translated a label yet.
+[[menus.main]]
+  identifier = "home"
+  pageRef = "/"
+  weight = 10
+[[menus.main]]
+  identifier = "medicines"
+  pageRef = "/medicines"
+  weight = 20
+[[menus.main]]
+  identifier = "schedules"
+  pageRef = "/schedules"
+  weight = 30
+[[menus.main]]
+  identifier = "tracking"
+  pageRef = "/tracking"
+  weight = 40
+[[menus.main]]
+  identifier = "wearable"
+  pageRef = "/wearable"
+  weight = 50
+[[menus.main]]
+  identifier = "privacy"
+  pageRef = "/privacy"
+  weight = 60
+[[menus.main]]
+  identifier = "faq"
+  pageRef = "/faq"
+  weight = 70
+[[menus.main]]
+  identifier = "report_a_bug"
+  pageRef = "/report-a-bug"
+  weight = 80
+[[menus.main]]
+  identifier = "request_a_feature"
+  pageRef = "/request-a-feature"
+  weight = 90
+
+# The app screenshots in docs/screens/ are mounted into Hugo's assets so the
+# site can resize them at build time instead of keeping a second copy of every
+# PNG. Declaring a mount replaces the default one for that component, so the
+# site's own assets/ directory is mounted explicitly alongside it.
+[module]
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+  [[module.mounts]]
+    source = "../../docs/screens"
+    target = "assets/images/screens"
+
 [params]
   playStoreUrl = "https://play.google.com/store/apps/details?id=nl.hexmaster.pillsner"
   githubUrl = "https://github.com/hexmasternl/pillsner"

@@ -1,0 +1,13 @@
+{{/* Closing call to action, shared by every non-home page: the Play Store
+     button the marketing-website spec requires, plus an optional per-page
+     line of copy from front matter. */}}
+<section class="section container">
+  <div class="page-cta">
+    <h2 class="headline-large">{{ .Params.cta.heading | default (i18n "cta_default_heading") }}</h2>
+    {{ with .Params.cta.body }}<p class="body-large">{{ . }}</p>{{ end }}
+    <a class="button button--filled button--large" href="{{ .Site.Params.playStoreUrl }}" rel="noopener">
+      {{ partial "icon.html" "play" }}
+      {{ i18n "cta_play_store" }}
+    </a>
+  </div>
+</section>

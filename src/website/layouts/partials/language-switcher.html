@@ -1,16 +1,21 @@
-{{/* Visible language switcher, present on every locale page. Plain <details>/
-     <summary> so it opens and works with no JavaScript at all; a small script
-     in assets/js/language.js only adds the "remember my choice" behaviour on
-     top, it never replaces these links. */}}
+{{/* Visible language switcher, present on every page of every locale. Plain
+     <details>/<summary> so it opens and works with no JavaScript at all; a small
+     script in assets/js/language.js only adds the "remember my choice" behaviour
+     on top, it never replaces these links. Links point at the equivalent page in
+     each language, falling back to that language's home page when a page has no
+     translation yet. */}}
+{{ $current := .Language.Lang }}
+{{ $translations := .AllTranslations }}
+{{ if not $translations }}
+  {{ $translations = .Site.Home.AllTranslations }}
+{{ end }}
 <details class="language-switcher">
   <summary aria-label="{{ i18n "language_switcher_label" }}">
     {{ .Language.Label }}
     {{ partial "icon.html" "chevron-down" }}
   </summary>
   <ul class="language-switcher__menu" role="list">
-    {{ $current := .Language.Lang }}
-    {{ $page := . }}
-    {{ range .Site.Home.AllTranslations.ByLanguage }}
+    {{ range $translations.ByLanguage }}
       <li>
         <a href="{{ .Permalink }}"
            hreflang="{{ .Language.Lang }}"

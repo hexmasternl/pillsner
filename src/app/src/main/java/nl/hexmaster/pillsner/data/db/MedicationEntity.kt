@@ -18,4 +18,6 @@ data class MedicationEntity(
     @ColumnInfo(name = "use_until") val useUntil: LocalDate?,
     @ColumnInfo(name = "prescribed_by") val prescribedBy: String,
     @ColumnInfo(name = "is_active") val isActive: Boolean,
+    /** Null unless the user has said they ordered more while stock was low (`medicine-stock-tracking`). */
+    @ColumnInfo(name = "low_stock_acknowledgement") val lowStockAcknowledgement: String? = null,
 )

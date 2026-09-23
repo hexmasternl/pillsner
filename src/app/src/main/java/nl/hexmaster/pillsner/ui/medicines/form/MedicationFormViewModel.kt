@@ -13,17 +13,27 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
 import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.Schedule
+import nl.hexmaster.pillsner.domain.model.StockBatchId
 import nl.hexmaster.pillsner.domain.model.summarize
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
+import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
+import nl.hexmaster.pillsner.domain.scheduling.currentDates
+import nl.hexmaster.pillsner.domain.stock.AddStockBatch
+import nl.hexmaster.pillsner.domain.stock.ProjectWeeklyUsage
+import nl.hexmaster.pillsner.domain.stock.StockState
+import nl.hexmaster.pillsner.domain.stock.stockState
+import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.domain.validation.MedicationFormValidator
 import nl.hexmaster.pillsner.domain.validation.ScheduleDraftValidator
 import nl.hexmaster.pillsner.domain.validation.SchedulePattern
@@ -35,15 +45,26 @@ import nl.hexmaster.pillsner.ui.medicines.AmountParser
  * The two screens share this view model through the flow's navigation graph entry, which is what
  * lets a schedule built in the editor land in the form's list without a round trip through the
  * database. Nothing here logs the name or any amount: they are the user's medical data.
+ *
+ * @param dates today's date, re-emitted when it changes, so the Stock section's expiry heads-up and
+ *   weekly projection move on at midnight while the form stays open.
  */
 class MedicationFormViewModel(
     private val repository: MedicationRepository,
     private val savedStateHandle: SavedStateHandle,
     private val amountParser: AmountParser = AmountParser(),
-    clock: Clock = Clock.systemDefaultZone(),
+    private val clock: Clock = Clock.systemDefaultZone(),
+    private val stockBatchRepository: StockBatchRepository? = null,
+    private val addStockBatch: AddStockBatch? = null,
+    private val dates: Flow<LocalDate> = currentDates(clock),
 ) : ViewModel() {
 
+    /** The date the form opened on: only the starting "used since" of a new draft. */
     private val today: LocalDate = LocalDate.now(clock)
+    private val projectWeeklyUsage = ProjectWeeklyUsage()
+
+    /** Set once the medicine is loaded; the Stock section reads its unit and schedules. */
+    private var loadedMedication: Medication? = null
 
     /** Which entrance the user came through; the route carries the medicine, or nothing. */
     private val mode: MedicationFormMode =
@@ -77,14 +98,21 @@ class MedicationFormViewModel(
         val editing = mode as? MedicationFormMode.Edit
         when {
             editing == null -> DraftSaver.saveInitial(savedStateHandle, initialDraft)
-            // A half-edited form must never snap back to the stored medicine after a rotation.
-            DraftSaver.hasSavedDraft(savedStateHandle) -> Unit
-            else -> load(editing.id)
+            // A half-edited form must never snap back to the stored medicine after a rotation or
+            // process death, but the stored medicine is still what the Stock section works on.
+            DraftSaver.hasSavedDraft(savedStateHandle) -> load(editing.id, keepDraft = true)
+            else -> load(editing.id, keepDraft = false)
         }
     }
 
-    private fun load(id: MedicationId) {
-        _uiState.update { it.copy(isLoading = true) }
+    /**
+     * Loads the medicine being edited and starts observing its stock.
+     *
+     * @param keepDraft true when a saved draft was restored: the draft's fields stay exactly as the
+     *   user left them, and only the stored medicine behind the Stock section is loaded.
+     */
+    private fun load(id: MedicationId, keepDraft: Boolean) {
+        if (!keepDraft) _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             val medication = runCatching { repository.get(id) }.getOrNull()
             if (medication == null) {
@@ -94,11 +122,124 @@ class MedicationFormViewModel(
                 _effects.trySend(MedicationFormEffect.OpenFailed)
                 return@launch
             }
-            draft = MedicationFormDraft.from(medication, amountParser.format(medication.defaultDose.value))
-            initialDraft = draft
-            DraftSaver.save(savedStateHandle, draft)
-            DraftSaver.saveInitial(savedStateHandle, initialDraft)
-            _uiState.value = draft.toUiState(showErrors = false)
+            if (!keepDraft) {
+                draft = MedicationFormDraft.from(medication, amountParser.format(medication.defaultDose.value))
+                initialDraft = draft
+                DraftSaver.save(savedStateHandle, draft)
+                DraftSaver.saveInitial(savedStateHandle, initialDraft)
+                _uiState.value = draft.toUiState(showErrors = false)
+            }
+            loadedMedication = medication
+            observeStock(medication)
+        }
+    }
+
+    /**
+     * Keeps the Stock section live: re-emits whenever the medicine's batches change or the date
+     * does, not only when the form itself is edited (`medicine-stock-tracking`'s "Tile and
+     * details-screen heads-up is a live read" decision).
+     */
+    private fun observeStock(medication: Medication) {
+        val repo = stockBatchRepository ?: return
+        viewModelScope.launch {
+            combine(repo.observeBatches(medication.id), dates, ::Pair).collect { (batches, date) ->
+                val rows = batches
+                    .sortedWith(compareBy({ it.expiryDate }, { it.addedAt }))
+                    .map { StockBatchRowState(it.id, it.remaining, it.unit, it.strengthPerUnit, it.expiryDate) }
+                val state = batches.takeIf { it.isNotEmpty() }
+                    ?.let { stockState(it, medication, date, clock.zone, projectWeeklyUsage) }
+                // Every batch's strength is relative to the stored default dose unit, so that unit
+                // cannot change on this form while any batch exists.
+                val lockedDoseUnit = medication.defaultDose.unit.takeIf { batches.isNotEmpty() }
+                _uiState.update { it.copy(stockBatches = rows, stockState = state, lockedDoseUnit = lockedDoseUnit) }
+            }
+        }
+    }
+
+    // --- Stock events (medicine-stock-tracking) --------------------------------------------
+
+    fun onAddStockClicked() {
+        val medication = loadedMedication ?: return
+        _uiState.update {
+            it.copy(
+                addStockState = AddStockUiState(
+                    defaultDoseUnit = medication.defaultDose.unit,
+                    unit = medication.defaultDose.unit,
+                ),
+            )
+        }
+    }
+
+    fun onAddStockDismissed() {
+        _uiState.update { it.copy(addStockState = null) }
+    }
+
+    fun onStockQuantityTextChange(value: String) = updateAddStock { it.copy(quantityText = value) }
+
+    fun onStockUnitChange(value: DoseUnit) = updateAddStock { it.copy(unit = value) }
+
+    fun onStockStrengthTextChange(value: String) = updateAddStock { it.copy(strengthText = value) }
+
+    fun onStockExpiryDateChange(value: LocalDate) = updateAddStock {
+        it.copy(expiryDate = value, expiryPastWarning = value.isBefore(LocalDate.now(clock)))
+    }
+
+    fun onSaveStockBatch() {
+        val current = _uiState.value.addStockState ?: return
+        val validated = current.copy(
+            showErrors = true,
+            quantityError = validateStockAmount(current.quantityText),
+            strengthError = if (current.needsStrength) validateStockAmount(current.strengthText) else null,
+        )
+        _uiState.update { it.copy(addStockState = validated) }
+        if (!validated.canSave) return
+
+        val amount = amountParser.parse(current.quantityText) ?: return
+        val strength = if (current.needsStrength) {
+            amountParser.parse(current.strengthText) ?: return
+        } else {
+            java.math.BigDecimal.ONE
+        }
+        val expiryDate = current.expiryDate ?: return
+        val medicationId = (loadedMedication ?: return).id
+        _uiState.update { it.copy(addStockState = validated.copy(isSaving = true)) }
+        viewModelScope.launch {
+            runCatching {
+                addStockBatch?.invoke(medicationId, Quantity(amount, current.unit), strength, expiryDate)
+            }
+            _uiState.update { it.copy(addStockState = null) }
+        }
+    }
+
+    private fun updateAddStock(transform: (AddStockUiState) -> AddStockUiState) {
+        _uiState.update { state ->
+            val current = state.addStockState ?: return@update state
+            state.copy(addStockState = transform(current))
+        }
+    }
+
+    private fun validateStockAmount(text: String): MedicationFieldError? {
+        if (text.isBlank()) return MedicationFieldError.DOSE_REQUIRED
+        val value = amountParser.parse(text) ?: return MedicationFieldError.DOSE_NOT_A_NUMBER
+        if (value <= java.math.BigDecimal.ZERO) return MedicationFieldError.DOSE_NOT_POSITIVE
+        return null
+    }
+
+    /** Opens the removal confirmation dialog for one batch (`medicine-stock-tracking`). */
+    fun onRemoveStockBatchClicked(batchId: StockBatchId) {
+        _uiState.update { it.copy(pendingStockRemoval = batchId) }
+    }
+
+    /** Cancelling, or dismissing the dialog any other way, leaves every batch untouched. */
+    fun onRemoveStockBatchCancelled() {
+        _uiState.update { it.copy(pendingStockRemoval = null) }
+    }
+
+    fun onRemoveStockBatchConfirmed() {
+        val batchId = _uiState.value.pendingStockRemoval ?: return
+        _uiState.update { it.copy(pendingStockRemoval = null) }
+        viewModelScope.launch {
+            runCatching { stockBatchRepository?.removeBatch(batchId) }
         }
     }
 
@@ -247,6 +388,11 @@ class MedicationFormViewModel(
             showErrors = previous.showErrors,
             isSaving = previous.isSaving,
             showDiscardDialog = previous.showDiscardDialog,
+            stockBatches = previous.stockBatches,
+            stockState = previous.stockState,
+            lockedDoseUnit = previous.lockedDoseUnit,
+            addStockState = previous.addStockState,
+            pendingStockRemoval = previous.pendingStockRemoval,
         )
     }
 
@@ -294,6 +440,11 @@ class MedicationFormViewModel(
         showErrors: Boolean,
         isSaving: Boolean = false,
         showDiscardDialog: Boolean = false,
+        stockBatches: List<StockBatchRowState> = emptyList(),
+        stockState: StockState? = null,
+        lockedDoseUnit: DoseUnit? = null,
+        addStockState: AddStockUiState? = null,
+        pendingStockRemoval: StockBatchId? = null,
     ): MedicationFormUiState {
         val validation = MedicationFormValidator.validate(
             name = name,
@@ -321,6 +472,11 @@ class MedicationFormViewModel(
             isSaving = isSaving,
             hasEdits = this != initialDraft,
             showDiscardDialog = showDiscardDialog,
+            stockBatches = stockBatches,
+            stockState = stockState,
+            lockedDoseUnit = lockedDoseUnit,
+            addStockState = addStockState,
+            pendingStockRemoval = pendingStockRemoval,
         )
     }
 

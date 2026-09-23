@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -17,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
@@ -28,10 +31,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import java.time.DayOfWeek
 import nl.hexmaster.pillsner.R
+import nl.hexmaster.pillsner.domain.model.BatchExpiryState
 import nl.hexmaster.pillsner.domain.model.DoseUnit
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
+import nl.hexmaster.pillsner.domain.stock.StockState
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Sizes
 import nl.hexmaster.pillsner.ui.theme.Spacing
@@ -59,7 +64,8 @@ fun MedicineTile(
 ) {
     val inactiveLabel = stringResource(R.string.medicine_inactive_label)
     val separator = stringResource(R.string.list_separator)
-    val spoken = (listOf(state.name) + descriptions).joinToString(separator)
+    val stockLabels = state.stockState.spokenLabels()
+    val spoken = (listOf(state.name) + descriptions + stockLabels).joinToString(separator)
     val activationLabel = stringResource(
         if (state.isActive) R.string.medicines_action_deactivate else R.string.medicines_action_activate,
     )
@@ -122,6 +128,84 @@ fun MedicineTile(
             descriptions.forEach { description ->
                 Text(text = description, style = MaterialTheme.typography.bodyMedium)
             }
+            state.stockState?.let { StockHeadsUp(it) }
+        }
+    }
+}
+
+/**
+ * The live stock heads-up (`medicine-stock-tracking`'s "Medicine tile stock heads-up" requirement):
+ * one chip for low stock, one for the nearest batch's expiry, either, both or neither depending on
+ * [stockState]. Never colour alone — each chip carries its own icon and text.
+ */
+@Composable
+private fun StockHeadsUp(stockState: StockState, modifier: Modifier = Modifier) {
+    if (!stockState.isLow && stockState.nearestExpiry == BatchExpiryState.NONE) return
+
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        if (stockState.isLow) {
+            StockChip(
+                label = stringResource(R.string.medicine_tile_low_stock),
+                icon = R.drawable.ic_info,
+                modifier = Modifier.testTag(MedicinesScreenTestTags.LOW_STOCK_CHIP),
+            )
+        }
+        when (stockState.nearestExpiry) {
+            BatchExpiryState.APPROACHING -> StockChip(
+                label = stringResource(R.string.medicine_tile_expiring_soon),
+                icon = R.drawable.ic_info,
+                modifier = Modifier.testTag(MedicinesScreenTestTags.EXPIRING_CHIP),
+            )
+            BatchExpiryState.PAST -> StockChip(
+                label = stringResource(R.string.medicine_tile_expired),
+                icon = R.drawable.ic_error_filled,
+                modifier = Modifier.testTag(MedicinesScreenTestTags.EXPIRED_CHIP),
+            )
+            BatchExpiryState.NONE -> Unit
+        }
+    }
+}
+
+/**
+ * The stock heads-up's own colour (design system 2.4): `error` is reserved for overdue/missed
+ * doses, missing permissions, destructive confirmations, stock at zero and validation errors — an
+ * expired batch is none of those, so every chip here uses the informational `secondaryContainer`
+ * pair and is distinguished from the others by its icon and wording alone, never by hue.
+ */
+@Composable
+private fun StockChip(label: String, icon: Int, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.height(Sizes.statusChipHeight),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    ) {
+        Row(
+            Modifier.padding(horizontal = Spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                // Decorative: the chip's own label says everything the icon does.
+                contentDescription = null,
+                modifier = Modifier.size(Sizes.iconChip),
+            )
+            Text(label, style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+/** The stock state's words, appended to the tile's single combined screen-reader announcement. */
+@Composable
+private fun StockState?.spokenLabels(): List<String> {
+    if (this == null) return emptyList()
+    return buildList {
+        if (isLow) add(stringResource(R.string.medicine_tile_low_stock))
+        when (nearestExpiry) {
+            BatchExpiryState.APPROACHING -> add(stringResource(R.string.medicine_tile_expiring_soon))
+            BatchExpiryState.PAST -> add(stringResource(R.string.medicine_tile_expired))
+            BatchExpiryState.NONE -> Unit
         }
     }
 }
@@ -191,6 +275,38 @@ private fun MedicineTilePreview() {
                         isActive = false,
                     ),
                     descriptions = listOf("1 tablet once a day on Mon, Wed, Fri"),
+                )
+                MedicineTile(
+                    state = MedicineTileState(
+                        id = MedicationId(3),
+                        name = "Amoxicillin",
+                        schedules = listOf(
+                            ScheduleLine(ScheduleSummary.EveryNHours(8), Quantity.of("500", DoseUnit.MILLIGRAM)),
+                        ),
+                        isActive = true,
+                        stockState = StockState(isLow = true, nearestExpiry = BatchExpiryState.NONE),
+                    ),
+                    descriptions = listOf("500 mg every 8 hours"),
+                )
+                MedicineTile(
+                    state = MedicineTileState(
+                        id = MedicationId(4),
+                        name = "Vitamin D",
+                        schedules = listOf(ScheduleLine(ScheduleSummary.AsNeeded, Quantity.of("2", DoseUnit.DROP))),
+                        isActive = true,
+                        stockState = StockState(isLow = false, nearestExpiry = BatchExpiryState.APPROACHING),
+                    ),
+                    descriptions = listOf("2 drops as needed"),
+                )
+                MedicineTile(
+                    state = MedicineTileState(
+                        id = MedicationId(5),
+                        name = "Paracetamol",
+                        schedules = listOf(ScheduleLine(ScheduleSummary.AsNeeded, Quantity.of("2", DoseUnit.TABLET))),
+                        isActive = true,
+                        stockState = StockState(isLow = true, nearestExpiry = BatchExpiryState.PAST),
+                    ),
+                    descriptions = listOf("2 tablets as needed"),
                 )
             }
         }

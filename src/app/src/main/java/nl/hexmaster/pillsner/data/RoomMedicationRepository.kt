@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.map
 import nl.hexmaster.pillsner.data.db.MedicationDao
 import nl.hexmaster.pillsner.data.db.toDomain
 import nl.hexmaster.pillsner.data.db.toEntity
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
@@ -37,5 +38,9 @@ class RoomMedicationRepository(
 
     override suspend fun setActive(id: MedicationId, isActive: Boolean) {
         dao.setActive(id.value, isActive)
+    }
+
+    override suspend fun setLowStockAcknowledgement(id: MedicationId, value: LowStockAcknowledgement?) {
+        dao.setLowStockAcknowledgement(id.value, value?.name)
     }
 }

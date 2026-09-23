@@ -3,6 +3,7 @@ package nl.hexmaster.pillsner.ui.medicines
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
+import nl.hexmaster.pillsner.domain.stock.StockState
 
 /**
  * What the Medicines screen shows (design D4).
@@ -24,12 +25,15 @@ data class MedicinesUiState(
  *
  * @property schedules one line per schedule, in the medicine's own order. A medicine with no
  *   schedules has exactly one line: as needed, with the medicine's default dose.
+ * @property stockState null when the medicine has no stock batches recorded, which is exactly when
+ *   the tile shows no stock heads-up at all (`medicine-stock-tracking`).
  */
 data class MedicineTileState(
     val id: MedicationId,
     val name: String,
     val schedules: List<ScheduleLine>,
     val isActive: Boolean,
+    val stockState: StockState? = null,
 )
 
 /** One schedule of a medicine, as the tile describes it: how much, how often. */

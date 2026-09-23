@@ -49,6 +49,8 @@ import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.home.NotificationPermissionEffect
 import nl.hexmaster.pillsner.ui.home.openReminderSettings
+import nl.hexmaster.pillsner.ui.home.StockWarningDialog
+import nl.hexmaster.pillsner.ui.home.StockWarningViewModel
 import nl.hexmaster.pillsner.ui.home.WelcomeScreen
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.merge
@@ -165,6 +167,19 @@ private fun PillsnerAppContent(
     // moment of the tap.
     val legalViewModel: LegalViewModel = viewModel(factory = viewModelFactory)
     val legalState by legalViewModel.uiState.collectAsStateWithLifecycle()
+
+    // Stock warnings are shown here, over whichever destination is open, rather than inside one
+    // (`medicine-stock-tracking`'s "Combined warning presentation" requirement): a take answered
+    // from the notification while the app is in the foreground warns there and then.
+    val stockWarningViewModel: StockWarningViewModel = viewModel(factory = viewModelFactory)
+    val stockWarning by stockWarningViewModel.warning.collectAsStateWithLifecycle()
+    stockWarning?.let { warning ->
+        StockWarningDialog(
+            warning = warning,
+            onOk = stockWarningViewModel::onAcknowledged,
+            onOrderedNew = stockWarningViewModel::onOrderedNew,
+        )
+    }
 
     NavigationSuiteScaffold(
         modifier = modifier,

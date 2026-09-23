@@ -271,7 +271,7 @@ class MedicinesSwipeTest {
         onOpen: (MedicationId) -> Unit = {},
     ) {
         val viewModel = androidx.lifecycle.viewmodel.compose.viewModel {
-            MedicinesViewModel(repository, Locale.UK)
+            MedicinesViewModel(repository, nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository(), Locale.UK)
         }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         MedicinesScreen(
@@ -315,6 +315,10 @@ class MedicinesSwipeTest {
         override suspend fun update(medication: Medication): Unit = error("no database")
         override suspend fun add(medication: NewMedication): MedicationId = error("no database")
         override suspend fun setActive(id: MedicationId, isActive: Boolean): Unit = error("no database")
+        override suspend fun setLowStockAcknowledgement(
+            id: MedicationId,
+            value: nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement?,
+        ): Unit = error("no database")
     }
 
     private companion object {

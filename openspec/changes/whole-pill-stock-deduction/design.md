@@ -46,7 +46,7 @@ Because `consumeFefo` reports `consumed` in dose units, it needs to report the p
 - *Alternative*: round each dose up to whole pills against the soonest batch's strength without simulating. Rejected because it gives the wrong answer as soon as batches mix strengths or the exact-fit rule kicks in.
 
 ### Add stock validation
-The Add stock form's quantity validation rejects a non-integer value when the chosen unit `isWholePill`, with a new string resource `stock_quantity_whole_number_error`. `AddStockBatch` also checks this at the domain boundary (`require`), matching how it already guards strength.
+The Add stock form's quantity validation rejects a non-integer value when the chosen unit `isWholePill`, with a new string resource `medicine_stock_error_quantity_not_whole`. `AddStockBatch` also checks this at the domain boundary (`require`), matching how it already guards strength.
 
 ## Risks / Trade-offs
 

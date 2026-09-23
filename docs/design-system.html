@@ -155,7 +155,11 @@
   .tile.inactive { background: var(--sc-low); color: var(--on-surface-variant); }
   .tile.inactive::before { display:none; }
   .tile.plain::before { display:none; }
-  .tile.plain { padding-left: 16px; }
+  .tile.plain { padding-left: 16px; grid-template-columns: auto 1fr auto; align-items: start; gap: 12px; }
+  .tile.plain .avatar { width: 40px; height: 40px; border-radius: 999px; display:grid; place-items:center; background: var(--secondary-container); color: var(--on-secondary-container); }
+  .tile.plain.inactive .avatar { background: var(--sc-highest); color: var(--on-surface-variant); }
+  .tile.plain .avatar .sym { font-size: 24px; }
+  .tile.plain .chevron { color: var(--on-surface-variant); }
   .tile .lines { font-size: 16px; color: var(--on-surface-variant); line-height: 1.5; }
   .banner { background: var(--error-container); color: var(--on-error-container); border-radius: 16px; padding: 14px 16px; display:grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
   .banner .sym { font-variation-settings: 'FILL' 1; }
@@ -515,21 +519,38 @@
       <h1>Medicines</h1>
       <div class="section-h">Active</div>
       <div class="tile plain">
-        <div class="name">Ibuprofen</div><div></div>
-        <div class="lines">40 mg every 12 hours from 08:00<br>20 mg once a day on Sat, Sun</div>
+        <div class="avatar"><span class="sym fill">medication</span></div>
+        <div>
+          <div class="name">Ibuprofen</div>
+          <div class="lines">40 mg every 12 hours from 08:00<br>20 mg once a day on Sat, Sun</div>
+        </div>
+        <span class="sym chevron">chevron_right</span>
       </div>
       <div class="tile plain">
-        <div class="name">Metformin</div><div></div>
-        <div class="lines">500 mg twice a day</div>
+        <div class="avatar"><span class="sym fill">medication</span></div>
+        <div>
+          <div class="name">Metformin</div>
+          <div class="lines">500 mg twice a day</div>
+        </div>
+        <span class="sym chevron">chevron_right</span>
       </div>
       <div class="tile plain">
-        <div class="name">Paracetamol</div><div></div>
-        <div class="lines">As needed · 500 mg</div>
+        <div class="avatar"><span class="sym fill">medication</span></div>
+        <div>
+          <div class="name">Paracetamol</div>
+          <div class="lines">As needed · 500 mg</div>
+        </div>
+        <span class="sym chevron">chevron_right</span>
       </div>
       <div class="section-h">Inactive</div>
       <div class="tile plain inactive">
-        <div class="name">Amoxicillin</div><span class="chip c-skipped" style="margin:0;height:28px">Inactive</span>
-        <div class="lines">500 mg three times a day</div>
+        <div class="avatar"><span class="sym">medication</span></div>
+        <div>
+          <div class="name">Amoxicillin</div>
+          <div class="lines">500 mg three times a day</div>
+          <span class="chip c-skipped" style="margin-top:8px;height:28px">Inactive</span>
+        </div>
+        <span class="sym chevron">chevron_right</span>
       </div>
       <div class="fab"><span class="sym">add</span></div>
     </div>

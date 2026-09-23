@@ -95,7 +95,7 @@ The 18 dp icon inside a 28 dp chip is the one exception to "no raw dp": add `Siz
 
 ## Medicine tile (8.2)
 
-Same `Card` as the dose tile without the stripe. Name in `titleMedium`; one `bodyMedium` `Text` per schedule description in `onSurfaceVariant`; when the list is empty, `stringResource(R.string.medicine_as_needed, amount)`.
+Same `Card` as the dose tile without the stripe. A leading 40 dp circular icon avatar (`Sizes.iconAvatar`, `secondaryContainer` filled when active / `surfaceContainerHighest` outlined when inactive, both decorative), name in `titleMedium`, one `bodyMedium` `Text` per schedule description in `onSurfaceVariant`, and a trailing chevron when the tile is clickable; when the list is empty, `stringResource(R.string.medicine_as_needed, amount)`.
 
 Inactive variant:
 

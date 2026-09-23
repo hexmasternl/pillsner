@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.ui.medicines
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,13 +45,15 @@ import nl.hexmaster.pillsner.ui.theme.tileContainerColor
 
 /**
  * One medicine on the overview (docs/design-system.md section 8.2): the same card as the dose tile
- * without the state stripe, the name in `titleMedium` and one schedule description per line below
- * it, in the medicine's own schedule order.
+ * without the state stripe, a leading medication icon avatar, the name in `titleMedium` and one
+ * schedule description per line below it, in the medicine's own schedule order. A trailing chevron
+ * hints that the tile opens the medicine's details when [onClick] is set.
  *
  * An inactive medicine keeps full contrast — alpha is never lowered — and is set apart by a lower
  * surface tier, an `Inactive` chip and a spoken state, so the distinction never rests on colour
  * alone. The whole card is one merged semantics node, so TalkBack reads "Metoprolol, 40 mg every
- * 12 hours, 20 mg once a day on Sat, Sun" as a single item.
+ * 12 hours, 20 mg once a day on Sat, Sun" as a single item. The avatar and chevron are purely
+ * decorative and carry no `contentDescription` of their own.
  *
  * @param descriptions one already-formatted line per entry of [MedicineTileState.schedules].
  */
@@ -102,33 +105,82 @@ fun MedicineTile(
             },
         ),
     ) {
-        Column(
+        Row(
             Modifier
                 .fillMaxWidth()
                 .padding(Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+            verticalAlignment = Alignment.Top,
         ) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-                verticalAlignment = Alignment.CenterVertically,
+            MedicineAvatar(isActive = state.isActive)
+            Column(
+                Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             ) {
-                Text(
-                    text = state.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f),
-                )
-                if (!state.isActive) {
-                    InactiveChip(
-                        label = inactiveLabel,
-                        modifier = Modifier.testTag(MedicinesScreenTestTags.INACTIVE_CHIP),
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = state.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f),
                     )
+                    if (!state.isActive) {
+                        InactiveChip(
+                            label = inactiveLabel,
+                            modifier = Modifier.testTag(MedicinesScreenTestTags.INACTIVE_CHIP),
+                        )
+                    }
                 }
+                descriptions.forEach { description ->
+                    Text(text = description, style = MaterialTheme.typography.bodyMedium)
+                }
+                state.stockState?.let { StockHeadsUp(it) }
             }
-            descriptions.forEach { description ->
-                Text(text = description, style = MaterialTheme.typography.bodyMedium)
+            if (onClick != null) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    // Decorative: the tile's own click semantics already say "opens details".
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(Sizes.iconDefault),
+                )
             }
-            state.stockState?.let { StockHeadsUp(it) }
+        }
+    }
+}
+
+/**
+ * The tile's leading visual anchor: a medication icon inside a tinted circle, filled for an active
+ * medicine and outlined for an inactive one. Purely decorative — the tile's merged semantics
+ * already speak the active/inactive state.
+ */
+@Composable
+private fun MedicineAvatar(isActive: Boolean, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.size(Sizes.iconAvatar),
+        shape = CircleShape,
+        color = if (isActive) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHighest
+        },
+        contentColor = if (isActive) {
+            MaterialTheme.colorScheme.onSecondaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(
+                    if (isActive) R.drawable.ic_medication_filled else R.drawable.ic_medication,
+                ),
+                contentDescription = null,
+                modifier = Modifier.size(Sizes.iconDefault),
+            )
         }
     }
 }
@@ -258,6 +310,7 @@ private fun MedicineTilePreview() {
                         isActive = true,
                     ),
                     descriptions = listOf("40 mg every 12 hours", "20 mg once a day on Sat, Sun"),
+                    onClick = {},
                 )
                 MedicineTile(
                     state = MedicineTileState(

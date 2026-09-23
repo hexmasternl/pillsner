@@ -33,6 +33,9 @@ object Sizes {
     val statusChipHeight = 28.dp
     val iconDefault = 24.dp
 
+    /** The medicine tile's leading icon avatar (section 8.2). */
+    val iconAvatar = 40.dp
+
     /** Icon inside a status chip; the one size below iconDefault the design allows (section 8.3). */
     val iconChip = 18.dp
     val iconEmptyState = 64.dp

@@ -229,7 +229,9 @@ Shows one planned dose on the Home screen. `Card` with `large` shape.
 
 Shows one medicine on the Medicines screen. Same card as the dose tile without the stripe.
 
+- Leading 40 dp circular icon avatar: `secondaryContainer` filled with the medication glyph for an active medicine, `surfaceContainerHighest` outlined for an inactive one. Purely decorative.
 - Name in `titleMedium`; one `bodyMedium` line per schedule description; "As needed · 40 mg" when there are none.
+- Trailing chevron when the tile opens the medicine's details, hinting the tap target without adding words to the spoken description.
 - Inactive medicines: container `surfaceContainerLow`, all text in `onSurfaceVariant`, a small `Inactive` chip (`surfaceContainerHighest`), and `stateDescription = "Inactive"` for TalkBack. Do not lower alpha; it fails contrast.
 
 ### 8.3 Status chip

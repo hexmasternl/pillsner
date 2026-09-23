@@ -46,7 +46,7 @@ The same `<nav>` is rendered once. CSS below 960 px hides it behind the Menu but
 
 ### Menu button is a real `<button>`, progressively enhanced
 
-- Without JS (`html` lacks the `js` class): no Menu button is shown and the nav renders as an expanded stacked list below the brand on narrow screens. Every link is reachable.
+- Without JS (`html` lacks the `js` class): no Menu button is shown and the nav renders in place as a stacked list on narrow screens, with the groups as collapsed disclosures and the header no longer sticky (so it cannot cover a phone screen). Every link is reachable.
 - With JS: `assets/js/navigation.js` adds the `js` class on `<html>`, reveals the button, and toggles `aria-expanded`, the button's `aria-label` ("Menu" / "Close menu" from i18n, passed through `data-` attributes) and the panel's visibility. It closes the panel on Escape (returning focus to the button), on a link click, and when a `matchMedia("(min-width: 960px)")` change fires.
 
 The `js` class is set by a one-line inline script in `<head>` so there is no flash of the expanded no-JS list. The CSP-free static hosting allows this; it contains no data and no network calls.
@@ -55,13 +55,13 @@ The `js` class is set by a one-line inline script in `<head>` so there is no fla
 
 ### Group dropdowns use `<details>`/`<summary>`
 
-Same pattern as the language switcher: works without JS, keyboard operable, announced as expandable. `navigation.js` adds closing on outside click and on Escape, and closes a sibling group when another opens. Inside the narrow-screen panel, CSS shows every group expanded with the summary styled as a non-interactive group heading (`pointer-events: none`, summaries removed from the tab order by JS only when the panel layout is active), so a phone visitor sees all pages at once without nested taps.
+Same pattern as the language switcher: works without JS, keyboard operable, announced as expandable. `navigation.js` adds closing on outside click, on focus leaving the group and on Escape (returning focus to the summary), and closes a sibling group when another opens. Inside the narrow-screen panel, `navigation.js` opens every group whenever the narrow layout is active and closes them all when the wide layout takes over, so a phone visitor sees all pages at once. The summaries stay real, collapsible disclosure controls styled as group headings, rather than being made non-interactive: that keeps their semantics honest for screen readers and needs no tab-order tricks.
 
 ### Visual treatment
 
 - Header bar on `surfaceContainer` with an `outlineVariant` bottom border, as today.
 - Top-level links and summaries: `labelLarge`, `onSurfaceVariant`, 40 px tall pill (`shape-full`) with `space-md`/`space-lg` padding inside a 48 px hit area. Hover and focus: `secondaryContainer` at hover tint, `onSecondaryContainer`. Current page, or group containing it: `secondaryContainer` pill, `onSecondaryContainer` text — the web equivalent of the app's navigation indicator (design system 8.6).
-- Dropdown: `surfaceContainerHigh`, `shape-medium`, same shadow and 120 ms entrance as the language switcher menu, minimum width 220 px, items `bodyMedium`, 48 px tall.
+- Dropdown: `surfaceContainerHigh`, `shape-medium`, same shadow as the language switcher menu and a 150 ms entrance, minimum width 220 px, items `bodyMedium`, 48 px tall.
 - Mobile panel: full width under the sticky header, `surfaceContainer`, `space-lg` gutters, group headings in `labelSmall` uppercase `onSurfaceVariant`, links `bodyLarge` 48 px tall, max-height `calc(100dvh - header height)` with `overflow-y: auto`.
 - Menu button: 48 × 48 px icon button, `menu` icon swapping to `close`, `onSurface`, `shape-full` hover state layer.
 - Motion: 150 ms fade/slide, disabled under `prefers-reduced-motion: reduce`.
@@ -83,3 +83,9 @@ Static site; merge to `development`, then released with the next `development` �
 ## Open Questions
 
 None.
+
+## Implementation notes
+
+- **Old navigation rules removed.** `assets/css/pages.css` still carried the `website-multipage-expansion` stopgap (a sideways-scrolling nav below 900 px and a green `primary` current-page link). It overrode the new current-page colours, so it is removed; all header navigation styling now lives in `assets/css/layout.css`, including the dropdown (task 4.2 therefore touched `layout.css`, not `components.css`).
+- **Divider after a group.** On narrow screens, Privacy directly after the Features group read as that group's fifth item. A top-level entry that follows a group now gets a 1 px `outlineVariant` divider (`.site-nav__item--group + .site-nav__item`).
+- **`--shape-small` token.** The design system's `small` (8 dp) shape had no CSS token; the language switcher used an inline fallback. `tokens.css` now defines `--shape-small: 8px` and both menus use it.

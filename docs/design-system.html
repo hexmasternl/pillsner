@@ -243,7 +243,9 @@
   .wmenu { width: 48px; height: 48px; border-radius: 999px; display:grid; place-items:center; color: var(--on-surface); background: var(--sc-highest); }
   .wpanel { background: var(--sc); border-bottom: 1px solid var(--outline-variant); padding: 8px 16px 16px; display:grid; }
   .wpanel a { font-size: 18px; border-radius: 12px; text-decoration: none; }
-  .wpanel .grp { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface-variant); margin: 16px 12px 4px; }
+  .wpanel .grp { display:flex; align-items:center; justify-content:space-between; min-height: 48px; margin-top: 8px; padding: 0 12px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface-variant); }
+  .wpanel .grp .sym { font-size: 18px; }
+  .wpanel .after-grp { margin-top: 8px; border-top: 1px solid var(--outline-variant); border-radius: 0; padding-top: 8px; }
   .narrow { max-width: 360px; }
 
   footer { margin-top: 88px; padding-top: 24px; border-top: 1px solid var(--outline-variant); }
@@ -683,16 +685,16 @@
       </div>
       <div class="wpanel">
         <a>Home</a>
-        <div class="grp">Features</div>
+        <div class="grp">Features <span class="sym">expand_less</span></div>
         <a>Medicines</a><a>Schedules</a><a>Tracking</a><a>On your wrist</a>
-        <a style="margin-top:8px">Privacy</a>
-        <div class="grp">Help</div>
+        <a class="after-grp">Privacy</a>
+        <div class="grp">Help <span class="sym">expand_less</span></div>
         <a class="cur">FAQ</a><a>Report a bug</a><a>Request a feature</a>
       </div>
     </div>
   </div>
 </div>
-<p class="small muted prose" style="margin-top:14px">Without JavaScript the groups are native disclosure widgets and the narrow-screen panel is rendered expanded, so every page stays reachable. Motion is a 150 ms fade and 4 px slide, removed under reduced motion.</p>
+<p class="small muted prose" style="margin-top:14px">Without JavaScript the groups are native disclosure widgets and the narrow-screen menu is shown in place as a list, with the header no longer sticky, so every page stays reachable. Motion is a 150 ms fade and 4 px slide, removed under reduced motion.</p>
 
 <h2>Do and don't</h2>
 <div class="tablewrap" style="margin-top:20px">

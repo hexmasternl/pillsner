@@ -39,7 +39,12 @@ params:
         - "Eine übersprungene Dosis ist eine, die du bewusst mit Werde ich nicht beantwortet hast. Eine verpasste Dosis ist eine, die du nie beantwortet hast und die verpasst wird, wenn die nächste Dosis fällig ist oder 24 Stunden später, je nachdem, was zuerst eintritt."
     - question: "Verfolgt Pillsner den Bestand oder erinnert es mich daran, ein Folgerezept zu bestellen?"
       answer:
-        - "Heute nicht. Pillsner erinnert dich daran, deine Medikamente einzunehmen, und hält fest, was du genommen hast. Bestands- und Nachfüllerinnerungen sind nicht Teil der App."
+        - "Den Vorrat verfolgt es, wenn du das möchtest. Füge einem Medikament Vorrat hinzu, und Pillsner zieht jede Dosis ab, die du nimmst, beginnend mit der Charge, die zuerst abläuft. Reicht der Rest nicht für die kommende Woche, warnt es dich, damit du rechtzeitig ein Folgerezept besorgen kannst."
+        - "Es bestellt nie etwas und kontaktiert keine Apotheke: Pillsner hat überhaupt keinen Internetzugang. Die Warnung ist ein Anstoß; bestellen musst du selbst."
+    - question: "Meine Dosis ist kleiner als eine Tablette. Wie zählt Pillsner das?"
+      answer:
+        - "Als ganze Tablette. Eine angebrochene Tablette kann nicht zurück in die Packung, also zählt jeder Teil einer Tablette, den du verwendest, als ganze Tablette. Eine Dosis von 40 mg aus Tabletten zu 500 mg zieht eine Tablette von deinem Vorrat ab."
+        - "Hast du auch Tabletten, deren Stärke genau zur Dosis passt, nimmt Pillsner die Dosis von diesen, damit keine Tablette verschwendet wird. Teilst du Tabletten absichtlich und nimmst die andere Hälfte später, zählt jede Dosis trotzdem als ganze Tablette, sodass Pillsner dich lieber etwas zu früh als zu spät warnt."
     - question: "Welche Sprachen spricht Pillsner?"
       answer:
         - "Englisch, Niederländisch, Deutsch, Französisch, Spanisch und Portugiesisch. Die App folgt von selbst der Sprache deines Handys, und du kannst sie in den Einstellungen übersteuern."

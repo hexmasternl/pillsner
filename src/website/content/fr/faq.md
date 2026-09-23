@@ -39,7 +39,12 @@ params:
         - "Une prise passée est une prise à laquelle vous avez délibérément répondu par Je ne vais pas le prendre. Une prise manquée est une prise à laquelle vous n'avez jamais répondu, et qui devient manquée lorsque la prise suivante est due ou 24 heures plus tard, selon ce qui arrive en premier."
     - question: "Pillsner suit-elle le stock ou me rappelle-t-elle de renouveler une ordonnance ?"
       answer:
-        - "Pas aujourd'hui. Pillsner vous rappelle de prendre vos médicaments et enregistre ce que vous avez pris. Le suivi du stock et les rappels de réapprovisionnement ne font pas partie de l'application."
+        - "Elle suit le stock, si vous le souhaitez. Ajoutez du stock à un médicament et Pillsner déduit chaque prise, en commençant par le lot qui expire le premier. Quand ce qu'il reste ne suffira pas pour la semaine à venir, elle vous prévient, pour que vous puissiez faire renouveler votre ordonnance à temps."
+        - "Elle ne commande jamais rien et ne contacte pas votre pharmacie : Pillsner n'a aucun accès à Internet. L'avertissement est un rappel ; la commande reste entre vos mains."
+    - question: "Ma dose est inférieure à un comprimé. Comment Pillsner la compte-t-elle ?"
+      answer:
+        - "Comme un comprimé entier. Un comprimé entamé ne peut pas retourner dans l'emballage, donc toute partie d'une pilule utilisée compte comme la pilule entière. Une dose de 40 mg prise sur des comprimés de 500 mg retire un comprimé de votre stock."
+        - "Si vous avez aussi des comprimés dont le dosage correspond à la dose, Pillsner prend la dose sur ceux-là, pour qu'aucun comprimé ne soit gaspillé. Si vous coupez vos comprimés volontairement et prenez l'autre moitié plus tard, chaque prise compte quand même un comprimé entier : Pillsner vous prévient alors un peu tôt plutôt que trop tard."
     - question: "Quelles langues Pillsner parle-t-elle ?"
       answer:
         - "L'anglais, le néerlandais, l'allemand, le français, l'espagnol et le portugais. L'application suit d'elle-même la langue de votre téléphone, et vous pouvez la remplacer dans les Réglages."

@@ -20,7 +20,7 @@ params:
     items:
       - icon: "medication"
         title: "Vos médicaments"
-        description: "Ajoutez chaque médicament avec sa dose, son unité, ses dates et son prescripteur, donnez-lui autant d'horaires qu'il en faut, et arrêtez-en un sans jamais perdre ce que vous avez pris."
+        description: "Ajoutez chaque médicament avec sa dose, son unité, ses dates et son prescripteur, donnez-lui autant d'horaires qu'il en faut, suivez son stock et ses dates d'expiration, et arrêtez-en un sans jamais perdre ce que vous avez pris."
         link:
           url: "medicines/"
           label: "À propos de vos médicaments"

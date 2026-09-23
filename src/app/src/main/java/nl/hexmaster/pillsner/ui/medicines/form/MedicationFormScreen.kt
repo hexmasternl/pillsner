@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -189,7 +193,15 @@ fun MedicationFormScreen(
             )
         },
         bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.surface) {
+            // Scaffold leaves a bottomBar's insets to the bar itself, and a plain Surface (unlike
+            // BottomAppBar) claims none, so without this the button sits under the navigation bar
+            // (edge-to-edge-insets). safeDrawing also covers the keyboard, so it replaces imePadding.
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
+                ),
+            ) {
                 Button(
                     onClick = onSave,
                     // Always tappable: the spec asks that tapping Save on an invalid form is what
@@ -199,7 +211,6 @@ fun MedicationFormScreen(
                         .fillMaxWidth()
                         .padding(Spacing.lg)
                         .heightIn(min = Sizes.primaryActionHeight)
-                        .imePadding()
                         .testTag(MedicationFormTestTags.SAVE),
                 ) {
                     Text(stringResource(R.string.action_save))
@@ -219,12 +230,13 @@ fun MedicationFormScreen(
             return@Scaffold
         }
 
+        // innerPadding already holds the bottom bar's full height, keyboard included, so no
+        // imePadding here: it would push the content up twice.
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .imePadding(),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(

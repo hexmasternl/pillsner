@@ -219,6 +219,33 @@
   .dd td:first-child { color: var(--primary); }
   .dd td:last-child { color: var(--error); }
 
+  /* Website header navigation (section 8.14) */
+  .browser { background: var(--surface); color: var(--on-surface); border: 1px solid var(--outline-variant); border-radius: 16px; overflow: hidden auto; }
+  .browser .wbar { min-width: max-content; }
+  .browser .chrome { height: 28px; display:flex; align-items:center; gap: 6px; padding: 0 12px; background: var(--sc-high); }
+  .browser .chrome i { width: 10px; height: 10px; border-radius: 50%; background: var(--outline-variant); }
+  .browser .page { min-height: 200px; padding: 24px; }
+  .browser .page .ph { height: 12px; border-radius: 6px; background: var(--sc-high); margin-bottom: 12px; }
+  .wbar { background: var(--sc); border-bottom: 1px solid var(--outline-variant); display:flex; align-items:center; gap: 12px; padding: 8px 16px; position: relative; }
+  .wbrand { display:flex; align-items:center; gap: 8px; font-family: var(--display); font-weight: 300; font-size: 22px; white-space: nowrap; }
+  .wbrand .dot { width: 32px; height: 32px; border-radius: 12px; background:#fff; border: 1px solid var(--outline-variant); display:grid; place-items:center; }
+  .wbrand .dot svg { width: 22px; height: 22px; }
+  .wlinks { display:flex; gap: 4px; margin-inline: auto; position: relative; }
+  .wlink { display:inline-flex; align-items:center; gap: 4px; height: 40px; padding: 0 16px; border-radius: 999px; font-size: 16px; font-weight: 600; letter-spacing: .02em; color: var(--on-surface-variant); white-space: nowrap; }
+  .wlink .sym { font-size: 18px; }
+  .wlink.cur { background: var(--secondary-container); color: var(--on-secondary-container); }
+  .wlink.open .sym { transform: rotate(180deg); }
+  .wlang { display:inline-flex; align-items:center; gap: 4px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--outline); font-size: 16px; white-space: nowrap; }
+  .wlang .sym { font-size: 18px; }
+  .wdrop { position:absolute; top: 44px; left: 56px; min-width: 220px; background: var(--sc-high); border-radius: 12px; padding: 4px; box-shadow: 0 8px 24px -8px rgba(16,20,19,.4); display:grid; z-index: 1; }
+  .wdrop span, .wpanel a { display:flex; align-items:center; min-height: 48px; padding: 0 12px; border-radius: 8px; font-size: 16px; color: var(--on-surface); }
+  .wdrop span.cur, .wpanel a.cur { background: var(--secondary-container); color: var(--on-secondary-container); }
+  .wmenu { width: 48px; height: 48px; border-radius: 999px; display:grid; place-items:center; color: var(--on-surface); background: var(--sc-highest); }
+  .wpanel { background: var(--sc); border-bottom: 1px solid var(--outline-variant); padding: 8px 16px 16px; display:grid; }
+  .wpanel a { font-size: 18px; border-radius: 12px; text-decoration: none; }
+  .wpanel .grp { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface-variant); margin: 16px 12px 4px; }
+  .narrow { max-width: 360px; }
+
   footer { margin-top: 88px; padding-top: 24px; border-top: 1px solid var(--outline-variant); }
   @media (prefers-reduced-motion: no-preference) { .tile { transition: background .25s; } }
 </style>
@@ -593,6 +620,80 @@
   </div>
 </div>
 
+<h2>Website header</h2>
+<p class="prose" style="margin-top:12px">The marketing website's navigation (section 8.14). Nine pages fold into four top-level entries: Home, Features, Privacy and Help. From 960 px it is one row with dropdown groups; below that a single 48 px Menu button opens a panel listing every page under its group heading. Blue marks where you are; there is no red.</p>
+<div class="grid" style="margin-top:20px">
+  <div class="panel theme-light">
+    <h4>Wide, 960 px and up · light · Features open, on the Schedules page</h4>
+    <div class="browser">
+      <div class="chrome"><i></i><i></i><i></i></div>
+      <div class="wbar">
+        <span class="wbrand"><span class="dot"><svg viewBox="0 0 44 44" aria-hidden="true"><g clip-path="url(#cap)" transform="rotate(-35 22 22)"><rect x="0" y="0" width="22" height="44" fill="#1B7F5C"/><rect x="22" y="0" width="22" height="44" fill="#2D6DA8"/></g></svg></span>Pillsner</span>
+        <span class="wlinks">
+          <span class="wlink">Home</span>
+          <span class="wlink cur open">Features <span class="sym">expand_more</span></span>
+          <span class="wlink">Privacy</span>
+          <span class="wlink">Help <span class="sym">expand_more</span></span>
+          <span class="wdrop"><span>Medicines</span><span class="cur">Schedules</span><span>Tracking</span><span>On your wrist</span></span>
+        </span>
+        <span class="wlang">English <span class="sym">expand_more</span></span>
+      </div>
+      <div class="page"><div class="ph" style="width:40%"></div><div class="ph" style="width:70%"></div><div class="ph" style="width:55%"></div></div>
+    </div>
+  </div>
+  <div class="panel theme-dark">
+    <h4>Wide, 960 px and up · dark · on the Privacy page</h4>
+    <div class="browser">
+      <div class="chrome"><i></i><i></i><i></i></div>
+      <div class="wbar">
+        <span class="wbrand"><span class="dot"><svg viewBox="0 0 44 44" aria-hidden="true"><g clip-path="url(#cap)" transform="rotate(-35 22 22)"><rect x="0" y="0" width="22" height="44" fill="#1B7F5C"/><rect x="22" y="0" width="22" height="44" fill="#2D6DA8"/></g></svg></span>Pillsner</span>
+        <span class="wlinks">
+          <span class="wlink">Home</span>
+          <span class="wlink">Features <span class="sym">expand_more</span></span>
+          <span class="wlink cur">Privacy</span>
+          <span class="wlink">Help <span class="sym">expand_more</span></span>
+        </span>
+        <span class="wlang">Deutsch <span class="sym">expand_more</span></span>
+      </div>
+      <div class="page"><div class="ph" style="width:40%"></div><div class="ph" style="width:70%"></div><div class="ph" style="width:55%"></div></div>
+    </div>
+  </div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="panel theme-light">
+    <h4>Narrow, below 960 px · light · menu closed</h4>
+    <div class="browser narrow">
+      <div class="chrome"><i></i><i></i><i></i></div>
+      <div class="wbar">
+        <span class="wbrand"><span class="dot"><svg viewBox="0 0 44 44" aria-hidden="true"><g clip-path="url(#cap)" transform="rotate(-35 22 22)"><rect x="0" y="0" width="22" height="44" fill="#1B7F5C"/><rect x="22" y="0" width="22" height="44" fill="#2D6DA8"/></g></svg></span>Pillsner</span>
+        <span class="wlang" style="margin-inline-start:auto">EN <span class="sym">expand_more</span></span>
+        <span class="wmenu"><span class="sym">menu</span></span>
+      </div>
+      <div class="page"><div class="ph" style="width:60%"></div><div class="ph" style="width:85%"></div><div class="ph" style="width:70%"></div><div class="ph" style="width:40%"></div></div>
+    </div>
+  </div>
+  <div class="panel theme-dark">
+    <h4>Narrow, below 960 px · dark · menu open, on FAQ</h4>
+    <div class="browser narrow">
+      <div class="chrome"><i></i><i></i><i></i></div>
+      <div class="wbar">
+        <span class="wbrand"><span class="dot"><svg viewBox="0 0 44 44" aria-hidden="true"><g clip-path="url(#cap)" transform="rotate(-35 22 22)"><rect x="0" y="0" width="22" height="44" fill="#1B7F5C"/><rect x="22" y="0" width="22" height="44" fill="#2D6DA8"/></g></svg></span>Pillsner</span>
+        <span class="wlang" style="margin-inline-start:auto">EN <span class="sym">expand_more</span></span>
+        <span class="wmenu"><span class="sym">close</span></span>
+      </div>
+      <div class="wpanel">
+        <a>Home</a>
+        <div class="grp">Features</div>
+        <a>Medicines</a><a>Schedules</a><a>Tracking</a><a>On your wrist</a>
+        <a style="margin-top:8px">Privacy</a>
+        <div class="grp">Help</div>
+        <a class="cur">FAQ</a><a>Report a bug</a><a>Request a feature</a>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="small muted prose" style="margin-top:14px">Without JavaScript the groups are native disclosure widgets and the narrow-screen panel is rendered expanded, so every page stays reachable. Motion is a 150 ms fade and 4 px slide, removed under reduced motion.</p>
+
 <h2>Do and don't</h2>
 <div class="tablewrap" style="margin-top:20px">
 <table class="dd">
@@ -607,6 +708,7 @@
     <tr><td>Let text wrap at large font sizes</td><td>Truncate anything but the app bar title</td></tr>
     <tr><td>Render the user's stored theme choice, defaulting to the system setting</td><td>Add a fourth theme, a schedule or an AMOLED variant without a proposal</td></tr>
     <tr><td>Keep dynamic colour off</td><td>Call dynamicLightColorScheme</td></tr>
+    <tr><td>Add a new website page to the Features or Help group</td><td>Add a fifth top-level entry to the website header</td></tr>
   </tbody>
 </table>
 </div>

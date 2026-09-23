@@ -20,7 +20,7 @@ params:
     items:
       - icon: "medication"
         title: "Your medicines"
-        description: "Add every medicine with its dose, unit, dates and prescriber, give it as many schedules as it needs, and stop one without ever losing what you took."
+        description: "Add every medicine with its dose, unit, dates and prescriber, give it as many schedules as it needs, keep count of its stock and expiry dates, and stop one without ever losing what you took."
         link:
           url: "medicines/"
           label: "About your medicines"

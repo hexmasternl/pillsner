@@ -1,6 +1,6 @@
 ---
 title: "Tus medicamentos | Pillsner"
-description: "Añade un medicamento a Pillsner con su dosis, unidad, fechas y quién lo recetó, dale tantos horarios como necesite y deja de tomar uno sin perder nunca las tomas que ya registraste."
+description: "Añade un medicamento a Pillsner con su dosis, unidad, fechas y quién lo recetó, dale tantos horarios como necesite, controla sus existencias y fechas de caducidad, y deja de tomar uno sin perder nunca las tomas que ya registraste."
 slug: "medicines"
 params:
   hero:
@@ -29,6 +29,28 @@ params:
       screenshot:
         image: "medicine-details.png"
         alt: "La pantalla de detalles de un medicamento en Pillsner, con su dosis y sus horarios"
+    - heading: "Controlar tus existencias"
+      body: "Dile a Pillsner cuánto tienes de un medicamento y llevará la cuenta por ti. Cada toma que marcas como tomada se descuenta de tus existencias, así que los detalles de un medicamento siempre muestran lo que queda y cuándo caduca cada lote."
+      points:
+        - "Las existencias se llevan por lote, cada uno con su propia cantidad y fecha de caducidad"
+        - "El lote que caduca antes siempre se usa primero"
+        - "Cualquier parte de un comprimido o una cápsula que uses cuenta como la pastilla entera"
+        - "Las tomas omitidas y perdidas nunca tocan tus existencias"
+      screenshot:
+        image: "medicine-details-stock-overview.png"
+        alt: "La sección Existencias de los detalles de un medicamento en Pillsner, con un lote de 40 comprimidos de 40 mg cada uno que caduca el 28 de enero de 2027"
+    - heading: "Añadir existencias"
+      body: "Abre un medicamento y toca Añadir existencias. Indica cuánto tienes, la unidad en que viene y la fecha de caducidad del envase. Si la unidad no es la de tu dosis, por ejemplo comprimidos para una dosis en miligramos, Pillsner también te pregunta la concentración de un comprimido, para poder convertir entre ambas."
+      points:
+        - "Los comprimidos y las cápsulas se cuentan en pastillas enteras; los líquidos y polvos, en su propia unidad"
+        - "Una concentración como 40 mg por comprimido relaciona el envase con tu dosis"
+        - "Una fecha de caducidad ya pasada se acepta, con un aviso"
+      screenshot:
+        image: "medicine-details-add-stock.png"
+        alt: "El cuadro Añadir existencias en Pillsner, con una cantidad de 40 comprimidos, una concentración de 40 mg por comprimido y una fecha de caducidad del 28 de enero de 2027"
+    - heading: "Un aviso antes de quedarte sin nada"
+      body: "Cuando una toma deja menos existencias de las que necesita la próxima semana, Pillsner te lo dice. Toca Aceptar para volver a oírlo la próxima vez, o He pedido más para que no te lo repita hasta que añadas las nuevas existencias. También te avisa cuando las existencias que acabas de usar caducan pronto o ya han caducado, y la tarjeta del medicamento en la pantalla de medicamentos muestra el mismo aviso."
+      note: "Controlar las existencias es opcional. Un medicamento sin existencias registradas funciona exactamente como siempre: no se cuenta nada ni se avisa de nada."
     - heading: "Dejar de tomar, no eliminar"
       body: "Un medicamento nunca se elimina. Al dejar de tomar uno se desactiva, y el medicamento, sus horarios y cada toma que generó permanecen en tu dispositivo. Desliza una tarjeta hacia un lado para activarla o desactivarla."
       points:

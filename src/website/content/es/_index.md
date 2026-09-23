@@ -20,7 +20,7 @@ params:
     items:
       - icon: "medication"
         title: "Tus medicamentos"
-        description: "Añade cada medicamento con su dosis, unidad, fechas y quién lo recetó, dale tantos horarios como necesite y deja de tomar uno sin perder nunca lo que ya tomaste."
+        description: "Añade cada medicamento con su dosis, unidad, fechas y quién lo recetó, dale tantos horarios como necesite, controla sus existencias y fechas de caducidad, y deja de tomar uno sin perder nunca lo que ya tomaste."
         link:
           url: "medicines/"
           label: "Sobre tus medicamentos"

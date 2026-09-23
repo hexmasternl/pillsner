@@ -521,6 +521,7 @@
     <string name="medicine_stock_error_quantity_required">Enter an amount.</string>
     <string name="medicine_stock_error_quantity_not_a_number">Enter the amount as a number.</string>
     <string name="medicine_stock_error_quantity_not_positive">Enter an amount greater than zero.</string>
+    <string name="medicine_stock_error_quantity_not_whole">Enter a whole number of tablets or capsules.</string>
     <string name="medicine_stock_error_strength_required">Enter a strength.</string>
     <string name="medicine_stock_error_strength_not_a_number">Enter the strength as a number.</string>
     <string name="medicine_stock_error_strength_not_positive">Enter a strength greater than zero.</string>

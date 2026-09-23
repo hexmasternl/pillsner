@@ -39,7 +39,12 @@ params:
         - "Een overgeslagen dosis is er een die je bewust met Niet doen hebt beantwoord. Een gemiste dosis is er een die je nooit beantwoordde, die gemist wordt zodra de volgende dosis aan de beurt is of 24 uur later, wat het eerst komt."
     - question: "Houdt Pillsner voorraad bij of herinnert het me aan het bestellen van een herhaalrecept?"
       answer:
-        - "Vandaag niet. Pillsner herinnert je eraan je medicijnen in te nemen en legt vast wat je hebt ingenomen. Voorraad- en bijbestelherinneringen zijn geen onderdeel van de app."
+        - "Pillsner houdt je voorraad bij, als je dat wilt. Voeg voorraad toe aan een medicijn en Pillsner trekt elke dosis die je inneemt ervan af, te beginnen bij de partij die het eerst vervalt. Is wat er over is niet genoeg voor de komende week, dan waarschuwt het je, zodat je op tijd een herhaalrecept kunt regelen."
+        - "Het bestelt nooit iets en neemt geen contact op met je apotheek: Pillsner heeft helemaal geen internettoegang. De waarschuwing is een seintje; het bestellen doe je zelf."
+    - question: "Mijn dosis is kleiner dan één tablet. Hoe telt Pillsner dat?"
+      answer:
+        - "Als een hele tablet. Een tablet die je hebt aangebroken, kan niet terug in de verpakking, dus elk deel van een pil dat je gebruikt, telt als de hele pil. Een dosis van 40 mg uit tabletten van 500 mg haalt één tablet van je voorraad af."
+        - "Heb je ook tabletten waarvan de sterkte precies bij de dosis past, dan neemt Pillsner de dosis daaruit, zodat er geen tablet verspild wordt. Breek je tabletten bewust en neem je de andere helft later, dan telt elke dosis toch als een hele tablet, zodat Pillsner je liever iets te vroeg dan te laat waarschuwt."
     - question: "Welke talen spreekt Pillsner?"
       answer:
         - "Engels, Nederlands, Duits, Frans, Spaans en Portugees. De app volgt vanzelf de taal van je telefoon, en je kunt die in Instellingen overschrijven."

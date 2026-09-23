@@ -1,6 +1,6 @@
 ---
 title: "Os seus medicamentos | Pillsner"
-description: "Adicione um medicamento ao Pillsner com a sua dose, unidade, datas e quem o receitou, dê-lhe tantos horários quantos precisar e interrompa um sem nunca perder as tomas que já registou."
+description: "Adicione um medicamento ao Pillsner com a sua dose, unidade, datas e quem o receitou, dê-lhe tantos horários quantos precisar, acompanhe o stock e os prazos de validade, e interrompa um sem nunca perder as tomas que já registou."
 slug: "medicines"
 params:
   hero:
@@ -29,6 +29,28 @@ params:
       screenshot:
         image: "medicine-details.png"
         alt: "O ecrã de detalhes de um medicamento no Pillsner, a mostrar a sua dose e horários"
+    - heading: "Acompanhar o seu stock"
+      body: "Diga ao Pillsner quanto tem de um medicamento e ele faz a contagem por si. Cada toma que marca como tomada é descontada do stock, por isso os detalhes de um medicamento mostram sempre o que resta e quando expira cada lote."
+      points:
+        - "O stock é guardado por lote, cada um com a sua quantidade e data de validade"
+        - "O lote que expira primeiro é sempre usado primeiro"
+        - "Qualquer parte de um comprimido ou cápsula que use conta como o comprimido inteiro"
+        - "Tomas saltadas e falhadas nunca mexem no seu stock"
+      screenshot:
+        image: "medicine-details-stock-overview.png"
+        alt: "A secção Estoque dos detalhes de um medicamento no Pillsner, com um lote de 40 comprimidos de 40 mg cada que expira a 28 de janeiro de 2027"
+    - heading: "Adicionar stock"
+      body: "Abra um medicamento e toque em Adicionar estoque. Indique quanto tem, a unidade em que vem e a data de validade da embalagem. Quando a unidade não é aquela em que toma a dose, por exemplo comprimidos para uma dose em miligramas, o Pillsner pergunta também a concentração de um comprimido, para poder converter entre as duas."
+      points:
+        - "Comprimidos e cápsulas contam-se em unidades inteiras; líquidos e pós na sua própria unidade"
+        - "Uma concentração como 40 mg por comprimido liga a embalagem à sua dose"
+        - "Uma data de validade já passada é aceite, com um aviso"
+      screenshot:
+        image: "medicine-details-add-stock.png"
+        alt: "A janela Adicionar estoque no Pillsner, com uma quantidade de 40 comprimidos, uma concentração de 40 mg por comprimido e uma data de validade de 28 de janeiro de 2027"
+    - heading: "Um aviso antes de ficar sem"
+      body: "Quando uma toma deixa menos stock do que a próxima semana precisa, o Pillsner avisa-o. Toque em OK para voltar a ser avisado da próxima vez, ou em Já pedi mais para não voltar a ouvir falar disso até adicionar o novo stock. Também o avisa quando o stock que acabou de usar expira em breve ou já expirou, e o cartão do medicamento no ecrã de medicamentos mostra o mesmo aviso."
+      note: "Acompanhar o stock é opcional. Um medicamento sem stock registado funciona exatamente como sempre: nada é contado e nada é assinalado."
     - heading: "Interromper, não eliminar"
       body: "Um medicamento nunca é eliminado. Interromper um desativa-o, e o medicamento, os seus horários e todas as tomas que alguma vez produziu permanecem no seu dispositivo. Deslize um bloco para o lado para o ativar ou desativar."
       points:

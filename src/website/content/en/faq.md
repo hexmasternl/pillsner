@@ -39,7 +39,12 @@ params:
         - "A skipped dose is one you deliberately answered with Not going to. A missed dose is one you never answered, which becomes missed when the next dose is due or 24 hours later, whichever comes first."
     - question: "Does Pillsner track stock or remind me to order a repeat prescription?"
       answer:
-        - "Not today. Pillsner reminds you to take your medicines and records what you took. Stock and refill reminders are not part of the app."
+        - "It tracks stock, if you want it to. Add stock to a medicine and Pillsner deducts every dose you take, starting with the batch that expires first. When what is left will not last the coming week, it warns you, so you can arrange a repeat prescription in time."
+        - "It never orders anything or contacts your pharmacy: Pillsner has no internet access at all. The warning is a nudge; the ordering is up to you."
+    - question: "My dose is smaller than one tablet. How does Pillsner count it?"
+      answer:
+        - "As a whole tablet. A tablet you break into cannot go back in the package, so any part of a pill you use counts as the whole pill. A 40 mg dose from 500 mg tablets takes one tablet off your stock."
+        - "If you also have tablets whose strength matches the dose, Pillsner takes the dose from those instead, so no tablet is wasted. If you split tablets on purpose and take the other half later, each dose still counts a whole tablet, so Pillsner warns you a little early rather than too late."
     - question: "Which languages does Pillsner speak?"
       answer:
         - "English, Dutch, German, French, Spanish and Portuguese. The app follows your phone's language on its own, and you can override it in Settings."

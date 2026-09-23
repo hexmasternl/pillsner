@@ -1,6 +1,6 @@
 ---
 title: "Deine Medikamente | Pillsner"
-description: "Füge Pillsner ein Medikament mit Dosis, Einheit, Zeitraum und verschreibender Person hinzu, gib ihm so viele Zeitpläne, wie es braucht, und setze eines ab, ohne je die bereits eingenommenen Dosen zu verlieren."
+description: "Füge Pillsner ein Medikament mit Dosis, Einheit, Zeitraum und verschreibender Person hinzu, gib ihm so viele Zeitpläne, wie es braucht, behalte Vorrat und Ablaufdaten im Blick, und setze eines ab, ohne je die bereits eingenommenen Dosen zu verlieren."
 slug: "medicines"
 params:
   hero:
@@ -29,6 +29,28 @@ params:
       screenshot:
         image: "medicine-details.png"
         alt: "Der Detailbildschirm eines Medikaments in Pillsner mit Dosis und Zeitplänen"
+    - heading: "Deinen Vorrat im Blick behalten"
+      body: "Sag Pillsner, wie viel du von einem Medikament hast, und es zählt für dich herunter. Jede Dosis, die du als genommen markierst, wird von deinem Vorrat abgezogen, sodass die Details eines Medikaments immer zeigen, was noch übrig ist und wann jede Charge abläuft."
+      points:
+        - "Der Vorrat wird pro Charge geführt, jede mit eigener Menge und eigenem Ablaufdatum"
+        - "Die Charge, die zuerst abläuft, wird immer zuerst verbraucht"
+        - "Jeder Teil einer Tablette oder Kapsel, den du verwendest, zählt als ganze Tablette"
+        - "Übersprungene und verpasste Dosen berühren deinen Vorrat nie"
+      screenshot:
+        image: "medicine-details-stock-overview.png"
+        alt: "Der Bereich Vorrat in den Details eines Medikaments in Pillsner mit einer Charge von 40 Tabletten zu je 40 mg, die am 28. Januar 2027 abläuft"
+    - heading: "Vorrat hinzufügen"
+      body: "Öffne ein Medikament und tippe auf Vorrat hinzufügen. Gib an, wie viel du hast, in welcher Einheit es kommt und das Ablaufdatum auf der Packung. Ist die Einheit nicht die, in der du dosierst, etwa Tabletten bei einer Dosis in Milligramm, fragt Pillsner zusätzlich, wie stark eine Tablette ist, damit es zwischen beiden umrechnen kann."
+      points:
+        - "Tabletten und Kapseln zählst du in ganzen Stück; Flüssigkeiten und Pulver in ihrer eigenen Einheit"
+        - "Eine Stärke wie 40 mg pro Tablette verbindet die Packung mit deiner Dosis"
+        - "Ein Ablaufdatum, das schon vorbei ist, wird angenommen, mit einem Hinweis"
+      screenshot:
+        image: "medicine-details-add-stock.png"
+        alt: "Der Dialog Vorrat hinzufügen in Pillsner mit einer Menge von 40 Tabletten, einer Stärke von 40 mg pro Tablette und dem Ablaufdatum 28. Januar 2027"
+    - heading: "Ein Hinweis, bevor er ausgeht"
+      body: "Lässt eine Dosis, die du nimmst, weniger Vorrat übrig, als die kommende Woche braucht, sagt Pillsner es dir. Tippe auf OK, um es beim nächsten Mal wieder zu hören, oder auf Ich habe neuen bestellt, damit es still bleibt, bis du den neuen Vorrat hinzufügst. Es warnt dich auch, wenn der Vorrat, den du gerade verwendet hast, bald abläuft oder schon abgelaufen ist, und die Kachel des Medikaments auf dem Medikamentenbildschirm zeigt denselben Hinweis."
+      note: "Den Vorrat zu verfolgen ist freiwillig. Ein Medikament ohne erfassten Vorrat funktioniert genau wie bisher: Es wird nichts gezählt und nichts gemeldet."
     - heading: "Absetzen, nicht löschen"
       body: "Ein Medikament wird nie gelöscht. Eines abzusetzen deaktiviert es, und das Medikament, seine Zeitpläne und jede Dosis, die es je erzeugt hat, bleiben auf deinem Gerät. Wische eine Kachel zur Seite, um sie zu aktivieren oder zu deaktivieren."
       points:

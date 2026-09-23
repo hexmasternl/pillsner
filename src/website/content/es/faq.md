@@ -39,7 +39,12 @@ params:
         - "Una toma omitida es una que respondiste a propósito con No la voy a tomar. Una toma perdida es una que nunca respondiste, que pasa a estar perdida cuando toca la siguiente toma o 24 horas después, lo que ocurra primero."
     - question: "¿Controla Pillsner las existencias o me recuerda pedir una receta de repetición?"
       answer:
-        - "Hoy no. Pillsner te recuerda tomar tus medicamentos y registra lo que tomaste. El control de existencias y los avisos de reposición no forman parte de la app."
+        - "Controla las existencias, si quieres. Añade existencias a un medicamento y Pillsner descuenta cada toma, empezando por el lote que caduca antes. Cuando lo que queda no llegue para la próxima semana, te avisa, para que puedas pedir a tiempo una receta de repetición."
+        - "Nunca pide nada ni contacta con tu farmacia: Pillsner no tiene ningún acceso a internet. El aviso es un recordatorio; el pedido lo haces tú."
+    - question: "Mi dosis es menor que un comprimido. ¿Cómo la cuenta Pillsner?"
+      answer:
+        - "Como un comprimido entero. Un comprimido empezado no puede volver al envase, así que cualquier parte de una pastilla que uses cuenta como la pastilla entera. Una dosis de 40 mg de comprimidos de 500 mg descuenta un comprimido de tus existencias."
+        - "Si también tienes comprimidos cuya concentración coincide con la dosis, Pillsner toma la dosis de esos, para no desperdiciar ningún comprimido. Si partes los comprimidos a propósito y tomas la otra mitad más tarde, cada toma sigue contando como un comprimido entero, así que Pillsner te avisa un poco antes en lugar de demasiado tarde."
     - question: "¿Qué idiomas habla Pillsner?"
       answer:
         - "Inglés, neerlandés, alemán, francés, español y portugués. La app sigue por sí sola el idioma de tu teléfono, y puedes cambiarlo en los Ajustes."

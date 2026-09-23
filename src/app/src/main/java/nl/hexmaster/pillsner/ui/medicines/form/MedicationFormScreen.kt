@@ -654,6 +654,7 @@ private fun MedicationFieldError?.stockErrorText(show: Boolean): String? {
             MedicationFieldError.DOSE_REQUIRED -> R.string.medicine_stock_error_quantity_required
             MedicationFieldError.DOSE_NOT_A_NUMBER -> R.string.medicine_stock_error_quantity_not_a_number
             MedicationFieldError.DOSE_NOT_POSITIVE -> R.string.medicine_stock_error_quantity_not_positive
+            MedicationFieldError.STOCK_NOT_WHOLE_PILLS -> R.string.medicine_stock_error_quantity_not_whole
             else -> return null
         },
     )
@@ -734,6 +735,8 @@ private fun MedicationFieldError?.messageOrNull(show: Boolean): String? {
             MedicationFieldError.DOSE_NOT_POSITIVE -> R.string.medicine_error_dose_not_positive
             MedicationFieldError.DOSE_UNIT_LOCKED_BY_STOCK -> R.string.medicine_error_dose_unit_locked_by_stock
             MedicationFieldError.USE_UNTIL_BEFORE_USED_SINCE -> R.string.medicine_error_use_until_before_used_since
+            // Only the Add stock form raises this; mapped here so the medicine form stays exhaustive.
+            MedicationFieldError.STOCK_NOT_WHOLE_PILLS -> R.string.medicine_stock_error_quantity_not_whole
         },
     )
 }

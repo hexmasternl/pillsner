@@ -1,7 +1,7 @@
 name: Bug report
 description: Something in Pillsner does not work the way it should.
 title: "[Bug]: "
-labels: ["bug"]
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:

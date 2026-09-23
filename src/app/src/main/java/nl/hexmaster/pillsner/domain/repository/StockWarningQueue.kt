@@ -31,4 +31,7 @@ interface StockWarningQueue {
 
     /** Clears the flag for every id in [medicationIds]: the user has seen and answered its warning. */
     suspend fun clear(medicationIds: Set<MedicationId>)
+
+    /** Clears every pending flag, for resetting the app (`app-reset`). */
+    suspend fun clearAll()
 }

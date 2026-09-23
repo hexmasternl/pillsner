@@ -43,6 +43,10 @@ class DataStoreStockWarningQueue(context: Context) : StockWarningQueue {
         }
     }
 
+    override suspend fun clearAll() {
+        dataStore.edit { prefs -> prefs.remove(PENDING) }
+    }
+
     private companion object {
         val PENDING = stringSetPreferencesKey("pending_medication_ids")
     }

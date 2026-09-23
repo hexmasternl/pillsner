@@ -3,7 +3,6 @@ package nl.hexmaster.pillsner.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import java.time.Clock
-import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,13 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
-import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
-import nl.hexmaster.pillsner.domain.model.MedicationId
-import nl.hexmaster.pillsner.domain.model.StockWarning
-import nl.hexmaster.pillsner.domain.repository.MedicationRepository
-import nl.hexmaster.pillsner.domain.repository.StockWarningQueue
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
-import nl.hexmaster.pillsner.domain.stock.EvaluateStockWarning
 
 /**
  * Exposes the upcoming doses for the welcome screen as a [StateFlow], together with whether
@@ -29,18 +22,12 @@ import nl.hexmaster.pillsner.domain.stock.EvaluateStockWarning
  * misbehaving implementation can never overflow or reorder the screen (design D4, D7).
  *
  * @param reminderReadiness whether the platform currently allows exact alarms.
- * @param stockWarningQueue which medicines have a stock warning waiting (`medicine-stock-tracking`).
- * @param evaluateStockWarning turns a flagged medicine id into the warning to show, evaluated fresh.
- * @param medicationRepository only used to record "I ordered new"; reads go through [evaluateStockWarning].
  */
 class HomeViewModel(
     repository: UpcomingDosesRepository,
     reminderReadiness: StateFlow<Boolean> = MutableStateFlow(true),
     private val clock: Clock = Clock.systemDefaultZone(),
     private val preferences: ReminderPreferences? = null,
-    private val stockWarningQueue: StockWarningQueue? = null,
-    private val evaluateStockWarning: EvaluateStockWarning? = null,
-    private val medicationRepository: MedicationRepository? = null,
 ) : ViewModel() {
 
     /** Set by the screen once it knows whether the user has allowed notifications. */
@@ -64,30 +51,12 @@ class HomeViewModel(
     private val reminderWasMissed = preferences?.silentlyMissedReminderAt?.map { it != null }
         ?: flowOf(false)
 
-    /**
-     * The next stock warning to show, re-evaluated fresh every time the pending set changes, so a
-     * warning flagged while the app was backgrounded is never replayed as stale data
-     * (`medicine-stock-tracking`'s "Combined warning presentation" requirement).
-     */
-    private val nextStockWarning = (stockWarningQueue?.observePending() ?: flowOf(emptyMap()))
-        .map { pending -> firstStockWarning(pending) }
-
-    /** The first pending medicine that still warrants a warning, evaluated one at a time. */
-    private suspend fun firstStockWarning(pending: Map<MedicationId, LocalDate?>): StockWarning? {
-        val evaluate = evaluateStockWarning ?: return null
-        for ((medicationId, drawnBatchExpiry) in pending) {
-            evaluate(medicationId, drawnBatchExpiry)?.let { return it }
-        }
-        return null
-    }
-
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observeUpcoming(limit = MAX_UPCOMING_DOSES),
         reminderReadiness,
         notificationsAllowed,
         reminderWasMissed,
-        nextStockWarning,
-    ) { doses, alarmsAreExact, notifications, missed, stockWarning ->
+    ) { doses, alarmsAreExact, notifications, missed ->
         HomeUiState(
             upcomingDoses = doses.sortedBy { it.scheduledAt }.take(MAX_UPCOMING_DOSES),
             isLoading = false,
@@ -95,26 +64,12 @@ class HomeViewModel(
             alarmsAreExact = alarmsAreExact,
             reminderWasMissed = missed,
             now = clock.instant(),
-            stockWarning = stockWarning,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(stopTimeoutMillis = STOP_TIMEOUT_MILLIS),
         initialValue = HomeUiState(),
     )
-
-    /** The user tapped "OK": the warning is dismissed, but left free to return on the next take. */
-    fun onStockWarningAcknowledged(medicationId: MedicationId) {
-        viewModelScope.launch { stockWarningQueue?.clear(setOf(medicationId)) }
-    }
-
-    /** The user tapped "I ordered new": suppressed until a new stock batch is added. */
-    fun onStockWarningOrderedNew(medicationId: MedicationId) {
-        viewModelScope.launch {
-            medicationRepository?.setLowStockAcknowledgement(medicationId, LowStockAcknowledgement.ACKNOWLEDGED_ORDERED)
-            stockWarningQueue?.clear(setOf(medicationId))
-        }
-    }
 
     /** Re-checked whenever the screen resumes, so the banner goes as soon as the user fixes it. */
     fun onNotificationPermissionChecked(granted: Boolean) {

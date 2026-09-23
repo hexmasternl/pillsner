@@ -7,6 +7,7 @@ import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
+import nl.hexmaster.pillsner.domain.repository.TransactionRunner
 
 /**
  * Records a new stock batch for a medicine, from the Add stock form
@@ -20,11 +21,14 @@ import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
  *
  * Always clears the medicine's low-stock acknowledgement, regardless of whether the new batch
  * actually restores sufficiency: a standing "I ordered new" suppression ends the moment new stock
- * arrives, exactly as the user was told it would.
+ * arrives, exactly as the user was told it would. The batch and the cleared acknowledgement are
+ * written in one [transactionRunner] transaction, so new stock is never recorded with the old
+ * suppression still standing.
  */
 class AddStockBatch(
     private val stockBatchRepository: StockBatchRepository,
     private val medicationRepository: MedicationRepository,
+    private val transactionRunner: TransactionRunner,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     suspend operator fun invoke(
@@ -32,7 +36,7 @@ class AddStockBatch(
         amount: Quantity,
         strengthPerUnit: BigDecimal,
         expiryDate: LocalDate,
-    ) {
+    ) = transactionRunner.inTransaction {
         val medication = medicationRepository.get(medicationId)
         val effectiveStrength = if (medication != null && amount.unit == medication.defaultDose.unit) {
             BigDecimal.ONE

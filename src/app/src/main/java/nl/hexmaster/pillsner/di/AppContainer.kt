@@ -92,6 +92,7 @@ import nl.hexmaster.pillsner.domain.stock.EvaluateStockWarning
 import nl.hexmaster.pillsner.domain.stock.ProjectWeeklyUsage
 import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
+import nl.hexmaster.pillsner.ui.home.StockWarningViewModel
 import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
@@ -158,7 +159,10 @@ class AppContainer(
     val stockWarningQueue: StockWarningQueue =
         stockWarningQueue ?: DataStoreStockWarningQueue(applicationContext)
 
-    /** Makes a taken answer's intake write and its stock deduction one unit (`medicine-stock-tracking`). */
+    /**
+     * Makes several stock writes one unit (`medicine-stock-tracking`): a taken answer's intake and
+     * its deduction, and a new batch with the acknowledgement it clears.
+     */
     private val transactionRunner: TransactionRunner = RoomTransactionRunner(database)
 
     private val projectWeeklyUsage = ProjectWeeklyUsage()
@@ -180,6 +184,7 @@ class AppContainer(
     private val addStockBatch = AddStockBatch(
         stockBatchRepository = this.stockBatchRepository,
         medicationRepository = this.medicationRepository,
+        transactionRunner = transactionRunner,
         clock = clock,
     )
 
@@ -340,7 +345,10 @@ class AppContainer(
     private val eraseAllData = EraseAllData(
         eraser = RoomAppDataEraser(database),
         teardown = reminderNotifier::cancelAll,
-        history = reminderPreferences::clearSilentlyMissedReminder,
+        history = {
+            reminderPreferences.clearSilentlyMissedReminder()
+            this.stockWarningQueue.clearAll()
+        },
         refresh = { reminderCoordinator.requestWake(WakeReason.MEDICATIONS_CHANGED) },
     )
 
@@ -387,6 +395,10 @@ class AppContainer(
                 reminderReadiness = reminderAlarmScheduler.isExact,
                 clock = clock,
                 preferences = reminderPreferences,
+            )
+        }
+        initializer {
+            StockWarningViewModel(
                 stockWarningQueue = this@AppContainer.stockWarningQueue,
                 evaluateStockWarning = evaluateStockWarning,
                 medicationRepository = this@AppContainer.medicationRepository,

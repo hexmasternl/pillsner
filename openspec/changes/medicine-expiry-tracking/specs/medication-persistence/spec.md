@@ -13,7 +13,7 @@ Version 4: adds `planned_at` (default 0, backfilled from `scheduled_at` on migra
 
 Version 5: adds a composite index on the `doses` table's outcome and scheduled moment columns, so a query for pending doses (outcome not yet recorded) ordered by scheduled moment stays a single index scan as the table grows. No column or data change.
 
-Version 6: adds a `stock_batches` table (medication reference with cascade delete, a remaining-amount value column, a remaining-amount unit column, an expiry date column, an added-at moment column, an index on medication and expiry date for first-expiry-first-out queries) and a nullable `low_stock_acknowledgement` column on `medications` (default `NULL`), owned by the `medicine-stock-tracking` capability.
+Version 6: adds a `stock_batches` table (medication reference with cascade delete, a remaining-amount value column, a remaining-amount unit column, a strength-per-unit column (how much of the medication's default dose unit one unit of the batch is worth, stored as exact decimal text), an expiry date column, an added-at moment column, an index on medication and expiry date for first-expiry-first-out queries) and a nullable `low_stock_acknowledgement` column on `medications` (default `NULL`), owned by the `medicine-stock-tracking` capability.
 
 #### Scenario: Schema exports present
 - **WHEN** the project is built

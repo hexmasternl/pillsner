@@ -1,7 +1,6 @@
 package nl.hexmaster.pillsner.ui.home
 
 import java.time.Instant
-import nl.hexmaster.pillsner.domain.model.StockWarning
 import nl.hexmaster.pillsner.domain.model.UpcomingDose
 import nl.hexmaster.pillsner.ui.theme.IntakeStatus
 
@@ -17,9 +16,6 @@ import nl.hexmaster.pillsner.ui.theme.IntakeStatus
  *   the user has not acknowledged it yet. Evidence that a reminder did not arrive, rather than a
  *   setting the app disapproves of (design D2).
  * @property now the moment the state was built, which is what decides whether a dose is overdue.
- * @property stockWarning the next stock warning waiting to be shown, or null when none is pending
- *   (`medicine-stock-tracking`). Evaluated fresh against current stock every time this state is
- *   built, never a stale snapshot of whatever take flagged it.
  */
 data class HomeUiState(
     val upcomingDoses: List<UpcomingDose> = emptyList(),
@@ -28,7 +24,6 @@ data class HomeUiState(
     val alarmsAreExact: Boolean = true,
     val reminderWasMissed: Boolean = false,
     val now: Instant = Instant.EPOCH,
-    val stockWarning: StockWarning? = null,
 ) {
     /**
      * The one thing standing between the user and a reliable reminder, or null when nothing is

@@ -202,6 +202,14 @@ When a single taken dose triggers the low-stock warning, the expiry-at-use warni
 - **WHEN** the app is open and the user answers "I took it" on the dose detail screen, triggering a warning
 - **THEN** the warning dialog appears without leaving the current flow
 
+#### Scenario: Foreground take on another screen warns there
+- **WHEN** the app is open on any screen other than Home, such as Medicines or Settings, and the user answers "I took it" from the reminder notification, triggering a warning
+- **THEN** the warning dialog appears over that screen at once, without the user having to return to Home
+
+#### Scenario: Resetting the app forgets pending warnings
+- **WHEN** a stock warning is still waiting to be shown and the user resets the app
+- **THEN** the pending warning is erased with the rest of the data and is never shown afterwards
+
 #### Scenario: Backgrounded take defers the warning
 - **WHEN** the user answers "I took it" from the reminder notification while the app is not open, triggering a warning
 - **THEN** no dialog appears at that moment, and the warning appears the next time the app is opened

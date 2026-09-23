@@ -6,6 +6,7 @@ import java.time.ZoneId
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.InMemoryTransactionRunner
 import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
 import nl.hexmaster.pillsner.data.stock.InMemoryStockWarningQueue
 import nl.hexmaster.pillsner.domain.model.DoseUnit
@@ -30,7 +31,7 @@ class ConsumeStockOnTakenTest {
     private val queue = InMemoryStockWarningQueue()
     private val evaluate = EvaluateStockWarning(medications, batches, ProjectWeeklyUsage(), clock)
     private val consume = ConsumeStockOnTaken(batches, medications, queue, evaluate)
-    private val addStockBatch = AddStockBatch(batches, medications, clock)
+    private val addStockBatch = AddStockBatch(batches, medications, InMemoryTransactionRunner(), clock)
 
     private val scheduledMedication = TestFixtures.medication(
         defaultDose = TestFixtures.oneTablet,

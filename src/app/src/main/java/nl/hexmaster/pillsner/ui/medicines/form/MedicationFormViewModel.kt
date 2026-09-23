@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,6 +28,7 @@ import nl.hexmaster.pillsner.domain.model.StockBatchId
 import nl.hexmaster.pillsner.domain.model.summarize
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
+import nl.hexmaster.pillsner.domain.scheduling.currentDates
 import nl.hexmaster.pillsner.domain.stock.AddStockBatch
 import nl.hexmaster.pillsner.domain.stock.ProjectWeeklyUsage
 import nl.hexmaster.pillsner.domain.stock.StockState
@@ -43,6 +45,9 @@ import nl.hexmaster.pillsner.ui.medicines.AmountParser
  * The two screens share this view model through the flow's navigation graph entry, which is what
  * lets a schedule built in the editor land in the form's list without a round trip through the
  * database. Nothing here logs the name or any amount: they are the user's medical data.
+ *
+ * @param dates today's date, re-emitted when it changes, so the Stock section's expiry heads-up and
+ *   weekly projection move on at midnight while the form stays open.
  */
 class MedicationFormViewModel(
     private val repository: MedicationRepository,
@@ -51,8 +56,10 @@ class MedicationFormViewModel(
     private val clock: Clock = Clock.systemDefaultZone(),
     private val stockBatchRepository: StockBatchRepository? = null,
     private val addStockBatch: AddStockBatch? = null,
+    private val dates: Flow<LocalDate> = currentDates(clock),
 ) : ViewModel() {
 
+    /** The date the form opened on: only the starting "used since" of a new draft. */
     private val today: LocalDate = LocalDate.now(clock)
     private val projectWeeklyUsage = ProjectWeeklyUsage()
 
@@ -128,19 +135,19 @@ class MedicationFormViewModel(
     }
 
     /**
-     * Keeps the Stock section live: re-emits whenever the medicine's batches change, not only when
-     * the form itself is edited (`medicine-stock-tracking`'s "Tile and details-screen heads-up is a
-     * live read" decision).
+     * Keeps the Stock section live: re-emits whenever the medicine's batches change or the date
+     * does, not only when the form itself is edited (`medicine-stock-tracking`'s "Tile and
+     * details-screen heads-up is a live read" decision).
      */
     private fun observeStock(medication: Medication) {
         val repo = stockBatchRepository ?: return
         viewModelScope.launch {
-            repo.observeBatches(medication.id).collect { batches ->
+            combine(repo.observeBatches(medication.id), dates, ::Pair).collect { (batches, date) ->
                 val rows = batches
                     .sortedWith(compareBy({ it.expiryDate }, { it.addedAt }))
                     .map { StockBatchRowState(it.id, it.remaining, it.unit, it.strengthPerUnit, it.expiryDate) }
                 val state = batches.takeIf { it.isNotEmpty() }
-                    ?.let { stockState(it, medication, today, clock.zone, projectWeeklyUsage) }
+                    ?.let { stockState(it, medication, date, clock.zone, projectWeeklyUsage) }
                 // Every batch's strength is relative to the stored default dose unit, so that unit
                 // cannot change on this form while any batch exists.
                 val lockedDoseUnit = medication.defaultDose.unit.takeIf { batches.isNotEmpty() }
@@ -174,7 +181,7 @@ class MedicationFormViewModel(
     fun onStockStrengthTextChange(value: String) = updateAddStock { it.copy(strengthText = value) }
 
     fun onStockExpiryDateChange(value: LocalDate) = updateAddStock {
-        it.copy(expiryDate = value, expiryPastWarning = value.isBefore(today))
+        it.copy(expiryDate = value, expiryPastWarning = value.isBefore(LocalDate.now(clock)))
     }
 
     fun onSaveStockBatch() {

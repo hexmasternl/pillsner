@@ -36,7 +36,7 @@ fun StockWarningDialog(
 ) {
     AlertDialog(
         onDismissRequest = { onOk(warning.medicationId) },
-        title = { Text(warning.medicationName) },
+        title = { Text(warning.medicationName, style = MaterialTheme.typography.headlineMedium) },
         text = {
             Column {
                 if (warning.lowStock) {

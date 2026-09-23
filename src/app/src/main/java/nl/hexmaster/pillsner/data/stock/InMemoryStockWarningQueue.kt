@@ -22,4 +22,8 @@ class InMemoryStockWarningQueue(initial: Map<MedicationId, LocalDate?> = emptyMa
     override suspend fun clear(medicationIds: Set<MedicationId>) {
         pending.update { it - medicationIds }
     }
+
+    override suspend fun clearAll() {
+        pending.value = emptyMap()
+    }
 }

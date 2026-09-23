@@ -10,7 +10,9 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -18,7 +20,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.InMemoryTransactionRunner
 import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
+import nl.hexmaster.pillsner.domain.model.BatchExpiryState
 import nl.hexmaster.pillsner.domain.model.DoseUnit
 import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
@@ -222,6 +226,21 @@ class MedicationFormEditModeTest {
     }
 
     @Test
+    fun `the stock heads-up moves on when the date changes while the form is open`() = runTest(dispatcher) {
+        val id = store()
+        runBlocking { addStockBatch(id, Quantity.of("30", DoseUnit.MILLIGRAM), BigDecimal.ONE, LocalDate.of(2026, 10, 20)) }
+        val dates = MutableStateFlow(today)
+        val viewModel = stockAware(editHandle(id), dates)
+
+        assertEquals(BatchExpiryState.NONE, viewModel.uiState.value.stockState?.nearestExpiry)
+
+        // 37 days out when the form opened; 25 once it has been left open into the window.
+        dates.value = LocalDate.of(2026, 9, 25)
+
+        assertEquals(BatchExpiryState.APPROACHING, viewModel.uiState.value.stockState?.nearestExpiry)
+    }
+
+    @Test
     fun `the dose unit cannot change while stock is recorded`() = runTest(dispatcher) {
         val id = store()
         runBlocking { addStockBatch(id, Quantity.of("20", DoseUnit.TABLET), BigDecimal("20"), LocalDate.of(2027, 1, 1)) }
@@ -303,16 +322,17 @@ class MedicationFormEditModeTest {
     )
 
     private val stockBatches = InMemoryStockBatchRepository()
-    private val addStockBatch = AddStockBatch(stockBatches, repository, clock)
+    private val addStockBatch = AddStockBatch(stockBatches, repository, InMemoryTransactionRunner(), clock)
 
     /** The form with its Stock section wired, as the app has it. */
-    private fun stockAware(handle: SavedStateHandle) = MedicationFormViewModel(
+    private fun stockAware(handle: SavedStateHandle, dates: Flow<LocalDate> = flowOf(today)) = MedicationFormViewModel(
         repository = repository,
         savedStateHandle = handle,
         amountParser = AmountParser(Locale.UK),
         clock = clock,
         stockBatchRepository = stockBatches,
         addStockBatch = addStockBatch,
+        dates = dates,
     )
 
     /** Reads through, refuses to write, so the failure path can be exercised. */

@@ -102,3 +102,17 @@ Fixes for the review on pull request #60. Each brings the code in line with requ
 - [x] 10.9 Add unit tests for every fix above and instrumented tests for `update` keeping the acknowledgement and for the transaction runner rolling back
 - [x] 10.10 Run unit tests and lint from the `src` Gradle project root
 - [ ] 10.11 Run the instrumented tests on a device or emulator
+
+## 11. Second pull request review
+
+Fixes for the second round of review on pull request #60.
+
+- [x] 11.1 Add `StockWarningQueue.clearAll()` and call it from the reset's history step, so a reset forgets pending stock warnings
+- [x] 11.2 Write a new batch and the acknowledgement it clears in one `TransactionRunner` transaction in `AddStockBatch`
+- [x] 11.3 Feed the Medicine details form the `currentDates` flow, so its Stock section heads-up rolls over at midnight
+- [x] 11.4 Move the stock warning out of Home into an app-level `StockWarningViewModel`, shown over every destination
+- [x] 11.5 Add `StockBatchDaoTest`: round trip of every field, ordering, consumption, removal, cascade delete, and adding stock with its acknowledgement cleared
+- [x] 11.6 List the `strength_per_unit` column in the version 6 persistence requirement
+- [x] 11.7 Give the stock warning dialog's title `headlineMedium` (design system §8.12)
+- [x] 11.8 Run unit tests and lint from the `src` Gradle project root
+- [ ] 11.9 Run the instrumented tests, including `StockBatchDaoTest`, on a device or emulator

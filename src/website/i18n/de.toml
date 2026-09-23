@@ -45,3 +45,60 @@ other = "Tester werden"
 
 [beta_banner_delay_note]
 other = "Es kann bis zu 10 Minuten dauern, nachdem du der Gruppe beigetreten bist, bevor du die App herunterladen kannst."
+
+[nav_label]
+other = "Hauptmenü"
+
+[nav_home]
+other = "Start"
+
+[nav_medicines]
+other = "Medikamente"
+
+[nav_schedules]
+other = "Zeitpläne"
+
+[nav_tracking]
+other = "Verlauf"
+
+[nav_wearable]
+other = "Am Handgelenk"
+
+[nav_faq]
+other = "FAQ"
+
+[nav_report_a_bug]
+other = "Fehler melden"
+
+[nav_request_a_feature]
+other = "Funktion vorschlagen"
+
+[nav_help]
+other = "Hilfe"
+
+[nav_menu_open]
+other = "Menü"
+
+[nav_menu_close]
+other = "Menü schließen"
+
+[footer_explore]
+other = "Entdecken"
+
+[cta_default_heading]
+other = "Pillsner holen"
+
+[screenshot_enlarge]
+other = "Zum Vergrößern tippen"
+
+[lightbox_close]
+other = "Bild schließen"
+
+[issue_form_submit]
+other = "Auf GitHub fortfahren"
+
+[issue_form_note_label]
+other = "Bevor du fortfährst"
+
+[issue_form_open_github]
+other = "Oder öffne das leere Formular auf GitHub"

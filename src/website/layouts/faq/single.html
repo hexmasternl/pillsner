@@ -1,0 +1,27 @@
+{{ define "main" }}
+{{ partial "header.html" . }}
+
+<main id="main">
+  {{ partial "page-hero.html" . }}
+
+  <section class="section container">
+    <div class="faq">
+      {{ range .Params.questions }}
+      <details class="faq__item">
+        <summary class="title-large">
+          <span>{{ .question }}</span>
+          <span class="faq__marker">{{ partial "icon.html" "chevron-down" }}</span>
+        </summary>
+        <div class="faq__answer body-large">
+          {{ range .answer }}<p>{{ . }}</p>{{ end }}
+        </div>
+      </details>
+      {{ end }}
+    </div>
+  </section>
+
+  {{ partial "page-cta.html" . }}
+</main>
+
+{{ partial "footer.html" . }}
+{{ end }}

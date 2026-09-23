@@ -32,6 +32,7 @@
     <!-- Gedeelde acties -->
     <string name="action_back">Terug</string>
     <string name="action_cancel">Annuleren</string>
+    <string name="action_remove">Verwijderen</string>
     <string name="action_save">Opslaan</string>
     <string name="action_done">Klaar</string>
     <string name="action_ok">OK</string>
@@ -203,6 +204,7 @@
     <string name="medicine_error_dose_required">Vul een hoeveelheid in.</string>
     <string name="medicine_error_dose_not_a_number">Vul de hoeveelheid als getal in.</string>
     <string name="medicine_error_dose_not_positive">Vul een hoeveelheid groter dan nul in.</string>
+    <string name="medicine_error_dose_unit_locked_by_stock">De eenheid kan niet veranderen zolang er voorraad is vastgelegd. Verwijder eerst de voorraadpartijen.</string>
     <string name="medicine_error_use_until_before_used_since">Moet op of na de datum van ingebruikname liggen.</string>
 
     <!-- Een concept weggooien -->
@@ -454,4 +456,38 @@
     <string name="usage_history_timing_bar_week">Week van %1$s, gemiddeld %2$s afwijking van het schema, over %3$s</string>
     <string name="usage_history_timing_bar_day_empty">%1$s, geen ingenomen doses geregistreerd</string>
     <string name="usage_history_timing_bar_week_empty">Week van %1$s, geen ingenomen doses geregistreerd</string>
+
+    <string name="medicine_stock_header">Voorraad</string>
+    <string name="medicine_stock_none">Voor dit medicijn wordt geen voorraad bijgehouden.</string>
+    <string name="medicine_stock_add">Voorraad toevoegen</string>
+    <string name="medicine_stock_low_note">De voorraad raakt op.</string>
+    <string name="medicine_stock_expiring_note">De eerstvolgende partij verloopt binnenkort.</string>
+    <string name="medicine_stock_expired_note">De eerstvolgende partij is verlopen.</string>
+    <string name="medicine_stock_batch_row">%1$s, verloopt op %2$s</string>
+    <string name="medicine_stock_batch_row_strength">%1$s per %2$s</string>
+    <string name="medicine_stock_remove_content_description">Deze voorraadpartij verwijderen</string>
+    <string name="medicine_stock_remove_title">Deze voorraad verwijderen?</string>
+    <string name="medicine_stock_remove_body">Deze partij wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.</string>
+
+    <string name="medicine_stock_add_title">Voorraad toevoegen</string>
+    <string name="medicine_stock_field_quantity">Hoeveelheid</string>
+    <string name="medicine_stock_field_strength">Sterkte</string>
+    <string name="medicine_stock_strength_suffix">%1$s per %2$s</string>
+    <string name="medicine_stock_field_expiry">Vervaldatum</string>
+    <string name="medicine_stock_error_quantity_required">Voer een hoeveelheid in.</string>
+    <string name="medicine_stock_error_quantity_not_a_number">Voer de hoeveelheid als getal in.</string>
+    <string name="medicine_stock_error_quantity_not_positive">Voer een hoeveelheid groter dan nul in.</string>
+    <string name="medicine_stock_error_strength_required">Voer een sterkte in.</string>
+    <string name="medicine_stock_error_strength_not_a_number">Voer de sterkte als getal in.</string>
+    <string name="medicine_stock_error_strength_not_positive">Voer een sterkte groter dan nul in.</string>
+    <string name="medicine_stock_expiry_past_warning">Deze datum ligt al in het verleden. Je kunt hem nog steeds opslaan.</string>
+
+    <string name="medicine_tile_low_stock">Weinig voorraad</string>
+    <string name="medicine_tile_expiring_soon">Verloopt binnenkort</string>
+    <string name="medicine_tile_expired">Verlopen</string>
+
+    <string name="stock_warning_low_stock_message">De voorraad van %1$s raakt op en is niet genoeg voor deze week.</string>
+    <string name="stock_warning_expiring_message">De voorraad die je zojuist van %1$s hebt gebruikt, verloopt binnenkort.</string>
+    <string name="stock_warning_expired_message">De voorraad die je zojuist van %1$s hebt gebruikt, is verlopen.</string>
+    <string name="stock_warning_action_ordered_new">Ik heb nieuwe besteld</string>
 </resources>

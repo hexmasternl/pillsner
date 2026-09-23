@@ -266,6 +266,10 @@ class ReminderWakeTest {
         override suspend fun add(medication: NewMedication): MedicationId = error("unreadable")
         override suspend fun update(medication: Medication) = error("unreadable")
         override suspend fun setActive(id: MedicationId, isActive: Boolean) = error("unreadable")
+        override suspend fun setLowStockAcknowledgement(
+            id: MedicationId,
+            value: nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement?,
+        ) = error("unreadable")
     }
 
     /** A scheduler that records the set it was asked for instead of waking the device. */

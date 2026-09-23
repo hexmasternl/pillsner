@@ -45,3 +45,60 @@ other = "Tester worden"
 
 [beta_banner_delay_note]
 other = "Het kan tot 10 minuten duren nadat je lid bent geworden voordat je de app kunt downloaden."
+
+[nav_label]
+other = "Hoofd"
+
+[nav_home]
+other = "Home"
+
+[nav_medicines]
+other = "Medicijnen"
+
+[nav_schedules]
+other = "Schema's"
+
+[nav_tracking]
+other = "Bijhouden"
+
+[nav_wearable]
+other = "Aan je pols"
+
+[nav_faq]
+other = "FAQ"
+
+[nav_report_a_bug]
+other = "Een fout melden"
+
+[nav_request_a_feature]
+other = "Een functie aanvragen"
+
+[nav_help]
+other = "Hulp"
+
+[nav_menu_open]
+other = "Menu"
+
+[nav_menu_close]
+other = "Menu sluiten"
+
+[footer_explore]
+other = "Verkennen"
+
+[cta_default_heading]
+other = "Download Pillsner"
+
+[screenshot_enlarge]
+other = "Tik om te vergroten"
+
+[lightbox_close]
+other = "Afbeelding sluiten"
+
+[issue_form_submit]
+other = "Doorgaan op GitHub"
+
+[issue_form_note_label]
+other = "Voordat je doorgaat"
+
+[issue_form_open_github]
+other = "Of open het lege formulier op GitHub"

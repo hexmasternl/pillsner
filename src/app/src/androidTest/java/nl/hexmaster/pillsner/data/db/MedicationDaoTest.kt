@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.data.RoomDoseRepository
 import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
 import nl.hexmaster.pillsner.domain.model.Prescriber
@@ -369,6 +370,35 @@ class MedicationDaoTest {
         repository.add(medication(name = "Ibuprofen"))
 
         assertEquals(listOf("Ibuprofen"), repository.observeAll().first().map { it.name })
+    }
+
+    @Test
+    fun anUpdate_keepsTheStoredLowStockAcknowledgement() = runBlocking {
+        val id = repository.add(medication(name = "Ibuprofen"))
+        // Loaded by a form, then the acknowledgement is set elsewhere while the form stays open.
+        val loaded = checkNotNull(repository.get(id))
+        repository.setLowStockAcknowledgement(id, LowStockAcknowledgement.ACKNOWLEDGED_ORDERED)
+
+        repository.update(loaded.copy(name = "Ibuprofen 400"))
+
+        val stored = checkNotNull(repository.get(id))
+        assertEquals("Ibuprofen 400", stored.name)
+        assertEquals(LowStockAcknowledgement.ACKNOWLEDGED_ORDERED, stored.lowStockAcknowledgement)
+    }
+
+    @Test
+    fun aFailingTransaction_rollsBackEveryWriteMadeInsideIt() = runBlocking {
+        val id = repository.add(medication(name = "Ibuprofen"))
+        val runner = RoomTransactionRunner(database)
+
+        runCatching {
+            runner.inTransaction {
+                repository.setLowStockAcknowledgement(id, LowStockAcknowledgement.ACKNOWLEDGED_ORDERED)
+                error("stock write failed")
+            }
+        }
+
+        assertNull(checkNotNull(repository.get(id)).lowStockAcknowledgement)
     }
 
     @Test

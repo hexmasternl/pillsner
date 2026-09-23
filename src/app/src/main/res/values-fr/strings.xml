@@ -32,6 +32,7 @@
     <!-- Actions partagées -->
     <string name="action_back">Retour</string>
     <string name="action_cancel">Annuler</string>
+    <string name="action_remove">Supprimer</string>
     <string name="action_save">Enregistrer</string>
     <string name="action_done">Terminé</string>
     <string name="action_ok">OK</string>
@@ -204,6 +205,7 @@
     <string name="medicine_error_dose_required">Saisis une quantité.</string>
     <string name="medicine_error_dose_not_a_number">Saisis la quantité sous forme de nombre.</string>
     <string name="medicine_error_dose_not_positive">Saisis une quantité supérieure à zéro.</string>
+    <string name="medicine_error_dose_unit_locked_by_stock">L\'unité ne peut pas changer tant que du stock est enregistré. Supprimez d\'abord les lots de stock.</string>
     <string name="medicine_error_use_until_before_used_since">Doit être à la date de début d\'utilisation ou après.</string>
 
     <!-- Abandonner un brouillon -->
@@ -455,4 +457,38 @@
     <string name="usage_history_timing_bar_week">Semaine du %1$s, %2$s d\'écart avec l\'horaire en moyenne, sur %3$s</string>
     <string name="usage_history_timing_bar_day_empty">%1$s, aucune dose prise enregistrée</string>
     <string name="usage_history_timing_bar_week_empty">Semaine du %1$s, aucune dose prise enregistrée</string>
+
+    <string name="medicine_stock_header">Stock</string>
+    <string name="medicine_stock_none">Aucun stock n\'est suivi pour ce médicament.</string>
+    <string name="medicine_stock_add">Ajouter du stock</string>
+    <string name="medicine_stock_low_note">Le stock est bas.</string>
+    <string name="medicine_stock_expiring_note">Le prochain lot expire bientôt.</string>
+    <string name="medicine_stock_expired_note">Le prochain lot a expiré.</string>
+    <string name="medicine_stock_batch_row">%1$s, expire le %2$s</string>
+    <string name="medicine_stock_batch_row_strength">%1$s par %2$s</string>
+    <string name="medicine_stock_remove_content_description">Supprimer ce lot de stock</string>
+    <string name="medicine_stock_remove_title">Supprimer ce stock ?</string>
+    <string name="medicine_stock_remove_body">Ce lot sera définitivement supprimé. Cette action est irréversible.</string>
+
+    <string name="medicine_stock_add_title">Ajouter du stock</string>
+    <string name="medicine_stock_field_quantity">Quantité</string>
+    <string name="medicine_stock_field_strength">Dosage</string>
+    <string name="medicine_stock_strength_suffix">%1$s par %2$s</string>
+    <string name="medicine_stock_field_expiry">Date d\'expiration</string>
+    <string name="medicine_stock_error_quantity_required">Saisissez une quantité.</string>
+    <string name="medicine_stock_error_quantity_not_a_number">Saisissez la quantité sous forme de nombre.</string>
+    <string name="medicine_stock_error_quantity_not_positive">Saisissez une quantité supérieure à zéro.</string>
+    <string name="medicine_stock_error_strength_required">Saisissez un dosage.</string>
+    <string name="medicine_stock_error_strength_not_a_number">Saisissez le dosage sous forme de nombre.</string>
+    <string name="medicine_stock_error_strength_not_positive">Saisissez un dosage supérieur à zéro.</string>
+    <string name="medicine_stock_expiry_past_warning">Cette date est déjà passée. Vous pouvez tout de même l\'enregistrer.</string>
+
+    <string name="medicine_tile_low_stock">Stock bas</string>
+    <string name="medicine_tile_expiring_soon">Expire bientôt</string>
+    <string name="medicine_tile_expired">Expiré</string>
+
+    <string name="stock_warning_low_stock_message">Le stock de %1$s est bas et ne suffira pas pour cette semaine.</string>
+    <string name="stock_warning_expiring_message">Le stock de %1$s que vous venez d\'utiliser expire bientôt.</string>
+    <string name="stock_warning_expired_message">Le stock de %1$s que vous venez d\'utiliser a expiré.</string>
+    <string name="stock_warning_action_ordered_new">J\'en ai commandé</string>
 </resources>

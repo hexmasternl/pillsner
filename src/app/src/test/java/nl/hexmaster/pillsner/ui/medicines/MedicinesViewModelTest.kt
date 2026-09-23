@@ -1,18 +1,26 @@
 package nl.hexmaster.pillsner.ui.medicines
 
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDate
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
+import nl.hexmaster.pillsner.domain.model.BatchExpiryState
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
@@ -34,6 +42,7 @@ class MedicinesViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val repository = InMemoryMedicationRepository()
+    private val stockBatchRepository = InMemoryStockBatchRepository()
 
     @Before
     fun setUp() {
@@ -47,7 +56,7 @@ class MedicinesViewModelTest {
 
     @Test
     fun `initial state is loading with no medicines`() {
-        val viewModel = MedicinesViewModel(repository, Locale.UK)
+        val viewModel = MedicinesViewModel(repository, stockBatchRepository, Locale.UK)
 
         val state = viewModel.uiState.value
 
@@ -182,9 +191,33 @@ class MedicinesViewModelTest {
     }
 
     @Test
+    fun `a tile's expiry heads-up moves on when the date changes, with no data changing`() = runTest(dispatcher) {
+        repository.replaceAll(listOf(medication(1, "Ibuprofen")))
+        runBlocking {
+            stockBatchRepository.addBatch(
+                MedicationId(1),
+                mg40,
+                BigDecimal.ONE,
+                LocalDate.of(2026, 10, 20),
+                Instant.EPOCH,
+            )
+        }
+        val dates = MutableStateFlow(LocalDate.of(2026, 9, 13))
+        val viewModel = MedicinesViewModel(repository, stockBatchRepository, Locale.UK, dates = dates)
+        backgroundScope.launch { viewModel.uiState.collect {} }
+
+        assertEquals(BatchExpiryState.NONE, viewModel.uiState.value.active.single().stockState?.nearestExpiry)
+
+        // The screen stays open past midnight into the 30-day window.
+        dates.value = LocalDate.of(2026, 9, 25)
+
+        assertEquals(BatchExpiryState.APPROACHING, viewModel.uiState.value.active.single().stockState?.nearestExpiry)
+    }
+
+    @Test
     fun `a failing repository reports it once and leaves the screen as it was`() = runTest(dispatcher) {
         val failing = FailingRepository(medication(1, "Ibuprofen"))
-        val viewModel = MedicinesViewModel(failing, Locale.UK)
+        val viewModel = MedicinesViewModel(failing, stockBatchRepository, Locale.UK)
         backgroundScope.launch { viewModel.uiState.collect {} }
         val effects = mutableListOf<MedicinesEffect>()
         backgroundScope.launch { viewModel.effects.collect { effects += it } }
@@ -196,7 +229,7 @@ class MedicinesViewModelTest {
     }
 
     private fun TestScope.collecting(): MedicinesViewModel {
-        val viewModel = MedicinesViewModel(repository, Locale.UK)
+        val viewModel = MedicinesViewModel(repository, stockBatchRepository, Locale.UK)
         backgroundScope.launch { viewModel.uiState.collect {} }
         return viewModel
     }
@@ -209,5 +242,7 @@ class MedicinesViewModelTest {
         override suspend fun update(medication: Medication): Unit = error("no database")
         override suspend fun add(medication: NewMedication): MedicationId = error("no database")
         override suspend fun setActive(id: MedicationId, isActive: Boolean): Unit = error("no database")
+        override suspend fun setLowStockAcknowledgement(id: MedicationId, value: LowStockAcknowledgement?): Unit =
+            error("no database")
     }
 }

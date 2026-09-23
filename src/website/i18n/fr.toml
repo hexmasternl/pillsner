@@ -45,3 +45,60 @@ other = "Devenir testeur"
 
 [beta_banner_delay_note]
 other = "Il peut s'écouler jusqu'à 10 minutes après votre inscription au groupe avant de pouvoir télécharger l'application."
+
+[nav_label]
+other = "Principal"
+
+[nav_home]
+other = "Accueil"
+
+[nav_medicines]
+other = "Médicaments"
+
+[nav_schedules]
+other = "Horaires"
+
+[nav_tracking]
+other = "Suivi"
+
+[nav_wearable]
+other = "À votre poignet"
+
+[nav_faq]
+other = "FAQ"
+
+[nav_report_a_bug]
+other = "Signaler un bug"
+
+[nav_request_a_feature]
+other = "Proposer une fonctionnalité"
+
+[nav_help]
+other = "Aide"
+
+[nav_menu_open]
+other = "Menu"
+
+[nav_menu_close]
+other = "Fermer le menu"
+
+[footer_explore]
+other = "Explorer"
+
+[cta_default_heading]
+other = "Obtenir Pillsner"
+
+[screenshot_enlarge]
+other = "Toucher pour agrandir"
+
+[lightbox_close]
+other = "Fermer l'image"
+
+[issue_form_submit]
+other = "Continuer sur GitHub"
+
+[issue_form_note_label]
+other = "Avant de continuer"
+
+[issue_form_open_github]
+other = "Ou ouvrir le formulaire vide sur GitHub"

@@ -15,6 +15,10 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.InMemoryDoseRepository
+import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
+import nl.hexmaster.pillsner.data.InMemoryTransactionRunner
+import nl.hexmaster.pillsner.data.stock.InMemoryStockBatchRepository
+import nl.hexmaster.pillsner.data.stock.InMemoryStockWarningQueue
 import nl.hexmaster.pillsner.domain.MutableTestClock
 import nl.hexmaster.pillsner.domain.intake.AnswerDose
 import nl.hexmaster.pillsner.domain.intake.DoseAnswer
@@ -24,6 +28,8 @@ import nl.hexmaster.pillsner.domain.intake.SnoozeDose
 import nl.hexmaster.pillsner.domain.model.DoseId
 import nl.hexmaster.pillsner.domain.model.IntakeOutcome
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
+import nl.hexmaster.pillsner.domain.stock.ConsumeStockOnTaken
+import nl.hexmaster.pillsner.domain.stock.EvaluateStockWarning
 import nl.hexmaster.pillsner.domain.scheduling.SchedulingTestSupport.amsterdam
 import nl.hexmaster.pillsner.domain.scheduling.SchedulingTestSupport.at
 import nl.hexmaster.pillsner.domain.scheduling.SchedulingTestSupport.dose
@@ -157,6 +163,19 @@ class DoseDetailViewModelTest {
             doseRepository = doses,
             recordIntake = RecordIntake(doses, clock),
             snoozeDose = SnoozeDose(doses, MarkMissedDoses(doses, clock), clock),
+            // No medication or stock batch is registered for these fixture doses, so this is a
+            // no-op; stock behaviour has its own test suite.
+            consumeStockOnTaken = run {
+                val medications = InMemoryMedicationRepository()
+                val batches = InMemoryStockBatchRepository()
+                ConsumeStockOnTaken(
+                    stockBatchRepository = batches,
+                    medicationRepository = medications,
+                    stockWarningQueue = InMemoryStockWarningQueue(),
+                    evaluateStockWarning = EvaluateStockWarning(medications, batches, clock = clock),
+                )
+            },
+            transactionRunner = InMemoryTransactionRunner(),
             onAnswered = { answered += it.id },
         ),
         savedStateHandle = SavedStateHandle(mapOf(DoseDetailViewModel.DOSE_ID_ARG to 1L)),

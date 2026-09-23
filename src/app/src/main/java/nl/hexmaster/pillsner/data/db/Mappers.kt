@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.data.db
 
 import nl.hexmaster.pillsner.domain.model.DoseUnit
+import nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.NewMedication
@@ -24,6 +25,7 @@ fun MedicationWithSchedules.toDomain(): Medication = Medication(
     prescribedBy = Prescriber.valueOf(medication.prescribedBy),
     schedules = schedules.sortedBy { it.position }.map { it.toDomain() },
     isActive = medication.isActive,
+    lowStockAcknowledgement = medication.lowStockAcknowledgement?.let(LowStockAcknowledgement::valueOf),
 )
 
 fun ScheduleEntity.toDomain(): Schedule {
@@ -71,6 +73,7 @@ fun Medication.toEntity(): MedicationEntity = MedicationEntity(
     useUntil = useUntil,
     prescribedBy = prescribedBy.name,
     isActive = isActive,
+    lowStockAcknowledgement = lowStockAcknowledgement?.name,
 )
 
 /** @param medicationId 0 while the medication row has not been inserted yet; the DAO fills it in. */

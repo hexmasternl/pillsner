@@ -45,6 +45,7 @@
   <section class="section container" id="features">
     <div class="section__heading">
       <h2 class="headline-large">{{ .Params.features.heading }}</h2>
+      {{ with .Params.features.intro }}<p class="body-large">{{ . }}</p>{{ end }}
     </div>
     <div class="features__grid">
       {{ range .Params.features.items }}
@@ -52,6 +53,11 @@
         <span class="feature-card__icon">{{ partial "icon.html" .icon }}</span>
         <h3 class="title-large">{{ .title }}</h3>
         <p class="body-medium">{{ .description }}</p>
+        {{ with .link }}
+        <p class="body-medium">
+          <a href="{{ .url | relLangURL }}">{{ .label }}</a>
+        </p>
+        {{ end }}
       </article>
       {{ end }}
     </div>
@@ -65,10 +71,22 @@
           <h2 class="headline-large">{{ .Params.privacy.heading }}</h2>
           <p class="body-large">{{ .Params.privacy.body }}</p>
           <p class="body-large">
-            <a href="{{ .Site.Params.privacyPolicyUrl }}" rel="noopener">{{ .Params.privacy.link_label }}</a>
+            <a href="{{ "privacy/" | relLangURL }}">{{ .Params.privacy.link_label }}</a>
           </p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="section container" id="help">
+    <div class="section__heading">
+      <h2 class="headline-large">{{ .Params.help.heading }}</h2>
+      <p class="body-large">{{ .Params.help.body }}</p>
+    </div>
+    <div class="hero__actions">
+      <a class="button button--outlined" href="{{ "faq/" | relLangURL }}">{{ i18n "nav_faq" }}</a>
+      <a class="button button--outlined" href="{{ "report-a-bug/" | relLangURL }}">{{ i18n "nav_report_a_bug" }}</a>
+      <a class="button button--outlined" href="{{ "request-a-feature/" | relLangURL }}">{{ i18n "nav_request_a_feature" }}</a>
     </div>
   </section>
 </main>

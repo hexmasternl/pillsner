@@ -36,7 +36,10 @@ import nl.hexmaster.pillsner.data.RoomDoseRepository
 import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.data.RoomUpcomingDosesRepository
 import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
+import nl.hexmaster.pillsner.data.stock.DataStoreStockWarningQueue
+import nl.hexmaster.pillsner.data.stock.RoomStockBatchRepository
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
+import nl.hexmaster.pillsner.data.db.RoomTransactionRunner
 import nl.hexmaster.pillsner.data.reminders.AndroidBatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
 import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
@@ -71,6 +74,9 @@ import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.domain.repository.LanguageRepository
 import nl.hexmaster.pillsner.domain.repository.LegalRepository
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
+import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
+import nl.hexmaster.pillsner.domain.repository.StockWarningQueue
+import nl.hexmaster.pillsner.domain.repository.TransactionRunner
 import nl.hexmaster.pillsner.domain.repository.ThemeRepository
 import nl.hexmaster.pillsner.domain.repository.UpcomingDosesRepository
 import nl.hexmaster.pillsner.domain.reset.EraseAllData
@@ -80,8 +86,13 @@ import nl.hexmaster.pillsner.domain.scheduling.DueDoses
 import nl.hexmaster.pillsner.domain.scheduling.MarkMissedDoses
 import nl.hexmaster.pillsner.domain.scheduling.PurgeExpiredDoseHistory
 import nl.hexmaster.pillsner.domain.scheduling.RefreshPlannedDoses
+import nl.hexmaster.pillsner.domain.stock.AddStockBatch
+import nl.hexmaster.pillsner.domain.stock.ConsumeStockOnTaken
+import nl.hexmaster.pillsner.domain.stock.EvaluateStockWarning
+import nl.hexmaster.pillsner.domain.stock.ProjectWeeklyUsage
 import nl.hexmaster.pillsner.ui.dose.DoseDetailViewModel
 import nl.hexmaster.pillsner.ui.home.HomeViewModel
+import nl.hexmaster.pillsner.ui.home.StockWarningViewModel
 import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
@@ -107,12 +118,16 @@ import nl.hexmaster.pillsner.ui.settings.theme.ThemeSectionViewModel
  * @param medicationRepository overrides the Room-backed default; tests and previews use it.
  * @param doseRepository overrides the Room-backed default.
  * @param upcomingDosesRepository overrides what the Home screen reads.
+ * @param stockBatchRepository overrides the Room-backed default (`medicine-stock-tracking`).
+ * @param stockWarningQueue overrides the DataStore-backed default.
  */
 class AppContainer(
     context: Context,
     medicationRepository: MedicationRepository? = null,
     doseRepository: DoseRepository? = null,
     upcomingDosesRepository: UpcomingDosesRepository? = null,
+    stockBatchRepository: StockBatchRepository? = null,
+    stockWarningQueue: StockWarningQueue? = null,
 ) {
     private val applicationContext = context.applicationContext
     private val clock: Clock = Clock.systemDefaultZone()
@@ -135,6 +150,43 @@ class AppContainer(
 
     val upcomingDosesRepository: UpcomingDosesRepository =
         upcomingDosesRepository ?: RoomUpcomingDosesRepository(this.doseRepository, clock)
+
+    // --- Stock tracking (medicine-stock-tracking) -------------------------------------------
+
+    val stockBatchRepository: StockBatchRepository =
+        stockBatchRepository ?: RoomStockBatchRepository(database.stockBatchDao())
+
+    val stockWarningQueue: StockWarningQueue =
+        stockWarningQueue ?: DataStoreStockWarningQueue(applicationContext)
+
+    /**
+     * Makes several stock writes one unit (`medicine-stock-tracking`): a taken answer's intake and
+     * its deduction, and a new batch with the acknowledgement it clears.
+     */
+    private val transactionRunner: TransactionRunner = RoomTransactionRunner(database)
+
+    private val projectWeeklyUsage = ProjectWeeklyUsage()
+
+    private val evaluateStockWarning = EvaluateStockWarning(
+        medicationRepository = this.medicationRepository,
+        stockBatchRepository = this.stockBatchRepository,
+        projectWeeklyUsage = projectWeeklyUsage,
+        clock = clock,
+    )
+
+    private val consumeStockOnTaken = ConsumeStockOnTaken(
+        stockBatchRepository = this.stockBatchRepository,
+        medicationRepository = this.medicationRepository,
+        stockWarningQueue = this.stockWarningQueue,
+        evaluateStockWarning = evaluateStockWarning,
+    )
+
+    private val addStockBatch = AddStockBatch(
+        stockBatchRepository = this.stockBatchRepository,
+        medicationRepository = this.medicationRepository,
+        transactionRunner = transactionRunner,
+        clock = clock,
+    )
 
     /** Turns a medicine's stored doses into its usage history (app-medicine-usage-history D3). */
     private val summariseUsageHistory = SummariseUsageHistory(clock)
@@ -272,6 +324,8 @@ class AppContainer(
         doseRepository = this.doseRepository,
         recordIntake = recordIntakeUseCase,
         snoozeDose = snoozeDoseUseCase,
+        consumeStockOnTaken = consumeStockOnTaken,
+        transactionRunner = transactionRunner,
         onAnswered = { dose ->
             reminderNotifier.cancel(dose)
             reminderCoordinator.onWake(WakeReason.ACTION)
@@ -291,7 +345,10 @@ class AppContainer(
     private val eraseAllData = EraseAllData(
         eraser = RoomAppDataEraser(database),
         teardown = reminderNotifier::cancelAll,
-        history = reminderPreferences::clearSilentlyMissedReminder,
+        history = {
+            reminderPreferences.clearSilentlyMissedReminder()
+            this.stockWarningQueue.clearAll()
+        },
         refresh = { reminderCoordinator.requestWake(WakeReason.MEDICATIONS_CHANGED) },
     )
 
@@ -341,6 +398,13 @@ class AppContainer(
             )
         }
         initializer {
+            StockWarningViewModel(
+                stockWarningQueue = this@AppContainer.stockWarningQueue,
+                evaluateStockWarning = evaluateStockWarning,
+                medicationRepository = this@AppContainer.medicationRepository,
+            )
+        }
+        initializer {
             DoseDetailViewModel(
                 doseRepository = this@AppContainer.doseRepository,
                 answerDose = answerDoseUseCase,
@@ -348,7 +412,13 @@ class AppContainer(
                 clock = clock,
             )
         }
-        initializer { MedicinesViewModel(this@AppContainer.medicationRepository) }
+        initializer {
+            MedicinesViewModel(
+                repository = this@AppContainer.medicationRepository,
+                stockBatchRepository = this@AppContainer.stockBatchRepository,
+                clock = clock,
+            )
+        }
         initializer { LanguageSectionViewModel(languageRepository, AppLocale.inEffect) }
         initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }
@@ -360,6 +430,8 @@ class AppContainer(
                 savedStateHandle = createSavedStateHandle(),
                 amountParser = AmountParser(),
                 clock = clock,
+                stockBatchRepository = this@AppContainer.stockBatchRepository,
+                addStockBatch = addStockBatch,
             )
         }
         initializer {

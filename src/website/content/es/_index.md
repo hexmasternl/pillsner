@@ -16,23 +16,39 @@ params:
       - "Mantiene tus datos de medicación privados y en tu propio dispositivo, siempre"
   features:
     heading: "Qué hace Pillsner"
+    intro: "Un recorrido breve. Cada parte tiene su propia página con todos los detalles."
     items:
       - icon: "medication"
-        title: "Gestión de medicamentos"
-        description: "Añade cada medicamento con su dosis, unidad, fechas y quién lo recetó. Divididos en activos e inactivos, con control de existencias y avisos de reposición. Nunca se elimina nada."
+        title: "Tus medicamentos"
+        description: "Añade cada medicamento con su dosis, unidad, fechas y quién lo recetó, dale tantos horarios como necesite y deja de tomar uno sin perder nunca lo que ya tomaste."
+        link:
+          url: "medicines/"
+          label: "Sobre tus medicamentos"
       - icon: "schedule"
         title: "Horarios y recordatorios"
-        description: "Horas fijas, cada N horas, días concretos de la semana, o según necesidad. Los recordatorios se disparan como alarmas reales y exactas que sobreviven a un reinicio, un cambio de zona horaria o de reloj."
+        description: "Horas fijas, cada N horas, días concretos de la semana o según necesidad. Los recordatorios se disparan como alarmas reales y exactas que sobreviven a un reinicio, un cambio de zona horaria o de reloj."
+        link:
+          url: "schedules/"
+          label: "Sobre los horarios y recordatorios"
+      - icon: "history"
+        title: "Seguimiento de tu progreso"
+        description: "Responde a una toma con un solo toque, mira lo que aún falta por tomar hoy y repasa lo que tomaste, omitiste o se te pasó."
+        link:
+          url: "tracking/"
+          label: "Sobre el seguimiento"
       - icon: "watch"
         title: "En tu muñeca"
-        description: "Una app para Wear OS muestra lo que toca en las próximas seis horas y te permite confirmar, posponer u omitir directamente desde tu reloj."
-      - icon: "history"
-        title: "Seguimiento de tomas"
-        description: "Confirma, pospón u omite con un toque, y consulta un resumen diario y tu historial de cumplimiento a lo largo del tiempo."
+        description: "Una app para Wear OS muestra lo que toca en las próximas seis horas, directamente en tu reloj."
+        link:
+          url: "wearable/"
+          label: "Sobre la app del reloj"
   privacy:
     heading: "Privacidad por defecto"
     body: "Todos los datos permanecen en tu dispositivo. No hay cuenta, ni sincronización en la nube, ni analítica. Pillsner no declara ningún permiso de internet y solo pide lo necesario para avisarte de forma fiable. Nunca tu ubicación, contactos o acceso a la red."
-    link_label: "Leer la política de privacidad"
+    link_label: "Cómo protege Pillsner tus datos"
+  help:
+    heading: "Preguntas, fallos e ideas"
+    body: "Lee las respuestas a las preguntas más frecuentes, cuéntanos algo que salió mal o sugiere qué debería hacer Pillsner a continuación."
   footer:
     tagline: "Tu compañero para tomar tus medicamentos."
     copyright: "© 2026 Pillsner. Todos los derechos reservados."

@@ -24,10 +24,17 @@ class QuantityFormatter(
     private val amountParser: AmountParser = AmountParser(locale),
 ) {
 
-    fun format(quantity: Quantity): String = context.resources.getQuantityString(
-        quantity.unit.pluralRes(),
-        quantity.value.pluralCount(),
-        amountParser.format(quantity.value),
+    fun format(quantity: Quantity): String = format(quantity.value, quantity.unit)
+
+    /**
+     * The same formatting as [format], for a raw amount and unit rather than a [Quantity] — needed
+     * for a stock batch's remaining amount, which may legitimately be zero and so cannot always be
+     * wrapped in a [Quantity] (`medicine-stock-tracking`).
+     */
+    fun format(value: BigDecimal, unit: DoseUnit): String = context.resources.getQuantityString(
+        unit.pluralRes(),
+        value.pluralCount(),
+        amountParser.format(value),
     )
 
     /** Just the number, as it should appear in an input field. */

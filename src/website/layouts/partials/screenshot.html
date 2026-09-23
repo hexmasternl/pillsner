@@ -1,0 +1,22 @@
+{{/* A phone screenshot from docs/screens/ (mounted into assets/images/screens).
+     Rendered small; the link points at the full-size image so a visitor without
+     JavaScript still gets it. assets/js/lightbox.js upgrades the link into an
+     overlay that shows the large version centred on a dimmed background.
+     Usage: {{ partial "screenshot.html" (dict "image" "settings.png" "alt" "…" "context" $) }} */}}
+{{ $image := resources.Get (printf "images/screens/%s" .image) }}
+{{ if $image }}
+  {{ $thumb := $image.Resize "320x webp q85" }}
+  {{ $full := $image.Resize "900x webp q90" }}
+  <a class="screenshot"
+     href="{{ $full.RelPermalink }}"
+     data-lightbox
+     data-lightbox-alt="{{ .alt }}">
+    <img src="{{ $thumb.RelPermalink }}"
+         width="{{ $thumb.Width }}"
+         height="{{ $thumb.Height }}"
+         alt="{{ .alt }}"
+         loading="lazy"
+         decoding="async">
+    <span class="screenshot__hint label-small">{{ i18n "screenshot_enlarge" }}</span>
+  </a>
+{{ end }}

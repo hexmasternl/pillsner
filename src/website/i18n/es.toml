@@ -45,3 +45,60 @@ other = "Convertirse en probador"
 
 [beta_banner_delay_note]
 other = "Pueden pasar hasta 10 minutos desde que te unes al grupo hasta que puedas descargar la aplicación."
+
+[nav_label]
+other = "Principal"
+
+[nav_home]
+other = "Inicio"
+
+[nav_medicines]
+other = "Medicamentos"
+
+[nav_schedules]
+other = "Horarios"
+
+[nav_tracking]
+other = "Seguimiento"
+
+[nav_wearable]
+other = "En tu muñeca"
+
+[nav_faq]
+other = "Preguntas frecuentes"
+
+[nav_report_a_bug]
+other = "Informar de un fallo"
+
+[nav_request_a_feature]
+other = "Solicitar una función"
+
+[nav_help]
+other = "Ayuda"
+
+[nav_menu_open]
+other = "Menú"
+
+[nav_menu_close]
+other = "Cerrar menú"
+
+[footer_explore]
+other = "Explorar"
+
+[cta_default_heading]
+other = "Consigue Pillsner"
+
+[screenshot_enlarge]
+other = "Toca para ampliar"
+
+[lightbox_close]
+other = "Cerrar imagen"
+
+[issue_form_submit]
+other = "Continuar en GitHub"
+
+[issue_form_note_label]
+other = "Antes de continuar"
+
+[issue_form_open_github]
+other = "O abre el formulario vacío en GitHub"

@@ -413,5 +413,10 @@ class MedicationFormViewModelTest {
 
         override suspend fun setActive(id: MedicationId, isActive: Boolean): Unit =
             throw IllegalStateException("no database")
+
+        override suspend fun setLowStockAcknowledgement(
+            id: MedicationId,
+            value: nl.hexmaster.pillsner.domain.model.LowStockAcknowledgement?,
+        ): Unit = throw IllegalStateException("no database")
     }
 }

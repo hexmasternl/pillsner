@@ -57,7 +57,13 @@ data class MedicationFormDraft(
     }
 }
 
-/** The medicine this draft describes, under [id]. Only valid once the draft passes validation. */
+/**
+ * The medicine this draft describes, under [id]. Only valid once the draft passes validation.
+ *
+ * Its low-stock acknowledgement is left unset: the form never edits it, and
+ * [nl.hexmaster.pillsner.domain.repository.MedicationRepository.update] keeps whatever is stored,
+ * so an acknowledgement cleared by adding stock while the form was open stays cleared.
+ */
 fun MedicationFormDraft.toMedication(id: MedicationId, defaultDose: Quantity) = Medication(
     id = id,
     name = name.trim(),

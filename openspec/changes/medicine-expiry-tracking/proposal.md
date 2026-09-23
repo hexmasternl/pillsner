@@ -2,31 +2,34 @@
 
 ## Why
 
-A medicine can become unusable while plenty of it still physically remains, simply because the pack has passed its expiry date. Nothing in Pillsner today records or surfaces that date, so the person taking the medicine has no on-device reminder that a pack is about to, or has already, expired — they have to remember and check the label themselves. This is a small, natural extension of the medicine record Pillsner already keeps (name, dose, used since/until, prescriber), not a new domain concept, and it stays entirely on-device.
+A medicine can become unusable in two ways Pillsner does not yet track: the pack physically runs out before the next refill, or it passes its expiry date while stock still remains. Today the app has no concept of "how much is left" at all, so the person taking the medicine has to remember to check the box and the label themselves.
 
-Note on scope: the original request framed this as "separate from the existing low-stock refill warning," but no stock tracking or refill warning exists in the current specs (`medicine-add`, `medicine-details`, `medicine-overview`) — a medicine currently has no stock/remaining-quantity field at all. This change therefore introduces the expiry date and its heads-up as their own, self-contained feature. If remaining-stock tracking is proposed later, its heads-up should follow the same presentation pattern established here, kept visually and textually distinct so the two are never confused.
+This proposal replaces an earlier, narrower draft of this change that added a single, informational expiry date per medicine with no stock tracking. That draft explicitly scoped stock tracking out as "a separate future proposal." Working through the request with the user surfaced that expiry and remaining stock are not separable here: new pack of the same medicine almost always carries a different expiry date than what is already open, and the thing worth warning about is stock running low *and* stock being used past, or close to, its expiry. This version supersedes that draft and treats stock — as one or more batches, each with its own expiry date — as the foundation both features sit on.
 
 ## What Changes
 
-- Add an optional **expiry date** field to the medicine record, alongside the existing name, dose, used since/until and prescriber fields, settable and editable on the Add medicine and Medicine details forms.
-- Show the expiry date on the Medicine details screen when the medicine has one, using the same date formatting already used for "used since" / "use until".
-- Show an **expiry heads-up** on the Medicines screen for a medicine that is approaching or past its expiry date: a distinct visual indicator on that medicine's tile, with wording that makes clear it is about the pack expiring, not about running low.
-- Expiry has **no effect on reminders, scheduling or dose generation**. A dose from an expired medicine still comes due, still reminds, and still needs an outcome recorded, exactly as before.
-- Editing a medicine's expiry date behaves like editing any other field: it changes what's shown and warned about from that point on, and never alters doses or intake already recorded.
+- Add **stock batches** to a medicine: each batch records a quantity (an amount and unit, e.g. "30 tablets" or "100 ml") and an expiry date. A medicine can hold any number of batches at once (e.g. a half-used older pack plus a fresh one).
+- When a dose is recorded as **taken** — from the dose detail screen, the reminder notification, or a wearable, whichever surface recorded it — the app deducts the dose's amount from stock, always drawing from the batch that expires soonest first (first-expiry-first-out), spilling into the next batch if the first is exhausted.
+- After every such deduction, the app projects the medicine's usage for the coming week from its schedules and compares it to what remains. If remaining stock would not cover a week, the user sees a **low-stock warning** with two responses: "OK" and "I ordered new". "OK" leaves the warning active, so it appears again the next time the medicine is taken while stock is still short. "I ordered new" suppresses it until the user adds a new batch of stock, which always clears the suppression.
+- Independently, if the batch a dose was just drawn from is approaching (within 30 days) or past its expiry, the user sees an **expiry-at-use warning**, every time it applies, dismissed with a simple acknowledgement — this is never suppressed the way the low-stock warning can be, since only using up or discarding that batch changes the fact.
+- The Medicines screen tile shows a live, passive heads-up (low stock and/or nearest-batch expiry) for any medicine that has at least one batch of stock recorded, recomputed from the medicine's current stock and schedules whenever the screen is shown — not only right after a dose is taken.
+- The Medicine details screen gains a **Stock** section: the medicine's batches, ordered by expiry date, each showing its remaining amount and expiry date, with an "Add stock" action to record a new batch.
+- **The entire feature is inert for a medicine with no stock recorded**: no consumption, no projection, no warning and no tile heads-up. It only switches on once the user adds a first batch, and it has no effect on reminders, scheduling or dose generation regardless.
 
 ## Capabilities
 
 ### New Capabilities
-(none — this extends existing medicine capabilities rather than introducing a new domain concept)
+- `medicine-stock-tracking`: stock batches, first-expiry-first-out consumption tied to a taken dose, the weekly-sufficiency low-stock warning and its "I ordered new" suppression, the expiry-at-use warning, and the Add stock form.
 
 ### Modified Capabilities
-- `medicine-add`: the Add medicine form gains an optional expiry date field, with its own validation (must not be before "used since" when both are set) and default (empty).
-- `medicine-details`: the details screen shows and lets the user edit the expiry date, applying the add form's validation rule, and displays the "approaching/past expiry" state inline.
-- `medicine-overview`: medicine tiles gain an expiry heads-up indicator (approaching vs. past expiry) that is visually and textually distinct from any other tile state, shown for both active and inactive medicines.
+- `medicine-details`: the details screen gains a Stock section listing batches and an "Add stock" action, plus an inline note of the medicine's current low-stock / expiry-at-use state.
+- `medicine-overview`: medicine tiles gain a live stock heads-up (low stock and/or nearest-batch expiry), shown only for a medicine with at least one stock batch, visually and textually distinct from the existing inactive-tile treatment.
+- `medication-persistence`: adds a `stock_batches` table and a nullable low-stock-acknowledgement column to `medications`, shipped with a migration and a migration test.
 
 ## Impact
 
-- **Data**: adds a nullable `expiryDate` column to the medicine entity in Room, shipped with a migration and a migration test (per CLAUDE.md, every schema change ships with a migration and a migration test).
-- **UI**: Add medicine form, Medicine details form, and Medicine tile composables gain one field / one indicator each; no new screens. Goes through the `pillsner-designer` agent / `pillsner-ui-build` + `pillsner-ui-review` skills per CLAUDE.md.
-- **Domain**: a small pure function to classify a medicine's expiry state (none / approaching / past) from its expiry date and the current date, unit-testable with no Android dependency, covering the midnight/date-boundary edge cases CLAUDE.md calls out.
-- No new dependency, no network access, no change to reminder/alarm behaviour.
+- **Data**: new `stock_batches` table (medication reference, remaining quantity, expiry date, added-at moment) and a nullable acknowledgement column on `medications`, via a Room schema migration with its migration test.
+- **UI**: Medicine details gains a Stock section and an Add stock form; medicine tiles gain a heads-up indicator; a warning dialog appears after a taken dose when it applies. No new top-level screens. Goes through the `pillsner-designer` agent / `pillsner-ui-build` + `pillsner-ui-review` skills per CLAUDE.md.
+- **Domain**: pure, Android-free functions for first-expiry-first-out consumption, weekly usage projection (reusing the existing dose generator), stock sufficiency, and per-batch expiry classification — unit-testable, covering date-boundary edge cases per CLAUDE.md's testing expectations.
+- **Reminders/scheduling**: untouched. Stock state is read only when a dose is recorded taken or when a screen renders; it never affects whether or when a dose is generated or reminded.
+- No new dependency, no network access.

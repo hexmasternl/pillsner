@@ -32,6 +32,7 @@
     <!-- Acciones compartidas -->
     <string name="action_back">Atrás</string>
     <string name="action_cancel">Cancelar</string>
+    <string name="action_remove">Eliminar</string>
     <string name="action_save">Guardar</string>
     <string name="action_done">Hecho</string>
     <string name="action_ok">Aceptar</string>
@@ -203,6 +204,7 @@
     <string name="medicine_error_dose_required">Introduce una cantidad.</string>
     <string name="medicine_error_dose_not_a_number">Introduce la cantidad como un número.</string>
     <string name="medicine_error_dose_not_positive">Introduce una cantidad mayor que cero.</string>
+    <string name="medicine_error_dose_unit_locked_by_stock">La unidad no puede cambiar mientras haya existencias registradas. Elimina primero los lotes.</string>
     <string name="medicine_error_use_until_before_used_since">Debe ser igual o posterior a la fecha de inicio de uso.</string>
 
     <!-- Descartar un borrador -->
@@ -454,4 +456,38 @@
     <string name="usage_history_timing_bar_week">Semana del %1$s, %2$s de desviación media respecto al horario, en %3$s</string>
     <string name="usage_history_timing_bar_day_empty">%1$s, sin dosis tomadas registradas</string>
     <string name="usage_history_timing_bar_week_empty">Semana del %1$s, sin dosis tomadas registradas</string>
+
+    <string name="medicine_stock_header">Existencias</string>
+    <string name="medicine_stock_none">No se registran existencias para este medicamento.</string>
+    <string name="medicine_stock_add">Añadir existencias</string>
+    <string name="medicine_stock_low_note">Las existencias se están agotando.</string>
+    <string name="medicine_stock_expiring_note">El próximo lote caduca pronto.</string>
+    <string name="medicine_stock_expired_note">El próximo lote ha caducado.</string>
+    <string name="medicine_stock_batch_row">%1$s, caduca el %2$s</string>
+    <string name="medicine_stock_batch_row_strength">%1$s por %2$s</string>
+    <string name="medicine_stock_remove_content_description">Eliminar este lote de existencias</string>
+    <string name="medicine_stock_remove_title">¿Eliminar estas existencias?</string>
+    <string name="medicine_stock_remove_body">Este lote se eliminará de forma permanente. Esta acción no se puede deshacer.</string>
+
+    <string name="medicine_stock_add_title">Añadir existencias</string>
+    <string name="medicine_stock_field_quantity">Cantidad</string>
+    <string name="medicine_stock_field_strength">Concentración</string>
+    <string name="medicine_stock_strength_suffix">%1$s por %2$s</string>
+    <string name="medicine_stock_field_expiry">Fecha de caducidad</string>
+    <string name="medicine_stock_error_quantity_required">Introduce una cantidad.</string>
+    <string name="medicine_stock_error_quantity_not_a_number">Introduce la cantidad como un número.</string>
+    <string name="medicine_stock_error_quantity_not_positive">Introduce una cantidad mayor que cero.</string>
+    <string name="medicine_stock_error_strength_required">Introduce una concentración.</string>
+    <string name="medicine_stock_error_strength_not_a_number">Introduce la concentración como un número.</string>
+    <string name="medicine_stock_error_strength_not_positive">Introduce una concentración mayor que cero.</string>
+    <string name="medicine_stock_expiry_past_warning">Esta fecha ya ha pasado. Aun así puedes guardarla.</string>
+
+    <string name="medicine_tile_low_stock">Pocas existencias</string>
+    <string name="medicine_tile_expiring_soon">Caduca pronto</string>
+    <string name="medicine_tile_expired">Caducado</string>
+
+    <string name="stock_warning_low_stock_message">Las existencias de %1$s se están agotando y no llegarán para esta semana.</string>
+    <string name="stock_warning_expiring_message">Las existencias de %1$s que acabas de usar caducan pronto.</string>
+    <string name="stock_warning_expired_message">Las existencias de %1$s que acabas de usar han caducado.</string>
+    <string name="stock_warning_action_ordered_new">He pedido más</string>
 </resources>

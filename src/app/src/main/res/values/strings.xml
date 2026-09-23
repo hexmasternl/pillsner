@@ -532,6 +532,11 @@
     <string name="medicine_tile_expiring_soon">Expires soon</string>
     <string name="medicine_tile_expired">Expired</string>
 
+    <!-- Stock tracking: the active tile's always-on stock level indicator -->
+    <string name="medicine_tile_stock_sufficient">In stock</string>
+    <string name="medicine_tile_stock_low">Stock low</string>
+    <string name="medicine_tile_stock_critical">Critical stock</string>
+
     <!-- Stock tracking: the warning shown after a taken dose -->
     <!-- %1$s: the medicine name -->
     <string name="stock_warning_low_stock_message">%1$s is running low and won\'t last the week at this rate.</string>

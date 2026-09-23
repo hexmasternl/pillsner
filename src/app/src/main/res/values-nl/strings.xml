@@ -487,6 +487,10 @@
     <string name="medicine_tile_expiring_soon">Verloopt binnenkort</string>
     <string name="medicine_tile_expired">Verlopen</string>
 
+    <string name="medicine_tile_stock_sufficient">Op voorraad</string>
+    <string name="medicine_tile_stock_low">Voorraad laag</string>
+    <string name="medicine_tile_stock_critical">Voorraad kritiek</string>
+
     <string name="stock_warning_low_stock_message">De voorraad van %1$s raakt op en is niet genoeg voor deze week.</string>
     <string name="stock_warning_expiring_message">De voorraad die je zojuist van %1$s hebt gebruikt, verloopt binnenkort.</string>
     <string name="stock_warning_expired_message">De voorraad die je zojuist van %1$s hebt gebruikt, is verlopen.</string>

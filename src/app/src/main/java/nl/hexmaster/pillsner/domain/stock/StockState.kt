@@ -12,14 +12,33 @@ import nl.hexmaster.pillsner.domain.model.StockBatch
 const val APPROACHING_EXPIRY_WINDOW_DAYS = 30L
 
 /**
- * A medicine's current stock picture, read live rather than tied to any one taken dose: whether it
- * is running low, and the expiry state of its soonest-expiring batch that still has stock.
+ * How adequate a medicine's remaining stock is, for the tile's always-on stock indicator
+ * (`medicine-stock-tracking`'s "Medicine tile stock level indicator" requirement). An as-needed
+ * medicine, which has no weekly projection to compare against, is always [SUFFICIENT].
+ */
+enum class StockLevel {
+    /** Enough remains to cover the projected week. */
+    SUFFICIENT,
+
+    /** Less than a projected week remains, but some stock is left. */
+    LOW,
+
+    /** Nothing usable remains — the one case the design system reserves red for besides danger. */
+    CRITICAL,
+}
+
+/**
+ * A medicine's current stock picture, read live rather than tied to any one taken dose: how
+ * adequate its stock is, and the expiry state of its soonest-expiring batch that still has stock.
  *
  * Used identically by the tile heads-up, the Medicine details inline note, and stock-warning
  * evaluation, so all three always agree (`medicine-stock-tracking`'s "Tile and details-screen
  * heads-up is a live read, not an event" decision).
  */
-data class StockState(val isLow: Boolean, val nearestExpiry: BatchExpiryState)
+data class StockState(val level: StockLevel, val nearestExpiry: BatchExpiryState) {
+    /** True whenever [level] is not [StockLevel.SUFFICIENT] — the pre-existing low-stock warning. */
+    val isLow: Boolean get() = level != StockLevel.SUFFICIENT
+}
 
 /**
  * The current stock picture for [medication] given its [batches]. A medicine with no batches at all
@@ -40,7 +59,12 @@ fun stockState(
     // Projected through these same batches, so whole pills used by the rounding count towards the
     // week (`medicine-stock-tracking`'s "Weekly usage projection" requirement).
     val weeklyUsage = projectWeeklyUsage.forMedication(medication, today, zone, batches)
-    val isLow = weeklyUsage != null && remainingInDoseUnits < weeklyUsage.value
+    val level = when {
+        weeklyUsage == null -> StockLevel.SUFFICIENT
+        remainingInDoseUnits <= BigDecimal.ZERO -> StockLevel.CRITICAL
+        remainingInDoseUnits < weeklyUsage.value -> StockLevel.LOW
+        else -> StockLevel.SUFFICIENT
+    }
 
     val nearestExpiry = batches
         .filter { it.usableRemaining > BigDecimal.ZERO }
@@ -48,7 +72,7 @@ fun stockState(
         ?.let { batchExpiryState(it.expiryDate, today) }
         ?: BatchExpiryState.NONE
 
-    return StockState(isLow, nearestExpiry)
+    return StockState(level, nearestExpiry)
 }
 
 /**

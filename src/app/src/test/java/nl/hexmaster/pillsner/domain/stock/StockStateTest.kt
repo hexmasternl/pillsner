@@ -71,6 +71,7 @@ class StockStateTest {
         val state = stockState(batches, medication, today, zone)
 
         assertTrue(state.isLow)
+        assertEquals(StockLevel.LOW, state.level)
     }
 
     @Test
@@ -85,6 +86,30 @@ class StockStateTest {
         val state = stockState(batches, medication, today, zone)
 
         assertFalse(state.isLow)
+        assertEquals(StockLevel.SUFFICIENT, state.level)
+    }
+
+    @Test
+    fun `no remaining stock is critical, not merely low`() {
+        val medication = TestFixtures.medication(
+            defaultDose = TestFixtures.oneTablet,
+            usedSince = today,
+            schedules = listOf(Schedule.EveryNDays(TestFixtures.oneTablet, 1, listOf(TestFixtures.time(8)))),
+        )
+        val batches = listOf(batch("0", today.plusDays(60)))
+
+        val state = stockState(batches, medication, today, zone)
+
+        assertEquals(StockLevel.CRITICAL, state.level)
+        assertTrue("critical stock is still reported as low", state.isLow)
+    }
+
+    @Test
+    fun `an as-needed medicine is exempt from the critical check as well`() {
+        val medication = TestFixtures.medication(schedules = emptyList())
+        val batches = listOf(batch("0", today.plusDays(60)))
+
+        assertEquals(StockLevel.SUFFICIENT, stockState(batches, medication, today, zone).level)
     }
 
     @Test

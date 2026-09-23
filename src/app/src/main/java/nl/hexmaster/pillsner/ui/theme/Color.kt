@@ -27,6 +27,10 @@ internal object PillsnerPalette {
     val LightOnError = Color(0xFFFFFFFF)
     val LightErrorContainer = Color(0xFFFFDAD6)
     val LightOnErrorContainer = Color(0xFF410002)
+    // Amber, used only for the medicine tile's "Stock low" indicator (design-system.md 2.2): the
+    // one step between the green "In stock" and the red "Critical stock" reserved-red case.
+    val LightWarningContainer = Color(0xFFFFDEA6)
+    val LightOnWarningContainer = Color(0xFF271900)
     val LightSurface = Color(0xFFF9FBFA)
     val LightOnSurface = Color(0xFF191C1B)
     val LightSurfaceVariant = Color(0xFFDCE5E0)
@@ -59,6 +63,8 @@ internal object PillsnerPalette {
     val DarkOnError = Color(0xFF690005)
     val DarkErrorContainer = Color(0xFF93000A)
     val DarkOnErrorContainer = Color(0xFFFFDAD6)
+    val DarkWarningContainer = Color(0xFF5F4200)
+    val DarkOnWarningContainer = Color(0xFFFFDEA6)
     val DarkSurface = Color(0xFF101413)
     val DarkOnSurface = Color(0xFFE1E3E0)
     val DarkSurfaceVariant = Color(0xFF3F4945)

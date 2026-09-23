@@ -114,6 +114,16 @@ Card(
 
 Add an `Inactive` chip (`surfaceContainerHighest` / `onSurfaceVariant`) at the trailing end of the name row.
 
+An active medicine with a known stock picture always shows one tri-state chip below the schedule lines, driven by `domain.stock.StockLevel`: `primaryContainer`/`onPrimaryContainer` + `ic_check_circle_filled` for `SUFFICIENT` ("In stock"), the theme's `warningContainer`/`onWarningContainer` pair (`stockWarningContainerColor()`/`stockWarningOnContainerColor()`) + `ic_info` for `LOW` ("Stock low"), `errorContainer`/`onErrorContainer` + `ic_error_filled` for `CRITICAL` ("Critical stock"). Exactly one always renders when the medicine is active and its stock state is known — never omit the chip just because stock happens to be sufficient. An expiring/expired batch adds its own `secondaryContainer` chip alongside it, unconditional on active state. Inactive medicines show neither chip.
+
+```kotlin
+val (icon, containerColor, contentColor) = when (level) {
+    StockLevel.SUFFICIENT -> Triple(R.drawable.ic_check_circle_filled, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
+    StockLevel.LOW -> Triple(R.drawable.ic_info, stockWarningContainerColor(), stockWarningOnContainerColor())
+    StockLevel.CRITICAL -> Triple(R.drawable.ic_error_filled, MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer)
+}
+```
+
 ## Buttons (8.4)
 
 ```kotlin

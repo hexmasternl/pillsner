@@ -45,3 +45,15 @@ fun tileContainerColor(): Color =
     } else {
         MaterialTheme.colorScheme.surfaceContainerLowest
     }
+
+/**
+ * The amber container pair reserved for the medicine tile's "Stock low" indicator (section 2.2):
+ * the app's one warning hue, sitting between the green "In stock" and the red "Critical stock".
+ */
+@Composable
+fun stockWarningContainerColor(): Color =
+    if (LocalPillsnerDarkTheme.current) PillsnerPalette.DarkWarningContainer else PillsnerPalette.LightWarningContainer
+
+@Composable
+fun stockWarningOnContainerColor(): Color =
+    if (LocalPillsnerDarkTheme.current) PillsnerPalette.DarkOnWarningContainer else PillsnerPalette.LightOnWarningContainer

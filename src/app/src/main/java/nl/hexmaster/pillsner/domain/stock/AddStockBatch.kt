@@ -43,6 +43,10 @@ class AddStockBatch(
         } else {
             strengthPerUnit
         }
+        // Checked here, not only on the form: this is the domain's own boundary, and a batch with a
+        // non-positive strength breaks every conversion that later divides by it. The amount needs
+        // no check of its own; a Quantity is always greater than zero.
+        require(effectiveStrength > BigDecimal.ZERO) { "A stock batch's strength must be greater than zero" }
         stockBatchRepository.addBatch(medicationId, amount, effectiveStrength, expiryDate, clock.instant())
         medicationRepository.setLowStockAcknowledgement(medicationId, null)
     }

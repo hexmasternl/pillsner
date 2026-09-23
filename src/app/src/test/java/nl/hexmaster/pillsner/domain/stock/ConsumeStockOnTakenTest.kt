@@ -115,6 +115,40 @@ class ConsumeStockOnTakenTest {
     }
 
     @Test
+    fun `a batch with a strength of zero or less is rejected and nothing is written`() = runBlocking {
+        medications.upsert(scheduledMedication)
+        medications.setLowStockAcknowledgement(scheduledMedication.id, LowStockAcknowledgement.ACKNOWLEDGED_ORDERED)
+
+        listOf("0", "-20").forEach { strength ->
+            val result = runCatching {
+                addStockBatch(
+                    scheduledMedication.id,
+                    Quantity.of("20", DoseUnit.MILLIGRAM),
+                    java.math.BigDecimal(strength),
+                    java.time.LocalDate.of(2027, 1, 1),
+                )
+            }
+            assertTrue("Strength $strength must be rejected", result.exceptionOrNull() is IllegalArgumentException)
+        }
+
+        assertTrue(batches.batches(scheduledMedication.id).isEmpty())
+        assertEquals(
+            "A rejected batch does not clear the acknowledgement either",
+            LowStockAcknowledgement.ACKNOWLEDGED_ORDERED,
+            medications.get(scheduledMedication.id)?.lowStockAcknowledgement,
+        )
+    }
+
+    @Test
+    fun `a strength passed for a batch in the medicine's own unit is ignored, not rejected`() = runBlocking {
+        medications.upsert(scheduledMedication)
+
+        addStockBatch(scheduledMedication.id, Quantity.of("20", DoseUnit.TABLET), java.math.BigDecimal.ZERO, java.time.LocalDate.of(2027, 1, 1))
+
+        assertEquals(java.math.BigDecimal.ONE, batches.batches(scheduledMedication.id).single().strengthPerUnit)
+    }
+
+    @Test
     fun `expiry-at-use enqueues even when the low-stock warning is suppressed`() = runBlocking {
         medications.upsert(scheduledMedication)
         // Low stock (well under the 7-tablet weekly projection) and expiring in 10 days.

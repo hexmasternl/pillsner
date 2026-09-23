@@ -33,6 +33,9 @@ class RoomStockBatchRepository(
         expiryDate: LocalDate,
         addedAt: Instant,
     ) {
+        // StockBatch's own strength invariant, checked before the row exists: a row that breaks it
+        // would make every later read of this medicine's stock throw.
+        require(strengthPerUnit > BigDecimal.ZERO) { "A stock batch's strength must be greater than zero" }
         dao.insert(
             StockBatchEntity(
                 medicationId = medicationId.value,

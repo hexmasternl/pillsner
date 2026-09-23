@@ -116,3 +116,9 @@ Fixes for the second round of review on pull request #60.
 - [x] 11.7 Give the stock warning dialog's title `headlineMedium` (design system §8.12)
 - [x] 11.8 Run unit tests and lint from the `src` Gradle project root
 - [ ] 11.9 Run the instrumented tests, including `StockBatchDaoTest`, on a device or emulator
+
+## 12. Third pull request review
+
+- [x] 12.1 Reject a batch strength of zero or less in `AddStockBatch` (on the strength actually recorded) and in `RoomStockBatchRepository.addBatch`, before anything is written
+- [x] 12.2 Add tests: a rejected strength writes nothing and leaves the acknowledgement set; a strength passed for a same-unit batch is ignored; the Room repository refuses a zero strength
+- [x] 12.3 Run unit tests and lint from the `src` Gradle project root

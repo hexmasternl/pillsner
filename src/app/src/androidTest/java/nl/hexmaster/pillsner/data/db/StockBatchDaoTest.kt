@@ -67,6 +67,18 @@ class StockBatchDaoTest {
     }
 
     @Test
+    fun aBatchWithAStrengthOfZero_isRejectedBeforeAnyRowIsWritten() = runBlocking {
+        val id = addMedication()
+
+        val result = runCatching {
+            batches.addBatch(id, Quantity.of("20", DoseUnit.TABLET), BigDecimal.ZERO, LocalDate.of(2027, 1, 1), addedAt)
+        }
+
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        assertTrue("Nothing was stored that a later read would choke on", batches.batches(id).isEmpty())
+    }
+
+    @Test
     fun batches_comeBackSoonestExpiryFirst_thenInAddOrder() = runBlocking {
         val id = addMedication()
         batches.addBatch(id, Quantity.of("1", DoseUnit.MILLIGRAM), BigDecimal.ONE, LocalDate.of(2027, 6, 1), addedAt)

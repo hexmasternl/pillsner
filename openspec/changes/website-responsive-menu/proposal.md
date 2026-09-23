@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #63 (https://github.com/hexmasternl/pillsner/issues/63)
+**Pull Request:** #64 (https://github.com/hexmasternl/pillsner/pull/64)
 
 Since `website-multipage-expansion` the header lists all nine pages as a flat row of links. That row is wider than the header on most screens: it wraps onto two or three ragged lines on desktop, pushes the language switcher around, and on a phone it turns the sticky header into a block of links that covers a large part of the screen. The site is the first thing a prospective user sees of Pillsner; a menu that looks broken undercuts the "calm, reliable" promise the app makes.
 

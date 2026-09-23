@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #72 (https://github.com/hexmasternl/pillsner/issues/72)
+**Pull Request:** #73 (https://github.com/hexmasternl/pillsner/pull/73)
 
 Google Play Console again reports "Edge-to-edge may not display for all users" for Pillsner (#72), even though the earlier fix for the same warning (#14, archived as `edge-to-edge-deprecated-theme-attributes`) is already in production. That change only covered the phone app. Pillsner also ships a Wear OS bundle to Play, built from the same catalog with `targetSdk` 37, and its `MainActivity` never calls `enableEdgeToEdge()`. Play checks every bundle, so the watch app is the remaining cause. Separately, the phone's per-screen inset handling was declared out of scope in #14 and has never been checked screen by screen. On Android 15+ edge-to-edge is enforced and on Android 16+ it can't be opted out of, so a screen that misses an inset hides content, sometimes including the button that confirms a dose.
 

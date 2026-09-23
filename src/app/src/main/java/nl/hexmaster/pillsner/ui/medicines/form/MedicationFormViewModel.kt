@@ -25,6 +25,7 @@ import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.Schedule
 import nl.hexmaster.pillsner.domain.model.StockBatchId
+import nl.hexmaster.pillsner.domain.model.isWholePill
 import nl.hexmaster.pillsner.domain.model.summarize
 import nl.hexmaster.pillsner.domain.repository.MedicationRepository
 import nl.hexmaster.pillsner.domain.repository.StockBatchRepository
@@ -145,7 +146,7 @@ class MedicationFormViewModel(
             combine(repo.observeBatches(medication.id), dates, ::Pair).collect { (batches, date) ->
                 val rows = batches
                     .sortedWith(compareBy({ it.expiryDate }, { it.addedAt }))
-                    .map { StockBatchRowState(it.id, it.remaining, it.unit, it.strengthPerUnit, it.expiryDate) }
+                    .map { StockBatchRowState(it.id, it.usableRemaining, it.unit, it.strengthPerUnit, it.expiryDate) }
                 val state = batches.takeIf { it.isNotEmpty() }
                     ?.let { stockState(it, medication, date, clock.zone, projectWeeklyUsage) }
                 // Every batch's strength is relative to the stored default dose unit, so that unit
@@ -188,7 +189,7 @@ class MedicationFormViewModel(
         val current = _uiState.value.addStockState ?: return
         val validated = current.copy(
             showErrors = true,
-            quantityError = validateStockAmount(current.quantityText),
+            quantityError = validateStockAmount(current.quantityText, wholePillsOnly = current.unit.isWholePill),
             strengthError = if (current.needsStrength) validateStockAmount(current.strengthText) else null,
         )
         _uiState.update { it.copy(addStockState = validated) }
@@ -218,10 +219,15 @@ class MedicationFormViewModel(
         }
     }
 
-    private fun validateStockAmount(text: String): MedicationFieldError? {
+    /**
+     * [wholePillsOnly] rejects a fractional amount, for a quantity counted in tablets or capsules
+     * (`medicine-stock-tracking`'s "Whole-pill units" requirement).
+     */
+    private fun validateStockAmount(text: String, wholePillsOnly: Boolean = false): MedicationFieldError? {
         if (text.isBlank()) return MedicationFieldError.DOSE_REQUIRED
         val value = amountParser.parse(text) ?: return MedicationFieldError.DOSE_NOT_A_NUMBER
         if (value <= java.math.BigDecimal.ZERO) return MedicationFieldError.DOSE_NOT_POSITIVE
+        if (wholePillsOnly && value.stripTrailingZeros().scale() > 0) return MedicationFieldError.STOCK_NOT_WHOLE_PILLS
         return null
     }
 

@@ -477,6 +477,7 @@
     <string name="medicine_stock_error_quantity_required">Voer een hoeveelheid in.</string>
     <string name="medicine_stock_error_quantity_not_a_number">Voer de hoeveelheid als getal in.</string>
     <string name="medicine_stock_error_quantity_not_positive">Voer een hoeveelheid groter dan nul in.</string>
+    <string name="medicine_stock_error_quantity_not_whole">Voer een heel aantal tabletten of capsules in.</string>
     <string name="medicine_stock_error_strength_required">Voer een sterkte in.</string>
     <string name="medicine_stock_error_strength_not_a_number">Voer de sterkte als getal in.</string>
     <string name="medicine_stock_error_strength_not_positive">Voer een sterkte groter dan nul in.</string>

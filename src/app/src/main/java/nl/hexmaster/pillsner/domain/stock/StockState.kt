@@ -37,11 +37,13 @@ fun stockState(
     // strength, so a mix of units across batches still totals correctly (`medicine-stock-tracking`'s
     // "Stock unit conversion" requirement).
     val remainingInDoseUnits = batches.fold(BigDecimal.ZERO) { sum, batch -> sum + batch.remainingInDoseUnits }
-    val weeklyUsage = projectWeeklyUsage.forMedication(medication, today, zone)
+    // Projected through these same batches, so whole pills used by the rounding count towards the
+    // week (`medicine-stock-tracking`'s "Weekly usage projection" requirement).
+    val weeklyUsage = projectWeeklyUsage.forMedication(medication, today, zone, batches)
     val isLow = weeklyUsage != null && remainingInDoseUnits < weeklyUsage.value
 
     val nearestExpiry = batches
-        .filter { it.remaining > BigDecimal.ZERO }
+        .filter { it.usableRemaining > BigDecimal.ZERO }
         .minByOrNull { it.expiryDate }
         ?.let { batchExpiryState(it.expiryDate, today) }
         ?: BatchExpiryState.NONE

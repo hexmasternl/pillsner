@@ -13,6 +13,9 @@ enum class MedicationFieldError {
     /** The default dose unit was changed while stock batches, whose strengths depend on it, exist. */
     DOSE_UNIT_LOCKED_BY_STOCK,
     USE_UNTIL_BEFORE_USED_SINCE,
+
+    /** A stock quantity in tablets or capsules was not a whole number (`medicine-stock-tracking`). */
+    STOCK_NOT_WHOLE_PILLS,
 }
 
 /** Every field error the form currently has, keyed by the field it belongs to. */

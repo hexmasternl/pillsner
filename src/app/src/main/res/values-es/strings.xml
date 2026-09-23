@@ -477,6 +477,7 @@
     <string name="medicine_stock_error_quantity_required">Introduce una cantidad.</string>
     <string name="medicine_stock_error_quantity_not_a_number">Introduce la cantidad como un número.</string>
     <string name="medicine_stock_error_quantity_not_positive">Introduce una cantidad mayor que cero.</string>
+    <string name="medicine_stock_error_quantity_not_whole">Introduce un número entero de comprimidos o cápsulas.</string>
     <string name="medicine_stock_error_strength_required">Introduce una concentración.</string>
     <string name="medicine_stock_error_strength_not_a_number">Introduce la concentración como un número.</string>
     <string name="medicine_stock_error_strength_not_positive">Introduce una concentración mayor que cero.</string>

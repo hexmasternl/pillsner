@@ -42,11 +42,17 @@ class StockStateTest {
         assertEquals(BatchExpiryState.NONE, batchExpiryState(today.plusDays(31), today))
     }
 
-    private fun batch(remaining: String, expiry: LocalDate, strengthPerUnit: String = "1") = StockBatch(
-        id = StockBatchId(1),
+    private fun batch(
+        remaining: String,
+        expiry: LocalDate,
+        strengthPerUnit: String = "1",
+        id: Long = 1,
+        unit: DoseUnit = DoseUnit.TABLET,
+    ) = StockBatch(
+        id = StockBatchId(id),
         medicationId = MedicationId(1),
         remaining = BigDecimal(remaining),
-        unit = DoseUnit.TABLET,
+        unit = unit,
         strengthPerUnit = BigDecimal(strengthPerUnit),
         expiryDate = expiry,
         addedAt = Instant.EPOCH,
@@ -127,9 +133,41 @@ class StockStateTest {
         // against a 280 mg (40 mg * 7 days) weekly projection.
         val batches = listOf(
             batch("7", today.plusDays(60), strengthPerUnit = "20"),
-            batch("200", today.plusDays(90), strengthPerUnit = "1"),
+            batch("200", today.plusDays(90), strengthPerUnit = "1", id = 2, unit = DoseUnit.MILLIGRAM),
         )
 
         assertFalse("340 mg of stock covers a 280 mg projection", stockState(batches, medication, today, zone).isLow)
+    }
+
+    // --- Whole-pill units ------------------------------------------------------------------
+
+    private val fortyMgDaily = TestFixtures.medication(
+        defaultDose = TestFixtures.mg40,
+        usedSince = today,
+        schedules = listOf(TestFixtures.everyDay(8)),
+    )
+
+    @Test
+    fun `whole-pill rounding makes stock low sooner`() {
+        // 6 tablets of 500 mg is 3,000 mg, far more than 7 x 40 mg = 280 mg, but each dose uses a
+        // whole tablet, so the week needs 7 of them.
+        val batches = listOf(batch("6", today.plusDays(60), strengthPerUnit = "500"))
+
+        assertTrue(stockState(batches, fortyMgDaily, today, zone).isLow)
+    }
+
+    @Test
+    fun `enough whole tablets for the week is not low`() {
+        val batches = listOf(batch("7", today.plusDays(60), strengthPerUnit = "500"))
+
+        assertFalse(stockState(batches, fortyMgDaily, today, zone).isLow)
+    }
+
+    @Test
+    fun `a legacy fractional tablet batch with less than one tablet has no nearest expiry`() {
+        val medication = TestFixtures.medication(schedules = emptyList())
+        val batches = listOf(batch("0.92", today))
+
+        assertEquals(BatchExpiryState.NONE, stockState(batches, medication, today, zone).nearestExpiry)
     }
 }

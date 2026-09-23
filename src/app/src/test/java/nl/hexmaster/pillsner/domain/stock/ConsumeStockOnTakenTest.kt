@@ -140,6 +140,23 @@ class ConsumeStockOnTakenTest {
     }
 
     @Test
+    fun `a fractional number of tablets is rejected at the domain boundary`() = runBlocking {
+        medications.upsert(scheduledMedication)
+
+        val result = runCatching {
+            addStockBatch(
+                scheduledMedication.id,
+                Quantity.of("20.5", DoseUnit.TABLET),
+                java.math.BigDecimal("20"),
+                java.time.LocalDate.of(2027, 1, 1),
+            )
+        }
+
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        assertTrue(batches.batches(scheduledMedication.id).isEmpty())
+    }
+
+    @Test
     fun `a strength passed for a batch in the medicine's own unit is ignored, not rejected`() = runBlocking {
         medications.upsert(scheduledMedication)
 

@@ -39,7 +39,7 @@ params:
         - "Een overgeslagen dosis is er een die je bewust met Niet doen hebt beantwoord. Een gemiste dosis is er een die je nooit beantwoordde, die gemist wordt zodra de volgende dosis aan de beurt is of 24 uur later, wat het eerst komt."
     - question: "Houdt Pillsner voorraad bij of herinnert het me aan het bestellen van een herhaalrecept?"
       answer:
-        - "Voorraad houdt het bij, als je dat wilt. Voeg voorraad toe aan een medicijn en Pillsner trekt elke dosis die je inneemt ervan af, te beginnen bij de partij die het eerst vervalt. Is wat er over is niet genoeg voor de komende week, dan waarschuwt het je, zodat je op tijd een herhaalrecept kunt regelen."
+        - "Pillsner houdt je voorraad bij, als je dat wilt. Voeg voorraad toe aan een medicijn en Pillsner trekt elke dosis die je inneemt ervan af, te beginnen bij de partij die het eerst vervalt. Is wat er over is niet genoeg voor de komende week, dan waarschuwt het je, zodat je op tijd een herhaalrecept kunt regelen."
         - "Het bestelt nooit iets en neemt geen contact op met je apotheek: Pillsner heeft helemaal geen internettoegang. De waarschuwing is een seintje; het bestellen doe je zelf."
     - question: "Mijn dosis is kleiner dan één tablet. Hoe telt Pillsner dat?"
       answer:

@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.domain.model.Dose
+import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.repository.DoseRepository
 import nl.hexmaster.pillsner.shared.wear.SyncedDose
 import nl.hexmaster.pillsner.shared.wear.SyncedDoses
+import nl.hexmaster.pillsner.shared.wear.SyncedMedicineDetails
 import nl.hexmaster.pillsner.shared.wear.WearSyncContract
 
 /** Where a published list goes. One method, so a test can stand in for the whole Data Layer. */
@@ -43,7 +45,9 @@ class DataLayerSyncTarget(private val dataClient: DataClient) : SyncTarget {
  *
  * Amounts are written out here, in the phone app's language, because the phone is the only side
  * that knows the units and their translations. The language travels with them so the watch reads
- * its own strings the same way.
+ * its own strings the same way. The same goes for the medicine behind each dose — its default dose,
+ * its schedules and its remaining stock — which the watch shows on its read-only details screen
+ * (`wear-day-overview` design D3).
  *
  * Nothing to publish to is a normal state, not a failure: a phone without Play services simply has
  * no watch to talk to, and every log line here counts doses without naming one.
@@ -52,6 +56,7 @@ class DoseSyncPublisher(
     private val doseRepository: DoseRepository,
     private val target: SyncTarget?,
     private val amountText: (Quantity) -> String,
+    private val medicineDetails: suspend (MedicationId) -> SyncedMedicineDetails? = { null },
     private val languageTag: () -> String,
     private val clock: Clock,
     private val debounceMillis: Long = DEBOUNCE_MILLIS,
@@ -82,12 +87,24 @@ class DoseSyncPublisher(
     }
 
     private suspend fun publish(doses: List<Dose>) {
+        // One lookup per medicine, not per dose: a medicine taken three times a day appears three
+        // times in the list and its details are the same every time.
+        val detailsByMedicine = mutableMapOf<MedicationId, SyncedMedicineDetails?>()
         val payload = SyncedDoses(
             languageTag = languageTag(),
             // Always different, so the Data Layer treats it as a change and syncs it even when the
             // doses are identical — which is how a language change reaches the watch.
             publishedAtEpochMillis = Instant.now(clock).toEpochMilli(),
-            doses = doses.sortedBy { it.scheduledAt }.map { it.toSyncedDose() },
+            doses = doses.sortedBy { it.scheduledAt }.map { dose ->
+                val details = dose.medicationId?.let { id ->
+                    if (detailsByMedicine.containsKey(id)) {
+                        detailsByMedicine[id]
+                    } else {
+                        medicineDetails(id).also { detailsByMedicine[id] = it }
+                    }
+                }
+                dose.toSyncedDose(details)
+            },
         )
         try {
             target?.publish(SyncedDoses.encode(payload))
@@ -98,11 +115,12 @@ class DoseSyncPublisher(
         }
     }
 
-    private fun Dose.toSyncedDose() = SyncedDose(
+    private fun Dose.toSyncedDose(details: SyncedMedicineDetails?) = SyncedDose(
         doseId = id.value,
         medicationName = medicationName,
         amountText = amountText(amount),
         scheduledAtEpochMillis = scheduledAt.toEpochMilli(),
+        details = details,
     )
 
     private companion object {

@@ -18,6 +18,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.shared.wear.SyncedDose
 import nl.hexmaster.pillsner.shared.wear.SyncedDoses
+import nl.hexmaster.pillsner.shared.wear.SyncedMedicineDetails
+import nl.hexmaster.pillsner.wear.domain.AgendaDay
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -79,16 +81,63 @@ class WatchViewModelTest {
     }
 
     @Test
-    fun `the doses in the next six hours become the list`() = runTest(dispatcher) {
+    fun `today and tomorrow become the agenda, each under its own heading`() = runTest(dispatcher) {
+        // Noon in Amsterdam, so nine hours on is still tonight and a day on is tomorrow.
         payloads.value = payload(
             doseAt(1, Duration.ofHours(1), "Ibuprofen"),
             doseAt(2, Duration.ofHours(9), "Metformin"),
+            doseAt(3, Duration.ofHours(25), "Simvastatin"),
         )
 
         val state = collecting().uiState.value
 
-        assertEquals(listOf("Ibuprofen"), state.entries.map { it.name })
+        assertEquals(listOf(AgendaDay.TODAY, AgendaDay.TOMORROW), state.sections.map { it.day })
+        assertEquals(listOf("Ibuprofen", "Metformin", "Simvastatin"), state.entries.map { it.name })
         assertTrue(state.hasData)
+    }
+
+    @Test
+    fun `doses due at the same time share one group`() = runTest(dispatcher) {
+        payloads.value = payload(
+            doseAt(1, Duration.ofHours(1), "Ibuprofen"),
+            doseAt(2, Duration.ofHours(1), "Metformin"),
+            doseAt(3, Duration.ofHours(3), "Simvastatin"),
+        )
+
+        val groups = collecting().uiState.value.sections.single().groups
+
+        assertEquals(listOf(2, 1), groups.map { it.doses.size })
+    }
+
+    @Test
+    fun `the medicine behind a dose travels with it, for the details screen`() = runTest(dispatcher) {
+        payloads.value = payload(
+            doseAt(1, Duration.ofHours(1), "Ibuprofen").copy(
+                details = SyncedMedicineDetails(
+                    defaultDoseText = "400 mg",
+                    scheduleLines = listOf("400 mg twice a day"),
+                    stockText = "24 tablets",
+                ),
+            ),
+        )
+
+        val entry = collecting().uiState.value.entries.single()
+
+        assertEquals("400 mg", entry.defaultDoseText)
+        assertEquals(listOf("400 mg twice a day"), entry.scheduleLines)
+        assertEquals("24 tablets", entry.stockText)
+        assertTrue(entry.hasDetails)
+    }
+
+    @Test
+    fun `a dose from a phone that sends no details is shown without them`() = runTest(dispatcher) {
+        payloads.value = payload(doseAt(1, Duration.ofHours(1), "Ibuprofen"))
+
+        val state = collecting().uiState.value
+        val entry = state.entries.single()
+
+        assertFalse(entry.hasDetails)
+        assertEquals(entry, state.entry(entry.doseId))
     }
 
     @Test
@@ -108,7 +157,7 @@ class WatchViewModelTest {
     @Test
     fun `a dose on the next day is flagged as tomorrow`() = runTest(dispatcher) {
         // 20:00 UTC is 22:00 in Amsterdam, so an hour on is still tonight and three hours on is
-        // 01:00 the next day: within six hours, that is the only other day there can be.
+        // 01:00 the next day.
         val lateEvening = Instant.parse("2026-09-13T20:00:00Z")
         val eveningClock = Clock.fixed(lateEvening, ZoneId.of("Europe/Amsterdam"))
         payloads.value = SyncedDoses(
@@ -130,8 +179,8 @@ class WatchViewModelTest {
     }
 
     @Test
-    fun `an empty six hours is an empty screen, not a missing one`() = runTest(dispatcher) {
-        payloads.value = payload(doseAt(1, Duration.ofHours(20)))
+    fun `two empty days are an empty screen, not a missing one`() = runTest(dispatcher) {
+        payloads.value = payload(doseAt(1, Duration.ofHours(60)))
 
         val state = collecting().uiState.value
 

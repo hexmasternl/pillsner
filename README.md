@@ -54,9 +54,10 @@ Pillsner is built around exactly those needs and nothing more.
 - The same reminder, with the same three answers, appears on a paired Wear OS watch.
 
 **On your wrist**
-- A Wear OS watch app showing what you have to take in the next six hours, soonest first, with the name, the amount and the time. A dose whose time has passed and that you have not answered stays at the top, because it is still to be taken.
-- Nothing scheduled in those six hours says so plainly, and a watch that cannot reach your phone says that too, so a stale list is never mistaken for a live one.
-- The watch app only shows. Answering a dose stays where it was: the reminder notification on the watch, or the phone.
+- A Wear OS watch app showing everything you still have to take today and tomorrow, under a **Today** and a **Tomorrow** heading and grouped by the time each dose is due, with the name and the amount. A dose whose time has passed and that you have not answered stays at the top of today, because it is still to be taken. The list scrolls, by touch and by rotary.
+- Tapping a dose shows the medicine behind it: its default dose, its schedule and, where you track it, what is left in stock.
+- Nothing scheduled for either day says so plainly, and a watch that cannot reach your phone says that too, so a stale list is never mistaken for a live one.
+- The watch app only shows. Nothing on it changes a medicine, a schedule or a dose: answering a dose stays where it was, on the reminder notification on the watch, or on the phone.
 - It reads in the language the phone app is set to, not the watch's own.
 
 **Home**
@@ -77,7 +78,7 @@ Pillsner is built around exactly those needs and nothing more.
 
 **Privacy by default**
 - All data lives on the device. There is no account, no cloud sync and no analytics unless explicitly added and clearly disclosed in a future release.
-- With the watch app installed, the names, amounts and times of the doses you still have to take also travel to your watch. They go over the direct Bluetooth or local network link between the two paired devices, through Google Play services, which stores them on the watch; nothing goes to a server, and neither app asks for internet access. Uninstalling the watch app removes them.
+- With the watch app installed, the doses you still have to take also travel to your watch: their names, amounts and times, and for each one the medicine's default dose, its schedule and its remaining stock, so the watch can show them without asking the phone again. They go over the direct Bluetooth or local network link between the two paired devices, through Google Play services, which stores them on the watch; nothing goes to a server, and neither app asks for internet access. Uninstalling the watch app removes them.
 - An optional app lock protects the app with a PIN and, once set up, biometric unlock. Screenshots and the recent apps thumbnail are hidden while it is on.
 - You can change your PIN in Settings without turning the lock off. Changing the PIN, turning biometric unlock off and turning the lock off each ask you to confirm it is you first, with your fingerprint or face where you have one, and with the PIN itself for turning the lock off. Each confirmation is good for that one change.
 - On the lock screen a reminder can show only "Time for your medicine", never the name or the amount, whenever your phone is set to hide sensitive notifications.

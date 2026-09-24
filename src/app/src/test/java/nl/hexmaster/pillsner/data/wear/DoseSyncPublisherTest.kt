@@ -16,7 +16,9 @@ import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.PlannedDose
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.shared.wear.SyncedDoses
+import nl.hexmaster.pillsner.shared.wear.SyncedMedicineDetails
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -35,6 +37,9 @@ class DoseSyncPublisherTest {
     private val published = mutableListOf<SyncedDoses>()
     private val target = SyncTarget { json -> published += checkNotNull(SyncedDoses.decode(json)) }
 
+    private val detailLookups = mutableListOf<MedicationId>()
+    private var details: SyncedMedicineDetails? = null
+
     private fun publisher(
         target: SyncTarget? = this.target,
         languageTag: String = "en",
@@ -42,6 +47,7 @@ class DoseSyncPublisherTest {
         doseRepository = repository,
         target = target,
         amountText = { quantity -> "${quantity.value.toPlainString()} ${quantity.unit.wire(languageTag)}" },
+        medicineDetails = { id -> detailLookups += id; details },
         languageTag = { languageTag },
         clock = clock,
     )
@@ -128,6 +134,35 @@ class DoseSyncPublisherTest {
         publisher().publishNow()
 
         assertTrue(published.single().doses.isEmpty())
+    }
+
+    @Test
+    fun `the medicine behind a dose travels with it, looked up once however many doses it has`() =
+        runTest {
+            details = SyncedMedicineDetails(
+                defaultDoseText = "400 mg",
+                scheduleLines = listOf("400 mg twice a day"),
+                stockText = "24 tablets",
+            )
+            plan("Ibuprofen", 60)
+            plan("Ibuprofen", 780)
+
+            publisher().publishNow()
+
+            val doses = published.single().doses
+            assertEquals(2, doses.size)
+            assertTrue(doses.all { it.details == details })
+            assertEquals("one lookup for the medicine, not one per dose", 1, detailLookups.size)
+        }
+
+    @Test
+    fun `a dose whose medicine is gone is published without details rather than dropped`() = runTest {
+        details = null
+        plan("Ibuprofen", 60)
+
+        publisher().publishNow()
+
+        assertNull(published.single().doses.single().details)
     }
 
     /** Stands in for the phone's plural resources, which a unit test has no resources for. */

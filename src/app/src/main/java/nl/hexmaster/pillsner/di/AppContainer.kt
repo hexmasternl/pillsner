@@ -51,6 +51,7 @@ import nl.hexmaster.pillsner.data.reminders.TrustedClockGuard
 import nl.hexmaster.pillsner.data.reminders.TrustedClockStore
 import nl.hexmaster.pillsner.data.wear.DataLayerSyncTarget
 import nl.hexmaster.pillsner.data.wear.DoseSyncPublisher
+import nl.hexmaster.pillsner.data.wear.WearMedicineDetails
 import nl.hexmaster.pillsner.data.wear.WearDataClientFactory
 import nl.hexmaster.pillsner.data.reminders.ReminderNotifier
 import nl.hexmaster.pillsner.data.reminders.ReminderPreferences
@@ -95,6 +96,7 @@ import nl.hexmaster.pillsner.ui.home.HomeViewModel
 import nl.hexmaster.pillsner.ui.home.StockWarningViewModel
 import nl.hexmaster.pillsner.ui.locale.AppLocale
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
+import nl.hexmaster.pillsner.ui.medicines.ScheduleDescriptionFormatter
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
@@ -287,10 +289,22 @@ class AppContainer(
     // The watch, if there is one to talk to (app-wearable-support design D3). Amounts are written
     // out here, under the app language, because the phone is the only side that knows the units.
     private val wearSyncTarget = WearDataClientFactory.create(applicationContext)?.let(::DataLayerSyncTarget)
+    private val wearQuantityFormatter =
+        QuantityFormatter(AppLocale.wrap(applicationContext), AppLocale.current)
+    private val wearScheduleFormatter =
+        ScheduleDescriptionFormatter(AppLocale.wrap(applicationContext), AppLocale.current)
+    private val wearMedicineDetails = WearMedicineDetails(
+        medicationRepository = this.medicationRepository,
+        stockBatchRepository = this.stockBatchRepository,
+        amountText = wearQuantityFormatter::format,
+        stockText = wearQuantityFormatter::format,
+        scheduleText = wearScheduleFormatter::describe,
+    )
     private val doseSyncPublisher = DoseSyncPublisher(
         doseRepository = this.doseRepository,
         target = wearSyncTarget,
-        amountText = QuantityFormatter(AppLocale.wrap(applicationContext), AppLocale.current)::format,
+        amountText = wearQuantityFormatter::format,
+        medicineDetails = wearMedicineDetails::forMedication,
         languageTag = { AppLocale.current.toLanguageTag() },
         clock = clock,
     )

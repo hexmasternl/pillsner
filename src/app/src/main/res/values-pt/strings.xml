@@ -487,6 +487,10 @@
     <string name="medicine_tile_expiring_soon">Vence em breve</string>
     <string name="medicine_tile_expired">Vencido</string>
 
+    <string name="medicine_tile_stock_sufficient">Em estoque</string>
+    <string name="medicine_tile_stock_low">Estoque baixo</string>
+    <string name="medicine_tile_stock_critical">Estoque crítico</string>
+
     <string name="stock_warning_low_stock_message">O estoque de %1$s está acabando e não será suficiente para esta semana.</string>
     <string name="stock_warning_expiring_message">O estoque de %1$s que você acabou de usar vence em breve.</string>
     <string name="stock_warning_expired_message">O estoque de %1$s que você acabou de usar venceu.</string>

@@ -62,6 +62,7 @@ import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
 import nl.hexmaster.pillsner.domain.model.StockBatchId
+import nl.hexmaster.pillsner.domain.stock.StockLevel
 import nl.hexmaster.pillsner.domain.stock.StockState
 import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
@@ -856,7 +857,7 @@ private fun MedicationFormStockSectionPreview() {
                         expiryDate = LocalDate.of(2027, 1, 1),
                     ),
                 ),
-                stockState = StockState(isLow = true, nearestExpiry = BatchExpiryState.APPROACHING),
+                stockState = StockState(level = StockLevel.LOW, nearestExpiry = BatchExpiryState.APPROACHING),
             ),
             onNameChange = {},
             onDoseTextChange = {},

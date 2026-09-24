@@ -487,6 +487,10 @@
     <string name="medicine_tile_expiring_soon">Läuft bald ab</string>
     <string name="medicine_tile_expired">Abgelaufen</string>
 
+    <string name="medicine_tile_stock_sufficient">Vorrätig</string>
+    <string name="medicine_tile_stock_low">Vorrat niedrig</string>
+    <string name="medicine_tile_stock_critical">Vorrat kritisch</string>
+
     <string name="stock_warning_low_stock_message">Der Vorrat von %1$s wird knapp und reicht nicht für diese Woche.</string>
     <string name="stock_warning_expiring_message">Der Vorrat von %1$s, den du gerade verwendet hast, läuft bald ab.</string>
     <string name="stock_warning_expired_message">Der Vorrat von %1$s, den du gerade verwendet hast, ist abgelaufen.</string>

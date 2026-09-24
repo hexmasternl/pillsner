@@ -67,6 +67,15 @@ Pillsner uses the Material 3 colour role system unchanged so that every Material
 | inversePrimary | `#8CD8B0` | `#1B7F5C` |
 | scrim | `#000000` | `#000000` |
 
+Material 3's `ColorScheme` has no warning slot, so one custom pair is added beyond the standard roles above, reserved solely for the medicine tile's tri-state stock indicator (8.2) where amber — not blue, green or red — is the correct signal:
+
+| Role | Light | Dark |
+| --- | --- | --- |
+| warningContainer | `#FFDEA6` | `#5F4200` |
+| onWarningContainer | `#271900` | `#FFDEA6` |
+
+Read through `stockWarningContainerColor()` / `stockWarningOnContainerColor()` in `ui/theme/IntakeStatusColors.kt`, mirroring the `tileContainerColor()` pattern — never inline the hex.
+
 ### 2.3 Intake state colours
 
 Dose and intake states map onto the colour roles. Never introduce a new hue for a state.
@@ -85,6 +94,7 @@ A skipped dose is neutral grey on purpose. The user chose it; the app does not s
 ### 2.4 Rules
 
 - **Red is reserved.** Use `error` roles only for: overdue or missed doses, reminder permissions that are missing, destructive confirmations (delete a medicine), stock at zero, and validation errors. Never for emphasis, branding or "important" labels.
+- **Amber is reserved too.** Use the `warningContainer` pair only for the medicine tile's "Stock low" indicator (8.2) — some stock remains, but less than a projected week's use.
 - **Green means done or go.** The filled primary button is the positive action. Do not use primary for decorative fills.
 - **Blue means information and place.** Selected navigation item, due doses, links, informational chips.
 - **Never hard-code a hex in a composable.** Read from `MaterialTheme.colorScheme`. The only file that knows a hex value is `ui/theme/Color.kt`.
@@ -229,7 +239,10 @@ Shows one planned dose on the Home screen. `Card` with `large` shape.
 
 Shows one medicine on the Medicines screen. Same card as the dose tile without the stripe.
 
+- Leading 40 dp circular icon avatar: `secondaryContainer` filled with the medication glyph for an active medicine, `surfaceContainerHighest` outlined for an inactive one. Purely decorative.
 - Name in `titleMedium`; one `bodyMedium` line per schedule description; "As needed · 40 mg" when there are none.
+- An active medicine with a known stock picture always shows one tri-state chip: `primaryContainer`/`check_circle` "In stock", `warningContainer`/`info` "Stock low", or `errorContainer`/`error` "Critical stock" (stock at zero). Exactly one of the three always renders, so the state is never left to be inferred from its absence. An expiring or expired batch adds its own `secondaryContainer` chip alongside it. Inactive medicines show neither; a stopped medicine's stock is not the user's concern until it is reactivated.
+- Trailing chevron when the tile opens the medicine's details, hinting the tap target without adding words to the spoken description.
 - Inactive medicines: container `surfaceContainerLow`, all text in `onSurfaceVariant`, a small `Inactive` chip (`surfaceContainerHighest`), and `stateDescription = "Inactive"` for TalkBack. Do not lower alpha; it fails contrast.
 
 ### 8.3 Status chip

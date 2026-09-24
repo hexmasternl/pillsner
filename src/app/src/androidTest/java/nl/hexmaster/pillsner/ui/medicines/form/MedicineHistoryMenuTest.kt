@@ -25,7 +25,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The overflow action on the medicine form's top bar, and the one item behind it
+ * The overflow action on the medicine form's top bar, and the items behind it
  * (spec: medicine-details, medicine-usage-history).
  */
 @RunWith(AndroidJUnit4::class)
@@ -42,11 +42,13 @@ class MedicineHistoryMenuTest {
     }
 
     @Test
-    fun editModeHasAnOverflowActionWithExactlyOneItem() {
+    fun editModeHasAnOverflowActionWithTheThreeMenuItems() {
         showForm(detailsState())
 
         composeRule.onNodeWithTag(MedicationFormTestTags.OVERFLOW).assertIsDisplayed().performClick()
 
+        composeRule.onAllNodesWithTag(MedicationFormTestTags.MENU_ADD_SCHEDULE).assertCountEquals(1)
+        composeRule.onAllNodesWithTag(MedicationFormTestTags.MENU_ADD_STOCK).assertCountEquals(1)
         composeRule.onAllNodesWithTag(MedicationFormTestTags.USAGE_HISTORY).assertCountEquals(1)
     }
 
@@ -71,6 +73,28 @@ class MedicineHistoryMenuTest {
         assertEquals(1, opened)
     }
 
+    @Test
+    fun theAddScheduleItemOpensTheScheduleEditor() {
+        var added = 0
+        showForm(detailsState(), onAddSchedule = { added++ })
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.OVERFLOW).performClick()
+        composeRule.onNodeWithTag(MedicationFormTestTags.MENU_ADD_SCHEDULE).performClick()
+
+        assertEquals(1, added)
+    }
+
+    @Test
+    fun theAddStockItemOpensTheAddStockForm() {
+        var added = 0
+        showForm(detailsState(), onAddStock = { added++ })
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.OVERFLOW).performClick()
+        composeRule.onNodeWithTag(MedicationFormTestTags.MENU_ADD_STOCK).performClick()
+
+        assertEquals(1, added)
+    }
+
     private fun detailsState() = MedicationFormUiState(
         mode = MedicationFormMode.Edit(MedicationId(1)),
         name = "Metoprolol",
@@ -86,7 +110,12 @@ class MedicineHistoryMenuTest {
         ),
     )
 
-    private fun showForm(uiState: MedicationFormUiState, onOpenUsageHistory: () -> Unit = {}) {
+    private fun showForm(
+        uiState: MedicationFormUiState,
+        onOpenUsageHistory: () -> Unit = {},
+        onAddSchedule: () -> Unit = {},
+        onAddStock: () -> Unit = {},
+    ) {
         composeRule.setContent {
             PillsnerTheme {
                 MedicationFormScreen(
@@ -98,7 +127,7 @@ class MedicineHistoryMenuTest {
                     onUseUntilChange = {},
                     onPrescriberChange = {},
                     onActiveChanged = {},
-                    onAddSchedule = {},
+                    onAddSchedule = onAddSchedule,
                     onEditSchedule = {},
                     onRemoveSchedule = {},
                     onSave = {},
@@ -107,6 +136,7 @@ class MedicineHistoryMenuTest {
                     onKeepEditing = {},
                     snackbarHostState = remember { SnackbarHostState() },
                     onOpenUsageHistory = onOpenUsageHistory,
+                    onAddStockClicked = onAddStock,
                 )
             }
         }

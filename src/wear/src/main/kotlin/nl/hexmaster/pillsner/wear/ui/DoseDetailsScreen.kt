@@ -38,7 +38,7 @@ object DoseDetailsTestTags {
 
 /**
  * Everything the watch knows about one dose and the medicine behind it
- * (`wear-day-overview` design D4).
+ * (`wear-day-overview` design D5 and D6).
  *
  * Read-only, without exception: there is no field, button or gesture here that changes a medicine,
  * a schedule, a stock level or the dose itself. Every line was written out by the phone, so it

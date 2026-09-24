@@ -20,7 +20,7 @@ import nl.hexmaster.pillsner.wear.ui.theme.PillsnerWearTheme
 
 /**
  * The watch app's only activity. Two screens: the agenda, and the read-only details of one dose
- * (`wear-day-overview` design D4).
+ * (`wear-day-overview` design D5).
  *
  * Enables edge-to-edge explicitly, as the phone's `MainActivity` does, so the window behaves the
  * same on every Wear OS version and Google Play stops flagging the watch bundle (issue #72,

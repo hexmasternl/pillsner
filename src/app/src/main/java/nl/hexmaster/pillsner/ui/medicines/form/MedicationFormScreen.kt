@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -87,6 +88,8 @@ object MedicationFormTestTags {
     const val LOADING = "medication_form_loading"
     const val ACTIVE_SWITCH = "medication_form_active_switch"
     const val OVERFLOW = "medication_form_overflow"
+    const val MENU_ADD_SCHEDULE = "medication_form_menu_add_schedule"
+    const val MENU_ADD_STOCK = "medication_form_menu_add_stock"
     const val USAGE_HISTORY = "medication_form_usage_history"
     const val STOCK_HEADER = "medication_form_stock_header"
     const val STOCK_NONE = "medication_form_stock_none"
@@ -175,9 +178,14 @@ fun MedicationFormScreen(
                     }
                 },
                 actions = {
-                    // Only on a saved medicine: an unsaved one has no history to look at.
+                    // Only on a saved medicine: an unsaved one has no history to look at and can
+                    // hold no stock.
                     if (uiState.showsActiveSwitch) {
-                        OverflowMenu(onOpenUsageHistory = onOpenUsageHistory)
+                        OverflowMenu(
+                            onAddSchedule = onAddSchedule,
+                            onAddStock = onAddStockClicked,
+                            onOpenUsageHistory = onOpenUsageHistory,
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -684,12 +692,18 @@ private fun rememberDateFormatter(): java.time.format.DateTimeFormatter {
 private fun java.time.format.DateTimeFormatter.format(date: LocalDate): String = date.format(this)
 
 /**
- * The details screen's secondary actions (design D8). Exactly one item, and nothing destructive
- * will ever join it: the medicine-details spec forbids a delete, remove or archive action anywhere
- * on this screen, its menus included.
+ * The details screen's secondary actions (design D8): shortcuts to the two most common secondary
+ * tasks above a divider, with the usage history below it. Nothing destructive will ever join them:
+ * the medicine-details spec forbids a delete, remove or archive action anywhere on this screen, its
+ * menus included.
  */
 @Composable
-private fun OverflowMenu(onOpenUsageHistory: () -> Unit, modifier: Modifier = Modifier) {
+private fun OverflowMenu(
+    onAddSchedule: () -> Unit,
+    onAddStock: () -> Unit,
+    onOpenUsageHistory: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier) {
@@ -705,6 +719,23 @@ private fun OverflowMenu(onOpenUsageHistory: () -> Unit, modifier: Modifier = Mo
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.medicine_add_schedule)) },
+                onClick = {
+                    expanded = false
+                    onAddSchedule()
+                },
+                modifier = Modifier.testTag(MedicationFormTestTags.MENU_ADD_SCHEDULE),
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.medicine_stock_add)) },
+                onClick = {
+                    expanded = false
+                    onAddStock()
+                },
+                modifier = Modifier.testTag(MedicationFormTestTags.MENU_ADD_STOCK),
+            )
+            HorizontalDivider()
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.usage_history_menu_item)) },
                 onClick = {

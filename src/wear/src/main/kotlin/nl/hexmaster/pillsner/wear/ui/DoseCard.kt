@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.wear.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,21 +25,20 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Locale
 import nl.hexmaster.pillsner.wear.R
 import nl.hexmaster.pillsner.wear.ui.theme.WearDimens
 
 /**
- * One dose on the list: name, amount, time, and the same two intake colours the phone uses for
- * these two states (design system section 2.3) — due in `secondaryContainer`, a dose already past
- * its time in `errorContainer`.
+ * One dose under its time heading: name, amount, and the same two intake colours the phone uses
+ * for these two states (design system section 2.3) — due in `secondaryContainer`, a dose already
+ * past its time in `errorContainer`.
  *
- * The whole card is one node for a screen reader: "Ibuprofen, 400 mg, at 14:00". It is not
- * clickable, because the watch app does nothing but show; answering a dose stays on the phone's
- * bridged notification.
+ * The whole card is one node for a screen reader: "Ibuprofen, 400 mg, at 14:00". Tapping it opens
+ * the read-only details of the medicine behind it; that is the only thing a tap does, because the
+ * watch app shows and never changes — answering a dose stays on the phone's bridged notification.
  */
 @Composable
-fun DoseCard(entry: WatchDoseEntry, modifier: Modifier = Modifier) {
+fun DoseCard(entry: WatchDoseEntry, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
     val container = if (entry.isOverdue) colors.errorContainer else colors.secondaryContainer
     val onContainer = if (entry.isOverdue) colors.onErrorContainer else colors.onSecondaryContainer
@@ -51,12 +51,14 @@ fun DoseCard(entry: WatchDoseEntry, modifier: Modifier = Modifier) {
         entry.amountText,
         time,
     )
+    val openLabel = stringResource(R.string.dose_open_details)
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = WearDimens.minTouchTarget)
             .background(container, MaterialTheme.shapes.large)
+            .clickable(onClickLabel = openLabel, onClick = onClick)
             .padding(horizontal = WearDimens.cardPaddingHorizontal, vertical = WearDimens.cardPaddingVertical)
             .semantics(mergeDescendants = true) { contentDescription = description },
         horizontalArrangement = Arrangement.spacedBy(WearDimens.cardPaddingHorizontal),
@@ -80,29 +82,25 @@ fun DoseCard(entry: WatchDoseEntry, modifier: Modifier = Modifier) {
                 color = onContainer,
             )
         }
-        Text(
-            text = time,
-            style = MaterialTheme.typography.titleSmall,
-            color = onContainer,
-        )
     }
 }
 
 /** The scheduled time in the payload's language, with "Tomorrow" where the day differs. */
 @Composable
-private fun WatchDoseEntry.timeText(): String {
-    // LocalizedContent has already put the phone app's language here.
-    val locale = LocalConfiguration.current.locales[0]
-    val zone = ZoneId.systemDefault()
-    val formatter = remember(locale, zone) {
-        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone)
-    }
-    val formatted = formatTime(scheduledAt, formatter)
+internal fun WatchDoseEntry.timeText(): String {
+    val formatted = formatTime(scheduledAt, rememberTimeFormatter())
     return if (isTomorrow) stringResource(R.string.upcoming_tomorrow_at, formatted) else formatted
 }
 
-internal fun formatTime(instant: Instant, locale: Locale, zone: ZoneId): String =
-    formatTime(instant, DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone))
+/** The short time format of the payload's language, in the watch's own zone. */
+@Composable
+internal fun rememberTimeFormatter(): DateTimeFormatter {
+    // LocalizedContent has already put the phone app's language here.
+    val locale = LocalConfiguration.current.locales[0]
+    val zone = ZoneId.systemDefault()
+    return remember(locale, zone) {
+        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone)
+    }
+}
 
 internal fun formatTime(instant: Instant, formatter: DateTimeFormatter): String = formatter.format(instant)
-

@@ -89,8 +89,11 @@ If you install the **Wear OS companion app** on a paired watch, the phone app se
 doses you still have to take, so the watch can show them.
 
 - **What is sent:** for each pending dose, an internal dose number, the medicine's name, the amount
-  written out as text ("40 mg"), and the time the dose is due. The message also carries the language
-  the phone app is set to, so the watch reads in the same language.
+  written out as text ("40 mg"), and the time the dose is due. Alongside it, so the watch can show
+  the medicine behind a dose without asking the phone again: the medicine's default dose, its
+  schedule written out as text ("40 mg twice a day"), and what is left of its stock, where you
+  record stock at all. The message also carries the language the phone app is set to, so the watch
+  reads in the same language.
 - **How it is sent:** over the Wearable Data Layer, part of Google Play services. That travels over
   the direct Bluetooth or local-network link between your phone and the watch you paired it with. It
   does not go to a server, and neither app has permission to reach one.

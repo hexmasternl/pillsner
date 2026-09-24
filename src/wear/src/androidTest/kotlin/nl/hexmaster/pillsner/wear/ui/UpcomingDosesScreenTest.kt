@@ -7,15 +7,18 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.Instant
 import java.util.Locale
+import nl.hexmaster.pillsner.wear.domain.AgendaDay
 import nl.hexmaster.pillsner.wear.ui.theme.PillsnerWearTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Spec: the watch's one screen — the six-hour list, the empty state and the footer. */
+/** Spec: the watch's agenda — today and tomorrow grouped by time, the empty state and the footer. */
 @RunWith(AndroidJUnit4::class)
 class UpcomingDosesScreenTest {
 
@@ -30,49 +33,73 @@ class UpcomingDosesScreenTest {
         amount: String = "400 mg",
         minutes: Long = 60,
         isOverdue: Boolean = false,
+        isTomorrow: Boolean = false,
     ) = WatchDoseEntry(
         doseId = id,
         name = name,
         amountText = amount,
         scheduledAt = morning.plusSeconds(minutes * 60),
         isOverdue = isOverdue,
-        isTomorrow = false,
+        isTomorrow = isTomorrow,
     )
 
-    private fun setScreen(state: WatchUiState) {
-        composeRule.setContent { PillsnerWearTheme { UpcomingDosesScreen(state) } }
+    private fun agenda(vararg days: Pair<AgendaDay, List<WatchDoseEntry>>) = days.map { (day, entries) ->
+        WatchDaySection(
+            day = day,
+            groups = entries.groupBy { it.scheduledAt }.map { (at, doses) -> WatchTimeGroup(at, doses) },
+        )
+    }
+
+    private fun state(
+        sections: List<WatchDaySection> = emptyList(),
+        phoneConnected: Boolean = true,
+        hasData: Boolean = true,
+    ) = WatchUiState(sections, phoneConnected, hasData, Locale.ENGLISH)
+
+    private fun setScreen(uiState: WatchUiState, onDoseClick: (Long) -> Unit = {}) {
+        composeRule.setContent { PillsnerWearTheme { UpcomingDosesScreen(uiState, onDoseClick) } }
     }
 
     @Test
-    fun theListShowsWhatIsComingUp() {
+    fun theAgendaShowsTodayAndTomorrow() {
         setScreen(
-            WatchUiState(
-                entries = listOf(
-                    entry(1, "Ibuprofen"),
-                    entry(2, "Metformin", "500 mg", minutes = 120),
+            state(
+                agenda(
+                    AgendaDay.TODAY to listOf(entry(1, "Ibuprofen"), entry(2, "Metformin", "500 mg", minutes = 120)),
+                    AgendaDay.TOMORROW to listOf(
+                        entry(3, "Simvastatin", minutes = 24 * 60, isTomorrow = true),
+                    ),
                 ),
-                phoneConnected = true,
-                hasData = true,
-                locale = Locale.ENGLISH,
             ),
         )
 
-        composeRule.onNodeWithTag(UpcomingDosesTestTags.HEADER).assertIsDisplayed()
-        composeRule.onNodeWithText("Next 6 hours").assertIsDisplayed()
+        composeRule.onNodeWithText("Today").assertIsDisplayed()
+        composeRule.onNodeWithText("Tomorrow").assertIsDisplayed()
         composeRule.onNodeWithText("Ibuprofen").assertIsDisplayed()
         composeRule.onNodeWithText("Metformin").assertIsDisplayed()
+        composeRule.onAllNodesWithTag(UpcomingDosesTestTags.DAY_HEADER).assertCountEquals(2)
+    }
+
+    @Test
+    fun dosesDueAtTheSameTimeShareOneTimeHeading() {
+        setScreen(
+            state(
+                agenda(
+                    AgendaDay.TODAY to listOf(
+                        entry(1, "Ibuprofen"),
+                        entry(2, "Metformin", "500 mg"),
+                        entry(3, "Simvastatin", minutes = 120),
+                    ),
+                ),
+            ),
+        )
+
+        composeRule.onAllNodesWithTag(UpcomingDosesTestTags.TIME_HEADER).assertCountEquals(2)
     }
 
     @Test
     fun anEntryReadsAsOneSentence() {
-        setScreen(
-            WatchUiState(
-                entries = listOf(entry(1, "Ibuprofen", "400 mg")),
-                phoneConnected = true,
-                hasData = true,
-                locale = Locale.ENGLISH,
-            ),
-        )
+        setScreen(state(agenda(AgendaDay.TODAY to listOf(entry(1, "Ibuprofen", "400 mg")))))
 
         composeRule.onNodeWithContentDescription("Ibuprofen, 400 mg, at", substring = true)
             .assertIsDisplayed()
@@ -81,35 +108,38 @@ class UpcomingDosesScreenTest {
     @Test
     fun aDoseAlreadyPastItsTimeSaysSo() {
         setScreen(
-            WatchUiState(
-                entries = listOf(entry(1, "Ibuprofen", "400 mg", minutes = -30, isOverdue = true)),
-                phoneConnected = true,
-                hasData = true,
-                locale = Locale.ENGLISH,
-            ),
+            state(agenda(AgendaDay.TODAY to listOf(entry(1, "Ibuprofen", minutes = -30, isOverdue = true)))),
         )
 
         composeRule.onNodeWithContentDescription("was due", substring = true).assertIsDisplayed()
     }
 
     @Test
-    fun nothingInTheNextSixHoursIsSaidPlainly() {
-        setScreen(WatchUiState(phoneConnected = true, hasData = true, locale = Locale.ENGLISH))
+    fun tappingADoseAsksForItsDetails() {
+        val opened = mutableListOf<Long>()
+        setScreen(
+            state(agenda(AgendaDay.TODAY to listOf(entry(7, "Ibuprofen")))),
+            onDoseClick = { opened += it },
+        )
+
+        composeRule.onNodeWithContentDescription("Ibuprofen", substring = true).performClick()
+
+        assertEquals(listOf(7L), opened)
+    }
+
+    @Test
+    fun nothingPlannedForEitherDayIsSaidPlainly() {
+        setScreen(state())
 
         composeRule.onNodeWithTag(UpcomingDosesTestTags.EMPTY).assertIsDisplayed()
-        composeRule.onNodeWithText("No medicines scheduled for the upcoming 6 hours").assertIsDisplayed()
+        composeRule.onNodeWithText("No medicines scheduled for today or tomorrow").assertIsDisplayed()
         composeRule.onAllNodesWithTag(UpcomingDosesTestTags.FOOTER).assertCountEquals(0)
     }
 
     @Test
     fun aPhoneOutOfReachIsSaidInTheFooter() {
         setScreen(
-            WatchUiState(
-                entries = listOf(entry(1, "Ibuprofen")),
-                phoneConnected = false,
-                hasData = true,
-                locale = Locale.ENGLISH,
-            ),
+            state(agenda(AgendaDay.TODAY to listOf(entry(1, "Ibuprofen"))), phoneConnected = false),
         )
 
         composeRule.onNodeWithTag(UpcomingDosesTestTags.FOOTER).assertIsDisplayed()
@@ -118,23 +148,27 @@ class UpcomingDosesScreenTest {
 
     @Test
     fun aWatchThatHasNeverSyncedIsToldWhereToLook() {
-        setScreen(WatchUiState(phoneConnected = false, hasData = false, locale = Locale.ENGLISH))
+        setScreen(state(phoneConnected = false, hasData = false))
 
         composeRule.onNodeWithText("Open Pillsner on your phone to sync").assertIsDisplayed()
     }
 
     @Test
     fun aDutchPayloadIsReadInDutch() {
-        setScreen(
-            WatchUiState(
-                entries = listOf(entry(1, "Paracetamol", "2 tabletten")),
-                phoneConnected = true,
-                hasData = true,
-                locale = Locale.forLanguageTag("nl-NL"),
-            ),
-        )
+        composeRule.setContent {
+            PillsnerWearTheme {
+                UpcomingDosesScreen(
+                    WatchUiState(
+                        sections = agenda(AgendaDay.TODAY to listOf(entry(1, "Paracetamol", "2 tabletten"))),
+                        phoneConnected = true,
+                        hasData = true,
+                        locale = Locale.forLanguageTag("nl-NL"),
+                    ),
+                )
+            }
+        }
 
-        composeRule.onNodeWithText("Komende 6 uur").assertIsDisplayed()
+        composeRule.onNodeWithText("Vandaag").assertIsDisplayed()
         composeRule.onNodeWithText("2 tabletten").assertIsDisplayed()
     }
 }

@@ -488,6 +488,10 @@
     <string name="medicine_tile_expiring_soon">Expire bientôt</string>
     <string name="medicine_tile_expired">Expiré</string>
 
+    <string name="medicine_tile_stock_sufficient">En stock</string>
+    <string name="medicine_tile_stock_low">Stock faible</string>
+    <string name="medicine_tile_stock_critical">Stock critique</string>
+
     <string name="stock_warning_low_stock_message">Le stock de %1$s est bas et ne suffira pas pour cette semaine.</string>
     <string name="stock_warning_expiring_message">Le stock de %1$s que vous venez d\'utiliser expire bientôt.</string>
     <string name="stock_warning_expired_message">Le stock de %1$s que vous venez d\'utiliser a expiré.</string>

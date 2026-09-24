@@ -89,7 +89,9 @@ fun AcceptLegalScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+        // The top app bar takes the status bar; the bottom inset has to come through here, or the
+        // accept button ends up under a 3-button navigation bar (edge-to-edge-insets).
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
         topBar = {
             TopAppBar(
                 title = {

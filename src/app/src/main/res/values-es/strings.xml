@@ -487,6 +487,10 @@
     <string name="medicine_tile_expiring_soon">Caduca pronto</string>
     <string name="medicine_tile_expired">Caducado</string>
 
+    <string name="medicine_tile_stock_sufficient">En stock</string>
+    <string name="medicine_tile_stock_low">Existencias bajas</string>
+    <string name="medicine_tile_stock_critical">Existencias críticas</string>
+
     <string name="stock_warning_low_stock_message">Las existencias de %1$s se están agotando y no llegarán para esta semana.</string>
     <string name="stock_warning_expiring_message">Las existencias de %1$s que acabas de usar caducan pronto.</string>
     <string name="stock_warning_expired_message">Las existencias de %1$s que acabas de usar han caducado.</string>

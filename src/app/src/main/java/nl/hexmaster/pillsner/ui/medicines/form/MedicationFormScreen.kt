@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -24,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -62,6 +67,7 @@ import nl.hexmaster.pillsner.domain.model.Prescriber
 import nl.hexmaster.pillsner.domain.model.Quantity
 import nl.hexmaster.pillsner.domain.model.ScheduleSummary
 import nl.hexmaster.pillsner.domain.model.StockBatchId
+import nl.hexmaster.pillsner.domain.stock.StockLevel
 import nl.hexmaster.pillsner.domain.stock.StockState
 import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
@@ -87,6 +93,8 @@ object MedicationFormTestTags {
     const val LOADING = "medication_form_loading"
     const val ACTIVE_SWITCH = "medication_form_active_switch"
     const val OVERFLOW = "medication_form_overflow"
+    const val MENU_ADD_SCHEDULE = "medication_form_menu_add_schedule"
+    const val MENU_ADD_STOCK = "medication_form_menu_add_stock"
     const val USAGE_HISTORY = "medication_form_usage_history"
     const val STOCK_HEADER = "medication_form_stock_header"
     const val STOCK_NONE = "medication_form_stock_none"
@@ -175,9 +183,14 @@ fun MedicationFormScreen(
                     }
                 },
                 actions = {
-                    // Only on a saved medicine: an unsaved one has no history to look at.
+                    // Only on a saved medicine: an unsaved one has no history to look at and can
+                    // hold no stock.
                     if (uiState.showsActiveSwitch) {
-                        OverflowMenu(onOpenUsageHistory = onOpenUsageHistory)
+                        OverflowMenu(
+                            onAddSchedule = onAddSchedule,
+                            onAddStock = onAddStockClicked,
+                            onOpenUsageHistory = onOpenUsageHistory,
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -189,7 +202,15 @@ fun MedicationFormScreen(
             )
         },
         bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.surface) {
+            // Scaffold leaves a bottomBar's insets to the bar itself, and a plain Surface (unlike
+            // BottomAppBar) claims none, so without this the button sits under the navigation bar
+            // (edge-to-edge-insets). safeDrawing also covers the keyboard, so it replaces imePadding.
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
+                ),
+            ) {
                 Button(
                     onClick = onSave,
                     // Always tappable: the spec asks that tapping Save on an invalid form is what
@@ -199,7 +220,6 @@ fun MedicationFormScreen(
                         .fillMaxWidth()
                         .padding(Spacing.lg)
                         .heightIn(min = Sizes.primaryActionHeight)
-                        .imePadding()
                         .testTag(MedicationFormTestTags.SAVE),
                 ) {
                     Text(stringResource(R.string.action_save))
@@ -219,12 +239,13 @@ fun MedicationFormScreen(
             return@Scaffold
         }
 
+        // innerPadding already holds the bottom bar's full height, keyboard included, so no
+        // imePadding here: it would push the content up twice.
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .imePadding(),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
@@ -684,12 +705,18 @@ private fun rememberDateFormatter(): java.time.format.DateTimeFormatter {
 private fun java.time.format.DateTimeFormatter.format(date: LocalDate): String = date.format(this)
 
 /**
- * The details screen's secondary actions (design D8). Exactly one item, and nothing destructive
- * will ever join it: the medicine-details spec forbids a delete, remove or archive action anywhere
- * on this screen, its menus included.
+ * The details screen's secondary actions (design D8): shortcuts to the two most common secondary
+ * tasks above a divider, with the usage history below it. Nothing destructive will ever join them:
+ * the medicine-details spec forbids a delete, remove or archive action anywhere on this screen, its
+ * menus included.
  */
 @Composable
-private fun OverflowMenu(onOpenUsageHistory: () -> Unit, modifier: Modifier = Modifier) {
+private fun OverflowMenu(
+    onAddSchedule: () -> Unit,
+    onAddStock: () -> Unit,
+    onOpenUsageHistory: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier) {
@@ -705,6 +732,23 @@ private fun OverflowMenu(onOpenUsageHistory: () -> Unit, modifier: Modifier = Mo
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.medicine_add_schedule)) },
+                onClick = {
+                    expanded = false
+                    onAddSchedule()
+                },
+                modifier = Modifier.testTag(MedicationFormTestTags.MENU_ADD_SCHEDULE),
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.medicine_stock_add)) },
+                onClick = {
+                    expanded = false
+                    onAddStock()
+                },
+                modifier = Modifier.testTag(MedicationFormTestTags.MENU_ADD_STOCK),
+            )
+            HorizontalDivider()
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.usage_history_menu_item)) },
                 onClick = {
@@ -856,7 +900,7 @@ private fun MedicationFormStockSectionPreview() {
                         expiryDate = LocalDate.of(2027, 1, 1),
                     ),
                 ),
-                stockState = StockState(isLow = true, nearestExpiry = BatchExpiryState.APPROACHING),
+                stockState = StockState(level = StockLevel.LOW, nearestExpiry = BatchExpiryState.APPROACHING),
             ),
             onNameChange = {},
             onDoseTextChange = {},

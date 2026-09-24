@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -141,14 +145,21 @@ fun ScheduleEditorScreen(
             )
         },
         bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.surface) {
+            // Scaffold leaves a bottomBar's insets to the bar itself, and a plain Surface (unlike
+            // BottomAppBar) claims none, so without this the button sits under the navigation bar
+            // (edge-to-edge-insets). safeDrawing also covers the keyboard, so it replaces imePadding.
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
+                ),
+            ) {
                 Button(
                     onClick = onDone,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(Spacing.lg)
                         .heightIn(min = Sizes.primaryActionHeight)
-                        .imePadding()
                         .testTag(ScheduleEditorTestTags.DONE),
                 ) {
                     Text(stringResource(R.string.action_done))
@@ -156,12 +167,13 @@ fun ScheduleEditorScreen(
             }
         },
     ) { innerPadding ->
+        // innerPadding already holds the bottom bar's full height, keyboard included, so no
+        // imePadding here: it would push the content up twice.
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .imePadding(),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(

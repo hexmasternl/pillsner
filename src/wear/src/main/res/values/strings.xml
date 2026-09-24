@@ -2,9 +2,10 @@
 <resources>
     <string name="app_name">Pillsner</string>
 
-    <!-- The one screen -->
-    <string name="upcoming_header">Next 6 hours</string>
-    <string name="upcoming_empty">No medicines scheduled for the upcoming 6 hours</string>
+    <!-- The agenda -->
+    <string name="agenda_today">Today</string>
+    <string name="agenda_tomorrow">Tomorrow</string>
+    <string name="upcoming_empty">No medicines scheduled for today or tomorrow</string>
     <!-- %1$s: a time, for example 08:00 -->
     <string name="upcoming_tomorrow_at">Tomorrow %1$s</string>
     <string name="phone_not_connected">Phone not connected</string>
@@ -14,4 +15,13 @@
     <string name="dose_description">%1$s, %2$s, at %3$s</string>
     <!-- %1$s: medicine name, %2$s: amount, %3$s: time -->
     <string name="dose_description_overdue">%1$s, %2$s, was due at %3$s</string>
+    <string name="dose_open_details">Show details</string>
+
+    <!-- The read-only details of one dose -->
+    <string name="details_this_dose">This dose</string>
+    <string name="details_due">Due</string>
+    <string name="details_default_dose">Default dose</string>
+    <string name="details_schedule">Schedule</string>
+    <string name="details_stock">In stock</string>
+    <string name="details_unavailable">No details for this medicine</string>
 </resources>

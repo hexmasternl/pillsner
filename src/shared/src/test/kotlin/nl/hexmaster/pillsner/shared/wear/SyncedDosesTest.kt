@@ -14,7 +14,17 @@ class SyncedDosesTest {
         languageTag = "nl-NL",
         publishedAtEpochMillis = 1_789_000_000_000,
         doses = listOf(
-            SyncedDose(1, "Ibuprofen", "400 mg", 1_789_000_600_000),
+            SyncedDose(
+                doseId = 1,
+                medicationName = "Ibuprofen",
+                amountText = "400 mg",
+                scheduledAtEpochMillis = 1_789_000_600_000,
+                details = SyncedMedicineDetails(
+                    defaultDoseText = "400 mg",
+                    scheduleLines = listOf("400 mg tweemaal per dag"),
+                    stockText = "24 tabletten",
+                ),
+            ),
             SyncedDose(2, "Paracetamol", "2 tabletten", 1_789_007_200_000),
         ),
     )
@@ -57,5 +67,31 @@ class SyncedDosesTest {
         val empty = payload.copy(doses = emptyList())
 
         assertEquals(empty, SyncedDoses.decode(SyncedDoses.encode(empty)))
+    }
+
+    @Test
+    fun `a dose a phone sent without medicine details is still a dose`() {
+        val fromAnOlderPhone = """
+            {"version":1,"languageTag":"en","publishedAtEpochMillis":1,
+             "doses":[{"doseId":7,"medicationName":"Ibuprofen","amountText":"400 mg",
+                       "scheduledAtEpochMillis":2}]}
+        """.trimIndent()
+
+        val dose = SyncedDoses.decode(fromAnOlderPhone)?.doses?.single()
+
+        assertEquals("Ibuprofen", dose?.medicationName)
+        assertNull("Nothing to show on the details screen, rather than a broken payload", dose?.details)
+    }
+
+    @Test
+    fun `a medicine with no stock recorded has no stock line`() {
+        val withoutStock = payload.copy(
+            doses = listOf(payload.doses.first().copy(details = SyncedMedicineDetails("400 mg"))),
+        )
+
+        val decoded = SyncedDoses.decode(SyncedDoses.encode(withoutStock))
+
+        assertEquals(withoutStock, decoded)
+        assertNull(decoded?.doses?.single()?.details?.stockText)
     }
 }

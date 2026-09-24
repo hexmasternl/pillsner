@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import java.time.Clock
 import java.time.Instant
-import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlinx.coroutines.delay
@@ -16,14 +15,15 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import nl.hexmaster.pillsner.shared.wear.SyncedDose
 import nl.hexmaster.pillsner.shared.wear.SyncedDoses
-import nl.hexmaster.pillsner.wear.domain.UpcomingWindowFilter
+import nl.hexmaster.pillsner.wear.domain.AgendaDay
+import nl.hexmaster.pillsner.wear.domain.DayAgenda
 
 /**
  * Turns the last list the phone sent into what the screen shows (design D5).
  *
  * Three things move: the payload, the minute, and whether a phone is in reach. The minute is why
- * this has a ticker at all — a dose enters the six-hour window, or an empty screen fills, with no
- * new data arriving at all.
+ * this has a ticker at all — a dose falls behind its time, or midnight moves tomorrow's doses onto
+ * today, with no new data arriving at all.
  */
 class WatchViewModel(
     payloads: Flow<SyncedDoses?>,
@@ -44,20 +44,29 @@ class WatchViewModel(
         minuteTicker,
     ) { payload, tick ->
         WatchUiState(
-            entries = payload?.let { entriesFor(it, tick.now) }.orEmpty(),
+            sections = payload?.let { sectionsFor(it, tick.now) }.orEmpty(),
             phoneConnected = tick.phoneConnected,
             hasData = payload != null,
             locale = payload?.languageTag?.let(Locale::forLanguageTag) ?: Locale.getDefault(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), WatchUiState())
 
-    private fun entriesFor(payload: SyncedDoses, now: Instant): List<WatchDoseEntry> {
+    private fun sectionsFor(payload: SyncedDoses, now: Instant): List<WatchDaySection> {
         val zone = clock.zone
-        val today = now.atZone(zone).toLocalDate()
-        return UpcomingWindowFilter.filter(payload.doses, now).map { dose -> dose.toEntry(now, zone, today) }
+        return DayAgenda.build(payload.doses, now, zone).map { section ->
+            WatchDaySection(
+                day = section.day,
+                groups = section.groups.map { group ->
+                    WatchTimeGroup(
+                        scheduledAt = group.scheduledAt,
+                        doses = group.doses.map { it.toEntry(now, section.day) },
+                    )
+                },
+            )
+        }
     }
 
-    private fun SyncedDose.toEntry(now: Instant, zone: ZoneId, today: java.time.LocalDate) =
+    private fun SyncedDose.toEntry(now: Instant, day: AgendaDay) =
         Instant.ofEpochMilli(scheduledAtEpochMillis).let { scheduledAt ->
             WatchDoseEntry(
                 doseId = doseId,
@@ -65,7 +74,10 @@ class WatchViewModel(
                 amountText = amountText,
                 scheduledAt = scheduledAt,
                 isOverdue = scheduledAt.isBefore(now),
-                isTomorrow = scheduledAt.atZone(zone).toLocalDate().isAfter(today),
+                isTomorrow = day == AgendaDay.TOMORROW,
+                defaultDoseText = details?.defaultDoseText,
+                scheduleLines = details?.scheduleLines.orEmpty(),
+                stockText = details?.stockText,
             )
         }
 

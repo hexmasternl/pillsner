@@ -6,6 +6,23 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
+ * What the watch shows about the medicine behind a dose, all of it written out by the phone
+ * (`wear-day-overview` design D3). Read-only: the watch never offers to change any of it.
+ *
+ * @property defaultDoseText the medicine's default dose, "40 mg".
+ * @property scheduleLines one line per schedule, each as the phone's medicine tile words it, for
+ * example "40 mg twice a day". An as-needed medicine has exactly one line saying so.
+ * @property stockText what is left in stock, in the medicine's default dose unit, or null for a
+ * medicine that records no stock at all.
+ */
+@Serializable
+data class SyncedMedicineDetails(
+    val defaultDoseText: String,
+    val scheduleLines: List<String> = emptyList(),
+    val stockText: String? = null,
+)
+
+/**
  * One dose on the wire (design D2).
  *
  * @property amountText the amount already written out by the phone, "40 mg" or "2 tabletten". The
@@ -13,6 +30,9 @@ import kotlinx.serialization.json.Json
  * anyway, so the watch never needs `Quantity`, `DoseUnit` or a plural resource of its own.
  * @property scheduledAtEpochMillis an instant, not a local time: the watch formats it in its own
  * zone, so a difference between the two devices cannot produce a wrong time.
+ * @property details the medicine behind the dose, for the watch's details screen. Null when the
+ * medicine is gone — a dose outlives the medication it came from — or when an older phone sent a
+ * payload without it; the watch then shows only what the dose itself carries.
  */
 @Serializable
 data class SyncedDose(
@@ -20,6 +40,7 @@ data class SyncedDose(
     val medicationName: String,
     val amountText: String,
     val scheduledAtEpochMillis: Long,
+    val details: SyncedMedicineDetails? = null,
 )
 
 /**

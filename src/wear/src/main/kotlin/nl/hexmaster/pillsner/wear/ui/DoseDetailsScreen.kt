@@ -18,6 +18,7 @@ import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.lazy.scrollTransform
 import androidx.wear.tooling.preview.devices.WearDevices
 import java.time.Instant
 import java.util.Locale
@@ -57,7 +58,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                     verticalArrangement = Arrangement.spacedBy(WearDimens.betweenCards),
                 ) {
                     item {
-                        ListHeader(modifier = Modifier.testTag(DoseDetailsTestTags.TITLE)) {
+                        ListHeader(modifier = Modifier.scrollTransform(this).testTag(DoseDetailsTestTags.TITLE)) {
                             Text(entry.name, textAlign = TextAlign.Center)
                         }
                     }
@@ -66,6 +67,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                             label = stringResource(R.string.details_this_dose),
                             value = entry.amountText,
                             tag = DoseDetailsTestTags.AMOUNT,
+                            modifier = Modifier.scrollTransform(this),
                         )
                     }
                     item {
@@ -73,6 +75,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                             label = stringResource(R.string.details_due),
                             value = entry.timeText(),
                             tag = DoseDetailsTestTags.DUE,
+                            modifier = Modifier.scrollTransform(this),
                         )
                     }
                     entry.defaultDoseText?.let { defaultDose ->
@@ -81,6 +84,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_default_dose),
                                 value = defaultDose,
                                 tag = DoseDetailsTestTags.DEFAULT_DOSE,
+                                modifier = Modifier.scrollTransform(this),
                             )
                         }
                     }
@@ -90,6 +94,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_schedule),
                                 value = entry.scheduleLines.joinToString("\n"),
                                 tag = DoseDetailsTestTags.SCHEDULE,
+                                modifier = Modifier.scrollTransform(this),
                             )
                         }
                     }
@@ -99,6 +104,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_stock),
                                 value = stock,
                                 tag = DoseDetailsTestTags.STOCK,
+                                modifier = Modifier.scrollTransform(this),
                             )
                         }
                     }
@@ -110,6 +116,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
+                                    .scrollTransform(this)
                                     .fillMaxWidth()
                                     .padding(horizontal = WearDimens.screenEdge)
                                     .testTag(DoseDetailsTestTags.UNAVAILABLE),
@@ -124,9 +131,9 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
 
 /** A label and what it says, read as one item: "Schedule, 400 mg twice a day". */
 @Composable
-private fun DetailRow(label: String, value: String, tag: String) {
+private fun DetailRow(label: String, value: String, tag: String, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = WearDimens.cardPaddingHorizontal)
             .semantics(mergeDescendants = true) {}

@@ -17,6 +17,7 @@ import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.lazy.scrollTransform
 import androidx.wear.tooling.preview.devices.WearDevices
 import java.time.Instant
 import java.util.Locale
@@ -68,6 +69,7 @@ fun UpcomingDosesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
+                                    .scrollTransform(this)
                                     .fillMaxWidth()
                                     .padding(horizontal = WearDimens.screenEdge)
                                     .testTag(UpcomingDosesTestTags.EMPTY),
@@ -76,10 +78,15 @@ fun UpcomingDosesScreen(
                     } else {
                         items(rows.size, key = { rows[it].key }) { index ->
                             when (val row = rows[index]) {
-                                is AgendaRow.Day -> DayHeader(row.day)
-                                is AgendaRow.Time -> TimeHeader(row.scheduledAt)
+                                is AgendaRow.Day -> DayHeader(row.day, modifier = Modifier.scrollTransform(this))
+                                is AgendaRow.Time ->
+                                    TimeHeader(row.scheduledAt, modifier = Modifier.scrollTransform(this))
                                 is AgendaRow.Dose ->
-                                    DoseCard(row.entry, onClick = { onDoseClick(row.entry.doseId) })
+                                    DoseCard(
+                                        row.entry,
+                                        onClick = { onDoseClick(row.entry.doseId) },
+                                        modifier = Modifier.scrollTransform(this),
+                                    )
                             }
                         }
                     }
@@ -94,6 +101,7 @@ fun UpcomingDosesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
+                                    .scrollTransform(this)
                                     .fillMaxWidth()
                                     .padding(horizontal = WearDimens.screenEdge, vertical = WearDimens.screenEdge)
                                     .testTag(UpcomingDosesTestTags.FOOTER),
@@ -107,8 +115,8 @@ fun UpcomingDosesScreen(
 }
 
 @Composable
-private fun DayHeader(day: AgendaDay) {
-    ListHeader(modifier = Modifier.testTag(UpcomingDosesTestTags.DAY_HEADER)) {
+private fun DayHeader(day: AgendaDay, modifier: Modifier = Modifier) {
+    ListHeader(modifier = modifier.testTag(UpcomingDosesTestTags.DAY_HEADER)) {
         Text(
             stringResource(
                 when (day) {
@@ -121,12 +129,12 @@ private fun DayHeader(day: AgendaDay) {
 }
 
 @Composable
-private fun TimeHeader(scheduledAt: Instant) {
+private fun TimeHeader(scheduledAt: Instant, modifier: Modifier = Modifier) {
     Text(
         text = formatTime(scheduledAt, rememberTimeFormatter()),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = WearDimens.cardPaddingHorizontal)
             .testTag(UpcomingDosesTestTags.TIME_HEADER),

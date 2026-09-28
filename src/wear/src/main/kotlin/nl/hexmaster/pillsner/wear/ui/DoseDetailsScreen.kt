@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -18,7 +19,9 @@ import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
-import androidx.wear.compose.material3.lazy.scrollTransform
+import androidx.wear.compose.material3.lazy.TransformationSpec
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.tooling.preview.devices.WearDevices
 import java.time.Instant
 import java.util.Locale
@@ -49,6 +52,7 @@ object DoseDetailsTestTags {
 fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier = Modifier) {
     LocalizedContent(locale) {
         val columnState = rememberTransformingLazyColumnState()
+        val transformationSpec = rememberTransformationSpec()
 
         AppScaffold(modifier = modifier) {
             ScreenScaffold(scrollState = columnState) { contentPadding ->
@@ -58,7 +62,12 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                     verticalArrangement = Arrangement.spacedBy(WearDimens.betweenCards),
                 ) {
                     item {
-                        ListHeader(modifier = Modifier.scrollTransform(this).testTag(DoseDetailsTestTags.TITLE)) {
+                        ListHeader(
+                            modifier =
+                                Modifier
+                                    .itemScrollTransform(this, transformationSpec)
+                                    .testTag(DoseDetailsTestTags.TITLE),
+                        ) {
                             Text(entry.name, textAlign = TextAlign.Center)
                         }
                     }
@@ -67,7 +76,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                             label = stringResource(R.string.details_this_dose),
                             value = entry.amountText,
                             tag = DoseDetailsTestTags.AMOUNT,
-                            modifier = Modifier.scrollTransform(this),
+                            modifier = Modifier.itemScrollTransform(this, transformationSpec),
                         )
                     }
                     item {
@@ -75,7 +84,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                             label = stringResource(R.string.details_due),
                             value = entry.timeText(),
                             tag = DoseDetailsTestTags.DUE,
-                            modifier = Modifier.scrollTransform(this),
+                            modifier = Modifier.itemScrollTransform(this, transformationSpec),
                         )
                     }
                     entry.defaultDoseText?.let { defaultDose ->
@@ -84,7 +93,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_default_dose),
                                 value = defaultDose,
                                 tag = DoseDetailsTestTags.DEFAULT_DOSE,
-                                modifier = Modifier.scrollTransform(this),
+                                modifier = Modifier.itemScrollTransform(this, transformationSpec),
                             )
                         }
                     }
@@ -94,7 +103,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_schedule),
                                 value = entry.scheduleLines.joinToString("\n"),
                                 tag = DoseDetailsTestTags.SCHEDULE,
-                                modifier = Modifier.scrollTransform(this),
+                                modifier = Modifier.itemScrollTransform(this, transformationSpec),
                             )
                         }
                     }
@@ -104,7 +113,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_stock),
                                 value = stock,
                                 tag = DoseDetailsTestTags.STOCK,
-                                modifier = Modifier.scrollTransform(this),
+                                modifier = Modifier.itemScrollTransform(this, transformationSpec),
                             )
                         }
                     }
@@ -116,7 +125,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
-                                    .scrollTransform(this)
+                                    .itemScrollTransform(this, transformationSpec)
                                     .fillMaxWidth()
                                     .padding(horizontal = WearDimens.screenEdge)
                                     .testTag(DoseDetailsTestTags.UNAVAILABLE),
@@ -128,6 +137,19 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
         }
     }
 }
+
+private fun Modifier.itemScrollTransform(
+    scope: androidx.wear.compose.foundation.lazy.TransformingLazyColumnItemScope,
+    transformationSpec: TransformationSpec,
+): Modifier =
+    transformedHeight(scope, transformationSpec).graphicsLayer {
+        with(scope) {
+            with(transformationSpec) {
+                applyContainerTransformation(scrollProgress)
+                applyContentTransformation(scrollProgress)
+            }
+        }
+    }
 
 /** A label and what it says, read as one item: "Schedule, 400 mg twice a day". */
 @Composable

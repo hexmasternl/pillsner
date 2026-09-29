@@ -7,6 +7,7 @@ import android.util.Rational
 import android.util.Size
 import android.view.Surface
 import android.view.WindowManager
+import androidx.camera.core.CameraInfoUnavailableException
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -86,7 +87,10 @@ fun LabelScanCamera(viewModel: LabelScanViewModel, viewfinderSize: IntSize) {
 
         try {
             provider.unbindAll()
-            val camera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, useCases)
+            // The device reported some camera (FEATURE_CAMERA_ANY). Prefer the back lens; a device
+            // with only a front one still gets a working viewfinder rather than the failure state.
+            val selector = if (provider.hasBackCamera()) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
+            val camera = provider.bindToLifecycle(lifecycleOwner, selector, useCases)
             viewModel.onCameraBound(camera.cameraInfo.hasFlashUnit()) { on -> camera.cameraControl.enableTorch(on) }
             awaitCancellation()
         } catch (failure: IllegalArgumentException) {
@@ -98,6 +102,13 @@ fun LabelScanCamera(viewModel: LabelScanViewModel, viewfinderSize: IntSize) {
             provider.unbindAll()
         }
     }
+}
+
+/** Whether a back camera can be bound; false too when CameraX cannot tell, so the front lens is tried. */
+private fun ProcessCameraProvider.hasBackCamera(): Boolean = try {
+    hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)
+} catch (unavailable: CameraInfoUnavailableException) {
+    false
 }
 
 /** The display's rotation, which the viewport's aspect ratio is expressed against. */

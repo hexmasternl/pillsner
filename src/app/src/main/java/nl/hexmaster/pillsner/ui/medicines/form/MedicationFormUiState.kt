@@ -53,6 +53,12 @@ data class MedicationFormUiState(
     val addStockState: AddStockUiState? = null,
     /** Non-null while the removal confirmation dialog is open for this batch (`medicine-stock-tracking`). */
     val pendingStockRemoval: StockBatchId? = null,
+    /**
+     * Whether the secondary details panel (used since, use until, prescriber, active) is open.
+     * Only meaningful in edit mode; every fresh open of the details screen starts collapsed
+     * (`medicine-details`, "Secondary details toggle").
+     */
+    val secondaryDetailsExpanded: Boolean = false,
 ) {
     /** Set when [doseUnit] has been moved away from [lockedDoseUnit]; shown straight away, not only on save. */
     val doseUnitError: MedicationFieldError?
@@ -67,6 +73,15 @@ data class MedicationFormUiState(
 
     /** Only an existing medicine can be started and stopped here; a new one is always active. */
     val showsActiveSwitch: Boolean get() = mode is MedicationFormMode.Edit
+
+    /**
+     * Only a saved medicine folds its secondary details away behind a toggle; the add form shows
+     * every field, since the user is filling them in for the first time.
+     */
+    val showsSecondaryDetailsToggle: Boolean get() = mode is MedicationFormMode.Edit
+
+    /** Whether an error sits in a field the secondary details panel holds, and so could be hidden. */
+    val hasSecondaryDetailsError: Boolean get() = useUntilError != null
 }
 
 /** One schedule as the form lists it. */

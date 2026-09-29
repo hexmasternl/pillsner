@@ -197,6 +197,10 @@
     <string name="medicine_save_failed">Não foi possível guardar este medicamento. Tenta novamente.</string>
     <string name="medication_form_active">Ativo</string>
     <string name="medication_form_active_supporting">Os medicamentos inativos não têm lembretes</string>
+    <string name="medicine_details_more">Mais detalhes</string>
+    <string name="medicine_details_less">Menos detalhes</string>
+    <string name="medicine_details_expanded">Expandido</string>
+    <string name="medicine_details_collapsed">Recolhido</string>
     <string name="medication_form_open_failed">Não foi possível abrir o medicamento</string>
 
     <!-- Formulário do medicamento: validação -->

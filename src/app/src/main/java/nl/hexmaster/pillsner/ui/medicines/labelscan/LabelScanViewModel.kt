@@ -90,6 +90,13 @@ class LabelScanViewModel(
     @Volatile
     private var latest: LabelInterpretation? = null
 
+    /**
+     * Guards every path that ends the scan. Acceptance runs on the analysis thread and the shutter,
+     * Cancel and clearing on the main thread; under this lock exactly one of them wins, so a result
+     * is never emitted twice or after a cancel.
+     */
+    private val terminalLock = Any()
+
     @Volatile
     private var finished = false
 
@@ -184,22 +191,27 @@ class LabelScanViewModel(
 
     /** The user leaves without a result; stops a frame in progress so the screen closes at once. */
     fun onCancel() {
-        if (finished) return
-        finished = true
+        if (!claimFinish()) return
         recogniser.stop()
         Log.d(TAG, "Scan cancelled")
     }
 
     private fun finish(interpretation: LabelInterpretation, accepted: Boolean) {
-        if (finished) return
-        finished = true
+        if (!claimFinish()) return
         _uiState.update { it.copy(finished = true) }
         _effects.trySend(LabelScanEffect.Finished(interpretation, accepted))
         Log.d(TAG, "Scan finished after ${acceptance.framesSeen} frames, accepted=$accepted")
     }
 
-    override fun onCleared() {
+    /** Atomically ends the scan; true for the one caller that got there first. */
+    private fun claimFinish(): Boolean = synchronized(terminalLock) {
+        if (finished) return false
         finished = true
+        true
+    }
+
+    override fun onCleared() {
+        claimFinish()
         recogniser.stop()
         // Queued behind any frame still being recognised on the same thread, so the engine is
         // never released under a running recognition.

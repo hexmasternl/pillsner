@@ -7,6 +7,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.WorkerThread
+import java.io.ByteArrayInputStream
 import java.io.IOException
 
 /**
@@ -22,19 +23,22 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
      */
     @WorkerThread
     fun decode(uri: Uri): GreyFrame? = try {
+        // One read of the source, into memory: bounds, orientation and pixels all come from these
+        // bytes, so the photo is opened exactly once and never written anywhere (design D6).
+        val encoded = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return null
+        BitmapFactory.decodeByteArray(encoded, 0, encoded.size, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
 
         val options = BitmapFactory.Options().apply {
             inSampleSize = sampleSizeFor(maxOf(bounds.outWidth, bounds.outHeight))
             inPreferredConfig = Bitmap.Config.ARGB_8888
         }
-        val bitmap = contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
-            ?: return null
-        val orientation = contentResolver.openInputStream(uri)?.use {
+        val bitmap = BitmapFactory.decodeByteArray(encoded, 0, encoded.size, options) ?: return null
+        val orientation = ByteArrayInputStream(encoded).use {
             ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-        } ?: ExifInterface.ORIENTATION_NORMAL
+        }
         val grey = try {
             toGrey(bitmap)
         } finally {

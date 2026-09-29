@@ -349,6 +349,12 @@ abstract class VerifyManifestGuardTask : DefaultTask() {
 
     private fun checkChecksums(pinned: Map<String, String>): List<String> {
         val files = pinnedArtifactFiles.files
+        val resolvedAars = files.filter { it.extension == "aar" }
+        // An absent pin is not a passing pin: with the OCR group on the classpath, the allow-list
+        // must name its checksum, or removing the line would quietly switch the check off.
+        if (pinned.isEmpty() && resolvedAars.isNotEmpty()) {
+            return resolvedAars.map { "Artifact ${it.name} is on the runtime classpath but app/manifest-allowlist.txt pins no checksum for it" }
+        }
         return pinned.mapNotNull { (coordinates, expected) ->
             val artifactName = coordinates.substringAfter(':')
             val file = files.firstOrNull { it.name.startsWith("$artifactName-") && it.extension == "aar" }

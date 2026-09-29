@@ -298,9 +298,12 @@ abstract class VerifyManifestGuardTask : DefaultTask() {
     private fun checkPermissions(allowed: Set<String>): List<String> {
         val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(mergedManifest.get().asFile)
         val declared = linkedSetOf<String>()
-        val elements = document.getElementsByTagName("uses-permission")
-        for (index in 0 until elements.length) {
-            declared += elements.item(index).attributes.getNamedItem("android:name").nodeValue
+        // Both elements grant a permission; a library can merge in either.
+        for (tag in listOf("uses-permission", "uses-permission-sdk-23")) {
+            val elements = document.getElementsByTagName(tag)
+            for (index in 0 until elements.length) {
+                declared += elements.item(index).attributes.getNamedItem("android:name").nodeValue
+            }
         }
         val undeclared = declared - allowed
         val missing = allowed - declared

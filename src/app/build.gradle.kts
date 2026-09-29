@@ -248,6 +248,13 @@ abstract class VerifyManifestGuardTask : DefaultTask() {
     @get:InputFiles
     abstract val pinnedArtifactFiles: ConfigurableFileCollection
 
+    /**
+     * Each resolved OCR-group artifact as `group:module=absolute path`, so the pin is matched by exact
+     * module identity rather than by file-name prefix. Internal: the files above carry the input state.
+     */
+    @get:Internal
+    abstract val pinnedArtifactEntries: ListProperty<String>
+
     @get:Input
     abstract val forbiddenGroups: SetProperty<String>
 
@@ -348,18 +355,19 @@ abstract class VerifyManifestGuardTask : DefaultTask() {
     }
 
     private fun checkChecksums(pinned: Map<String, String>): List<String> {
-        val files = pinnedArtifactFiles.files
-        val resolvedAars = files.filter { it.extension == "aar" }
+        // Exact group:module identity from the resolution result, never a file-name prefix: a second
+        // artifact whose name merely starts like the pinned one is unpinned and fails.
+        val resolved: Map<String, File> = pinnedArtifactEntries.get().associate { entry ->
+            entry.substringBefore('=') to File(entry.substringAfter('='))
+        }
         // Every artifact the OCR group resolves must be pinned, not only the ones the allow-list
         // happens to name: an absent or partial pin set is not a passing one.
-        val unpinned = resolvedAars.filter { file ->
-            pinned.keys.none { coordinates -> file.name.startsWith(coordinates.substringAfter(':') + "-") }
+        val unpinnedFailures = resolved.filterKeys { it !in pinned }.map { (coordinates, file) ->
+            "Artifact $coordinates (${file.name}) is on the runtime classpath but app/manifest-allowlist.txt pins no checksum for it"
         }
-        val unpinnedFailures = unpinned.map { "Artifact ${it.name} is on the runtime classpath but app/manifest-allowlist.txt pins no checksum for it" }
         return unpinnedFailures + pinned.mapNotNull { (coordinates, expected) ->
-            val artifactName = coordinates.substringAfter(':')
-            val file = files.firstOrNull { it.name.startsWith("$artifactName-") && it.extension == "aar" }
-                ?: return@mapNotNull "Artifact $coordinates has a pinned checksum but no AAR was resolved for it"
+            val file = resolved[coordinates]
+                ?: return@mapNotNull "Artifact $coordinates has a pinned checksum but no artifact with exactly that identity was resolved"
             val actual = MessageDigest.getInstance("SHA-256").digest(file.readBytes())
                 .joinToString("") { "%02x".format(it) }
             if (actual == expected) {
@@ -381,12 +389,19 @@ androidComponents {
             mergedManifest.set(variant.artifacts.get(SingleArtifact.MERGED_MANIFEST))
             allowList.set(layout.projectDirectory.file("manifest-allowlist.txt"))
             dependencyGraph.set(variant.runtimeConfiguration.incoming.resolutionResult.rootComponent)
-            pinnedArtifactFiles.from(
-                variant.runtimeConfiguration.incoming.artifactView {
-                    componentFilter { id -> id is ModuleComponentIdentifier && id.group == ocrArtifactGroup }
-                    // The AAR as published, before AGP's transforms take it apart.
-                    attributes { attribute(Attribute.of("artifactType", String::class.java), "aar") }
-                }.files,
+            val ocrArtifacts = variant.runtimeConfiguration.incoming.artifactView {
+                componentFilter { id -> id is ModuleComponentIdentifier && id.group == ocrArtifactGroup }
+                // The AAR as published, before AGP's transforms take it apart.
+                attributes { attribute(Attribute.of("artifactType", String::class.java), "aar") }
+            }.artifacts
+            pinnedArtifactFiles.from(ocrArtifacts.artifactFiles)
+            pinnedArtifactEntries.set(
+                ocrArtifacts.resolvedArtifacts.map { results ->
+                    results.map { result ->
+                        val id = result.id.componentIdentifier as ModuleComponentIdentifier
+                        "${id.group}:${id.module}=${result.file.absolutePath}"
+                    }
+                },
             )
             forbiddenGroups.set(forbiddenDependencyGroups)
             forbiddenArtifacts.set(forbiddenDependencyArtifacts)

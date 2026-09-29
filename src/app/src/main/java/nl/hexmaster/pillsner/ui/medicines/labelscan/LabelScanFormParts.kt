@@ -3,6 +3,7 @@ package nl.hexmaster.pillsner.ui.medicines.labelscan
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -246,7 +247,9 @@ fun ScanReviewBanner(onShowText: () -> Unit, onDismiss: () -> Unit, modifier: Mo
             )
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Text(stringResource(R.string.label_scan_banner_text), style = MaterialTheme.typography.bodyLarge)
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                // A flow, not a row: at 200 % font scale on a compact screen the two labels do not
+                // fit side by side, and the design system has text wrap rather than clip (section 10).
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     TextButton(
                         onClick = onShowText,
                         colors = ButtonDefaults.textButtonColors(contentColor = LocalContentColor.current),

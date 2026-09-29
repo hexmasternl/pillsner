@@ -111,6 +111,17 @@ internal object LabelVocabulary {
         "batch", "charge", "chb",
     )
 
+    /**
+     * Verbs that make a line an instruction ("innemen", "take", "prendre"). A day-part word counts
+     * as a rhythm only beside one of these, a count or a per-day word: "Night Nurse 500 mg" is a
+     * product name, not a bedtime dose.
+     */
+    val instructionVerbs: Set<String> = setOf(
+        "gebruik", "gebruiken", "innemen", "inname", "nemen", "neem", "slikken", "take", "taking", "use", "einnehmen",
+        "nehmen", "anwenden", "prendre", "prenez", "prends", "tomar", "tome", "tomese", "toma", "ingerir", "avaler",
+        "schlucken", "inhaleren", "inhale", "inhalieren", "inhaler", "inhalar", "druppelen",
+    )
+
     /** Words that are a frequency in themselves: "twice", "driemaal", "einmal". */
     val timesWords: Map<String, Int> = buildMap {
         put(1, "once", "eenmaal", "einmal")

@@ -45,8 +45,10 @@ internal object LabelFrequency {
             return number(match.groupValues[1])?.let(Frequency::EveryNHours)
         }
         if (EVERY_OTHER_DAY.containsMatchIn(line)) return Frequency.EveryOtherDay
+        // Day-part words count only with dosing context on the same line: a count ("1 tablet"), a
+        // per-day word or an instruction verb. "Night Nurse 500 mg" is a name, not a bedtime dose.
         val parts = LabelVocabulary.words(line).mapNotNull { LabelVocabulary.dayParts[it] }.toSet()
-        if (parts.isNotEmpty()) return Frequency.DayParts(parts)
+        if (parts.isNotEmpty() && hasDosingContext(line)) return Frequency.DayParts(parts)
         (TIMES_PER_DAY_X.find(line) ?: TIMES_PER_DAY_WORD.find(line) ?: TIMES_PER_DAY_DD.find(line))?.let { match ->
             return number(match.groupValues[1])?.let(Frequency::TimesPerDay)
         }
@@ -60,6 +62,12 @@ internal object LabelFrequency {
         }
         return null
     }
+
+    /** A count token, a per-day word or an instruction verb: what turns a time of day into a dose. */
+    private fun hasDosingContext(line: String): Boolean =
+        DoseTokens.extract(line).any { !it.isStrength } ||
+            PER_DAY_ALONE.containsMatchIn(line) ||
+            LabelVocabulary.words(line).any { it in LabelVocabulary.instructionVerbs }
 
     /**
      * Whether the line talks about how often to take the medicine at all, including the rhythms

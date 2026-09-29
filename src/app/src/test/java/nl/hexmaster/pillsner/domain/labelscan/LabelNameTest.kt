@@ -125,6 +125,12 @@ class LabelNameTest {
     }
 
     @Test
+    fun `a product name that happens to contain a time of day stays the name`() {
+        assertEquals("Night Nurse", LabelName.choose(listOf("Night Nurse 500 mg")))
+        assertEquals("Night Nurse", interpret(lines("Night Nurse 500 mg", "Take 1 tablet at night"), today).name)
+    }
+
+    @Test
     fun `nothing usable leaves the name absent`() {
         val result = interpret(lines("Apotheek De Linde", "Tel. 030-1234567", "27-09-2026"), today)
 

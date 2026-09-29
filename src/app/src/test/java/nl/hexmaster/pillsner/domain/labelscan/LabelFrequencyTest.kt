@@ -71,6 +71,21 @@ class LabelFrequencyTest {
     }
 
     @Test
+    fun `a day-part word without dosing context is not a rhythm`() {
+        assertNull(detect("Night Nurse 500 mg"))
+        assertNull(detect("'s morgens en 's avonds"))
+        assertNull(detect("Morning Fresh"))
+        // Dosing context: a count, a per-day word or an instruction verb.
+        assertEquals(Frequency.DayParts(setOf(DayPart.MORNING, DayPart.EVENING)), detect("Innemen 's morgens en 's avonds"))
+        assertEquals(Frequency.DayParts(setOf(DayPart.EVENING)), detect("Prendre le soir"))
+        assertEquals(Frequency.DayParts(setOf(DayPart.NIGHT)), detect("daily at night"))
+        val result = interpret(lines("Night Nurse 500 mg", "Take 1 tablet at night"), today)
+        assertEquals("Night Nurse", result.name)
+        assertEquals(listOf(LocalTime.of(22, 0)), (result.schedules.single() as Schedule.EveryNDays).times)
+        assertTrue(interpret(lines("Night Nurse 500 mg"), today).schedules.isEmpty())
+    }
+
+    @Test
     fun `box notation is read with three or four digits and never from a date`() {
         assertEquals(Frequency.BoxNotation(listOf(1, 0, 1)), detect("1-0-1"))
         assertEquals(Frequency.BoxNotation(listOf(1, 1, 1)), detect("Tabl. 1 - 1 - 1"))

@@ -106,11 +106,11 @@ class LabelFrequencyTest {
     }
 
     @Test
-    fun `more than four times a day becomes an interval only when the day divides evenly`() {
-        assertEquals(listOf(Schedule.EveryNHours(oneTablet, 4, eight)), interpret(lines("6 times a day 1 tablet"), today).schedules)
-        assertEquals(listOf(Schedule.EveryNHours(oneTablet, 3, eight)), interpret(lines("8 times a day 1 tablet"), today).schedules)
+    fun `more than four times a day produces no schedule`() {
         assertTrue(interpret(lines("5 times a day 1 tablet"), today).schedules.isEmpty())
-        assertTrue(interpret(lines("7 times a day 1 tablet"), today).schedules.isEmpty())
+        assertTrue(interpret(lines("6 times a day 1 tablet"), today).schedules.isEmpty())
+        assertTrue(interpret(lines("8 times a day 1 tablet"), today).schedules.isEmpty())
+        assertTrue(interpret(lines("0 times a day 1 tablet"), today).schedules.isEmpty())
     }
 
     @Test

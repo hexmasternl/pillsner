@@ -90,7 +90,7 @@ Recognition of one cropped frame is expected to take a few hundred milliseconds 
 
 **Guidance.** After 8 seconds without a good frame the hint text changes to "Move closer, add light or hold still"; after 20 seconds the shutter button gains emphasis. A torch toggle is offered when the camera reports a flash unit. Cancel returns to the form unchanged.
 
-**Picked photo path.** "Choose a photo" uses `ActivityResultContracts.PickVisualMedia` (no permission), decodes the image through `ContentResolver.openInputStream` with EXIF orientation and `inSampleSize` bounding the long side to 2,000 pixels, converts to greyscale bytes, and runs the same recogniser once on the whole image. It is never copied.
+**Picked photo path.** "Choose a photo" uses `ActivityResultContracts.PickVisualMedia` (no permission), reads the picked file through `ContentResolver.openInputStream` exactly once into memory, decodes bounds, EXIF orientation (all eight values) and pixels from those bytes with `inSampleSize` bounding the long side to 2,000 pixels, converts to greyscale bytes, and runs the same recogniser once on the whole image. It is never copied to storage.
 
 Nothing here logs frames, text or confidence. The only log lines are debug-level "scan opened", "accepted after N frames in N ms", "cancelled" and failure classes without payload.
 
@@ -114,7 +114,7 @@ Nothing here logs frames, text or confidence. The only log lines are debug-level
 3. **Schedule amount** is the count token in the instruction line when there is one; otherwise a strength or volume token on that same line ("Take 10 ml twice daily" on a "125 mg/5 ml" label is 10 ml, not 125 mg); otherwise the default dose. A schedule is produced only when both an amount and a frequency were found.
 4. **Frequency to schedule**, using the app's existing shapes:
    - N times a day, for N from 1 to 4, becomes `EveryNDays(interval 1)` with fixed default times: 1 → 08:00; 2 → 08:00, 20:00; 3 → 08:00, 14:00, 20:00; 4 → 08:00, 12:00, 16:00, 20:00. "once" and "twice" words count as 1 and 2.
-   - N times a day for N above 4 becomes `EveryNHours(24 / N, from 08:00)` when 24 / N is one of the intervals the schedule editor offers (1, 2, 3, 4, 6, 8, 12, 24); otherwise no schedule.
+   - N times a day for N above 4 produces no schedule, as the spec requires: an every-N-hours shape from 08:00 would not even yield N doses in a day, so there is no honest mapping (corrected at apply time; an earlier draft mapped it to `EveryNHours(24 / N)`).
    - Every N hours becomes `EveryNHours(N, from 08:00)` when N is one of those intervals; otherwise no schedule.
    - Every other day becomes `EveryNDays(interval 2, 08:00)`.
    - Day-part words become `EveryNDays(interval 1)` with the matching slots: morning 08:00, noon 13:00, evening 18:00, night 22:00.

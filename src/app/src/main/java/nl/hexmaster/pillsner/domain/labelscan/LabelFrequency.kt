@@ -146,12 +146,14 @@ internal object LabelSchedules {
         return proposed.mapNotNull { make -> runCatching(make).getOrNull() }
     }
 
+    /**
+     * One to four times a day, at the fixed default times. Anything above four produces nothing:
+     * the spec allows no guess there, and an every-N-hours shape from 08:00 would not even yield N
+     * doses in a day.
+     */
     private fun timesPerDay(count: Int, amount: Quantity): List<() -> Schedule> {
-        DEFAULT_TIMES[count]?.let { times -> return listOf { Schedule.EveryNDays(amount, 1, times) } }
-        if (count <= 0 || Schedule.HOURS_IN_DAY % count != 0) return emptyList()
-        val interval = Schedule.HOURS_IN_DAY / count
-        if (interval !in SUPPORTED_HOUR_INTERVALS) return emptyList()
-        return listOf { Schedule.EveryNHours(amount, interval, FIRST_DOSE) }
+        val times = DEFAULT_TIMES[count] ?: return emptyList()
+        return listOf { Schedule.EveryNDays(amount, 1, times) }
     }
 
     /**

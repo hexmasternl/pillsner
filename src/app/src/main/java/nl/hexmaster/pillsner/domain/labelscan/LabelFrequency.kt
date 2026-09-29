@@ -28,8 +28,13 @@ internal sealed interface Frequency {
 /** Reads a frequency off a normalised line. A line that yields one is an *instruction line*. */
 internal object LabelFrequency {
 
-    /** The frequency on [line], or null when it has none. Box notation and intervals win over words. */
+    /**
+     * The frequency on [line], or null when it has none. Box notation and intervals win over words.
+     * A line that names a weekly or monthly rhythm yields nothing at all: those shapes are not
+     * produced, and reading "once weekly" as once a day would be a dangerously more frequent guess.
+     */
     fun detect(line: String): Frequency? {
+        if (WEEKLY_OR_MONTHLY.containsMatchIn(line)) return null
         BOX.find(line)?.let { match ->
             return Frequency.BoxNotation(match.groupValues.drop(1).filter { it.isNotEmpty() }.map { it.toInt() })
         }
@@ -42,10 +47,14 @@ internal object LabelFrequency {
         (TIMES_PER_DAY_X.find(line) ?: TIMES_PER_DAY_WORD.find(line) ?: TIMES_PER_DAY_DD.find(line))?.let { match ->
             return number(match.groupValues[1])?.let(Frequency::TimesPerDay)
         }
-        LabelVocabulary.words(line).firstNotNullOfOrNull { LabelVocabulary.timesWords[it] }?.let {
-            return Frequency.TimesPerDay(it)
+        // "twice", "eenmaal", "einmal" count only next to a per-day word: on their own they could as
+        // well be "twice weekly", which must produce nothing rather than a daily schedule.
+        if (PER_DAY_ALONE.containsMatchIn(line)) {
+            LabelVocabulary.words(line).firstNotNullOfOrNull { LabelVocabulary.timesWords[it] }?.let {
+                return Frequency.TimesPerDay(it)
+            }
+            return Frequency.TimesPerDay(1)
         }
-        if (PER_DAY_ALONE.containsMatchIn(line)) return Frequency.TimesPerDay(1)
         return null
     }
 
@@ -93,9 +102,28 @@ internal object LabelFrequency {
         ) + ")\\b",
     )
     private val TIMES_PER_DAY_X = Regex("\\b$NUMBER_PATTERN\\s*(?:x|×)\\s*(?:$PER_DAY)\\b")
-    private val TIMES_PER_DAY_WORD = Regex("\\b$NUMBER_PATTERN\\s*(?:$TIMES)\\b(?:\\s*(?:$PER_DAY)\\b)?")
+
+    /** "3 maal daags", "2 fois par jour": the per-day word is required, so "3 maal" alone is not a rhythm. */
+    private val TIMES_PER_DAY_WORD = Regex("\\b$NUMBER_PATTERN\\s*(?:$TIMES)\\s*(?:$PER_DAY)\\b")
     private val TIMES_PER_DAY_DD = Regex("\\b(\\d+)\\s*dd\\b")
     private val PER_DAY_ALONE = Regex("\\b(?:$PER_DAY)\\b")
+
+    /**
+     * A weekly or monthly rhythm, in any of the six languages. Rhythm words only: "durante 2 semanas"
+     * is a course length, not a rhythm, and must not disqualify the line.
+     */
+    private val WEEKLY_OR_MONTHLY = Regex(
+        "\\b(?:" + LabelVocabulary.alternation(
+            listOf(
+                "per week", "a week", "weekly", "wekelijks", "keer per week", "every week", "elke week", "iedere week",
+                "wochentlich", "pro woche", "jede woche", "par semaine", "hebdomadaire", "chaque semaine",
+                "por semana", "a la semana", "semanal", "semanalmente", "cada semana", "toda semana", "todas as semanas",
+                "per maand", "maandelijks", "elke maand", "iedere maand", "monthly", "a month", "every month",
+                "monatlich", "pro monat", "jeden monat", "par mois", "mensuel", "mensuelle", "chaque mois",
+                "al mes", "mensual", "mensualmente", "cada mes", "por mes", "mensal", "mensalmente", "todo mes",
+            ),
+        ) + ")\\b",
+    )
 }
 
 /** Turns a [Frequency] and an amount into the app's schedule shapes (design D4 rule 4). */

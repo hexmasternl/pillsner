@@ -88,6 +88,27 @@ class LabelFrequencyTest {
         assertNull(detect("iedere 3 dagen"))
     }
 
+    @Test
+    fun `a weekly or monthly rhythm yields nothing rather than a daily guess`() {
+        assertNull(detect("Take 1 tablet once weekly"))
+        assertNull(detect("1 tablet twice a week"))
+        assertNull(detect("1 tablet wekelijks"))
+        assertNull(detect("1 Tablette einmal wöchentlich"))
+        assertNull(detect("1 comprimé une fois par semaine"))
+        assertNull(detect("1 comprimido una vez a la semana"))
+        assertNull(detect("1 comprimido mensalmente"))
+        assertNull(detect("1 tablet 's morgens, elke week"))
+        assertTrue(interpret(lines("ZORVALEX 50 MG", "Take 1 tablet once weekly"), today).schedules.isEmpty())
+    }
+
+    @Test
+    fun `a count word without a per-day word is not a rhythm, but a course length beside one is fine`() {
+        assertNull(detect("2 maal 1 tablet"))
+        assertNull(detect("twice"))
+        assertEquals(Frequency.TimesPerDay(2), detect("2x daags 1 tablet gedurende 2 weken"))
+        assertEquals(Frequency.TimesPerDay(2), detect("1 comprimido 2 vezes ao dia durante 2 semanas"))
+    }
+
     // --- Schedules ----------------------------------------------------------------------------
 
     @Test

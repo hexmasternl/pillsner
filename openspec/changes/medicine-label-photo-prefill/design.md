@@ -167,7 +167,7 @@ This is the whole list. Anything not on it is a defect, and D8 is the check.
 | Contributed by libraries (see the correction above) | `USE_BIOMETRIC`, `USE_FINGERPRINT` (biometric), `WAKE_LOCK`, `ACCESS_NETWORK_STATE` (work), `nl.hexmaster.pillsner.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (core) | unchanged; CameraX and Tesseract4Android contribute none (task 2.4) |
 | `CAMERA` | not declared | declared; runtime permission requested only when the user chooses "Scan with camera", after an in-app rationale |
 | `READ_MEDIA_IMAGES`, `READ_EXTERNAL_STORAGE` | not declared | not declared (system photo picker) |
-| `INTERNET`, `ACCESS_NETWORK_STATE` | not declared | not declared, and the guard fails the build if a dependency reintroduces them |
+| `INTERNET` | not declared | not declared, and the guard fails the build if a dependency reintroduces it (`ACCESS_NETWORK_STATE` is WorkManager's, in the library row below) |
 | `<uses-feature>` | none for camera | `android.hardware.camera.any` with `required="false"` (install on camera-less devices unaffected) |
 | `<queries>` | vendor power-manager packages | unchanged |
 | `<provider>`, `<service>`, `<receiver>`, `<activity>` | Pillsner's own, plus what WorkManager, Play services and androidx.startup already merged in | plus one disabled, unexported `<service>` from `camera-core` (`androidx.camera.core.impl.MetadataHolderService`, carrying the Camera2 default-config meta-data). Task 2.4 read the merged debug and release manifests: that service is CameraX's only contribution, and the Tesseract4Android AAR manifest holds nothing but `uses-sdk` |

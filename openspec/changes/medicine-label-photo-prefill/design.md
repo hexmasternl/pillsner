@@ -168,7 +168,7 @@ This is the whole list. Anything not on it is a defect, and D8 is the check.
 | `CAMERA` | not declared | declared; runtime permission requested only when the user chooses "Scan with camera", after an in-app rationale |
 | `READ_MEDIA_IMAGES`, `READ_EXTERNAL_STORAGE` | not declared | not declared (system photo picker) |
 | `INTERNET` | not declared | not declared, and the guard fails the build if a dependency reintroduces it (`ACCESS_NETWORK_STATE` is WorkManager's, in the library row below) |
-| `<uses-feature>` | none for camera | `android.hardware.camera.any` with `required="false"` (install on camera-less devices unaffected) |
+| `<uses-feature>` | none for camera | three, all `required="false"`: `android.hardware.camera.any` (what the app actually needs), and `android.hardware.camera` plus `android.hardware.camera.autofocus`, which Play would otherwise infer as *required* from the `CAMERA` permission and so exclude camera-less devices. The guard checks permissions, not features, so this row is the record (added at apply time, review on #86) |
 | `<queries>` | vendor power-manager packages | unchanged |
 | `<provider>`, `<service>`, `<receiver>`, `<activity>` | Pillsner's own, plus what WorkManager, Play services and androidx.startup already merged in | plus one disabled, unexported `<service>` from `camera-core` (`androidx.camera.core.impl.MetadataHolderService`, carrying the Camera2 default-config meta-data). Task 2.4 read the merged debug and release manifests: that service is CameraX's only contribution, and the Tesseract4Android AAR manifest holds nothing but `uses-sdk` |
 | Runtime prompts by Pillsner | notification permission | plus the camera permission, in context only |

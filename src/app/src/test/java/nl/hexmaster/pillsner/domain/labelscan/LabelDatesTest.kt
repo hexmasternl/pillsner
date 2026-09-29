@@ -22,6 +22,19 @@ class LabelDatesTest {
     }
 
     @Test
+    fun `a date on an expiry or lot line is neither a start nor an end of use`() {
+        // A recent expiry date, alone on the label: still not the start of use.
+        assertEquals(today, interpret(lines("ZORVALEX 50 MG", "EXP 15-09-2026"), today).usedSince)
+        // "houdbaar tot" carries an until-word, but it is when the medicine goes off, not when its use ends.
+        val result = interpret(lines("ZORVALEX 50 MG", "27-09-2026", "Ten minste houdbaar tot 15-10-2027"), today)
+        assertEquals(LocalDate.of(2026, 9, 27), result.usedSince)
+        assertNull(result.useUntil)
+        assertNull(interpret(lines("ZORVALEX 50 MG", "À utiliser avant 15/10/2027"), today).useUntil)
+        assertNull(interpret(lines("ZORVALEX 50 MG", "Lot A1B2 · 15-10-2027"), today).useUntil)
+        assertEquals(today, interpret(lines("ZORVALEX 50 MG", "Verwendbar bis 15.09.2026"), today).usedSince)
+    }
+
+    @Test
     fun `without a date used since is today`() {
         assertEquals(today, interpret(lines("ZORVALEX 50 MG", "2x daags 1 tablet"), today).usedSince)
     }

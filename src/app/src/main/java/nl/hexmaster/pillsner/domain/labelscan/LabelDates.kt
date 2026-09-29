@@ -26,6 +26,14 @@ internal object LabelDates {
         return (dayFirst + yearFirst).sortedBy { it.range.first }.toList()
     }
 
+    /**
+     * Whether the line is an expiry or lot line ("EXP 03/2028", "houdbaar tot 15-10-2026"). Its date
+     * is when the medicine goes off, not when its use starts or ends, so it is no candidate for
+     * either.
+     */
+    fun isExpiryLine(normalised: String): Boolean =
+        LabelVocabulary.words(normalised).any { it in LabelVocabulary.expiryWords } || EXPIRY_PHRASE.containsMatchIn(normalised)
+
     /** Whether the line is a date and nothing else, which makes it noise for the name. */
     fun isOnlyDate(normalised: String): Boolean {
         val matches = candidates(normalised)
@@ -96,6 +104,17 @@ internal object LabelDates {
 
     private val DAY_MONTH_YEAR = Regex("(?<![\\d./-])(\\d{1,2})[./-](\\d{1,2})[./-](\\d{4}|\\d{2})(?![\\d./-])")
     private val YEAR_MONTH_DAY = Regex("(?<![\\d./-])(\\d{4})-(\\d{1,2})-(\\d{1,2})(?![\\d./-])")
+
+    /** Expiry phrases that no single word gives away: "use by", "niet gebruiken na", "à utiliser avant". */
+    private val EXPIRY_PHRASE = Regex(
+        "\\b(?:" + LabelVocabulary.alternation(
+            listOf(
+                "use by", "best before", "do not use after", "niet gebruiken na", "te gebruiken tot", "ten minste houdbaar tot",
+                "mindestens haltbar bis", "nicht verwenden nach", "a utiliser avant", "ne pas utiliser apres",
+                "consumir antes", "no usar despues", "valido ate", "nao usar apos",
+            ),
+        ) + ")\\b",
+    )
 
     private val UNTIL = Regex(
         "\\b(?:" + LabelVocabulary.alternation(

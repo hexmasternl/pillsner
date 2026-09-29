@@ -26,12 +26,17 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
 
     /**
      * The photo as an upright greyscale frame whose long side is at most [MAX_LONG_SIDE] pixels,
-     * or null when it cannot be decoded or is larger than a phone photo has any reason to be.
-     * Blocking; call off the main thread.
+     * or null when it cannot be decoded, is larger than a phone photo has any reason to be, or
+     * [isCancelled] turned true while it was being read. Blocking; call off the main thread.
+     *
+     * @param isCancelled polled between chunks of the read and before each decode step, so a Cancel
+     *   during a slow provider read returns promptly with the source closed. The bitmap decode
+     *   itself cannot be interrupted, but on a sampled photo it takes well under a second.
      */
     @WorkerThread
-    fun decode(uri: Uri): GreyFrame? = try {
-        val encoded = readOnce(uri) ?: return null
+    fun decode(uri: Uri, isCancelled: () -> Boolean = { false }): GreyFrame? = try {
+        val encoded = readOnce(uri, isCancelled) ?: return null
+        if (isCancelled()) return null
 
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(encoded.bytes, 0, encoded.length, bounds)
@@ -71,32 +76,40 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
      * are allocated; otherwise the buffer grows while reading. Either way nothing is read past
      * [MAX_ENCODED_BYTES], and the buffer is used in place rather than copied.
      */
-    private fun readOnce(uri: Uri): Encoded? = contentResolver.openAssetFileDescriptor(uri, "r")?.use { descriptor ->
-        val declared = descriptor.length
-        if (declared > MAX_ENCODED_BYTES) {
-            Log.d(TAG, "Picked photo larger than the ${MAX_ENCODED_BYTES / MEBIBYTE} MB limit")
-            return null
+    private fun readOnce(uri: Uri, isCancelled: () -> Boolean): Encoded? =
+        contentResolver.openAssetFileDescriptor(uri, "r")?.use { descriptor ->
+            val declared = descriptor.length
+            if (declared > MAX_ENCODED_BYTES) {
+                Log.d(TAG, "Picked photo larger than the ${MAX_ENCODED_BYTES / MEBIBYTE} MB limit")
+                return null
+            }
+            // `use` closes the source on every exit, a cancelled read included.
+            descriptor.createInputStream().use { input ->
+                if (declared != AssetFileDescriptor.UNKNOWN_LENGTH) {
+                    readExactly(input, declared.toInt(), isCancelled)
+                } else {
+                    readBounded(input, isCancelled)
+                }
+            }
         }
-        descriptor.createInputStream().use { input ->
-            if (declared != AssetFileDescriptor.UNKNOWN_LENGTH) readExactly(input, declared.toInt()) else readBounded(input)
-        }
-    }
 
-    private fun readExactly(input: InputStream, length: Int): Encoded {
+    private fun readExactly(input: InputStream, length: Int, isCancelled: () -> Boolean): Encoded? {
         val bytes = ByteArray(length)
         var filled = 0
         while (filled < length) {
-            val read = input.read(bytes, filled, length - filled)
+            if (isCancelled()) return null
+            val read = input.read(bytes, filled, minOf(READ_CHUNK_BYTES, length - filled))
             if (read < 0) break
             filled += read
         }
         return Encoded(bytes, filled)
     }
 
-    private fun readBounded(input: InputStream): Encoded? {
+    private fun readBounded(input: InputStream, isCancelled: () -> Boolean): Encoded? {
         val out = InPlaceBuffer()
         val chunk = ByteArray(READ_CHUNK_BYTES)
         while (true) {
+            if (isCancelled()) return null
             val read = input.read(chunk)
             if (read < 0) return Encoded(out.bytes(), out.size())
             if (out.size() + read > MAX_ENCODED_BYTES) {

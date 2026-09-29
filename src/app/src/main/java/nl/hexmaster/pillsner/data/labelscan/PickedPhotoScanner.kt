@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import nl.hexmaster.pillsner.domain.labelscan.InterpretLabelText
 import nl.hexmaster.pillsner.domain.labelscan.LabelInterpretation
@@ -40,10 +41,12 @@ class PickedPhotoScanner(
 ) : PhotoScanner {
 
     override suspend fun scan(uri: String): LabelInterpretation? = withContext(ioDispatcher) {
-        // Decoding and opening the engine are blocking and cannot be interrupted, so a cancel that
-        // lands during either is honoured at the next boundary rather than after a whole recognition.
-        val frame = decoder.decode(Uri.parse(uri)) ?: return@withContext null
-        currentCoroutineContext().ensureActive()
+        // The decoder polls for cancellation between chunks of its read; opening the engine cannot
+        // be interrupted, so a cancel that lands there is honoured at the next boundary rather than
+        // after a whole recognition.
+        val context = currentCoroutineContext()
+        val frame = decoder.decode(Uri.parse(uri), isCancelled = { !context.isActive }) ?: return@withContext null
+        context.ensureActive()
         try {
             recogniser.open()
             currentCoroutineContext().ensureActive()

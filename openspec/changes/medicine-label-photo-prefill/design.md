@@ -181,6 +181,8 @@ This is the whole list. Anything not on it is a defect, and D8 is the check.
 
 The README permission table gets a `CAMERA` row: "Only to read a medicine label you hold in front of it, and only after you choose to scan one. Frames are read in the app and thrown away; no photo is saved and nothing is sent anywhere. Decline it and you can still pick an existing photo or type everything by hand."
 
+The public privacy statement (`PRIVACY.md`) changes in the same release, as its own section 13 promises: version 2 drops the "no camera access" claim, explains the camera in its own bullet, names CameraX and Tesseract4Android among the libraries, lists every permission the installed app carries (the same twelve plus `CAMERA` as the allow-list), and says the recognised text is never logged. Its effective date is the day of the release that carries this change (added at apply time, review on #86).
+
 ### D8: The build guard makes D7 enforceable
 
 A Gradle task in `app/build.gradle.kts`, `verifyManifestGuard<Variant>`, runs after `process<Variant>Manifest` for every variant and is wired into `check`, `assemble<Variant>` and `bundle<Variant>`, so both CI (`assembleDebug`) and the release workflow run it. It:

@@ -8,7 +8,7 @@ This file is the full account.
 
 ### Medicines
 
-- **Scan a label to fill in a new medicine.** The Add medicine form has a "Scan a label" button. Hold
+- **Scan a label to fill in a new medicine.** The Name field on the Add medicine form has a camera icon. Hold
   a pharmacy label or a box in front of the camera and Pillsner reads it live, on the phone, and fills
   in the name, the strength, the prescribed dose as a schedule, and the dates it can find; a photo you
   already have works too. Everything lands in the ordinary form for you to check before saving, with

@@ -130,7 +130,7 @@ Every rule is small and every rule has its own test, including fixtures for a Du
 
 ### D5: The scan starts on the form and lands in the shared draft
 
-"Scan a label" sits at the top of the Add medicine form, above the name field, and only in `MedicationFormMode.Add`. It is an outlined button with a camera icon (design system 8.4 secondary button). Tapping it opens a bottom sheet (8.12) with "Scan with camera" and "Choose a photo", the first hidden on a device without a camera.
+"Scan a label" is the trailing icon of the Name field on the Add medicine form, and only in `MedicationFormMode.Add`: a camera `IconButton` (48 dp target, spoken label "Scan a label") rather than a separate button, so the form gains no extra row and the action sits where the typing it replaces would start (changed at apply time from an outlined button above the field, at the user's request). Tapping it opens a bottom sheet (8.12) with "Scan with camera" and "Choose a photo", the first hidden on a device without a camera.
 
 The scanning screen (D2, D3) returns a `LabelInterpretation` to the shared `MedicationFormViewModel` by calling `onInterpretationReceived` before popping itself. The picked-photo path runs the recogniser in `viewModelScope` with `isScanning = true` and a modal "Reading the photo…" state with Cancel, then calls the same method.
 

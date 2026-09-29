@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -13,6 +14,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.LocalDate
+import nl.hexmaster.pillsner.domain.labelscan.LabelInterpretation
 import nl.hexmaster.pillsner.domain.model.DoseUnit
 import nl.hexmaster.pillsner.domain.model.MedicationId
 import nl.hexmaster.pillsner.domain.model.Quantity
@@ -47,29 +49,30 @@ class MedicationFormScanScreenTest {
     )
 
     @Test
-    fun theScanButtonIsPresentInAddModeAboveTheNameField() {
+    fun theScanIconSitsAtTheTrailingEndOfTheNameFieldInAddMode() {
         var taps = 0
         show(MedicationFormUiState(), onScanLabelClicked = { taps++ })
 
-        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_BUTTON).assertIsDisplayed()
-        composeRule.onNodeWithText("Scan a label").assertIsDisplayed()
-        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_BUTTON).performClick()
+        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_ACTION).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Scan a label").assertIsDisplayed()
+        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_ACTION).performClick()
         assertEquals(1, taps)
 
-        val button = composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_BUTTON).fetchSemanticsNode().positionInRoot.y
-        val name = composeRule.onNodeWithTag(MedicationFormTestTags.NAME).fetchSemanticsNode().positionInRoot.y
-        assertTrue("The scan button sits above the name field", button < name)
+        val icon = composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_ACTION).fetchSemanticsNode().boundsInRoot
+        val name = composeRule.onNodeWithTag(MedicationFormTestTags.NAME).fetchSemanticsNode().boundsInRoot
+        assertTrue("The scan icon lies inside the name field", icon.top >= name.top && icon.bottom <= name.bottom)
+        assertTrue("The scan icon is at the trailing end", icon.right <= name.right && icon.left > name.left + name.width / 2)
     }
 
     @Test
-    fun theScanButtonIsAbsentInEditMode() {
+    fun theScanIconIsAbsentInEditMode() {
         show(MedicationFormUiState(mode = MedicationFormMode.Edit(MedicationId(1)), name = "Zorvalex"))
 
-        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_BUTTON).assertDoesNotExist()
+        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_ACTION).assertDoesNotExist()
     }
 
     @Test
-    fun theOptionSheetOffersBothWaysWithACameraAndOnlyAPhotoWithout() {
+    fun theOptionSheetOffersBothWaysWithACamera() {
         show(MedicationFormUiState(showScanOptions = true, cameraAvailable = true))
         composeRule.onNodeWithTag(LabelScanFormTestTags.OPTION_CAMERA).assertIsDisplayed()
         composeRule.onNodeWithTag(LabelScanFormTestTags.OPTION_PHOTO).assertIsDisplayed()
@@ -134,12 +137,7 @@ class MedicationFormScanScreenTest {
         var replaced = 0
         var kept = 0
         show(
-            filled.copy(
-                pendingInterpretation = nl.hexmaster.pillsner.domain.labelscan.LabelInterpretation(
-                    name = "Other",
-                    usedSince = LocalDate.of(2026, 9, 29),
-                ),
-            ),
+            filled.copy(pendingInterpretation = LabelInterpretation(name = "Other", usedSince = LocalDate.of(2026, 9, 29))),
             onReplaceConfirmed = { replaced++ },
             onReplaceDeclined = { kept++ },
         )
@@ -169,8 +167,8 @@ class MedicationFormScanScreenTest {
 
         composeRule.onNodeWithTag(LabelScanFormTestTags.BANNER).assertIsDisplayed()
         composeRule.onNodeWithTag(LabelScanFormTestTags.BANNER_DISMISS).performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_BUTTON).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag(MedicationFormTestTags.NAME).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag(LabelScanFormTestTags.SCAN_ACTION).assertIsDisplayed()
         composeRule.onNodeWithTag(MedicationFormTestTags.USED_SINCE).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag(MedicationFormTestTags.USE_UNTIL).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag(MedicationFormTestTags.PRESCRIBER).performScrollTo().assertIsDisplayed()

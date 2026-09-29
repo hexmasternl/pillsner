@@ -4,12 +4,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -18,12 +16,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,7 +43,7 @@ import nl.hexmaster.pillsner.ui.theme.Spacing
 
 /** Test tags for the label-scan parts of the Add medicine form. */
 object LabelScanFormTestTags {
-    const val SCAN_BUTTON = "medication_form_scan_label"
+    const val SCAN_ACTION = "medication_form_scan_label"
     const val OPTION_CAMERA = "medication_form_scan_option_camera"
     const val OPTION_PHOTO = "medication_form_scan_option_photo"
     const val RATIONALE = "medication_form_camera_rationale"
@@ -63,26 +61,21 @@ object LabelScanFormTestTags {
 }
 
 /**
- * "Scan a label", above the name field in add mode (medicine-label-photo-prefill design D5). An
- * outlined button: a neutral alternative to typing, not the form's positive action (design system
- * 8.4). The icon repeats the label, so it has no description of its own.
+ * "Scan a label" as the trailing icon of the Name field, in add mode only (medicine-label-photo-
+ * prefill design D5). It is icon-only, so it carries the action's name as its description, and an
+ * `IconButton` gives it the 48 dp target the design system asks for (section 10).
  */
 @Composable
-fun ScanLabelButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    OutlinedButton(
+fun ScanLabelFieldIcon(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = Sizes.minTouchTarget)
-            .testTag(LabelScanFormTestTags.SCAN_BUTTON),
+        modifier = modifier.testTag(LabelScanFormTestTags.SCAN_ACTION),
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_camera),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.label_scan_action),
             modifier = Modifier.size(Sizes.iconDefault),
         )
-        Spacer(Modifier.width(Spacing.sm))
-        Text(stringResource(R.string.label_scan_action))
     }
 }
 
@@ -315,7 +308,7 @@ private fun ScanFormPartsPreview() {
         Surface {
             Column(Modifier.padding(Spacing.lg), verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
                 ScanReviewBanner(onShowText = {}, onDismiss = {})
-                ScanLabelButton(onClick = {})
+                ScanLabelFieldIcon(onClick = {})
             }
         }
     }

@@ -86,7 +86,7 @@ import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraRationaleDialog
 import nl.hexmaster.pillsner.ui.medicines.labelscan.ReadingPhotoDialog
 import nl.hexmaster.pillsner.ui.medicines.labelscan.RecognisedTextSheet
 import nl.hexmaster.pillsner.ui.medicines.labelscan.ReplaceDraftDialog
-import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanLabelButton
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanLabelFieldIcon
 import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanOptionsSheet
 import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanReviewBanner
 import nl.hexmaster.pillsner.ui.theme.Motion
@@ -290,13 +290,10 @@ fun MedicationFormScreen(
                     .padding(horizontal = Spacing.screenEdge, vertical = Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
             ) {
-                // Add mode only (medicine-label-scan): the review banner after an applied scan, then
-                // the way to start one, both above the name field.
-                if (uiState.canScanLabel) {
-                    if (uiState.showScanBanner) {
-                        ScanReviewBanner(onShowText = onShowScanText, onDismiss = onScanBannerDismissed)
-                    }
-                    ScanLabelButton(onClick = onScanLabelClicked)
+                // Add mode only (medicine-label-scan): the review banner after an applied scan sits above
+                // the name field; the way to start a scan is the camera icon inside that field.
+                if (uiState.canScanLabel && uiState.showScanBanner) {
+                    ScanReviewBanner(onShowText = onShowScanText, onDismiss = onScanBannerDismissed)
                 }
 
                 OutlinedTextField(
@@ -305,6 +302,11 @@ fun MedicationFormScreen(
                     label = { Text(stringResource(R.string.medicine_field_name)) },
                     isError = uiState.showErrors && uiState.nameError != null,
                     supportingText = uiState.nameError.supportingText(uiState.showErrors),
+                    trailingIcon = if (uiState.canScanLabel) {
+                        { ScanLabelFieldIcon(onClick = onScanLabelClicked) }
+                    } else {
+                        null
+                    },
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier

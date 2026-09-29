@@ -28,13 +28,13 @@
 
 ## 4. Manifest, permission and data layer
 
-- [ ] 4.1 Add `<uses-permission android:name="android.permission.CAMERA"/>` with a comment naming this change, and `<uses-feature android:name="android.hardware.camera.any" android:required="false" tools:replace="android:required"/>`, to the manifest; add `CAMERA` to `app/manifest-allowlist.txt` in the same commit; confirm the guard passes.
-- [ ] 4.2 Add `CameraPermission` (following `ui/home/NotificationPermissionRequest.kt`): granted check, rationale-needed check, permanently-denied detection, request launcher, and an intent to the app's settings page.
-- [ ] 4.3 Add `TessdataInstaller`: copies `assets/tessdata/eng.traineddata` to `filesDir/ocr/tessdata/` when missing or when the version marker differs from the app's version code.
-- [ ] 4.4 Add `LabelTextRecogniser` (design D3): owns one `TessBaseAPI` for the life of a scan session (`open`/`close`), recognises a greyscale byte frame (`setImage` with one byte per pixel, `PSM_AUTO`, text-line iteration to `RecognisedLine`s), supports `stop()`, and logs only timings without payload.
-- [ ] 4.5 Add `FrameCropper`: Y-plane extraction from an `ImageProxy`, crop to the guide rectangle mapped into frame coordinates, rotation by `rotationDegrees`, as plain byte-array loops with unit tests on synthetic frames.
-- [ ] 4.6 Add `PickedPhotoDecoder`: EXIF orientation, bounded decode (long side ≤ 2,000 px) from a content URI stream, conversion to greyscale bytes; never copies the source.
-- [ ] 4.7 Wire `TessdataInstaller`, `LabelTextRecogniser`, `FrameCropper` and `PickedPhotoDecoder` into `AppContainer` and expose them to the view model factory.
+- [x] 4.1 Add `<uses-permission android:name="android.permission.CAMERA"/>` with a comment naming this change, and `<uses-feature android:name="android.hardware.camera.any" android:required="false" tools:replace="android:required"/>`, to the manifest; add `CAMERA` to `app/manifest-allowlist.txt` in the same commit; confirm the guard passes.
+- [x] 4.2 Add `CameraPermission` (following `ui/home/NotificationPermissionRequest.kt`): granted check, rationale-needed check, permanently-denied detection, request launcher, and an intent to the app's settings page.
+- [x] 4.3 Add `TessdataInstaller`: copies `assets/tessdata/eng.traineddata` to `filesDir/ocr/tessdata/` when missing or when the version marker differs from the app's version code.
+- [x] 4.4 Add `LabelTextRecogniser` (design D3): owns one `TessBaseAPI` for the life of a scan session (`open`/`close`), recognises a greyscale byte frame (`setImage` with one byte per pixel, `PSM_AUTO`, text-line iteration to `RecognisedLine`s), supports `stop()`, and logs only timings without payload.
+- [x] 4.5 Add `FrameCropper`: Y-plane extraction from an `ImageProxy`, crop to the guide rectangle mapped into frame coordinates, rotation by `rotationDegrees`, as plain byte-array loops with unit tests on synthetic frames.
+- [x] 4.6 Add `PickedPhotoDecoder`: EXIF orientation, bounded decode (long side ≤ 2,000 px) from a content URI stream, conversion to greyscale bytes; never copies the source.
+- [x] 4.7 Wire `TessdataInstaller`, `LabelTextRecogniser`, `FrameCropper` and `PickedPhotoDecoder` into `AppContainer` and expose them to the view model factory.
 
 ## 5. Scanning screen
 
@@ -88,3 +88,5 @@ Manifest guard failed for processDebugMainManifest:
 The line was removed again (`git diff` on the manifest is empty). `./gradlew :app:bundleRelease :app:check --dry-run` lists `:app:verifyManifestGuardRelease` after `:app:processReleaseManifest` and before `:app:bundleRelease`, and `:app:verifyManifestGuardDebug` under `:app:check`.
 
 **Design correction found while writing the allow-list.** The merged manifest already carried five permissions beyond the seven in Pillsner's own manifest, all contributed by libraries: `USE_BIOMETRIC` and `USE_FINGERPRINT` (androidx.biometric, app lock), `WAKE_LOCK` and `ACCESS_NETWORK_STATE` (androidx.work, the alarm watchdog) and `nl.hexmaster.pillsner.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (androidx.core). They shipped in every release so far. The allow-list discloses all twelve with their contributors; design D7 and the README are corrected accordingly. `INTERNET` is not among them.
+
+**4.1 Camera declaration (29 September 2026).** `./gradlew :app:verifyManifestGuardDebug :app:verifyManifestGuardRelease` both report `Manifest guard passed: 13 permissions, 1 pinned artifact checksum(s), no forbidden dependency.` The `tools:replace="android:required"` attribute the task text names was left off: no library declares the camera feature (task 2.4), and with nothing to replace the manifest merger warns on every build (`uses-feature#android.hardware.camera.any@android:required was tagged ... to replace other declarations but no other declaration present`). Design D2 records this.

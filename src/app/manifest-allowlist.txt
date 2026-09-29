@@ -18,6 +18,9 @@ android.permission.RECEIVE_BOOT_COMPLETED
 android.permission.FOREGROUND_SERVICE
 android.permission.FOREGROUND_SERVICE_SHORT_SERVICE
 android.permission.USE_FULL_SCREEN_INTENT
+# Only to read a medicine label the user chooses to scan (medicine-label-photo-prefill design D2, D7).
+# Runtime permission, requested in context after an in-app rationale; never at install or app start.
+android.permission.CAMERA
 
 # --- Contributed by libraries through manifest merging ----------------------------------------
 # androidx.biometric: the app lock's biometric unlock (app-login). Normal-level, granted at install.

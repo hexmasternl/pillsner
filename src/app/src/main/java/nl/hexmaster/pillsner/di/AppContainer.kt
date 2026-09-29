@@ -40,6 +40,9 @@ import nl.hexmaster.pillsner.data.stock.DataStoreStockWarningQueue
 import nl.hexmaster.pillsner.data.stock.RoomStockBatchRepository
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
 import nl.hexmaster.pillsner.data.db.RoomTransactionRunner
+import nl.hexmaster.pillsner.data.labelscan.LabelTextRecogniser
+import nl.hexmaster.pillsner.data.labelscan.PickedPhotoDecoder
+import nl.hexmaster.pillsner.data.labelscan.TessdataInstaller
 import nl.hexmaster.pillsner.data.reminders.AndroidBatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
 import nl.hexmaster.pillsner.data.reminders.ArmedAlarmStore
@@ -67,6 +70,7 @@ import nl.hexmaster.pillsner.domain.intake.AnswerDose
 import nl.hexmaster.pillsner.domain.intake.DoseAnswer
 import nl.hexmaster.pillsner.domain.intake.RecordIntake
 import nl.hexmaster.pillsner.domain.intake.SnoozeDose
+import nl.hexmaster.pillsner.domain.labelscan.InterpretLabelText
 import nl.hexmaster.pillsner.domain.legal.IsLegalAccepted
 import nl.hexmaster.pillsner.domain.model.AppInfo
 import nl.hexmaster.pillsner.domain.model.AppTheme
@@ -365,6 +369,24 @@ class AppContainer(
         },
         refresh = { reminderCoordinator.requestWake(WakeReason.MEDICATIONS_CHANGED) },
     )
+
+    // --- Label scanning (medicine-label-photo-prefill design D1, D3, D4) ----------------------
+
+    /** Puts the bundled trained data where Tesseract reads it; runs before the first scan. */
+    private val tessdataInstaller = TessdataInstaller(applicationContext, appInfo.versionCode)
+
+    /**
+     * One recogniser for the app. A scan session opens and closes it, and the picked-photo path
+     * runs inside the form while no scan session exists, so the two never overlap. It costs nothing
+     * until opened, and holds no native engine between sessions.
+     */
+    val labelTextRecogniser = LabelTextRecogniser(tessdataInstaller)
+
+    /** Reads a picked photo once, straight from the content resolver, and never copies it (design D6). */
+    val pickedPhotoDecoder = PickedPhotoDecoder(applicationContext.contentResolver)
+
+    /** The pure interpretation rules; shared because they hold no state. */
+    val interpretLabelText = InterpretLabelText()
 
     // --- App lock (app-login design D9) ---------------------------------------------------
 

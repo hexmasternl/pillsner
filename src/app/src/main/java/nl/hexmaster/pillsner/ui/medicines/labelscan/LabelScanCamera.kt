@@ -1,10 +1,17 @@
 package nl.hexmaster.pillsner.ui.medicines.labelscan
 
+import android.content.Context
+import android.os.Build
 import android.util.Log
+import android.util.Rational
 import android.util.Size
+import android.view.Surface
+import android.view.WindowManager
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
+import androidx.camera.core.ViewPort
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -12,6 +19,7 @@ import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.awaitCancellation
 import nl.hexmaster.pillsner.data.labelscan.toUprightGreyFrame
@@ -22,15 +30,24 @@ import nl.hexmaster.pillsner.data.labelscan.toUprightGreyFrame
  * frame to the view model on its analysis thread. Deliberately no `ImageCapture`: nothing is ever
  * encoded or written.
  *
+ * Both use cases share one [ViewPort] with the viewfinder's aspect ratio, so the region the user
+ * sees behind the framing guide is the region the analysis stream's crop rect covers; the guide's
+ * fractions then mean the same thing on screen and in the recogniser's frame. Binding waits until
+ * layout has reported a size, and rebinds when the aspect ratio changes.
+ *
  * Bound to the screen's lifecycle owner, so the camera is released when the app goes to the
  * background and when this composable leaves the composition (cancel, acceptance, back).
+ *
+ * @param viewfinderSize the laid-out size of the viewfinder area; zero until layout has run.
  */
 @Composable
-fun LabelScanCamera(viewModel: LabelScanViewModel) {
+fun LabelScanCamera(viewModel: LabelScanViewModel, viewfinderSize: IntSize) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val aspectRatio = viewfinderSize.takeIf { it.width > 0 && it.height > 0 }?.let { Rational(it.width, it.height) }
 
-    LaunchedEffect(lifecycleOwner) {
+    LaunchedEffect(lifecycleOwner, aspectRatio) {
+        if (aspectRatio == null) return@LaunchedEffect
         val provider = ProcessCameraProvider.awaitInstance(context)
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { request -> viewModel.onSurfaceRequest(request) }
@@ -58,10 +75,18 @@ fun LabelScanCamera(viewModel: LabelScanViewModel) {
                 image.close()
             }
         }
+        val viewPort = ViewPort.Builder(aspectRatio, context.displayRotation())
+            .setScaleType(ViewPort.FILL_CENTER)
+            .build()
+        val useCases = UseCaseGroup.Builder()
+            .setViewPort(viewPort)
+            .addUseCase(preview)
+            .addUseCase(analysis)
+            .build()
 
         try {
             provider.unbindAll()
-            val camera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
+            val camera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, useCases)
             viewModel.onCameraBound(camera.cameraInfo.hasFlashUnit()) { on -> camera.cameraControl.enableTorch(on) }
             awaitCancellation()
         } catch (failure: IllegalArgumentException) {
@@ -74,6 +99,15 @@ fun LabelScanCamera(viewModel: LabelScanViewModel) {
         }
     }
 }
+
+/** The display's rotation, which the viewport's aspect ratio is expressed against. */
+private fun Context.displayRotation(): Int =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        display?.rotation ?: Surface.ROTATION_0
+    } else {
+        @Suppress("DEPRECATION")
+        getSystemService(WindowManager::class.java).defaultDisplay.rotation
+    }
 
 private const val TAG = "LabelScan"
 

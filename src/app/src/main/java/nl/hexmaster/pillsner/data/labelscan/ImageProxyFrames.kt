@@ -7,10 +7,22 @@ import androidx.camera.core.ImageProxy
  * (medicine-label-photo-prefill design D3). The Y plane is already 8-bit grey, so there is no
  * colour conversion at all; the frame's own `rotationDegrees` says how far to turn it.
  *
+ * Only the frame's `cropRect` is read: with a shared viewport that is exactly the region the
+ * preview shows, so the guide's fractions land on the same part of the world in both.
+ *
  * The caller still closes the [ImageProxy]; this only reads it.
  */
 fun ImageProxy.toUprightGreyFrame(guide: FrameCropper.Guide): GreyFrame {
     val plane = planes[0]
-    val full = FrameCropper.fromPlane(plane.buffer, width, height, plane.rowStride, plane.pixelStride)
-    return FrameCropper.upright(full, imageInfo.rotationDegrees, guide)
+    val region = cropRect
+    val shown = FrameCropper.fromPlane(
+        plane = plane.buffer,
+        width = region.width(),
+        height = region.height(),
+        rowStride = plane.rowStride,
+        pixelStride = plane.pixelStride,
+        left = region.left,
+        top = region.top,
+    )
+    return FrameCropper.upright(shown, imageInfo.rotationDegrees, guide)
 }

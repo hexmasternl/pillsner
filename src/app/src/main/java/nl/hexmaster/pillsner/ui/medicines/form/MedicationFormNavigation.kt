@@ -13,8 +13,11 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -181,6 +184,9 @@ fun NavGraphBuilder.medicationFormGraph(
             val uiState by scanViewModel.uiState.collectAsStateWithLifecycle()
             val surfaceRequest by scanViewModel.surfaceRequest.collectAsStateWithLifecycle()
             val haptics = LocalHapticFeedback.current
+            // The viewport that keeps the preview and the analysis stream on the same region needs the
+            // viewfinder's aspect ratio, which only layout knows.
+            var viewfinderSize by remember { mutableStateOf(IntSize.Zero) }
 
             LaunchedEffect(scanViewModel) {
                 scanViewModel.effects.collect { effect ->
@@ -198,7 +204,7 @@ fun NavGraphBuilder.medicationFormGraph(
                 }
             }
 
-            LabelScanCamera(scanViewModel)
+            LabelScanCamera(scanViewModel, viewfinderSize)
             LabelScanScreen(
                 uiState = uiState,
                 onShutter = scanViewModel::onShutter,
@@ -208,6 +214,7 @@ fun NavGraphBuilder.medicationFormGraph(
                     navController.popBackStack()
                 },
                 guide = scanViewModel.guide,
+                onViewfinderSizeChanged = { viewfinderSize = it },
                 viewfinder = { viewfinderModifier ->
                     surfaceRequest?.let { request -> CameraXViewfinder(request, viewfinderModifier) }
                 },

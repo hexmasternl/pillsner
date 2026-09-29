@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -43,6 +44,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.IntSize
 import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.data.labelscan.FrameCropper
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
@@ -80,6 +82,7 @@ fun LabelScanScreen(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
     guide: FrameCropper.Guide = FrameCropper.Guide.DEFAULT,
+    onViewfinderSizeChanged: (IntSize) -> Unit = {},
     viewfinder: @Composable (Modifier) -> Unit = {},
 ) {
     // System back leaves like Cancel does: without a result, and with the recogniser stopped.
@@ -128,6 +131,9 @@ fun LabelScanScreen(
                     .fillMaxWidth()
                     .weight(1f)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    // The camera binder shapes its viewport to this size, so the preview and the
+                    // analysis stream show the same region behind the guide.
+                    .onSizeChanged(onViewfinderSizeChanged)
                     .testTag(LabelScanTestTags.VIEWFINDER),
             ) {
                 viewfinder(Modifier.fillMaxSize())

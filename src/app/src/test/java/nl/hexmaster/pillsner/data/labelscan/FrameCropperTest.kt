@@ -41,6 +41,49 @@ class FrameCropperTest {
     }
 
     @Test
+    fun `a region of the plane is read from its offset, as CameraX's crop rect asks`() {
+        // The full 4 x 3 plane; the viewport shows columns 1..2 of rows 1..2.
+        val result = FrameCropper.fromPlane(ByteBuffer.wrap(frame.pixels), width = 2, height = 2, rowStride = 4, pixelStride = 1, left = 1, top = 1)
+
+        assertArrayEquals(byteArrayOf(11, 12, 21, 22), result.pixels)
+    }
+
+    @Test
+    fun `a region that does not fit in the row is refused`() {
+        assertThrows(IllegalArgumentException::class.java) {
+            FrameCropper.fromPlane(ByteBuffer.wrap(frame.pixels), width = 4, height = 1, rowStride = 4, pixelStride = 1, left = 1)
+        }
+    }
+
+    @Test
+    fun `flipping horizontally mirrors every row`() {
+        val result = FrameCropper.flipHorizontal(frame)
+
+        assertArrayEquals(byteArrayOf(3, 2, 1, 0, 13, 12, 11, 10, 23, 22, 21, 20), result.pixels)
+        assertEquals(4, result.width)
+    }
+
+    @Test
+    fun `every EXIF orientation makes the frame upright`() {
+        val exif = FrameCropper.ExifOrientation
+        assertArrayEquals(frame.pixels, FrameCropper.orient(frame, exif.NORMAL).pixels)
+        assertArrayEquals(FrameCropper.flipHorizontal(frame).pixels, FrameCropper.orient(frame, exif.FLIP_HORIZONTAL).pixels)
+        assertArrayEquals(FrameCropper.rotate(frame, 180).pixels, FrameCropper.orient(frame, exif.ROTATE_180).pixels)
+        // Flipped vertically: the rows in reverse order, each row as it was.
+        assertArrayEquals(byteArrayOf(20, 21, 22, 23, 10, 11, 12, 13, 0, 1, 2, 3), FrameCropper.orient(frame, exif.FLIP_VERTICAL).pixels)
+        assertArrayEquals(FrameCropper.rotate(frame, 90).pixels, FrameCropper.orient(frame, exif.ROTATE_90).pixels)
+        assertArrayEquals(FrameCropper.rotate(frame, 270).pixels, FrameCropper.orient(frame, exif.ROTATE_270).pixels)
+        // Transposed: the rows become columns, top-left staying top-left.
+        val transposed = FrameCropper.orient(frame, exif.TRANSPOSE)
+        assertEquals(3, transposed.width)
+        assertArrayEquals(byteArrayOf(0, 10, 20, 1, 11, 21, 2, 12, 22, 3, 13, 23), transposed.pixels)
+        // Transversed: the transpose of the 180-degree turn.
+        val transversed = FrameCropper.orient(frame, exif.TRANSVERSE)
+        assertArrayEquals(byteArrayOf(23, 13, 3, 22, 12, 2, 21, 11, 1, 20, 10, 0), transversed.pixels)
+        assertArrayEquals(frame.pixels, FrameCropper.orient(frame, 0).pixels)
+    }
+
+    @Test
     fun `reading a plane leaves the buffer position alone`() {
         val buffer = ByteBuffer.wrap(frame.pixels)
 

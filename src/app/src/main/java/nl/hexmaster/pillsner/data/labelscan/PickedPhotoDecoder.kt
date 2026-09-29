@@ -32,13 +32,16 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
         }
         val bitmap = contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
             ?: return null
-        val rotation = contentResolver.openInputStream(uri)?.use { rotationDegrees(ExifInterface(it)) } ?: 0
+        val orientation = contentResolver.openInputStream(uri)?.use {
+            ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        } ?: ExifInterface.ORIENTATION_NORMAL
         val grey = try {
             toGrey(bitmap)
         } finally {
             bitmap.recycle()
         }
-        FrameCropper.rotate(grey, rotation)
+        // All eight EXIF values, the mirrored ones included, so a flipped photo is not read backwards.
+        FrameCropper.orient(grey, orientation)
     } catch (failure: IOException) {
         Log.d(TAG, "Picked photo could not be read: ${failure.javaClass.simpleName}")
         null
@@ -56,14 +59,6 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
         while (longSide / sample > MAX_LONG_SIDE) sample *= 2
         return sample
     }
-
-    private fun rotationDegrees(exif: ExifInterface): Int =
-        when (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> 90
-            ExifInterface.ORIENTATION_ROTATE_180 -> 180
-            ExifInterface.ORIENTATION_ROTATE_270 -> 270
-            else -> 0
-        }
 
     /** Luminance from the usual weights, in integer arithmetic. */
     private fun toGrey(bitmap: Bitmap): GreyFrame {

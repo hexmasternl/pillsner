@@ -27,15 +27,25 @@ object FrameCropper {
     }
 
     /**
-     * Copies a luminance plane with any row and pixel stride into a tightly packed frame. The
-     * buffer's position is not changed.
+     * Copies a [width] x [height] region of a luminance plane, starting at ([left], [top]) and with
+     * any row and pixel stride, into a tightly packed frame. The buffer's position is not changed.
+     * The region is CameraX's crop rect: the part of the sensor frame the viewport shows.
      */
-    fun fromPlane(plane: ByteBuffer, width: Int, height: Int, rowStride: Int, pixelStride: Int): GreyFrame {
-        require(rowStride >= width && pixelStride >= 1) { "Strides cannot be smaller than the row" }
+    fun fromPlane(
+        plane: ByteBuffer,
+        width: Int,
+        height: Int,
+        rowStride: Int,
+        pixelStride: Int,
+        left: Int = 0,
+        top: Int = 0,
+    ): GreyFrame {
+        require(rowStride >= (left + width) * pixelStride && pixelStride >= 1) { "The region must fit in the row" }
+        require(left >= 0 && top >= 0) { "The region starts inside the plane" }
         val pixels = ByteArray(width * height)
         val source = plane.duplicate()
         for (row in 0 until height) {
-            val rowStart = row * rowStride
+            val rowStart = (top + row) * rowStride + left * pixelStride
             if (pixelStride == 1) {
                 source.position(rowStart)
                 source.get(pixels, row * width, width)
@@ -75,6 +85,45 @@ object FrameCropper {
             }
             else -> throw IllegalArgumentException("Rotation must be a multiple of 90 degrees, not $degrees")
         }
+    }
+
+    /** Mirrors left to right, for the EXIF orientations that include a flip. */
+    fun flipHorizontal(frame: GreyFrame): GreyFrame {
+        val w = frame.width
+        val out = ByteArray(frame.pixels.size)
+        for (y in 0 until frame.height) {
+            val rowStart = y * w
+            for (x in 0 until w) out[rowStart + (w - 1 - x)] = frame.pixels[rowStart + x]
+        }
+        return GreyFrame(out, w, frame.height)
+    }
+
+    /**
+     * Makes a photo upright from its EXIF orientation (TIFF tag 274), including the four values that
+     * mirror the image. The rotation is applied first, then the mirror, which is the transform the
+     * platform's own image loaders use.
+     */
+    fun orient(frame: GreyFrame, exifOrientation: Int): GreyFrame = when (exifOrientation) {
+        ExifOrientation.FLIP_HORIZONTAL -> flipHorizontal(frame)
+        ExifOrientation.ROTATE_180 -> rotate(frame, 180)
+        ExifOrientation.FLIP_VERTICAL -> flipHorizontal(rotate(frame, 180))
+        ExifOrientation.TRANSPOSE -> flipHorizontal(rotate(frame, 90))
+        ExifOrientation.ROTATE_90 -> rotate(frame, 90)
+        ExifOrientation.TRANSVERSE -> flipHorizontal(rotate(frame, 270))
+        ExifOrientation.ROTATE_270 -> rotate(frame, 270)
+        else -> frame
+    }
+
+    /** The EXIF orientation values, as `android.media.ExifInterface` defines them, kept here so [orient] stays testable on the JVM. */
+    object ExifOrientation {
+        const val NORMAL = 1
+        const val FLIP_HORIZONTAL = 2
+        const val ROTATE_180 = 3
+        const val FLIP_VERTICAL = 4
+        const val TRANSPOSE = 5
+        const val ROTATE_90 = 6
+        const val TRANSVERSE = 7
+        const val ROTATE_270 = 8
     }
 
     /** The part of [frame] inside [guide]; never smaller than one pixel. */

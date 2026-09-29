@@ -82,6 +82,8 @@ class DoseTokensTest {
         assertTrue(interpret(lines("ZORVALEX 500 MG", "Take 1-2 tablets daily"), today).schedules.isEmpty())
         assertTrue(interpret(lines("ZORVALEX 500 MG", "1 tot 2 tabletten per dag"), today).schedules.isEmpty())
         assertTrue(interpret(lines("ZORVALEX 500 MG", "1 à 2 comprimés par jour"), today).schedules.isEmpty())
+        assertTrue(interpret(lines("ZORVALEX 500 MG", "1 o 2 comprimidos al día"), today).schedules.isEmpty())
+        assertTrue(interpret(lines("ZORVALEX 500 MG", "1 ou 2 comprimidos por dia"), today).schedules.isEmpty())
     }
 
     @Test

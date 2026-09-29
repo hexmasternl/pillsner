@@ -100,7 +100,7 @@ class InterpretLabelText {
          * not follow a dash and the second may not precede one.
          */
         val AMOUNT_RANGE = Regex(
-            "(?<!-\\s{0,2})\\b\\d+(?:[.,]\\d+)?\\s*(?:-|–|\\bto\\b|\\btot\\b|\\bbis\\b|\\ba\\b|\\bà\\b|\\bou\\b|\\bor\\b|\\bof\\b|\\boder\\b)\\s*" +
+            "(?<!-\\s{0,2})\\b\\d+(?:[.,]\\d+)?\\s*(?:-|–|\\bto\\b|\\btot\\b|\\bbis\\b|\\ba\\b|\\bà\\b|\\bou\\b|\\bo\\b|\\bor\\b|\\bof\\b|\\boder\\b)\\s*" +
                 "\\d+(?:[.,]\\d+)?(?!\\s*-\\s*\\d)\\s+(?:" + LabelVocabulary.alternation(LabelVocabulary.units.keys) + ")\\b",
         )
     }

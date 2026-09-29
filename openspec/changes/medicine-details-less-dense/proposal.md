@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #82 (https://github.com/hexmasternl/pillsner/issues/82)
+**Pull Request:** #84 (https://github.com/hexmasternl/pillsner/pull/84)
 
 The Medicine details screen shows every field of a medicine at the same weight, so the name and default dose, the two things a user actually comes to check, sit in a dense column together with used since, use until, prescribed by and the active switch, and the schedules and stock sections only appear after scrolling past all of it. Issue #82 asks for the rarely-needed fields to step back so the screen reads at a glance.
 

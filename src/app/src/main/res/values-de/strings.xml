@@ -197,6 +197,10 @@
     <string name="medicine_save_failed">Dieses Medikament konnte nicht gespeichert werden. Versuch es noch einmal.</string>
     <string name="medication_form_active">Aktiv</string>
     <string name="medication_form_active_supporting">Für inaktive Medikamente gibt es keine Erinnerung</string>
+    <string name="medicine_details_more">Mehr Details</string>
+    <string name="medicine_details_less">Weniger Details</string>
+    <string name="medicine_details_expanded">Ausgeklappt</string>
+    <string name="medicine_details_collapsed">Eingeklappt</string>
     <string name="medication_form_open_failed">Medikament konnte nicht geöffnet werden</string>
 
     <!-- Medikamentenformular: Prüfungen -->

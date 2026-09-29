@@ -95,6 +95,116 @@ class MedicationFormEditModeTest {
         assertTrue(viewModel.onBackRequested())
     }
 
+    // --- Secondary details toggle (medicine-details) --------------------------------------
+
+    @Test
+    fun `the secondary details start collapsed on a saved medicine`() = runTest(dispatcher) {
+        val state = editing(store()).uiState.value
+
+        assertTrue(state.showsSecondaryDetailsToggle)
+        assertFalse(state.secondaryDetailsExpanded)
+    }
+
+    @Test
+    fun `toggling opens and closes the secondary details`() = runTest(dispatcher) {
+        val viewModel = editing(store())
+
+        viewModel.onSecondaryDetailsToggled()
+        assertTrue(viewModel.uiState.value.secondaryDetailsExpanded)
+
+        viewModel.onSecondaryDetailsToggled()
+        assertFalse(viewModel.uiState.value.secondaryDetailsExpanded)
+    }
+
+    @Test
+    fun `toggling the secondary details is not an edit`() = runTest(dispatcher) {
+        val viewModel = editing(store())
+
+        viewModel.onSecondaryDetailsToggled()
+        viewModel.onSecondaryDetailsToggled()
+
+        assertFalse(viewModel.uiState.value.hasEdits)
+        assertTrue("back leaves straight away", viewModel.onBackRequested())
+        assertFalse(viewModel.uiState.value.showDiscardDialog)
+    }
+
+    @Test
+    fun `the open panel stays open across a draft edit`() = runTest(dispatcher) {
+        val viewModel = editing(store())
+        viewModel.onSecondaryDetailsToggled()
+
+        viewModel.onNameChange("Metoprolol retard")
+
+        assertTrue(viewModel.uiState.value.secondaryDetailsExpanded)
+        assertTrue(viewModel.uiState.value.hasEdits)
+    }
+
+    @Test
+    fun `an edit made inside the panel is saved after collapsing it`() = runTest(dispatcher) {
+        val viewModel = editing(store())
+        viewModel.onSecondaryDetailsToggled()
+        viewModel.onPrescriberChange(Prescriber.PHARMACIST)
+        viewModel.onSecondaryDetailsToggled()
+
+        viewModel.save()
+
+        assertEquals(Prescriber.PHARMACIST, snapshot().single().prescribedBy)
+    }
+
+    @Test
+    fun `a hidden use-until error opens the panel on save`() = runTest(dispatcher) {
+        val viewModel = editing(store())
+        viewModel.onSecondaryDetailsToggled()
+        viewModel.onUseUntilChange(today.minusDays(1))
+        viewModel.onSecondaryDetailsToggled()
+        assertFalse(viewModel.uiState.value.secondaryDetailsExpanded)
+
+        viewModel.save()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.showErrors)
+        assertEquals(MedicationFieldError.USE_UNTIL_BEFORE_USED_SINCE, state.useUntilError)
+        assertTrue("the error must be visible", state.secondaryDetailsExpanded)
+        assertNull(snapshot().single().useUntil)
+    }
+
+    @Test
+    fun `a name error alone leaves the panel closed on save`() = runTest(dispatcher) {
+        val viewModel = editing(store())
+        viewModel.onNameChange("")
+
+        viewModel.save()
+
+        assertEquals(MedicationFieldError.NAME_REQUIRED, viewModel.uiState.value.nameError)
+        assertFalse(viewModel.uiState.value.secondaryDetailsExpanded)
+    }
+
+    @Test
+    fun `the open panel is restored with the draft`() = runTest(dispatcher) {
+        val handle = editHandle(store())
+        viewModel(handle).onSecondaryDetailsToggled()
+
+        // As after rotation or process death: a new view model on the same saved state.
+        val restored = viewModel(handle)
+
+        assertTrue(restored.uiState.value.secondaryDetailsExpanded)
+        assertTrue("still untouched", restored.onBackRequested())
+    }
+
+    @Test
+    fun `a fresh open of the same medicine starts collapsed`() = runTest(dispatcher) {
+        val id = store()
+        editing(id).onSecondaryDetailsToggled()
+
+        // A fresh navigation builds a fresh handle; nothing from the previous visit carries over.
+        assertFalse(editing(id).uiState.value.secondaryDetailsExpanded)
+    }
+
+    @Test
+    fun `add mode shows no secondary details toggle`() = runTest(dispatcher) {
+        assertFalse(viewModel(SavedStateHandle()).uiState.value.showsSecondaryDetailsToggle)
+    }
+
     @Test
     fun `an edit that is undone by hand leaves the form untouched again`() = runTest(dispatcher) {
         val viewModel = editing(store())

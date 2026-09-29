@@ -69,6 +69,7 @@ fun NavGraphBuilder.medicationFormGraph(
                 onRemoveSchedule = viewModel::removeSchedule,
                 onSave = viewModel::save,
                 onActiveChanged = viewModel::onActiveChanged,
+                onSecondaryDetailsToggled = viewModel::onSecondaryDetailsToggled,
                 onBack = { if (viewModel.onBackRequested()) navController.popBackStack() },
                 onDiscard = {
                     viewModel.onDiscardDialogDismissed()

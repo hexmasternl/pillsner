@@ -197,6 +197,10 @@
     <string name="medicine_save_failed">Dit medicijn kon niet worden opgeslagen. Probeer het opnieuw.</string>
     <string name="medication_form_active">Actief</string>
     <string name="medication_form_active_supporting">Voor niet-actieve medicijnen komt geen herinnering</string>
+    <string name="medicine_details_more">Meer details</string>
+    <string name="medicine_details_less">Minder details</string>
+    <string name="medicine_details_expanded">Uitgeklapt</string>
+    <string name="medicine_details_collapsed">Ingeklapt</string>
     <string name="medication_form_open_failed">Medicijn kon niet worden geopend</string>
 
     <!-- Medicijnformulier: controles -->

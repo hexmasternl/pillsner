@@ -278,10 +278,28 @@ class MedicationFormViewModel(
 
     fun onDiscardDialogDismissed() = _uiState.update { it.copy(showDiscardDialog = false) }
 
+    /**
+     * Opens or closes the secondary details panel. Pure presentation: the flag lives next to the
+     * draft in the saved state so it survives rotation and process death, but it is not part of
+     * the draft, so toggling never counts as an edit (`medicine-details`, "Secondary details
+     * toggle").
+     */
+    fun onSecondaryDetailsToggled() = setSecondaryDetailsExpanded(!_uiState.value.secondaryDetailsExpanded)
+
+    private fun setSecondaryDetailsExpanded(expanded: Boolean) {
+        savedStateHandle[SECONDARY_DETAILS_EXPANDED_KEY] = expanded
+        _uiState.update { it.copy(secondaryDetailsExpanded = expanded) }
+    }
+
     fun save() {
         val state = _uiState.value.copy(showErrors = true)
         _uiState.value = state
-        if (!state.canSave) return
+        if (!state.canSave) {
+            // An error the user cannot see is no feedback at all: when a field folded away behind
+            // the secondary details toggle is what stops the save, the panel opens on its own.
+            if (state.hasSecondaryDetailsError) setSecondaryDetailsExpanded(true)
+            return
+        }
 
         val amount = amountParser.parse(draft.doseText) ?: return
         val defaultDose = Quantity(amount, draft.doseUnit)
@@ -483,6 +501,9 @@ class MedicationFormViewModel(
             lockedDoseUnit = lockedDoseUnit,
             addStockState = addStockState,
             pendingStockRemoval = pendingStockRemoval,
+            // The saved state is the one source of truth for the panel, so a state rebuilt after a
+            // draft edit and a new view model after process death both read the same flag.
+            secondaryDetailsExpanded = savedStateHandle[SECONDARY_DETAILS_EXPANDED_KEY] ?: false,
         )
     }
 
@@ -491,6 +512,9 @@ class MedicationFormViewModel(
 
         /** The name navigation gives the route argument of [MedicationFormGraph]. */
         const val MEDICATION_ID_ARG = "medicationId"
+
+        /** Where the secondary details panel's open/closed flag lives, next to the draft. */
+        const val SECONDARY_DETAILS_EXPANDED_KEY = "secondary_details_expanded"
 
         /**
          * The daily dose times depend only on the interval and the first dose, but the shape needs

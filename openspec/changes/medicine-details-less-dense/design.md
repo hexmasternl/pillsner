@@ -53,6 +53,12 @@ Existing edit-mode assertions that scroll to used since, use until, prescribed b
 - [TalkBack traversal after toggling] → Focus stays on the toggle; the newly visible fields follow it in traversal order because they are the next siblings in the column. Verified in the manual accessibility check in tasks.
 - [Largest-font-scale layout] → The expanded state is the same layout as today, which the existing "Largest font scale" scenario already covers; the collapsed state is strictly shorter.
 
+## Corrections found during implementation
+
+- **Motion tokens did not exist.** Decision 5 assumed a "medium duration token"; the theme had none. `ui/theme/Motion.kt` now holds the three durations from design system section 9 (150, 250, 350 ms), and the panel and chevron use `Motion.MEDIUM_MILLIS`. Compose's Android host scales every animation by the system animator duration scale, so "Remove animations" needs no further code.
+- **Decision 7 named the wrong test file.** `MedicationFormFlowTest` only ever opens the form in add mode, so it needed no change; the edit-mode cases went into `MedicationDetailsFlowTest`, and a new `SecondaryDetailsToggleTest` covers the toggle's semantics, size and add-mode absence in isolation.
+- **Two spec scenarios are unit-tested rather than driven through the UI.** "Hidden error opens the panel" would need the Material date picker driven in an instrumented test, which nothing in this project does yet; "State survives process death" and rotation are covered by rebuilding the view model on the same `SavedStateHandle`. Both live in `MedicationFormEditModeTest`.
+
 ## Open Questions
 
 _None._ The one judgement call, leaving the Add medicine form unchanged, is stated in the proposal; if the product owner wants the collapse there too it is a one-line change to `showsSecondaryDetailsToggle` and a spec tweak.

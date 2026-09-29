@@ -52,6 +52,9 @@ internal object LabelVocabulary {
         "filmomhulde", "omhulde", "filmtablet", "filmtabletten", "filmtablette", "retardtabletten", "retardtablette",
         "pellicule", "pellicules", "recubierto", "recubiertos", "recubierta", "recubiertas", "revestido", "revestidos",
         "uberzogen", "uberzogene",
+        // Liquid forms, which follow a concentration on the name line ("250 mg/5 ml suspensie").
+        "suspensie", "suspension", "suspensao", "drank", "siroop", "syrup", "sirop", "jarabe", "xarope", "saft",
+        "oplossing", "losung", "solution", "solucion", "solucao", "druppelvloeistof",
     )
 
     /** The parts of the day a label names, and the clock time each one becomes (design D4 rule 4). */

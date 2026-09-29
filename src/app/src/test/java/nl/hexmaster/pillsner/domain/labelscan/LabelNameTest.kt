@@ -70,6 +70,13 @@ class LabelNameTest {
     }
 
     @Test
+    fun `a concentration such as 125 mg per 5 ml is removed as one token`() {
+        assertEquals("AMOXICILLINE", LabelName.choose(listOf("AMOXICILLINE 125 mg/5 ml")))
+        assertEquals("Amoxicilline", LabelName.choose(listOf("Amoxicilline 250 mg / 5 ml suspensie")))
+        assertEquals("AMOXICILLINE", interpret(lines("AMOXICILLINE 125 mg/5 ml", "Take 10 ml twice daily"), today).name)
+    }
+
+    @Test
     fun `trailing punctuation is trimmed and the name is capped at sixty characters`() {
         assertEquals("Zorvalex", LabelName.choose(listOf("Zorvalex 50 mg,")))
         val long = "A".repeat(70)

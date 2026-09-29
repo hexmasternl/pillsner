@@ -46,35 +46,40 @@ internal object LabelName {
      * outer punctuation trimmed and whitespace collapsed. Case is kept as recognised.
      */
     private fun strip(line: String): String {
-        val words = line.split(WHITESPACE).filter { it.isNotEmpty() }
-        val kept = mutableListOf<String>()
-        var index = 0
-        while (index < words.size) {
-            val word = words[index]
+        val words = removeDoseTokens(line).split(WHITESPACE).filter { it.isNotEmpty() }
+        val kept = words.filter { word ->
             val key = LabelVocabulary.normalise(word).trim(*PUNCTUATION)
-            val next = words.getOrNull(index + 1)?.let { LabelVocabulary.normalise(it).trim(*PUNCTUATION) }
-            when {
-                // "50 mg", "30 st": a number followed by a unit or pack-size word drops both.
-                isNumber(key) && next != null && (next in LabelVocabulary.units || next in LabelVocabulary.packSizeWords) -> index++
-                // "50mg", "30st": the same, glued together.
-                GLUED_TOKEN.matchEntire(key)?.let { it.groupValues[2] in LabelVocabulary.units || it.groupValues[2] in LabelVocabulary.packSizeWords } == true -> Unit
-                key in LabelVocabulary.units && LabelVocabulary.units.getValue(key) !in LabelVocabulary.strengthUnits -> Unit
-                key in LabelVocabulary.formDescriptors -> Unit
-                else -> kept += word
-            }
-            index++
+            val bareFormWord = key in LabelVocabulary.units && LabelVocabulary.units.getValue(key) !in LabelVocabulary.strengthUnits
+            !bareFormWord && key !in LabelVocabulary.formDescriptors
         }
         return kept.joinToString(" ").trim(*PUNCTUATION, ' ')
     }
 
-    private fun isNumber(key: String): Boolean = NUMBER.matches(key)
+    /**
+     * Removes every `<number><unit>` and `<number><pack word>` token from the original line by its
+     * matched range, ratio notation included, so "125 mg/5 ml" goes as one piece. Working on the
+     * original rather than the normalised line keeps the name's own spelling and accents.
+     */
+    private fun removeDoseTokens(line: String): String {
+        val matches = TOKEN_IN_ORIGINAL.findAll(line).filter { match ->
+            val unit = LabelVocabulary.normalise(match.groupValues[2])
+            unit in LabelVocabulary.units || unit in LabelVocabulary.packSizeWords
+        }.toList()
+        if (matches.isEmpty()) return line
+        val out = StringBuilder(line)
+        matches.asReversed().forEach { match -> out.replace(match.range.first, match.range.last + 1, " ") }
+        return out.toString()
+    }
+
+    private val TOKEN_IN_ORIGINAL = Regex(
+        "(?<![\\p{L}\\p{N}])${DoseTokens.NUMBER}\\s*(\\p{L}+)(?:\\s*/\\s*${DoseTokens.NUMBER}\\s*\\p{L}+)?(?![\\p{L}\\p{N}])",
+        RegexOption.IGNORE_CASE,
+    )
 
     private data class Candidate(val text: String, val hasStrength: Boolean)
 
     private const val MIN_LETTERS = 3
     private val WHITESPACE = Regex("\\s+")
-    private val NUMBER = Regex(DoseTokens.NUMBER)
-    private val GLUED_TOKEN = Regex("${DoseTokens.NUMBER}(\\p{L}+)")
     private val PUNCTUATION = charArrayOf('.', ',', ';', ':', '!', '?', '-', '(', ')', '[', ']', '*', '"', '\'', '/')
 
     /** Seven or more digits with the usual separators: a phone number. */

@@ -32,7 +32,6 @@ import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryScreen
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
 import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraPermission
 import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanCamera
-import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanEffect
 import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanScreen
 import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanViewModel
 import nl.hexmaster.pillsner.ui.medicines.labelscan.rememberCameraPermissionRequest
@@ -188,24 +187,24 @@ fun NavGraphBuilder.medicationFormGraph(
             // viewfinder's aspect ratio, which only layout knows.
             var viewfinderSize by remember { mutableStateOf(IntSize.Zero) }
 
-            LaunchedEffect(scanViewModel) {
-                scanViewModel.effects.collect { effect ->
-                    when (effect) {
-                        is LabelScanEffect.Finished -> {
-                            // Applied first: Cancel and back stay live during the dwell below, and a
-                            // result that has already said "Label read" must not be lost to them.
-                            formViewModel.onInterpretationReceived(effect.interpretation)
-                            if (effect.accepted) {
-                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                                // Long enough for the live region to announce "Label read" (design D3).
-                                delay(ACCEPTANCE_DWELL_MILLIS)
-                            }
-                            // This destination by name, not whatever is on top: Cancel or back during the
-                            // dwell may already have popped it, and a plain pop would then take the form.
-                            navController.popBackStack(route = LabelScan::class, inclusive = true)
-                        }
-                    }
+            // The outcome lives in the view model's state, not in a one-shot effect: a configuration
+            // change during the dwell restarts this effect with the same result, and the applied flag
+            // keeps the form from receiving it twice.
+            val result = uiState.result
+            LaunchedEffect(result) {
+                if (result == null) return@LaunchedEffect
+                if (!result.applied) {
+                    // Applied first: Cancel and back stay live during the dwell below, and a result that
+                    // has already said "Label read" must not be lost to them.
+                    formViewModel.onInterpretationReceived(result.interpretation)
+                    scanViewModel.onResultApplied()
+                    if (result.accepted) haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                 }
+                // Long enough for the live region to announce "Label read" (design D3).
+                if (result.accepted) delay(ACCEPTANCE_DWELL_MILLIS)
+                // This destination by name, not whatever is on top: Cancel or back during the dwell may
+                // already have popped it, and a plain pop would then take the form.
+                navController.popBackStack(route = LabelScan::class, inclusive = true)
             }
 
             LabelScanCamera(scanViewModel, viewfinderSize)

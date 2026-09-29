@@ -10,13 +10,10 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import nl.hexmaster.pillsner.data.labelscan.FrameCropper
@@ -38,6 +35,19 @@ enum class ScanHint {
     TRY_SHUTTER,
 }
 
+/**
+ * The scan's outcome: accepted automatically, or taken by the shutter (then possibly empty).
+ *
+ * Part of the state rather than a one-shot effect, so a configuration change during the "Label
+ * read" announcement finds it again; [applied] records that the form has already received it, so
+ * the restarted screen does not hand it over a second time.
+ */
+data class ScanResult(
+    val interpretation: LabelInterpretation,
+    val accepted: Boolean,
+    val applied: Boolean = false,
+)
+
 /** What the scanning screen shows. Nothing here is the recognised text. */
 data class LabelScanUiState(
     /** The recogniser is open and frames are being read. */
@@ -51,16 +61,9 @@ data class LabelScanUiState(
     val hasReading: Boolean = false,
     /** The scan has finished and the screen is about to close. */
     val finished: Boolean = false,
+    /** The outcome to hand to the form, once the scan has finished with one. */
+    val result: ScanResult? = null,
 )
-
-/** Happens once; the navigation layer acts on it. */
-sealed interface LabelScanEffect {
-    /**
-     * The scan ended with an interpretation to hand to the form: accepted automatically, or taken
-     * by the shutter (then possibly empty).
-     */
-    data class Finished(val interpretation: LabelInterpretation, val accepted: Boolean) : LabelScanEffect
-}
 
 /**
  * Runs one live scan session (medicine-label-photo-prefill design D3): opens the recogniser,
@@ -120,9 +123,6 @@ class LabelScanViewModel(
 
     /** The preview's current surface request, for `CameraXViewfinder`. */
     val surfaceRequest: StateFlow<SurfaceRequest?> = _surfaceRequest.asStateFlow()
-
-    private val _effects = Channel<LabelScanEffect>(Channel.BUFFERED)
-    val effects: Flow<LabelScanEffect> = _effects.receiveAsFlow()
 
     init {
         Log.d(TAG, "Scan opened")
@@ -216,10 +216,14 @@ class LabelScanViewModel(
         Log.d(TAG, "Scan cancelled")
     }
 
+    /** The screen has handed [LabelScanUiState.result] to the form; it must not do so again. */
+    fun onResultApplied() {
+        _uiState.update { state -> state.copy(result = state.result?.copy(applied = true)) }
+    }
+
     private fun finish(interpretation: LabelInterpretation, accepted: Boolean) {
         if (!claimFinish()) return
-        _uiState.update { it.copy(finished = true) }
-        _effects.trySend(LabelScanEffect.Finished(interpretation, accepted))
+        _uiState.update { it.copy(finished = true, result = ScanResult(interpretation, accepted)) }
         Log.d(TAG, "Scan finished after ${acceptance.framesSeen} frames, accepted=$accepted")
     }
 

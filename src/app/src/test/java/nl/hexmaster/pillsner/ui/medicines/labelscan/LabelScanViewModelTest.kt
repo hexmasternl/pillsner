@@ -8,9 +8,7 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -24,6 +22,7 @@ import nl.hexmaster.pillsner.domain.labelscan.RecognisedLine
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -69,52 +68,49 @@ class LabelScanViewModelTest {
     @Test
     fun `the shutter before any read returns an empty interpretation`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
 
         viewModel.onShutter()
 
-        val finished = effects.single() as LabelScanEffect.Finished
-        assertTrue(finished.interpretation.isEmpty)
-        assertEquals(today, finished.interpretation.usedSince)
-        assertFalse(finished.accepted)
+        val result = requireNotNull(viewModel.uiState.value.result)
+        assertTrue(result.interpretation.isEmpty)
+        assertEquals(today, result.interpretation.usedSince)
+        assertFalse(result.accepted)
+        assertFalse(result.applied)
         assertTrue(viewModel.uiState.value.finished)
     }
 
     @Test
     fun `two consecutive good frames accept the later one`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
         recogniser.responses += goodLabel()
         recogniser.responses += goodLabel()
 
         viewModel.analyse(frame)
-        assertTrue(effects.isEmpty())
+        assertNull(viewModel.uiState.value.result)
         viewModel.analyse(frame)
 
-        val finished = effects.single() as LabelScanEffect.Finished
-        assertTrue(finished.accepted)
-        assertEquals("ZORVALEX", finished.interpretation.name)
+        val result = requireNotNull(viewModel.uiState.value.result)
+        assertTrue(result.accepted)
+        assertEquals("ZORVALEX", result.interpretation.name)
         assertTrue(viewModel.uiState.value.hasReading)
     }
 
     @Test
     fun `a misread between two good frames keeps the scan going`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
         recogniser.responses += goodLabel()
         recogniser.responses += goodLabel(name = "ZORVALEK")
         recogniser.responses += goodLabel()
 
         repeat(3) { viewModel.analyse(frame) }
 
-        assertTrue(effects.isEmpty())
+        assertNull(viewModel.uiState.value.result)
         assertFalse(viewModel.uiState.value.finished)
     }
 
     @Test
     fun `a camera stop between two good frames breaks the streak`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
         recogniser.responses += goodLabel()
         recogniser.responses += goodLabel()
         recogniser.responses += goodLabel()
@@ -122,16 +118,15 @@ class LabelScanViewModelTest {
         viewModel.analyse(frame)
         viewModel.onCameraStopped()
         viewModel.analyse(frame)
-        assertTrue("the first frame after the pause must not pair with one from before it", effects.isEmpty())
+        assertNull("the first frame after the pause must not pair with one from before it", viewModel.uiState.value.result)
         viewModel.analyse(frame)
 
-        assertEquals(1, effects.size)
+        assertNotNull(viewModel.uiState.value.result)
     }
 
     @Test
     fun `a frame that was being read when the camera stopped is discarded`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
         recogniser.responses += goodLabel()
         recogniser.responses += goodLabel()
         recogniser.responses += goodLabel()
@@ -143,10 +138,10 @@ class LabelScanViewModelTest {
         assertFalse("a frame from the stopped session must not count as a reading", viewModel.uiState.value.hasReading)
 
         viewModel.analyse(frame)
-        assertTrue("the first frame after the stop has nothing to pair with", effects.isEmpty())
+        assertNull("the first frame after the stop has nothing to pair with", viewModel.uiState.value.result)
         viewModel.analyse(frame)
 
-        assertEquals(1, effects.size)
+        assertNotNull(viewModel.uiState.value.result)
     }
 
     @Test
@@ -165,29 +160,45 @@ class LabelScanViewModelTest {
     @Test
     fun `the shutter with a partial read returns that partial read`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
         recogniser.responses += listOf(RecognisedLine("Zorvalex", 80f))
 
         viewModel.analyse(frame)
         viewModel.onShutter()
 
-        val finished = effects.single() as LabelScanEffect.Finished
-        assertEquals("Zorvalex", finished.interpretation.name)
-        assertNull(finished.interpretation.defaultDose)
-        assertFalse(finished.accepted)
+        val result = requireNotNull(viewModel.uiState.value.result)
+        assertEquals("Zorvalex", result.interpretation.name)
+        assertNull(result.interpretation.defaultDose)
+        assertFalse(result.accepted)
     }
 
     @Test
     fun `frames after the scan finished are not recognised`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
         viewModel.onShutter()
+        val first = viewModel.uiState.value.result
         recogniser.responses += goodLabel()
 
         viewModel.analyse(frame)
 
-        assertEquals(1, effects.size)
+        assertEquals(first, viewModel.uiState.value.result)
         assertEquals(1, recogniser.responses.size)
+    }
+
+    @Test
+    fun `the result survives being marked applied, and the shutter cannot replace it`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        recogniser.responses += goodLabel()
+        recogniser.responses += goodLabel()
+        repeat(2) { viewModel.analyse(frame) }
+        val result = requireNotNull(viewModel.uiState.value.result)
+
+        viewModel.onResultApplied()
+        viewModel.onShutter()
+
+        val after = requireNotNull(viewModel.uiState.value.result)
+        assertTrue(after.applied)
+        assertEquals(result.interpretation, after.interpretation)
+        assertTrue(after.accepted)
     }
 
     @Test
@@ -219,13 +230,12 @@ class LabelScanViewModelTest {
     @Test
     fun `cancelling stops the recogniser and the shutter no longer reports anything`() = runTest(dispatcher) {
         val viewModel = viewModel()
-        val effects = collect(viewModel)
 
         viewModel.onCancel()
         viewModel.onShutter()
 
         assertTrue(recogniser.stopped)
-        assertTrue(effects.isEmpty())
+        assertNull(viewModel.uiState.value.result)
     }
 
     @Test
@@ -270,12 +280,6 @@ class LabelScanViewModelTest {
         ioDispatcher = io,
     )
 
-    private fun TestScope.collect(viewModel: LabelScanViewModel): List<LabelScanEffect> {
-        val effects = mutableListOf<LabelScanEffect>()
-        backgroundScope.launch { viewModel.effects.collect { effects += it } }
-        return effects
-    }
-
     private fun goodLabel(name: String = "ZORVALEX") = listOf(
         RecognisedLine("$name 50 MG TABLETS", 90f),
         RecognisedLine("Take 1 tablet twice daily", 85f),
@@ -289,6 +293,9 @@ class LabelScanViewModelTest {
         var closed = false
         val responses = ArrayDeque<List<RecognisedLine>>()
 
+        /** Runs in the middle of a recognition, standing in for the main thread acting meanwhile. */
+        var duringRecognise: () -> Unit = {}
+
         override var isOpen: Boolean = false
             private set
 
@@ -297,9 +304,6 @@ class LabelScanViewModelTest {
             if (failOpen) throw IllegalStateException("cannot open")
             isOpen = true
         }
-
-        /** Runs in the middle of a recognition, standing in for the main thread acting meanwhile. */
-        var duringRecognise: () -> Unit = {}
 
         override fun recognise(frame: GreyFrame): List<RecognisedLine> {
             duringRecognise()

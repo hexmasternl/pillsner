@@ -1,5 +1,7 @@
 ## Why
 
+**GitHub Issue:** #85 (https://github.com/hexmasternl/pillsner/issues/85)
+
 Adding a medicine means typing its name, its strength, how often to take it and the dates by hand, which is the slowest and most error-prone moment in Pillsner, especially for people managing several medicines. A photo of the pharmacy label or the box already carries most of that, so reading it on the phone and pre-filling the Add medicine form removes the typing without sending anything off the device.
 
 This feature was built once before (`medicine-add-label-scan`, issue #33) on ML Kit. That build pulled Firebase and Google Play services components into the app through transitive dependencies, silently added `INTERNET` and `ACCESS_NETWORK_STATE` to the shipped manifest, and produced a package that was not accepted as safe to install and crashed at launch on devices where it did install (releases 1.1.0 and 1.1.1). Stripping the permissions (#46) did not fix it, and `main` was reverted to 1.0.2 (#47). The feature is therefore designed again from scratch here, with the failure mode of the first attempt as the primary design constraint: the text recogniser runs entirely inside the app, comes from a library with no Google Play services or Firebase surface, and the build refuses to produce a package whose permissions differ from the ones Pillsner discloses.

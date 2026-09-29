@@ -192,12 +192,14 @@ fun NavGraphBuilder.medicationFormGraph(
                 scanViewModel.effects.collect { effect ->
                     when (effect) {
                         is LabelScanEffect.Finished -> {
+                            // Applied first: Cancel and back stay live during the dwell below, and a
+                            // result that has already said "Label read" must not be lost to them.
+                            formViewModel.onInterpretationReceived(effect.interpretation)
                             if (effect.accepted) {
                                 haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                                 // Long enough for the live region to announce "Label read" (design D3).
                                 delay(ACCEPTANCE_DWELL_MILLIS)
                             }
-                            formViewModel.onInterpretationReceived(effect.interpretation)
                             navController.popBackStack()
                         }
                     }

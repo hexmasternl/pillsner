@@ -87,6 +87,17 @@ class LabelScanViewModel(
 
     private val acceptance = ScanAcceptance()
 
+    /**
+     * Guards the per-session state ([latest], [acceptance], [generation]). A frame is recognised on
+     * the analysis thread while a camera stop may reset the session on the main thread; the result
+     * is applied only if the session it started in is still the current one.
+     */
+    private val sessionLock = Any()
+
+    /** Bumped by every camera stop, so a frame from the previous session cannot land in this one. */
+    @Volatile
+    private var generation = 0
+
     @Volatile
     private var latest: LabelInterpretation? = null
 
@@ -149,12 +160,18 @@ class LabelScanViewModel(
      */
     fun analyse(frame: GreyFrame) {
         if (finished || !recogniser.isOpen) return
+        val startedIn = generation
         val lines = recogniser.recognise(frame)
         if (finished) return
         val interpretation = interpret(lines, LocalDate.now(clock))
-        latest = interpretation
+        val accepted = synchronized(sessionLock) {
+            // The camera stopped while this frame was being read: it belongs to the old session.
+            if (startedIn != generation) return
+            latest = interpretation
+            acceptance.offer(interpretation)
+        }
         if (!interpretation.isEmpty) _uiState.update { it.copy(hasReading = true) }
-        acceptance.offer(interpretation)?.let { accepted -> finish(accepted, accepted = true) }
+        accepted?.let { finish(it, accepted = true) }
     }
 
     /**
@@ -163,8 +180,11 @@ class LabelScanViewModel(
      * first frame after it to satisfy the two-consecutive-frames rule.
      */
     fun onCameraStopped() {
-        latest = null
-        acceptance.reset()
+        synchronized(sessionLock) {
+            generation++
+            latest = null
+            acceptance.reset()
+        }
     }
 
     /** The camera is bound: remember how to drive the torch, and whether there is one. */

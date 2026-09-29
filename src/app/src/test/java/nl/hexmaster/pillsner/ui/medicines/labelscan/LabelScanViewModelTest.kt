@@ -129,6 +129,27 @@ class LabelScanViewModelTest {
     }
 
     @Test
+    fun `a frame that was being read when the camera stopped is discarded`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        val effects = collect(viewModel)
+        recogniser.responses += goodLabel()
+        recogniser.responses += goodLabel()
+        recogniser.responses += goodLabel()
+
+        // The stop lands while the first frame is inside the recogniser: that frame is old news.
+        recogniser.duringRecognise = { viewModel.onCameraStopped() }
+        viewModel.analyse(frame)
+        recogniser.duringRecognise = {}
+        assertFalse("a frame from the stopped session must not count as a reading", viewModel.uiState.value.hasReading)
+
+        viewModel.analyse(frame)
+        assertTrue("the first frame after the stop has nothing to pair with", effects.isEmpty())
+        viewModel.analyse(frame)
+
+        assertEquals(1, effects.size)
+    }
+
+    @Test
     fun `a cancel that lands while the engine is opening leaves it closed`() = runTest(dispatcher) {
         val io = StandardTestDispatcher(dispatcher.scheduler)
         val viewModel = viewModel(io = io)
@@ -277,7 +298,13 @@ class LabelScanViewModelTest {
             isOpen = true
         }
 
-        override fun recognise(frame: GreyFrame): List<RecognisedLine> = responses.removeFirstOrNull() ?: emptyList()
+        /** Runs in the middle of a recognition, standing in for the main thread acting meanwhile. */
+        var duringRecognise: () -> Unit = {}
+
+        override fun recognise(frame: GreyFrame): List<RecognisedLine> {
+            duringRecognise()
+            return responses.removeFirstOrNull() ?: emptyList()
+        }
 
         override fun stop() {
             stopped = true

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -17,6 +18,9 @@ import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.lazy.TransformationSpec
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.tooling.preview.devices.WearDevices
 import java.time.Instant
 import java.util.Locale
@@ -51,6 +55,7 @@ fun UpcomingDosesScreen(
     LocalizedContent(uiState.locale) {
         val columnState = rememberTransformingLazyColumnState()
         val rows = remember(uiState.sections) { uiState.sections.toRows() }
+        val transformationSpec = rememberTransformationSpec()
 
         AppScaffold(modifier = modifier) {
             ScreenScaffold(scrollState = columnState) { contentPadding ->
@@ -68,6 +73,7 @@ fun UpcomingDosesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
+                                    .itemScrollTransform(this, transformationSpec)
                                     .fillMaxWidth()
                                     .padding(horizontal = WearDimens.screenEdge)
                                     .testTag(UpcomingDosesTestTags.EMPTY),
@@ -76,10 +82,22 @@ fun UpcomingDosesScreen(
                     } else {
                         items(rows.size, key = { rows[it].key }) { index ->
                             when (val row = rows[index]) {
-                                is AgendaRow.Day -> DayHeader(row.day)
-                                is AgendaRow.Time -> TimeHeader(row.scheduledAt)
+                                is AgendaRow.Day ->
+                                    DayHeader(
+                                        row.day,
+                                        modifier = Modifier.itemScrollTransform(this, transformationSpec),
+                                    )
+                                is AgendaRow.Time ->
+                                    TimeHeader(
+                                        row.scheduledAt,
+                                        modifier = Modifier.itemScrollTransform(this, transformationSpec),
+                                    )
                                 is AgendaRow.Dose ->
-                                    DoseCard(row.entry, onClick = { onDoseClick(row.entry.doseId) })
+                                    DoseCard(
+                                        row.entry,
+                                        onClick = { onDoseClick(row.entry.doseId) },
+                                        modifier = Modifier.itemScrollTransform(this, transformationSpec),
+                                    )
                             }
                         }
                     }
@@ -94,6 +112,7 @@ fun UpcomingDosesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
+                                    .itemScrollTransform(this, transformationSpec)
                                     .fillMaxWidth()
                                     .padding(horizontal = WearDimens.screenEdge, vertical = WearDimens.screenEdge)
                                     .testTag(UpcomingDosesTestTags.FOOTER),
@@ -106,9 +125,22 @@ fun UpcomingDosesScreen(
     }
 }
 
+private fun Modifier.itemScrollTransform(
+    scope: androidx.wear.compose.foundation.lazy.TransformingLazyColumnItemScope,
+    transformationSpec: TransformationSpec,
+): Modifier =
+    transformedHeight(scope, transformationSpec).graphicsLayer {
+        with(scope) {
+            with(transformationSpec) {
+                applyContainerTransformation(scrollProgress)
+                applyContentTransformation(scrollProgress)
+            }
+        }
+    }
+
 @Composable
-private fun DayHeader(day: AgendaDay) {
-    ListHeader(modifier = Modifier.testTag(UpcomingDosesTestTags.DAY_HEADER)) {
+private fun DayHeader(day: AgendaDay, modifier: Modifier = Modifier) {
+    ListHeader(modifier = modifier.testTag(UpcomingDosesTestTags.DAY_HEADER)) {
         Text(
             stringResource(
                 when (day) {
@@ -121,12 +153,12 @@ private fun DayHeader(day: AgendaDay) {
 }
 
 @Composable
-private fun TimeHeader(scheduledAt: Instant) {
+private fun TimeHeader(scheduledAt: Instant, modifier: Modifier = Modifier) {
     Text(
         text = formatTime(scheduledAt, rememberTimeFormatter()),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = WearDimens.cardPaddingHorizontal)
             .testTag(UpcomingDosesTestTags.TIME_HEADER),

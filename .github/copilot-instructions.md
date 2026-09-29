@@ -8,6 +8,7 @@ actually reach a user; skip the rest.
 - Data loss or corruption, missing Room migrations, broken transactions around a single user action.
 - Privacy: network access, analytics, logging medication names or doses.
 - Accessibility regressions and violations of docs/design-system.md.
+- Manifest guard: any edit to `src/app/manifest-allowlist.txt`. It is the disclosed permission contract; a new line needs an accepted OpenSpec change and a README row, never a build fix.
 
 ## Do not report
 - Failure windows that need the process to die between two local writes milliseconds apart,

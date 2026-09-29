@@ -1,0 +1,40 @@
+# The permissions Pillsner ships, and nothing else.
+#
+# This file is the disclosed contract for the app's merged manifest (medicine-label-photo-prefill
+# design D7, D8). The build task verifyManifestGuard<Variant> compares every variant's merged
+# manifest against it after manifest processing and fails the build when the two differ in either
+# direction, naming each offending permission. It runs as part of check, assemble<Variant> and
+# bundle<Variant>, so CI and the release workflow both run it.
+#
+# Every line here is a deliberate choice that the README's permission table explains. Adding a
+# line is a product decision that goes through an OpenSpec change; never add one to make a build
+# pass. Comments start with '#'. One permission per line, by its full name.
+
+# --- Declared by Pillsner's own manifest ------------------------------------------------------
+android.permission.POST_NOTIFICATIONS
+android.permission.USE_EXACT_ALARM
+android.permission.SCHEDULE_EXACT_ALARM
+android.permission.RECEIVE_BOOT_COMPLETED
+android.permission.FOREGROUND_SERVICE
+android.permission.FOREGROUND_SERVICE_SHORT_SERVICE
+android.permission.USE_FULL_SCREEN_INTENT
+
+# --- Contributed by libraries through manifest merging ----------------------------------------
+# androidx.biometric: the app lock's biometric unlock (app-login). Normal-level, granted at install.
+android.permission.USE_BIOMETRIC
+android.permission.USE_FINGERPRINT
+# androidx.work: the alarm watchdog (reminder-delivery-reliability D3). Normal-level. WorkManager
+# reads the network state for its own constraint machinery; Pillsner never declares INTERNET and
+# never opens a connection, so knowing whether the network is up gives it nothing to do with it.
+android.permission.WAKE_LOCK
+android.permission.ACCESS_NETWORK_STATE
+# androidx.core: a signature-level permission the app defines for itself so its runtime-registered
+# receivers are not exported. Only this app's own signature can hold it.
+nl.hexmaster.pillsner.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+
+# --- Pinned artifact checksums ----------------------------------------------------------------
+# One 'artifact <group>:<name> <sha256>' line per dependency resolved from an unusual source. The
+# guard computes the SHA-256 of the resolved AAR and fails the build when it differs. Bumping the
+# library version in gradle/libs.versions.toml means updating this line in the same change.
+# Tesseract4Android 4.9.0, resolved from JitPack (tesseract4android-openmp-4.9.0.aar).
+artifact cz.adaptech.tesseract4android:tesseract4android-openmp 02b5968cc482ef6162dcdecad0000cc28f120becc089ccca2eefb8fadc12ab2b

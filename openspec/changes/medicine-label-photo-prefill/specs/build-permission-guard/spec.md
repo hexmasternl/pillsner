@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Declared permissions are fixed by an allow-list
-The app module SHALL hold a plain-text allow-list of the permissions the app declares (after this change: the seven existing permissions plus `CAMERA`), and a build task SHALL compare the merged manifest of every build variant against it after manifest processing. The build SHALL fail, naming each offending permission, when the merged manifest declares a permission not on the list or omits one that is. The task SHALL run as part of `check`, of every `assemble` task and of every `bundle` task, so continuous integration and the release workflow both run it without a separate step.
+The app module SHALL hold a plain-text allow-list of the permissions the app declares (after this change: the twelve permissions the app already ships, seven of its own and five merged in by its libraries, plus `CAMERA`), and a build task SHALL compare the merged manifest of every build variant against it after manifest processing. The build SHALL fail, naming each offending permission, when the merged manifest declares a permission not on the list or omits one that is. The task SHALL run as part of `check`, of every `assemble` task and of every `bundle` task, so continuous integration and the release workflow both run it without a separate step.
 
 #### Scenario: Dependency adds a permission
 - **WHEN** a dependency's manifest contributes `INTERNET` to the merged manifest

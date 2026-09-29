@@ -40,7 +40,7 @@ The app SHALL declare the `CAMERA` permission and the `android.hardware.camera.a
 
 #### Scenario: Declared permissions match the allow-list
 - **WHEN** the merged manifest of any build variant is inspected
-- **THEN** its `uses-permission` set is exactly the previous seven permissions plus `CAMERA`, and the camera feature is declared as not required
+- **THEN** its `uses-permission` set is exactly the allow-list in `app/manifest-allowlist.txt`, which this change extends by `CAMERA` alone, and the camera feature is declared as not required
 
 #### Scenario: Installs on a camera-less device
 - **WHEN** the app is installed on a device with no camera

@@ -414,6 +414,14 @@ class MedicationFormViewModel(
 
     private var scanJob: Job? = null
 
+    /**
+     * The recognised text behind the banner action "Show text". Deliberately a plain field and not
+     * part of the saved state: a label can carry a patient name, an address or a phone number, and
+     * the privacy statement promises the text exists only in memory while the form is open. After
+     * process death the banner still shows, without its "Show text" action.
+     */
+    private var scanRawText: String? = null
+
     fun onScanLabelClicked() = _uiState.update { it.copy(showScanOptions = true) }
 
     fun onScanOptionsDismissed() = _uiState.update { it.copy(showScanOptions = false) }
@@ -522,7 +530,9 @@ class MedicationFormViewModel(
         _uiState.update { it.copy(showScanBanner = false) }
     }
 
-    fun onShowScanText() = _uiState.update { it.copy(showScanText = true) }
+    fun onShowScanText() {
+        if (scanRawText != null) _uiState.update { it.copy(showScanText = true) }
+    }
 
     fun onScanTextDismissed() = _uiState.update { it.copy(showScanText = false) }
 
@@ -533,7 +543,7 @@ class MedicationFormViewModel(
      */
     private fun applyInterpretation(interpretation: LabelInterpretation) {
         savedStateHandle[SCAN_BANNER_KEY] = true
-        savedStateHandle[SCAN_RAW_TEXT_KEY] = interpretation.rawText
+        scanRawText = interpretation.rawText
         updateDraft { current ->
             current.copy(
                 name = interpretation.name ?: current.name,
@@ -661,10 +671,11 @@ class MedicationFormViewModel(
             isScanning = isScanning,
             pendingInterpretation = pendingInterpretation,
             showScanText = showScanText,
-            // Both live in the saved state, so the banner survives rotation and process death until
-            // the user dismisses it, and never comes back once they have (design D5).
+            // The flag lives in the saved state, so the banner survives rotation and process death
+            // until the user dismisses it and never comes back once they have (design D5). The text
+            // itself does not: it survives rotation with the view model and is gone after process death.
             showScanBanner = savedStateHandle.get<Boolean>(SCAN_BANNER_KEY) ?: false,
-            scanRawText = savedStateHandle.get<String>(SCAN_RAW_TEXT_KEY),
+            scanRawText = scanRawText,
             // The saved state is the one source of truth for the panel, so a state rebuilt after a
             // draft edit and a new view model after process death both read the same flag.
             secondaryDetailsExpanded = savedStateHandle[SECONDARY_DETAILS_EXPANDED_KEY] ?: false,
@@ -682,9 +693,6 @@ class MedicationFormViewModel(
 
         /** The review banner shown flag, next to the draft (medicine-label-photo-prefill D5). */
         const val SCAN_BANNER_KEY = "scan_banner_shown"
-
-        /** The recognised text behind the banner action "Show text", next to the draft. */
-        const val SCAN_RAW_TEXT_KEY = "scan_raw_text"
 
         /**
          * The daily dose times depend only on the interval and the first dose, but the shape needs

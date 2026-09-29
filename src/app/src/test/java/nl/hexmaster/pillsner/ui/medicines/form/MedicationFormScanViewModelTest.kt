@@ -187,19 +187,33 @@ class MedicationFormScanViewModelTest {
     // --- Banner ---------------------------------------------------------------------------
 
     @Test
-    fun `the banner flag and the text survive a saved-state round trip until dismissed`() {
+    fun `the banner flag survives a saved-state round trip until dismissed, the text does not`() {
         val handle = SavedStateHandle()
         viewModel(savedStateHandle = handle).onInterpretationReceived(interpretation)
 
         val restored = viewModel(savedStateHandle = handle)
         assertTrue(restored.uiState.value.showScanBanner)
-        assertEquals(interpretation.rawText, restored.uiState.value.scanRawText)
+        // The recognised text can carry a patient's name or address: it lives in memory only, so a
+        // new view model has none and "Show text" has nothing to open.
+        assertNull(restored.uiState.value.scanRawText)
         assertEquals("Zorvalex", restored.uiState.value.name)
+        restored.onShowScanText()
+        assertFalse(restored.uiState.value.showScanText)
 
         restored.onScanBannerDismissed()
         val afterDismiss = viewModel(savedStateHandle = handle)
 
         assertFalse(afterDismiss.uiState.value.showScanBanner)
+    }
+
+    @Test
+    fun `the recognised text is never written to the saved state`() {
+        val handle = SavedStateHandle()
+
+        viewModel(savedStateHandle = handle).onInterpretationReceived(interpretation)
+
+        val savedValues = handle.keys().map { handle.get<Any>(it).toString() }
+        assertTrue(savedValues.none { it.contains("Take 1 tablet twice daily") })
     }
 
     @Test

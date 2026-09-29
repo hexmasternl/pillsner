@@ -293,7 +293,11 @@ fun MedicationFormScreen(
                 // Add mode only (medicine-label-scan): the review banner after an applied scan sits above
                 // the name field; the way to start a scan is the camera icon inside that field.
                 if (uiState.canScanLabel && uiState.showScanBanner) {
-                    ScanReviewBanner(onShowText = onShowScanText, onDismiss = onScanBannerDismissed)
+                    ScanReviewBanner(
+                        showTextAvailable = uiState.scanRawText != null,
+                        onShowText = onShowScanText,
+                        onDismiss = onScanBannerDismissed,
+                    )
                 }
 
                 OutlinedTextField(

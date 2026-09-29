@@ -125,6 +125,16 @@ class MedicationFormScanScreenTest {
     }
 
     @Test
+    fun withoutTheTextInMemoryTheBannerOffersOnlyDismiss() {
+        // After process death the flag is restored but the recognised text is not (design D5).
+        show(filled.copy(showScanBanner = true, scanRawText = null))
+
+        composeRule.onNodeWithTag(LabelScanFormTestTags.BANNER).assertIsDisplayed()
+        composeRule.onNodeWithTag(LabelScanFormTestTags.BANNER_SHOW_TEXT).assertDoesNotExist()
+        composeRule.onNodeWithTag(LabelScanFormTestTags.BANNER_DISMISS).assertIsDisplayed()
+    }
+
+    @Test
     fun theRecognisedTextSheetShowsTheTextAndNothingElse() {
         show(filled.copy(showScanBanner = true, scanRawText = "ZORVALEX 50 MG\nTake 1 tablet twice daily", showScanText = true))
 

@@ -225,9 +225,17 @@ fun ReplaceDraftDialog(onReplace: () -> Unit, onKeep: () -> Unit) {
  * a scan is applied (design D5). Built like the attention banner (design system 8.9) but on
  * `secondaryContainer`: red is reserved for danger (2.4), and a pre-filled form is a thing to
  * check, not a failure. Stays until dismissed or the form closes.
+ *
+ * @param showTextAvailable whether the recognised text is still held in memory; after process
+ *   death it is not, and the banner then offers only dismiss.
  */
 @Composable
-fun ScanReviewBanner(onShowText: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+fun ScanReviewBanner(
+    onShowText: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    showTextAvailable: Boolean = true,
+) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -250,14 +258,16 @@ fun ScanReviewBanner(onShowText: () -> Unit, onDismiss: () -> Unit, modifier: Mo
                 // A flow, not a row: at 200 % font scale on a compact screen the two labels do not
                 // fit side by side, and the design system has text wrap rather than clip (section 10).
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                    TextButton(
-                        onClick = onShowText,
-                        colors = ButtonDefaults.textButtonColors(contentColor = LocalContentColor.current),
-                        modifier = Modifier
-                            .heightIn(min = Sizes.minTouchTarget)
-                            .testTag(LabelScanFormTestTags.BANNER_SHOW_TEXT),
-                    ) {
-                        Text(stringResource(R.string.label_scan_banner_show_text))
+                    if (showTextAvailable) {
+                        TextButton(
+                            onClick = onShowText,
+                            colors = ButtonDefaults.textButtonColors(contentColor = LocalContentColor.current),
+                            modifier = Modifier
+                                .heightIn(min = Sizes.minTouchTarget)
+                                .testTag(LabelScanFormTestTags.BANNER_SHOW_TEXT),
+                        ) {
+                            Text(stringResource(R.string.label_scan_banner_show_text))
+                        }
                     }
                     TextButton(
                         onClick = onDismiss,

@@ -109,6 +109,22 @@ class LabelNameTest {
     }
 
     @Test
+    fun `course, until, expiry, weekly and as-needed lines are never the name`() {
+        assertEquals("Zorvalex", interpret(lines("Take 1 tablet twice daily", "for 10 days", "Zorvalex"), today).name)
+        assertEquals("Zorvalex", interpret(lines("gedurende 7 dagen", "Zorvalex"), today).name)
+        assertEquals("Zorvalex", interpret(lines("7 Tage lang", "Zorvalex"), today).name)
+        assertEquals("Zorvalex", interpret(lines("until 15-10-2026", "Zorvalex"), today).name)
+        assertEquals("Zorvalex", interpret(lines("EXP 03/2028", "Zorvalex"), today).name)
+        assertEquals("Zorvalex", interpret(lines("once weekly", "Zorvalex"), today).name)
+        assertEquals("Zorvalex", interpret(lines("zo nodig", "Zorvalex"), today).name)
+        assertTrue(noise("for 10 days"))
+        assertTrue(noise("tot 15-10-2026"))
+        assertTrue(noise("houdbaar tot 03/2028"))
+        assertTrue(noise("1 tablet once weekly"))
+        assertTrue(noise("bei Bedarf"))
+    }
+
+    @Test
     fun `nothing usable leaves the name absent`() {
         val result = interpret(lines("Apotheek De Linde", "Tel. 030-1234567", "27-09-2026"), today)
 

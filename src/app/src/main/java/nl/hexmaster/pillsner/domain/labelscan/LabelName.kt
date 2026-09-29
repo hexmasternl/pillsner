@@ -38,7 +38,10 @@ internal object LabelName {
             POSTCODE_AND_TOWN.containsMatchIn(normalised) ||
             ONLY_NUMBERS.matches(normalised) ||
             LabelDates.isOnlyDate(normalised) ||
-            LabelFrequency.detect(normalised) != null
+            LabelDates.isExpiryLine(normalised) ||
+            // How often, for how long, until when, or on demand: instructions, never the name.
+            LabelFrequency.mentionsRhythm(normalised) ||
+            LabelDates.isCourseLine(normalised)
     }
 
     /**

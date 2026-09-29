@@ -61,6 +61,13 @@ internal object LabelFrequency {
         return null
     }
 
+    /**
+     * Whether the line talks about how often to take the medicine at all, including the rhythms
+     * [detect] deliberately refuses (weekly, monthly, as needed). Such a line is never the name.
+     */
+    fun mentionsRhythm(line: String): Boolean =
+        detect(line) != null || WEEKLY_OR_MONTHLY.containsMatchIn(line) || AS_NEEDED.containsMatchIn(line)
+
     /** The first form unit named on [line] without a number in front, such as "Tablette" in "1-0-1 Tablette". */
     fun bareFormUnit(line: String): DoseUnit? = LabelVocabulary.words(line)
         .firstNotNullOfOrNull { word -> LabelVocabulary.units[word]?.takeIf { it !in LabelVocabulary.strengthUnits } }

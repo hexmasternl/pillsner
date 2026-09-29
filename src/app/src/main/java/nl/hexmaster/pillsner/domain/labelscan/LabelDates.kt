@@ -34,6 +34,16 @@ internal object LabelDates {
     fun isExpiryLine(normalised: String): Boolean =
         LabelVocabulary.words(normalised).any { it in LabelVocabulary.expiryWords } || EXPIRY_PHRASE.containsMatchIn(normalised)
 
+    /**
+     * Whether the line states a course length ("for 10 days", "7 Tage lang", "2 weken") or an end
+     * of use ("tot 15-10-2026"). Such a line is never the medicine's name.
+     */
+    fun isCourseLine(normalised: String): Boolean =
+        DURATION_AFTER_FOR.containsMatchIn(normalised) ||
+            DURATION_BEFORE_LANG.containsMatchIn(normalised) ||
+            DURATION_ALONE.containsMatchIn(normalised) ||
+            untilDates(normalised).isNotEmpty()
+
     /** Whether the line is a date and nothing else, which makes it noise for the name. */
     fun isOnlyDate(normalised: String): Boolean {
         val matches = candidates(normalised)

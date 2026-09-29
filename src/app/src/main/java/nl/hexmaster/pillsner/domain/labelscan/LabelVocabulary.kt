@@ -95,7 +95,8 @@ internal object LabelVocabulary {
      */
     val noiseWords: Set<String> = setOf(
         "apotheek", "apotheke", "pharmacy", "pharmacie", "farmacia", "drogerie", "drogist",
-        "dhr", "mevr", "mw", "mr", "mrs", "ms", "herr", "frau", "mme", "mlle", "sr", "sra", "srta", "dr",
+        // "m" is the French "M." once normalisation has dropped the full stop (design D4).
+        "dhr", "mevr", "mw", "mr", "mrs", "ms", "herr", "frau", "m", "mme", "mlle", "sr", "sra", "srta", "dr",
         "tel", "fax", "www", "http", "https", "email", "bsn", "rx", "lot", "batch", "charge", "exp", "expiry",
         "vervaldatum", "houdbaar", "verfall", "verfallsdatum", "caduca", "caducidad", "validade", "peremption", "ch",
         "dispensed", "date", "datum", "fecha", "data", "afgeleverd", "afleverdatum", "abgabe", "abgabedatum",

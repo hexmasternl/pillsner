@@ -49,6 +49,13 @@ class LabelNameTest {
     }
 
     @Test
+    fun `a French salutation is skipped even when the name and the strength are on separate lines`() {
+        val result = interpret(lines("Pharmacie du Centre", "M. Dupont", "Calmirex", "20 mg", "1 comprimé matin et soir"), today)
+
+        assertEquals("Calmirex", result.name)
+    }
+
+    @Test
     fun `the line with the strength is preferred over an earlier candidate`() {
         assertEquals("Loratadine", interpret(lines("Sinuslim forte", "Loratadine 10 mg"), today).name)
     }

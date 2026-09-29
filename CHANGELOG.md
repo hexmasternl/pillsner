@@ -14,10 +14,12 @@ This file is the full account.
   already have works too. Everything lands in the ordinary form for you to check before saving, with
   the recognised text one tap away. Nothing is photographed, saved or sent: frames are read in memory
   and thrown away.
-- Labels in any of the six app languages are understood: the words for units, frequencies, courses
-  and dates on Dutch, English, German, French, Spanish and Portuguese labels are all recognised,
-  whatever language the phone is set to. A frequency the app cannot express as one of its schedule
-  shapes is left out rather than guessed.
+- The words for units, frequencies, courses and dates are recognised in Dutch, English, German,
+  French, Spanish and Portuguese, whatever language the phone is set to. Text recognition itself
+  ships with an English model; how well it reads real labels printed in the other five languages is
+  measured on a device before this release goes out, and a language that reads badly gets its own
+  model added. A frequency the app cannot express as one of its schedule shapes is left out rather
+  than guessed. <!-- task 9.4: replace the measurement sentence with the measured outcome -->
 
 ### Privacy and permissions
 

@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #85 (https://github.com/hexmasternl/pillsner/issues/85)
+**Pull Request:** #86 (https://github.com/hexmasternl/pillsner/pull/86)
 
 Adding a medicine means typing its name, its strength, how often to take it and the dates by hand, which is the slowest and most error-prone moment in Pillsner, especially for people managing several medicines. A photo of the pharmacy label or the box already carries most of that, so reading it on the phone and pre-filling the Add medicine form removes the typing without sending anything off the device.
 

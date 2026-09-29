@@ -59,6 +59,32 @@ class DoseTokensTest {
     }
 
     @Test
+    fun `half a tablet is a count of one half in every language`() {
+        assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("Take half a tablet").single().quantity)
+        assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("een halve tablet").single().quantity)
+        assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("eine halbe Tablette").single().quantity)
+        assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("un demi comprimé").single().quantity)
+        assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("media pastilla").single().quantity)
+        assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("meio comprimido").single().quantity)
+        assertTrue(extract("half mg").isEmpty())
+    }
+
+    @Test
+    fun `half a tablet once daily schedules half a tablet, not the label's strength`() {
+        val result = interpret(lines("ZORVALEX 500 MG", "Take half a tablet once daily"), today)
+
+        assertEquals(Quantity.of("500", DoseUnit.MILLIGRAM), result.defaultDose)
+        assertEquals(Quantity.of("0.5", DoseUnit.TABLET), result.schedules.single().amount)
+    }
+
+    @Test
+    fun `a range such as 1 to 2 tablets produces no schedule rather than the label's strength`() {
+        assertTrue(interpret(lines("ZORVALEX 500 MG", "Take 1-2 tablets daily"), today).schedules.isEmpty())
+        assertTrue(interpret(lines("ZORVALEX 500 MG", "1 tot 2 tabletten per dag"), today).schedules.isEmpty())
+        assertTrue(interpret(lines("ZORVALEX 500 MG", "1 à 2 comprimés par jour"), today).schedules.isEmpty())
+    }
+
+    @Test
     fun `a fraction without an exact decimal is never rounded into a dose`() {
         assertTrue(extract("1/3 tablet").isEmpty())
         assertTrue(extract("2/3 tablet").isEmpty())

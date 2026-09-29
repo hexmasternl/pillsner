@@ -84,6 +84,33 @@ internal object LabelVocabulary {
         put(12, "twaalf", "twelve", "zwolf", "douze", "doce")
     }
 
+    /** "half a tablet", "een halve tablet", "un demi comprimé": a count of one half, spelled out. */
+    val halfWords: Set<String> = setOf("half", "halve", "halbe", "halben", "demi", "demie", "media", "medio", "meia", "meio")
+
+    /** Articles that may sit between a spelled-out count and its unit: "half a tablet". */
+    val articles: Set<String> = setOf("a", "an", "een", "eine", "einen", "un", "une", "una", "um", "uma")
+
+    /**
+     * "As needed" in the six languages. A medicine taken this way has no schedule in Pillsner, so a
+     * line carrying one of these yields no frequency, whatever else it says.
+     */
+    val asNeededPhrases: List<String> = listOf(
+        "zo nodig", "indien nodig", "zonodig", "bij klachten", "as needed", "when needed", "if needed", "as required",
+        "when required", "when necessary", "if necessary", "prn", "bei bedarf", "nach bedarf", "si besoin", "au besoin",
+        "si necessaire", "en cas de besoin", "segun necesidad", "si es necesario", "a demanda", "cuando sea necesario",
+        "se necessario", "quando necessario", "em caso de necessidade", "sos",
+    )
+
+    /**
+     * Words that mark a line as an expiry or lot line, whose date is neither a start nor an end of
+     * use: "EXP 03/2028", "houdbaar tot", "à utiliser avant".
+     */
+    val expiryWords: Set<String> = setOf(
+        "exp", "expiry", "expires", "expiration", "houdbaar", "vervaldatum", "vervalt", "verfall", "verfallsdatum",
+        "verwendbar", "haltbar", "peremption", "perime", "caduca", "caducidad", "validade", "valido", "valida", "lot",
+        "batch", "charge", "chb",
+    )
+
     /** Words that are a frequency in themselves: "twice", "driemaal", "einmal". */
     val timesWords: Map<String, Int> = buildMap {
         put(1, "once", "eenmaal", "einmal")

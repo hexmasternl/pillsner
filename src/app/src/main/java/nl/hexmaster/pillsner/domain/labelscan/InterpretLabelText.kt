@@ -39,8 +39,11 @@ class InterpretLabelText {
 
         // Rules 1 and 2.
         val strength = tokens.flatten().firstOrNull { it.isStrength }?.quantity
+        // A line with a range ("1-2 tablets") states an amount the form has no field for; neither
+        // of its numbers is the dose, so the line lends no count and gets no schedule.
+        val hasRange = normalised.map { AMOUNT_RANGE.containsMatchIn(it) }
         val instructionCount = normalised.indices
-            .filter { isInstruction[it] }
+            .filter { isInstruction[it] && !hasRange[it] }
             .flatMap { tokens[it] }
             .firstOrNull { !it.isStrength }
             ?.quantity
@@ -55,20 +58,28 @@ class InterpretLabelText {
         } else {
             val lineTokens = tokens[instructionIndex]
             val lineAmount = (lineTokens.firstOrNull { !it.isStrength } ?: lineTokens.firstOrNull { it.isStrength })?.quantity
-            LabelSchedules.build(
-                frequency = frequencies[instructionIndex]!!,
-                amount = lineAmount ?: defaultDose,
-                countUnit = instructionCount?.unit ?: LabelFrequency.bareFormUnit(normalised[instructionIndex]),
-                defaultDose = defaultDose,
-            )
+            // "1-2 tablets": a range the form cannot hold. Neither its upper number nor the label's
+            // strength is what the label said, so the schedule is left absent for the user.
+            if (hasRange[instructionIndex]) {
+                emptyList()
+            } else {
+                LabelSchedules.build(
+                    frequency = frequencies[instructionIndex]!!,
+                    amount = lineAmount ?: defaultDose,
+                    countUnit = instructionCount?.unit ?: LabelFrequency.bareFormUnit(normalised[instructionIndex]),
+                    defaultDose = defaultDose,
+                )
+            }
         }
 
         // Rule 5.
         val name = LabelName.choose(texts)
 
-        // Rules 6 and 7.
-        val untilDates = normalised.flatMap(LabelDates::untilDates)
-        val allDates = normalised.flatMap { line -> LabelDates.candidates(line).map { it.date } }
+        // Rules 6 and 7. Dates on expiry or lot lines are when the medicine goes off, never a start
+        // or an end of use, so they are left out of both.
+        val dateLines = normalised.filterNot(LabelDates::isExpiryLine)
+        val untilDates = dateLines.flatMap(LabelDates::untilDates)
+        val allDates = dateLines.flatMap { line -> LabelDates.candidates(line).map { it.date } }
         val usedSince = LabelDates.usedSince(allDates, untilDates.toSet(), today)
         val useUntil = LabelDates.useUntil(normalised, isInstruction, usedSince, untilDates)
 
@@ -79,6 +90,18 @@ class InterpretLabelText {
             usedSince = usedSince,
             useUntil = useUntil,
             rawText = texts.joinToString("\n"),
+        )
+    }
+
+    private companion object {
+        /**
+         * "1-2 tablets", "1 to 2 tablets", "1 à 2 comprimés": an amount the form has no field for.
+         * Not the box notation "2-0-1 Tabletten": a range is exactly two numbers, so the first may
+         * not follow a dash and the second may not precede one.
+         */
+        val AMOUNT_RANGE = Regex(
+            "(?<!-\\s{0,2})\\b\\d+(?:[.,]\\d+)?\\s*(?:-|–|\\bto\\b|\\btot\\b|\\bbis\\b|\\ba\\b|\\bà\\b|\\bou\\b|\\bor\\b|\\bof\\b|\\boder\\b)\\s*" +
+                "\\d+(?:[.,]\\d+)?(?!\\s*-\\s*\\d)\\s+(?:" + LabelVocabulary.alternation(LabelVocabulary.units.keys) + ")\\b",
         )
     }
 }

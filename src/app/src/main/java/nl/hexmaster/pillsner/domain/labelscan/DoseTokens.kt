@@ -20,9 +20,10 @@ internal object DoseTokens {
         val unit = LabelVocabulary.units[match.groupValues[2]] ?: return@mapNotNull null
         val isStrength = unit in LabelVocabulary.strengthUnits
         val number = match.groupValues[1]
-        // "one tablet", "een tablet", "un comprimé": a spelled-out count. A strength is never spelled out.
+        // "one tablet", "een tablet", "half a tablet": a spelled-out count. A strength is never spelled out.
         val value = parseNumber(number)
             ?: LabelVocabulary.numberWords[number]?.takeUnless { isStrength }?.toBigDecimal()
+            ?: HALF.takeIf { number in LabelVocabulary.halfWords && !isStrength }
             ?: return@mapNotNull null
         if (value <= BigDecimal.ZERO) return@mapNotNull null
         DoseToken(Quantity(value, unit), isStrength)
@@ -54,10 +55,18 @@ internal object DoseTokens {
     /** A number as a label writes it, used by the frequency and date patterns too. */
     const val NUMBER = "(\\d+(?:[.,]\\d+)?|\\d+/\\d+|½|¼|¾)"
 
-    /** A number or a number word, optional space, then a run of letters that has to be a whole word. */
+    private val HALF = BigDecimal("0.5")
+
+    /**
+     * A number, a number word or a half-word, an optional article ("half a tablet"), then a unit
+     * word as a whole word. The unit is matched from the vocabulary rather than as any run of
+     * letters, so "eine halbe Tablette" is not consumed as "eine halbe" and lost: the scan moves
+     * on and finds "halbe Tablette".
+     */
     private val TOKEN = Regex(
         "(?<![\\p{L}\\p{N}])(\\d+(?:[.,]\\d+)?|\\d+/\\d+|½|¼|¾|" +
-            LabelVocabulary.alternation(LabelVocabulary.numberWords.keys) +
-            ")\\s*([\\p{L}]+)(?![\\p{L}\\p{N}])",
+            LabelVocabulary.alternation(LabelVocabulary.numberWords.keys + LabelVocabulary.halfWords) +
+            ")(?:\\s+(?:" + LabelVocabulary.alternation(LabelVocabulary.articles) + "))?\\s*(" +
+            LabelVocabulary.alternation(LabelVocabulary.units.keys) + ")(?![\\p{L}\\p{N}])",
     )
 }

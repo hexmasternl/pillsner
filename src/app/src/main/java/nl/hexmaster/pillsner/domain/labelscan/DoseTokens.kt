@@ -1,7 +1,6 @@
 package nl.hexmaster.pillsner.domain.labelscan
 
 import java.math.BigDecimal
-import java.math.RoundingMode
 import nl.hexmaster.pillsner.domain.model.Quantity
 
 /**
@@ -31,7 +30,9 @@ internal object DoseTokens {
 
     /**
      * A label's number: an integer, a decimal with `.` or `,`, a simple fraction such as `1/2`, or
-     * one of the fraction characters. Null when [text] is none of those.
+     * one of the fraction characters. Null when [text] is none of those, and null for a fraction
+     * such as `1/3` that has no exact decimal: a dose is never rounded, so the field is left for
+     * the user rather than filled with an approximation.
      */
     fun parseNumber(text: String): BigDecimal? = when (text) {
         "½" -> BigDecimal("0.5")
@@ -40,7 +41,11 @@ internal object DoseTokens {
         else -> if ('/' in text) {
             val (numerator, denominator) = text.split('/')
             val divisor = denominator.toBigDecimalOrNull()?.takeIf { it.signum() != 0 } ?: return null
-            numerator.toBigDecimalOrNull()?.divide(divisor, FRACTION_SCALE, RoundingMode.HALF_UP)?.stripTrailingZeros()
+            try {
+                numerator.toBigDecimalOrNull()?.divide(divisor)?.stripTrailingZeros()
+            } catch (nonTerminating: ArithmeticException) {
+                null
+            }
         } else {
             text.replace(',', '.').toBigDecimalOrNull()
         }
@@ -48,8 +53,6 @@ internal object DoseTokens {
 
     /** A number as a label writes it, used by the frequency and date patterns too. */
     const val NUMBER = "(\\d+(?:[.,]\\d+)?|\\d+/\\d+|½|¼|¾)"
-
-    private const val FRACTION_SCALE = 3
 
     /** A number or a number word, optional space, then a run of letters that has to be a whole word. */
     private val TOKEN = Regex(

@@ -54,7 +54,15 @@ class DoseTokensTest {
         assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("0,5 tablet").single().quantity)
         assertEquals(Quantity.of("2.5", DoseUnit.MILLILITRE), extract("2.5 ml").single().quantity)
         assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("1/2 tablet").single().quantity)
+        assertEquals(Quantity.of("0.25", DoseUnit.TABLET), extract("1/4 tablet").single().quantity)
         assertEquals(Quantity.of("0.5", DoseUnit.TABLET), extract("½ tablet").single().quantity)
+    }
+
+    @Test
+    fun `a fraction without an exact decimal is never rounded into a dose`() {
+        assertTrue(extract("1/3 tablet").isEmpty())
+        assertTrue(extract("2/3 tablet").isEmpty())
+        assertNull(DoseTokens.parseNumber("1/0"))
     }
 
     @Test

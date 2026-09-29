@@ -470,21 +470,29 @@ class MedicationFormViewModel(
                 Log.d(TAG, "Picked photo scan failed")
                 null
             }
-            _uiState.update { it.copy(isScanning = false) }
             if (interpretation == null) {
                 _effects.trySend(MedicationFormEffect.PhotoUnreadable)
             } else {
                 onInterpretationReceived(interpretation)
+            }
+        }.also { job ->
+            // Whatever the outcome, cancellation included, the reading state ends only once the job,
+            // and with it the recogniser session it owns, has fully completed.
+            job.invokeOnCompletion {
+                if (scanJob === job) scanJob = null
+                _uiState.update { it.copy(isScanning = false) }
             }
         }
     }
 
     /** Cancel on the "Reading the photo" state: stops the read and leaves the form unchanged. */
     fun cancelScan() {
-        scanJob?.cancel()
-        scanJob = null
+        // Interrupt the native recognition first, so the cancelled job reaches its close() quickly.
+        // The modal stays up until that close has run (see the completion handler in onPhotoPicked):
+        // the recogniser is shared with the live scan, and a new session must not open against an
+        // engine the cancelled one is still about to release.
         photoScanner?.stop()
-        _uiState.update { it.copy(isScanning = false) }
+        scanJob?.cancel()
     }
 
     /**

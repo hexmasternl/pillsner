@@ -3,8 +3,11 @@ package nl.hexmaster.pillsner.data.labelscan
 import android.net.Uri
 import java.time.Clock
 import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import nl.hexmaster.pillsner.domain.labelscan.InterpretLabelText
 import nl.hexmaster.pillsner.domain.labelscan.LabelInterpretation
@@ -37,11 +40,18 @@ class PickedPhotoScanner(
 ) : PhotoScanner {
 
     override suspend fun scan(uri: String): LabelInterpretation? = withContext(ioDispatcher) {
+        // Decoding and opening the engine are blocking and cannot be interrupted, so a cancel that
+        // lands during either is honoured at the next boundary rather than after a whole recognition.
         val frame = decoder.decode(Uri.parse(uri)) ?: return@withContext null
+        currentCoroutineContext().ensureActive()
         try {
             recogniser.open()
+            currentCoroutineContext().ensureActive()
             val lines = recogniser.recognise(frame)
             interpret(lines, LocalDate.now(clock))
+        } catch (cancelled: CancellationException) {
+            // A subtype of IllegalStateException, so it has to be let through before the next clause.
+            throw cancelled
         } catch (failure: IllegalStateException) {
             null
         } finally {

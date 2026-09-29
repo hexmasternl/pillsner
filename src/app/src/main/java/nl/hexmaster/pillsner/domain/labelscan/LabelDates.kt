@@ -129,7 +129,12 @@ internal object LabelDates {
     private val DAY_WORDS = LabelVocabulary.alternation(listOf("dagen", "dag", "days", "day", "tage", "tagen", "tag", "jours", "jour", "dias", "dia"))
     private val WEEK_WORDS = LabelVocabulary.alternation(listOf("weken", "week", "weeks", "wochen", "woche", "semaines", "semaine", "semanas", "semana"))
     private val PERIOD = "($DAY_WORDS|$WEEK_WORDS)"
-    private val FOR_WORDS = LabelVocabulary.alternation(listOf("gedurende", "voor", "for", "fur", "wahrend", "pendant", "durant", "durante", "por", "per"))
+    /**
+     * Words that introduce a course length. English "per" is deliberately absent: "1 tablet per
+     * 7 days" is a rhythm, and an unsupported one, not a seven-day course. Spanish and Portuguese
+     * "por 7 días" is a course and stays.
+     */
+    private val FOR_WORDS = LabelVocabulary.alternation(listOf("gedurende", "voor", "for", "fur", "wahrend", "pendant", "durant", "durante", "por"))
     private val EVERY_WORDS = LabelVocabulary.alternation(listOf("om de", "elke", "iedere", "every", "each", "alle", "jede", "jeden", "tous les", "toutes les", "chaque", "cada", "a cada"))
 
     private val DURATION_AFTER_FOR = Regex("\\b(?:$FOR_WORDS)\\s+(?:de\\s+|het\\s+)?$NUMBER\\s*$PERIOD\\b")

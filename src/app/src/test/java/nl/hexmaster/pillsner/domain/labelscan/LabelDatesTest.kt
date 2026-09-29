@@ -3,6 +3,7 @@ package nl.hexmaster.pillsner.domain.labelscan
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Design D4 rules 6 and 7: used since and use until, read conservatively. */
@@ -156,6 +157,16 @@ class LabelDatesTest {
     @Test
     fun `a rhythm such as every two days is not a two-day course`() {
         assertNull(interpret(lines("ZORVALEX 50 MG", "alle 2 Tage 1 Tablette"), today).useUntil)
+    }
+
+    @Test
+    fun `an unsupported per-N-days rhythm invents no end date`() {
+        val result = interpret(lines("ZORVALEX 50 MG", "1 tablet per 7 days"), today)
+
+        assertNull(result.useUntil)
+        assertTrue(result.schedules.isEmpty())
+        // Spanish and Portuguese "por" is a course, and stays one.
+        assertEquals(LocalDate.of(2026, 10, 5), interpret(lines("1 comprimido al día por 7 días"), today).useUntil)
     }
 
     private fun lines(vararg texts: String) = texts.map { RecognisedLine(it, 90f) }

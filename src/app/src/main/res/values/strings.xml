@@ -306,7 +306,7 @@
     <!-- Wake service: the notification the platform requires while the app checks (design D4) -->
     <string name="wake_channel_name">Checking your medicines</string>
     <string name="wake_channel_description">Appears for a moment while Pillsner works out which doses are due. You can turn this off.</string>
-    <string name="wake_notification">Checking your medicines…</string>
+    <string name="wake_notification">Checking your medicinesâ¦</string>
 
     <!-- Home: reminders cannot be delivered (design system section 8.9) -->
     <string name="reminder_banner_notifications_denied">Pillsner cannot show reminders because notifications are turned off.</string>
@@ -351,13 +351,13 @@
     <!-- %1$s: the date the user accepted -->
     <string name="legal_status_accepted">Accepted on %1$s</string>
     <!-- %1$s: the date the user accepted an older version of the documents -->
-    <string name="legal_status_revised">Accepted on %1$s — these documents have changed since</string>
+    <string name="legal_status_revised">Accepted on %1$s â these documents have changed since</string>
 
     <!-- A legal document on its own screen -->
     <string name="legal_disclaimer_title">Disclaimer</string>
     <string name="legal_terms_title">Terms of Service</string>
     <!-- %1$d: the document version, %2$s: the date it took effect -->
-    <string name="legal_document_version">Version %1$d · %2$s</string>
+    <string name="legal_document_version">Version %1$d Â· %2$s</string>
 
     <!-- The acceptance screen, shown before the first medicine is added -->
     <string name="legal_accept_title">Before you add a medicine</string>
@@ -374,7 +374,7 @@
     <string name="legal_disclaimer_s2_p1">You, together with the doctor or pharmacist who prescribed your medication, decide which medicine you take, how much of it, how often and at what times. Pillsner only repeats the schedule you gave it.</string>
     <string name="legal_disclaimer_s2_p2">If what Pillsner reminds you of does not match your prescription, follow your prescription and correct the schedule in the app.</string>
     <string name="legal_disclaimer_s3_heading">A reminder may be late, or may not arrive</string>
-    <string name="legal_disclaimer_s3_p1">Pillsner cannot promise that a reminder reaches you. Your phone may be switched off, out of battery, silenced, in a focus or do-not-disturb mode, or the system may delay or stop the app to save power. None of that is within the app’s control.</string>
+    <string name="legal_disclaimer_s3_p1">Pillsner cannot promise that a reminder reaches you. Your phone may be switched off, out of battery, silenced, in a focus or do-not-disturb mode, or the system may delay or stop the app to save power. None of that is within the appâs control.</string>
     <string name="legal_disclaimer_s3_p2">Do not rely on Pillsner as the only thing reminding you to take your medication. Keep whatever else works for you: a fixed routine, a pill box, a second alarm, or someone who helps you.</string>
     <string name="legal_disclaimer_s4_heading">What we are not responsible for</string>
     <string name="legal_disclaimer_s4_p1">Neither Pillsner, its publisher Eduard Keilholz, nor the people who develop it can be held responsible for a dose that is missed, taken late, taken twice or taken wrongly, whether or not a reminder arrived.</string>
@@ -388,13 +388,13 @@
     <string name="legal_terms_s1_p1">Eduard Keilholz grants you a personal, non-exclusive, revocable licence to use Pillsner on devices you control, for your own use. You may not sell, rent out or redistribute the app, and you may not present it as your own.</string>
     <string name="legal_terms_s1_p2">This licence lasts as long as you keep to these terms. You may end it at any time by removing the app from your device.</string>
     <string name="legal_terms_s2_heading">Provided as is</string>
-    <string name="legal_terms_s2_p1">Pillsner is provided “as is” and “as available”, without warranty of any kind, whether stated or implied. There is no promise that the app is free of faults, that it is fit for a particular purpose, or that it will keep working without interruption.</string>
+    <string name="legal_terms_s2_p1">Pillsner is provided âas isâ and âas availableâ, without warranty of any kind, whether stated or implied. There is no promise that the app is free of faults, that it is fit for a particular purpose, or that it will keep working without interruption.</string>
     <string name="legal_terms_s2_p2">In particular, there is no promise that a reminder will be delivered, or delivered on time. The Disclaimer says what that means in practice.</string>
     <string name="legal_terms_s3_heading">Limitation of liability</string>
     <string name="legal_terms_s3_p1">As far as the law permits, Eduard Keilholz and the people who develop Pillsner are not liable for any damage, loss or cost arising from your use of the app, from a reminder that did not arrive or arrived late, or from data that was lost.</string>
     <string name="legal_terms_s3_p2">Nothing in these terms excludes or limits liability that may not lawfully be excluded or limited, including liability for death or personal injury caused by intent or gross negligence.</string>
     <string name="legal_terms_s4_heading">Your data stays on your device</string>
-    <string name="legal_terms_s4_p1">Everything you enter in Pillsner — your medicines, your schedules and what you recorded taking — is stored on your own device. Pillsner sends none of it anywhere, and Eduard Keilholz has no access to it and cannot recover it for you.</string>
+    <string name="legal_terms_s4_p1">Everything you enter in Pillsner â your medicines, your schedules and what you recorded taking â is stored on your own device. Pillsner sends none of it anywhere, and Eduard Keilholz has no access to it and cannot recover it for you.</string>
     <string name="legal_terms_s4_p2">Keeping a backup is your own responsibility. If you remove the app, reset your device or lose it, your data goes with it.</string>
     <string name="legal_terms_s5_heading">Changes to these terms</string>
     <string name="legal_terms_s5_p1">These terms and the Disclaimer may be revised, for instance when the app changes or the law does. Each document carries a version number and a date, which you can always read in Settings.</string>
@@ -547,4 +547,38 @@
     <string name="stock_warning_expiring_message">The stock you just used of %1$s expires soon.</string>
     <string name="stock_warning_expired_message">The stock you just used of %1$s has expired.</string>
     <string name="stock_warning_action_ordered_new">I ordered new</string>
+    <!-- Label scan: the entry point on the Add medicine form (medicine-label-photo-prefill design D5) -->
+    <string name="label_scan_action">Scan a label</string>
+    <string name="label_scan_option_camera">Scan with camera</string>
+    <string name="label_scan_option_photo">Choose a photo</string>
+    <string name="label_scan_rationale_title">Use the camera?</string>
+    <string name="label_scan_rationale_body">Pillsner uses the camera only to read the label in front of it. Nothing is saved or sent anywhere.</string>
+    <string name="label_scan_rationale_continue">Continue</string>
+    <string name="label_scan_rationale_not_now">Not now</string>
+    <string name="label_scan_camera_unavailable">The camera is unavailable. You can still choose a photo.</string>
+    <string name="label_scan_open_settings">Open settings</string>
+    <string name="label_scan_reading_photo">Reading the photo…</string>
+    <string name="label_scan_replace_title">Replace what you have entered?</string>
+    <string name="label_scan_replace_body">Replace what you have entered with what was read from the label?</string>
+    <string name="label_scan_replace_confirm">Replace</string>
+    <string name="label_scan_replace_keep">Keep</string>
+    <string name="label_scan_banner_text">Filled in from your label scan. Check every field before saving.</string>
+    <string name="label_scan_banner_show_text">Show text</string>
+    <string name="label_scan_banner_dismiss">Dismiss</string>
+    <string name="label_scan_text_title">Recognised text</string>
+    <string name="label_scan_nothing_readable">Nothing readable was found on the label.</string>
+    <string name="label_scan_photo_unreadable">The photo could not be read.</string>
+
+    <!-- Label scan: the live scanning screen (design D3) -->
+    <string name="label_scan_title">Scan a label</string>
+    <string name="label_scan_instruction">Hold the label inside the frame</string>
+    <string name="label_scan_hint_adjust">Move closer, add light or hold still</string>
+    <string name="label_scan_hint_shutter">Tap Read now to use what has been read so far</string>
+    <string name="label_scan_preparing">Getting the reader ready…</string>
+    <string name="label_scan_failed">The label reader could not start. You can still choose a photo or type the details.</string>
+    <string name="label_scan_shutter">Read now</string>
+    <string name="label_scan_torch_on">Turn torch on</string>
+    <string name="label_scan_torch_off">Turn torch off</string>
+    <string name="label_scan_read">Label read</string>
+
 </resources>

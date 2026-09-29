@@ -82,6 +82,13 @@ import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
 import nl.hexmaster.pillsner.ui.medicines.labelRes
 import nl.hexmaster.pillsner.ui.medicines.rememberScheduleDescriptionFormatter
+import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraRationaleDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ReadingPhotoDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.RecognisedTextSheet
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ReplaceDraftDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanLabelButton
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanOptionsSheet
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanReviewBanner
 import nl.hexmaster.pillsner.ui.theme.Motion
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Sizes
@@ -166,6 +173,18 @@ fun MedicationFormScreen(
     onRemoveStockBatchClicked: (StockBatchId) -> Unit = {},
     onRemoveStockBatchCancelled: () -> Unit = {},
     onRemoveStockBatchConfirmed: () -> Unit = {},
+    onScanLabelClicked: () -> Unit = {},
+    onScanOptionsDismissed: () -> Unit = {},
+    onScanWithCameraChosen: () -> Unit = {},
+    onChoosePhotoChosen: () -> Unit = {},
+    onRationaleContinue: () -> Unit = {},
+    onRationaleDismissed: () -> Unit = {},
+    onCancelScan: () -> Unit = {},
+    onReplaceConfirmed: () -> Unit = {},
+    onReplaceDeclined: () -> Unit = {},
+    onScanBannerDismissed: () -> Unit = {},
+    onShowScanText: () -> Unit = {},
+    onScanTextDismissed: () -> Unit = {},
 ) {
     val formatter = rememberScheduleDescriptionFormatter()
 
@@ -271,6 +290,15 @@ fun MedicationFormScreen(
                     .padding(horizontal = Spacing.screenEdge, vertical = Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
             ) {
+                // Add mode only (medicine-label-scan): the review banner after an applied scan, then
+                // the way to start one, both above the name field.
+                if (uiState.canScanLabel) {
+                    if (uiState.showScanBanner) {
+                        ScanReviewBanner(onShowText = onShowScanText, onDismiss = onScanBannerDismissed)
+                    }
+                    ScanLabelButton(onClick = onScanLabelClicked)
+                }
+
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = onNameChange,
@@ -404,6 +432,31 @@ fun MedicationFormScreen(
             onConfirm = onRemoveStockBatchConfirmed,
             onCancel = onRemoveStockBatchCancelled,
         )
+    }
+
+    if (uiState.showScanOptions) {
+        ScanOptionsSheet(
+            cameraAvailable = uiState.cameraAvailable,
+            onScanWithCamera = onScanWithCameraChosen,
+            onChoosePhoto = onChoosePhotoChosen,
+            onDismiss = onScanOptionsDismissed,
+        )
+    }
+
+    if (uiState.showCameraRationale) {
+        CameraRationaleDialog(onContinue = onRationaleContinue, onNotNow = onRationaleDismissed)
+    }
+
+    if (uiState.isScanning) {
+        ReadingPhotoDialog(onCancel = onCancelScan)
+    }
+
+    if (uiState.pendingInterpretation != null) {
+        ReplaceDraftDialog(onReplace = onReplaceConfirmed, onKeep = onReplaceDeclined)
+    }
+
+    if (uiState.showScanText) {
+        RecognisedTextSheet(text = uiState.scanRawText.orEmpty(), onDismiss = onScanTextDismissed)
     }
 }
 

@@ -4,6 +4,46 @@ Release notes for Pillsner, newest first. The short store-listing version of eac
 `distribution/whatsnew/`, one file per language, and is limited to 500 characters by Google Play.
 This file is the full account.
 
+## Unreleased
+
+### Medicines
+
+- **Scan a label to fill in a new medicine.** The Add medicine form has a "Scan a label" button. Hold
+  a pharmacy label or a box in front of the camera and Pillsner reads it live, on the phone, and fills
+  in the name, the strength, the prescribed dose as a schedule, and the dates it can find; a photo you
+  already have works too. Everything lands in the ordinary form for you to check before saving, with
+  the recognised text one tap away. Nothing is photographed, saved or sent: frames are read in memory
+  and thrown away.
+- Labels in any of the six app languages are understood: the words for units, frequencies, courses
+  and dates on Dutch, English, German, French, Spanish and Portuguese labels are all recognised,
+  whatever language the phone is set to. A frequency the app cannot express as one of its schedule
+  shapes is left out rather than guessed.
+
+### Privacy and permissions
+
+- **One new permission: the camera.** Pillsner asks for it only when you choose "Scan with camera",
+  after explaining why, and never at install or start. Decline it and everything else, including
+  "Choose a photo", works as before. The camera is declared as optional, so the app still installs on
+  a device without one.
+- Text recognition runs entirely inside the app (Tesseract OCR 5 with a bundled English model). No
+  Google Play services, Firebase or ML Kit component is involved, no model is downloaded, and the app
+  still declares no internet permission.
+- The README now lists every permission the app's libraries merge into its manifest. Five of them
+  (`USE_BIOMETRIC`, `USE_FINGERPRINT`, `WAKE_LOCK`, `ACCESS_NETWORK_STATE` and the app's own
+  dynamic-receiver permission) have shipped since 1.0.0 without being listed; nothing about them
+  changed except that they are now disclosed.
+- The download grows by the camera libraries, the native text-recognition libraries for the device's
+  processor and a 4 MB English model. <!-- size: measured in task 9.7 -->
+
+### For developers
+
+- **A manifest guard in the build.** `src/app/manifest-allowlist.txt` lists every permission the app
+  may declare and pins the checksum of the text-recognition library. Every `assemble`, `bundle` and
+  `check` compares the merged manifest and the dependency graph against it and fails the build on any
+  difference, on any Firebase, ML Kit or non-wearable Play services artifact, and on a changed
+  checksum. This is the lesson of releases 1.1.0 and 1.1.1, which shipped with a network permission
+  nobody had added.
+
 ## 1.0.0 — 15 September 2026
 
 The first release of Pillsner: a medication reminder for Android, with a companion app for Wear OS.

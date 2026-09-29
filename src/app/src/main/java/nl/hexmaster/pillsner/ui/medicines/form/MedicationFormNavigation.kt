@@ -1,6 +1,15 @@
 package nl.hexmaster.pillsner.ui.medicines.form
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.compose.CameraXViewfinder
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,11 +27,18 @@ import nl.hexmaster.pillsner.R
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryEffect
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryScreen
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
+import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraPermission
+import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanCamera
+import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanEffect
+import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanScreen
+import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanViewModel
+import nl.hexmaster.pillsner.ui.medicines.labelscan.rememberCameraPermissionRequest
 import nl.hexmaster.pillsner.ui.medicines.schedule.ScheduleEditorScreen
 import nl.hexmaster.pillsner.ui.navigation.MedicationForm
 import nl.hexmaster.pillsner.ui.navigation.MedicationFormGraph
 import nl.hexmaster.pillsner.ui.navigation.MedicineHistory
 import nl.hexmaster.pillsner.ui.navigation.EditSchedule
+import nl.hexmaster.pillsner.ui.navigation.LabelScan
 
 /**
  * The add-medicine flow: the form and the schedule editor around one shared draft (design D4).
@@ -42,6 +58,17 @@ fun NavGraphBuilder.medicationFormGraph(
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             val snackbarHostState = remember { SnackbarHostState() }
             val saveFailedMessage = stringResource(R.string.medicine_save_failed)
+            val context = LocalContext.current
+            val cameraUnavailableMessage = stringResource(R.string.label_scan_camera_unavailable)
+            val openSettingsLabel = stringResource(R.string.label_scan_open_settings)
+            val nothingReadableMessage = stringResource(R.string.label_scan_nothing_readable)
+            val photoUnreadableMessage = stringResource(R.string.label_scan_photo_unreadable)
+            // Registered here rather than in the screen, so the result reaches the view model even
+            // after a configuration change while the system prompt or the picker was showing.
+            val requestCameraPermission = rememberCameraPermissionRequest(viewModel::onCameraPermissionResult)
+            val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                viewModel.onPhotoPicked(uri?.toString())
+            }
 
             LaunchedEffect(viewModel) {
                 viewModel.effects.collect { effect ->
@@ -52,6 +79,22 @@ fun NavGraphBuilder.medicationFormGraph(
                             onOpenFailed()
                             navController.closeFlow()
                         }
+                        MedicationFormEffect.OpenLabelScan -> navController.navigate(LabelScan)
+                        MedicationFormEffect.RequestCameraPermission -> requestCameraPermission()
+                        MedicationFormEffect.PickPhoto -> pickPhoto.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                        is MedicationFormEffect.CameraUnavailable -> {
+                            val result = snackbarHostState.showSnackbar(
+                                message = cameraUnavailableMessage,
+                                actionLabel = openSettingsLabel.takeIf { effect.permanentlyDenied },
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                context.startActivity(CameraPermission.appSettingsIntent(context))
+                            }
+                        }
+                        MedicationFormEffect.NothingReadable -> snackbarHostState.showSnackbar(nothingReadableMessage)
+                        MedicationFormEffect.PhotoUnreadable -> snackbarHostState.showSnackbar(photoUnreadableMessage)
                     }
                 }
             }
@@ -93,6 +136,18 @@ fun NavGraphBuilder.medicationFormGraph(
                 onRemoveStockBatchClicked = viewModel::onRemoveStockBatchClicked,
                 onRemoveStockBatchCancelled = viewModel::onRemoveStockBatchCancelled,
                 onRemoveStockBatchConfirmed = viewModel::onRemoveStockBatchConfirmed,
+                onScanLabelClicked = viewModel::onScanLabelClicked,
+                onScanOptionsDismissed = viewModel::onScanOptionsDismissed,
+                onScanWithCameraChosen = { viewModel.onScanWithCameraChosen(CameraPermission.isGranted(context)) },
+                onChoosePhotoChosen = viewModel::onChoosePhotoChosen,
+                onRationaleContinue = viewModel::onRationaleContinue,
+                onRationaleDismissed = viewModel::onRationaleDismissed,
+                onCancelScan = viewModel::cancelScan,
+                onReplaceConfirmed = viewModel::onReplaceConfirmed,
+                onReplaceDeclined = viewModel::onReplaceDeclined,
+                onScanBannerDismissed = viewModel::onScanBannerDismissed,
+                onShowScanText = viewModel::onShowScanText,
+                onScanTextDismissed = viewModel::onScanTextDismissed,
             )
         }
 
@@ -116,6 +171,46 @@ fun NavGraphBuilder.medicationFormGraph(
                 uiState = uiState,
                 onPeriodSelected = viewModel::onPeriodSelected,
                 onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<LabelScan> { entry ->
+            val formViewModel = entry.sharedViewModel(navController, viewModelFactory)
+            // Its own view model for the camera session (design D2); the result lands in the shared draft.
+            val scanViewModel: LabelScanViewModel = viewModel(factory = viewModelFactory)
+            val uiState by scanViewModel.uiState.collectAsStateWithLifecycle()
+            val surfaceRequest by scanViewModel.surfaceRequest.collectAsStateWithLifecycle()
+            val haptics = LocalHapticFeedback.current
+
+            LaunchedEffect(scanViewModel) {
+                scanViewModel.effects.collect { effect ->
+                    when (effect) {
+                        is LabelScanEffect.Finished -> {
+                            if (effect.accepted) {
+                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                // Long enough for the live region to announce "Label read" (design D3).
+                                delay(ACCEPTANCE_DWELL_MILLIS)
+                            }
+                            formViewModel.onInterpretationReceived(effect.interpretation)
+                            navController.popBackStack()
+                        }
+                    }
+                }
+            }
+
+            LabelScanCamera(scanViewModel)
+            LabelScanScreen(
+                uiState = uiState,
+                onShutter = scanViewModel::onShutter,
+                onTorchToggled = scanViewModel::onTorchToggled,
+                onCancel = {
+                    scanViewModel.onCancel()
+                    navController.popBackStack()
+                },
+                guide = scanViewModel.guide,
+                viewfinder = { viewfinderModifier ->
+                    surfaceRequest?.let { request -> CameraXViewfinder(request, viewfinderModifier) }
+                },
             )
         }
 
@@ -144,6 +239,9 @@ fun NavGraphBuilder.medicationFormGraph(
         }
     }
 }
+
+/** How long "Label read" stays on screen before the form returns (design D3). */
+private const val ACCEPTANCE_DWELL_MILLIS = 600L
 
 /** Leaves the whole flow, whichever medicine it was opened on. */
 private fun NavHostController.closeFlow() {

@@ -499,4 +499,39 @@
     <string name="stock_warning_expiring_message">Der Vorrat von %1$s, den du gerade verwendet hast, läuft bald ab.</string>
     <string name="stock_warning_expired_message">Der Vorrat von %1$s, den du gerade verwendet hast, ist abgelaufen.</string>
     <string name="stock_warning_action_ordered_new">Ich habe neuen bestellt</string>
+
+    <!-- Label scan: the entry point on the Add medicine form (medicine-label-photo-prefill design D5) -->
+    <string name="label_scan_action">Etikett scannen</string>
+    <string name="label_scan_option_camera">Mit Kamera scannen</string>
+    <string name="label_scan_option_photo">Foto auswählen</string>
+    <string name="label_scan_rationale_title">Kamera verwenden?</string>
+    <string name="label_scan_rationale_body">Pillsner verwendet die Kamera nur, um das Etikett davor zu lesen. Nichts wird gespeichert oder gesendet.</string>
+    <string name="label_scan_rationale_continue">Weiter</string>
+    <string name="label_scan_rationale_not_now">Jetzt nicht</string>
+    <string name="label_scan_camera_unavailable">Die Kamera ist nicht verfügbar. Du kannst weiterhin ein Foto auswählen.</string>
+    <string name="label_scan_open_settings">Einstellungen öffnen</string>
+    <string name="label_scan_reading_photo">Foto wird gelesen…</string>
+    <string name="label_scan_replace_title">Eingaben ersetzen?</string>
+    <string name="label_scan_replace_body">Deine Eingaben durch das ersetzen, was vom Etikett gelesen wurde?</string>
+    <string name="label_scan_replace_confirm">Ersetzen</string>
+    <string name="label_scan_replace_keep">Behalten</string>
+    <string name="label_scan_banner_text">Aus deinem Etikett-Scan ausgefüllt. Prüfe jedes Feld, bevor du speicherst.</string>
+    <string name="label_scan_banner_show_text">Text anzeigen</string>
+    <string name="label_scan_banner_dismiss">Schließen</string>
+    <string name="label_scan_text_title">Erkannter Text</string>
+    <string name="label_scan_nothing_readable">Auf dem Etikett wurde nichts Lesbares gefunden.</string>
+    <string name="label_scan_photo_unreadable">Das Foto konnte nicht gelesen werden.</string>
+
+    <!-- Label scan: the live scanning screen (design D3) -->
+    <string name="label_scan_title">Etikett scannen</string>
+    <string name="label_scan_instruction">Halte das Etikett in den Rahmen</string>
+    <string name="label_scan_hint_adjust">Geh näher heran, sorge für Licht oder halte still</string>
+    <string name="label_scan_hint_shutter">Tippe auf Jetzt lesen, um das bisher Gelesene zu übernehmen</string>
+    <string name="label_scan_preparing">Der Leser wird vorbereitet…</string>
+    <string name="label_scan_failed">Der Etikettleser konnte nicht starten. Du kannst weiterhin ein Foto auswählen oder die Angaben eintippen.</string>
+    <string name="label_scan_shutter">Jetzt lesen</string>
+    <string name="label_scan_torch_on">Taschenlampe einschalten</string>
+    <string name="label_scan_torch_off">Taschenlampe ausschalten</string>
+    <string name="label_scan_read">Etikett gelesen</string>
+
 </resources>

@@ -39,6 +39,7 @@ Pillsner is built around exactly those needs and nothing more.
 **Medication management**
 - A medicine overview listing what you take, split into active and inactive medicines, each with a plain-language description of its schedule, and a large add button to enter a new one. Swipe a tile sideways to activate or deactivate that medicine; nothing is ever deleted.
 - Add a medication with a name, a default dose and its unit (mg, ml, tablet, drop, and so on), the dates you take it between, and who prescribed it.
+- Scan a pharmacy label or a box instead of typing: hold it in front of the camera and Pillsner reads it live, on the phone, and fills in the name, the strength, the dose schedule and the dates for you to check before saving. A photo you already have works too. Nothing is photographed, saved or sent.
 - Give a medicine as many schedules as it needs, each with its own amount: 40 mg every 12 hours on top of 20 mg once a day at the weekend.
 - Tap a medicine to open it and change anything: its name, its dose, its dates, who prescribed it, its schedules, and whether you are currently taking it.
 - **A medicine is never deleted.** Stopping one deactivates it; the medicine, its schedules and every dose it ever produced stay on your device. Editing a medicine never rewrites what you already took: doses you have answered keep the name and amount they were taken under, and only what is still ahead of you follows the change.
@@ -90,7 +91,7 @@ Pillsner is built around exactly those needs and nothing more.
 
 ## Permissions
 
-Pillsner asks for as little as it can, and for nothing that sends data anywhere. It declares **no internet permission at all**.
+Pillsner asks for as little as it can, and for nothing that sends data anywhere. It declares **no internet permission at all**. The complete list of what it does declare, including what its libraries merge in, is below, and the build refuses to produce a package that differs from it.
 
 | Permission | Why |
 | --- | --- |
@@ -99,6 +100,12 @@ Pillsner asks for as little as it can, and for nothing that sends data anywhere.
 | `RECEIVE_BOOT_COMPLETED` | Restarting the phone clears every pending alarm, so Pillsner has to set its own again. |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SHORT_SERVICE` | When an alarm goes off, Pillsner has a few seconds to open its database and work out what is due. A short foreground service gives it a real window; it shows a quiet "Checking your medicines" notice for a second or two and then stops. |
 | `USE_FULL_SCREEN_INTENT` | So a due dose presents itself on a locked or busy phone rather than waiting silently in the notification shade. From Android 14 it is granted at install only to apps whose core function is alarms or calling; Pillsner is an alarm app, and where it is not granted the reminder degrades to a heads-up notification. |
+| `CAMERA` | Only to read a medicine label you hold in front of it, and only after you choose to scan one. Frames are read in the app and thrown away; no photo is saved and nothing is sent anywhere. Decline it and you can still pick an existing photo or type everything by hand. The camera is declared as optional, so Pillsner installs on a device without one. |
+| `USE_BIOMETRIC`, `USE_FINGERPRINT` | Merged in by the Android biometric library that powers the app lock's fingerprint or face unlock. Normal-level, granted at install. Nothing biometric ever leaves the phone's own secure hardware. |
+| `WAKE_LOCK`, `ACCESS_NETWORK_STATE` | Merged in by WorkManager, which runs the background watchdog that re-arms dropped alarms. It reads whether the network is up as part of its own machinery; Pillsner sets no network constraint, declares no `INTERNET` permission and opens no connection, so there is nothing it could do with the answer. |
+| `nl.hexmaster.pillsner.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | A permission the app defines for itself (through AndroidX Core) so the receivers it registers at runtime cannot be reached by other apps. Only Pillsner's own signature can hold it. |
+
+The list above is exactly the contents of [`src/app/manifest-allowlist.txt`](src/app/manifest-allowlist.txt), the source of truth for what Pillsner declares. A Gradle task compares every build's merged manifest with that file after manifest processing and fails the build when the two differ in either direction, so a library can never add a permission unnoticed. The same task fails the build if any Firebase, ML Kit or non-wearable Google Play services artifact turns up on the classpath, or if the text-recognition library's checksum changes. It is part of `check`, `assemble` and `bundle`, so CI and the release build run it without a separate step. Adding a line to that file is a product decision, made in an OpenSpec change and explained in this table.
 
 ## Technology
 
@@ -113,6 +120,8 @@ Pillsner is a native Android application written in Kotlin.
 | Persistence | Room (SQLite) on the device |
 | Scheduling | Android alarm and notification APIs for exact, reliable reminders |
 | Wearable | Wear OS companion app with Compose for Wear OS (Material 3 for Wear) |
+| Camera | CameraX (core, camera2, lifecycle, compose) for the in-app label viewfinder; frames are analysed in memory and never written |
+| Text recognition | Tesseract OCR 5 through Tesseract4Android, running entirely on the device with a bundled English model; no ML Kit, Firebase or network. Its AAR checksum is pinned in `src/app/manifest-allowlist.txt` |
 | Phone to watch sync | Wearable Data Layer (Google Play services), over the paired-device link only |
 | Design | `docs/design-system.md`: brand colour schemes for light and dark, bundled Montserrat and Raleway, Material 3 tokens; no dynamic colour |
 | Build system | Gradle with the Kotlin DSL, versions pinned in a version catalog (see `CONTRIBUTING.md`) |

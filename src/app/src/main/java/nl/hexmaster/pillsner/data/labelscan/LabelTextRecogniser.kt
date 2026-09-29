@@ -16,12 +16,12 @@ import nl.hexmaster.pillsner.domain.labelscan.RecognisedLine
  *
  * Nothing here logs what was read. The only log lines are timings and counts.
  */
-class LabelTextRecogniser(private val installer: TessdataInstaller) {
+class LabelTextRecogniser(private val installer: TessdataInstaller) : FrameRecogniser {
 
+    @Volatile
     private var api: TessBaseAPI? = null
 
-    /** Whether [open] has succeeded and [close] has not run since. */
-    val isOpen: Boolean get() = api != null
+    override val isOpen: Boolean get() = api != null
 
     /**
      * Installs the trained data if needed and initialises the engine. Blocking, and slow enough
@@ -31,7 +31,7 @@ class LabelTextRecogniser(private val installer: TessdataInstaller) {
      */
     @WorkerThread
     @Synchronized
-    fun open() {
+    override fun open() {
         if (api != null) return
         val started = SystemClock.elapsedRealtime()
         val dataPath = installer.install()
@@ -51,7 +51,7 @@ class LabelTextRecogniser(private val installer: TessdataInstaller) {
      */
     @WorkerThread
     @Synchronized
-    fun recognise(frame: GreyFrame): List<RecognisedLine> {
+    override fun recognise(frame: GreyFrame): List<RecognisedLine> {
         val tess = api ?: return emptyList()
         val started = SystemClock.elapsedRealtime()
         tess.setImage(frame.pixels, frame.width, frame.height, BYTES_PER_PIXEL, frame.width)
@@ -73,13 +73,13 @@ class LabelTextRecogniser(private val installer: TessdataInstaller) {
     }
 
     /** Interrupts a recognition in progress, from any thread. The recogniser stays open. */
-    fun stop() {
+    override fun stop() {
         api?.stop()
     }
 
     /** Releases the native engine. Waits for a frame in progress, so call [stop] first to hurry it. */
     @Synchronized
-    fun close() {
+    override fun close() {
         api?.recycle()
         api = null
         Log.d(TAG, "Recogniser closed")

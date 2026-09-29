@@ -42,6 +42,8 @@ import nl.hexmaster.pillsner.data.db.PillsnerDatabase
 import nl.hexmaster.pillsner.data.db.RoomTransactionRunner
 import nl.hexmaster.pillsner.data.labelscan.LabelTextRecogniser
 import nl.hexmaster.pillsner.data.labelscan.PickedPhotoDecoder
+import nl.hexmaster.pillsner.data.labelscan.PhotoScanner
+import nl.hexmaster.pillsner.data.labelscan.PickedPhotoScanner
 import nl.hexmaster.pillsner.data.labelscan.TessdataInstaller
 import nl.hexmaster.pillsner.data.reminders.AndroidBatteryOptimisationState
 import nl.hexmaster.pillsner.data.reminders.AndroidUserUnlockState
@@ -105,6 +107,8 @@ import nl.hexmaster.pillsner.ui.medicines.AmountParser
 import nl.hexmaster.pillsner.ui.medicines.MedicinesViewModel
 import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
+import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraPermission
+import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
 import nl.hexmaster.pillsner.ui.settings.reset.ResetViewModel
@@ -388,6 +392,10 @@ class AppContainer(
     /** The pure interpretation rules; shared because they hold no state. */
     val interpretLabelText = InterpretLabelText()
 
+    /** The picked-photo path: decode once, one recogniser session, then the pure interpretation. */
+    val pickedPhotoScanner: PhotoScanner =
+        PickedPhotoScanner(pickedPhotoDecoder, labelTextRecogniser, interpretLabelText, clock)
+
     // --- App lock (app-login design D9) ---------------------------------------------------
 
     private val appLockScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -468,6 +476,15 @@ class AppContainer(
                 clock = clock,
                 stockBatchRepository = this@AppContainer.stockBatchRepository,
                 addStockBatch = addStockBatch,
+                photoScanner = pickedPhotoScanner,
+                cameraAvailable = CameraPermission.deviceHasCamera(applicationContext),
+            )
+        }
+        initializer {
+            LabelScanViewModel(
+                recogniser = labelTextRecogniser,
+                interpret = interpretLabelText,
+                clock = clock,
             )
         }
         initializer {

@@ -111,6 +111,12 @@ class LabelScanViewModel(
         viewModelScope.launch(ioDispatcher) {
             try {
                 recogniser.open()
+                // A cancel that landed while open() was blocking may have run onCleared()'s close()
+                // against a not-yet-installed engine; the one just installed must not stay resident.
+                if (finished) {
+                    recogniser.close()
+                    return@launch
+                }
                 _uiState.update { it.copy(isReady = true) }
             } catch (failure: IllegalStateException) {
                 Log.d(TAG, "Recogniser failed to open")
@@ -142,6 +148,16 @@ class LabelScanViewModel(
         latest = interpretation
         if (!interpretation.isEmpty) _uiState.update { it.copy(hasReading = true) }
         acceptance.offer(interpretation)?.let { accepted -> finish(accepted, accepted = true) }
+    }
+
+    /**
+     * The camera session stopped (the app went to the background) and will restart with the
+     * lifecycle. The streak is forgotten: a good frame from before the pause must not pair with the
+     * first frame after it to satisfy the two-consecutive-frames rule.
+     */
+    fun onCameraStopped() {
+        latest = null
+        acceptance.reset()
     }
 
     /** The camera is bound: remember how to drive the torch, and whether there is one. */

@@ -112,6 +112,36 @@ class LabelScanViewModelTest {
     }
 
     @Test
+    fun `a camera stop between two good frames breaks the streak`() = runTest(dispatcher) {
+        val viewModel = viewModel()
+        val effects = collect(viewModel)
+        recogniser.responses += goodLabel()
+        recogniser.responses += goodLabel()
+        recogniser.responses += goodLabel()
+
+        viewModel.analyse(frame)
+        viewModel.onCameraStopped()
+        viewModel.analyse(frame)
+        assertTrue("the first frame after the pause must not pair with one from before it", effects.isEmpty())
+        viewModel.analyse(frame)
+
+        assertEquals(1, effects.size)
+    }
+
+    @Test
+    fun `a cancel that lands while the engine is opening leaves it closed`() = runTest(dispatcher) {
+        val io = StandardTestDispatcher(dispatcher.scheduler)
+        val viewModel = viewModel(io = io)
+
+        viewModel.onCancel()
+        advanceUntilIdle()
+
+        assertEquals(1, recogniser.openCalls)
+        assertTrue(recogniser.closed)
+        assertFalse(viewModel.uiState.value.isReady)
+    }
+
+    @Test
     fun `the shutter with a partial read returns that partial read`() = runTest(dispatcher) {
         val viewModel = viewModel()
         val effects = collect(viewModel)

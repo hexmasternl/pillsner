@@ -18,9 +18,12 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.awaitCancellation
@@ -47,6 +50,16 @@ fun LabelScanCamera(viewModel: LabelScanViewModel, viewfinderSize: IntSize) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val aspectRatio = viewfinderSize.takeIf { it.width > 0 && it.height > 0 }?.let { Rational(it.width, it.height) }
+
+    // The binding below survives a stop and start of the lifecycle: CameraX releases and resumes
+    // the camera on its own. The scan's frame streak must not survive with it.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) viewModel.onCameraStopped()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(lifecycleOwner, aspectRatio) {
         if (aspectRatio == null) return@LaunchedEffect

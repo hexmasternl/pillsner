@@ -547,4 +547,40 @@
     <string name="stock_warning_expiring_message">The stock you just used of %1$s expires soon.</string>
     <string name="stock_warning_expired_message">The stock you just used of %1$s has expired.</string>
     <string name="stock_warning_action_ordered_new">I ordered new</string>
+
+    <!-- Label scan: the entry point on the Add medicine form (medicine-label-photo-prefill design D5) -->
+    <string name="label_scan_action">Scan a label</string>
+    <string name="label_scan_option_camera">Scan with camera</string>
+    <string name="label_scan_option_photo">Choose a photo</string>
+    <string name="label_scan_rationale_title">Use the camera?</string>
+    <string name="label_scan_rationale_body">Pillsner uses the camera only to read the label in front of it. Nothing is saved or sent anywhere.</string>
+    <string name="label_scan_rationale_continue">Continue</string>
+    <string name="label_scan_rationale_not_now">Not now</string>
+    <string name="label_scan_camera_unavailable">The camera is unavailable. You can still choose a photo.</string>
+    <string name="label_scan_open_settings">Open settings</string>
+    <string name="label_scan_reading_photo">Reading the photo…</string>
+    <string name="label_scan_replace_title">Replace what you have entered?</string>
+    <string name="label_scan_replace_body">Replace what you have entered with what was read from the label?</string>
+    <string name="label_scan_replace_confirm">Replace</string>
+    <string name="label_scan_replace_keep">Keep</string>
+    <string name="label_scan_banner_text">Filled in from your label scan. Check every field before saving.</string>
+    <string name="label_scan_banner_show_text">Show text</string>
+    <string name="label_scan_banner_dismiss">Dismiss</string>
+    <string name="label_scan_text_title">Recognised text</string>
+    <string name="label_scan_nothing_readable">Nothing readable was found on the label.</string>
+    <string name="label_scan_photo_unreadable">The photo could not be read.</string>
+
+    <!-- Label scan: the live scanning screen (design D3) -->
+    <string name="label_scan_title">Scan a label</string>
+    <string name="label_scan_instruction">Hold the label inside the frame</string>
+    <string name="label_scan_hint_adjust">Move closer, add light or hold still</string>
+    <string name="label_scan_hint_shutter">Tap Read now to use what has been read so far</string>
+    <string name="label_scan_preparing">Getting the reader ready…</string>
+    <string name="label_scan_failed">The label reader could not start. You can still choose a photo or type the details.</string>
+    <string name="label_scan_shutter">Read now</string>
+    <string name="label_scan_torch_on">Turn torch on</string>
+    <string name="label_scan_torch_off">Turn torch off</string>
+    <string name="label_scan_read">Label read</string>
+
+
 </resources>

@@ -32,6 +32,28 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!--
+        Only to read a medicine label held in front of the camera, and only after the user chooses
+        "Scan with camera" on the Add medicine form (medicine-label-photo-prefill design D2). Requested
+        at that moment with an in-app rationale, never at install or app start. Frames are read in
+        memory and discarded; no photo is saved and nothing is sent anywhere. The camera is declared
+        as not required, so Pillsner still installs on a device without one.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false" />
+    <!--
+        The CAMERA permission makes Play infer these two as required unless they are declared
+        optional; without this a camera-less device could not install the app.
+    -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <!--
         The vendor power-manager screens the Home banner offers on OEMs that ship one (design D3).
         Visibility is what lets `resolveActivity` answer honestly; without these entries every such
         intent would look absent and the banner would always fall back to the platform setting.

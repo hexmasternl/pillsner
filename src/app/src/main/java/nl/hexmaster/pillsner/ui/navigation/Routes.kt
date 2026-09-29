@@ -39,6 +39,14 @@ data object MedicationForm
 data class EditSchedule(val index: Int? = null)
 
 /**
+ * The live label-scanning screen inside the medicine form flow (medicine-label-photo-prefill design
+ * D2). Registered inside [MedicationFormGraph] so it shares the form's draft through the graph entry,
+ * and hands its interpretation straight back to the form before popping itself. Not top-level.
+ */
+@Serializable
+data object LabelScan
+
+/**
  * One medicine's usage history (app-medicine-usage-history design D7). Registered inside
  * [MedicationFormGraph] rather than beside it: the history only exists as something you opened
  * from a medicine you have open, so leaving the flow takes it off the back stack too, and back

@@ -82,6 +82,13 @@ import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
 import nl.hexmaster.pillsner.ui.medicines.labelRes
 import nl.hexmaster.pillsner.ui.medicines.rememberScheduleDescriptionFormatter
+import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraRationaleDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ReadingPhotoDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.RecognisedTextSheet
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ReplaceDraftDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanLabelFieldIcon
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanOptionsSheet
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanReviewBanner
 import nl.hexmaster.pillsner.ui.theme.Motion
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Sizes
@@ -166,6 +173,18 @@ fun MedicationFormScreen(
     onRemoveStockBatchClicked: (StockBatchId) -> Unit = {},
     onRemoveStockBatchCancelled: () -> Unit = {},
     onRemoveStockBatchConfirmed: () -> Unit = {},
+    onScanLabelClicked: () -> Unit = {},
+    onScanOptionsDismissed: () -> Unit = {},
+    onScanWithCameraChosen: () -> Unit = {},
+    onChoosePhotoChosen: () -> Unit = {},
+    onRationaleContinue: () -> Unit = {},
+    onRationaleDismissed: () -> Unit = {},
+    onCancelScan: () -> Unit = {},
+    onReplaceConfirmed: () -> Unit = {},
+    onReplaceDeclined: () -> Unit = {},
+    onScanBannerDismissed: () -> Unit = {},
+    onShowScanText: () -> Unit = {},
+    onScanTextDismissed: () -> Unit = {},
 ) {
     val formatter = rememberScheduleDescriptionFormatter()
 
@@ -271,12 +290,27 @@ fun MedicationFormScreen(
                     .padding(horizontal = Spacing.screenEdge, vertical = Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
             ) {
+                // Add mode only (medicine-label-scan): the review banner after an applied scan sits above
+                // the name field; the way to start a scan is the camera icon inside that field.
+                if (uiState.canScanLabel && uiState.showScanBanner) {
+                    ScanReviewBanner(
+                        showTextAvailable = uiState.scanRawText != null,
+                        onShowText = onShowScanText,
+                        onDismiss = onScanBannerDismissed,
+                    )
+                }
+
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = onNameChange,
                     label = { Text(stringResource(R.string.medicine_field_name)) },
                     isError = uiState.showErrors && uiState.nameError != null,
                     supportingText = uiState.nameError.supportingText(uiState.showErrors),
+                    trailingIcon = if (uiState.canScanLabel) {
+                        { ScanLabelFieldIcon(onClick = onScanLabelClicked) }
+                    } else {
+                        null
+                    },
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
@@ -404,6 +438,31 @@ fun MedicationFormScreen(
             onConfirm = onRemoveStockBatchConfirmed,
             onCancel = onRemoveStockBatchCancelled,
         )
+    }
+
+    if (uiState.showScanOptions) {
+        ScanOptionsSheet(
+            cameraAvailable = uiState.cameraAvailable,
+            onScanWithCamera = onScanWithCameraChosen,
+            onChoosePhoto = onChoosePhotoChosen,
+            onDismiss = onScanOptionsDismissed,
+        )
+    }
+
+    if (uiState.showCameraRationale) {
+        CameraRationaleDialog(onContinue = onRationaleContinue, onNotNow = onRationaleDismissed)
+    }
+
+    if (uiState.isScanning) {
+        ReadingPhotoDialog(onCancel = onCancelScan)
+    }
+
+    if (uiState.pendingInterpretation != null) {
+        ReplaceDraftDialog(onReplace = onReplaceConfirmed, onKeep = onReplaceDeclined)
+    }
+
+    if (uiState.showScanText) {
+        RecognisedTextSheet(text = uiState.scanRawText.orEmpty(), onDismiss = onScanTextDismissed)
     }
 }
 

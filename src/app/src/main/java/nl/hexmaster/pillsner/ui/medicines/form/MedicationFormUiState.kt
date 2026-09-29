@@ -12,6 +12,7 @@ import nl.hexmaster.pillsner.domain.stock.StockState
 import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.domain.validation.ScheduleDraftError
 import nl.hexmaster.pillsner.domain.validation.SchedulePattern
+import nl.hexmaster.pillsner.domain.labelscan.LabelInterpretation
 
 /**
  * What the add-medicine form shows. Raw field text and parsed values live side by side so the
@@ -59,6 +60,22 @@ data class MedicationFormUiState(
      * (`medicine-details`, "Secondary details toggle").
      */
     val secondaryDetailsExpanded: Boolean = false,
+    /** Whether the device has a camera, so the scan options can offer it (medicine-label-scan). */
+    val cameraAvailable: Boolean = true,
+    /** The "Scan a label" option sheet is open. */
+    val showScanOptions: Boolean = false,
+    /** The in-app camera rationale is shown, before the system prompt. */
+    val showCameraRationale: Boolean = false,
+    /** A picked photo is being read; the form shows the modal "Reading the photo" state. */
+    val isScanning: Boolean = false,
+    /** An interpretation waiting for Replace or Keep, because the draft already had edits. */
+    val pendingInterpretation: LabelInterpretation? = null,
+    /** The review banner after an applied scan; survives rotation until dismissed. */
+    val showScanBanner: Boolean = false,
+    /** The recognised text behind the banner's "Show text" action, or null before any scan. */
+    val scanRawText: String? = null,
+    /** The recognised-text sheet is open. */
+    val showScanText: Boolean = false,
 ) {
     /** Set when [doseUnit] has been moved away from [lockedDoseUnit]; shown straight away, not only on save. */
     val doseUnitError: MedicationFieldError?
@@ -82,6 +99,9 @@ data class MedicationFormUiState(
 
     /** Whether an error sits in a field the secondary details panel holds, and so could be hidden. */
     val hasSecondaryDetailsError: Boolean get() = useUntilError != null
+
+    /** "Scan a label" is offered on a new medicine only (medicine-label-scan). */
+    val canScanLabel: Boolean get() = mode is MedicationFormMode.Add
 }
 
 /** One schedule as the form lists it. */
@@ -186,6 +206,28 @@ sealed interface MedicationFormEffect {
 
     /** The medicine could not be opened at all; the flow closes and the overview says so. */
     data object OpenFailed : MedicationFormEffect
+
+    /** Open the live scanning screen (medicine-label-scan). */
+    data object OpenLabelScan : MedicationFormEffect
+
+    /** Show the system camera prompt; the in-app rationale has been seen. */
+    data object RequestCameraPermission : MedicationFormEffect
+
+    /** Open the system photo picker; no permission is involved. */
+    data object PickPhoto : MedicationFormEffect
+
+    /**
+     * The camera cannot be used, and a photo can still be chosen. When the permission is
+     * [permanentlyDenied] the message offers the app's system settings page instead of a prompt
+     * that will never come.
+     */
+    data class CameraUnavailable(val permanentlyDenied: Boolean) : MedicationFormEffect
+
+    /** A scan yielded nothing usable; the form is unchanged. */
+    data object NothingReadable : MedicationFormEffect
+
+    /** A picked photo could not be decoded or read; the form is unchanged. */
+    data object PhotoUnreadable : MedicationFormEffect
 }
 
 /**

@@ -306,8 +306,13 @@ fun MedicationFormScreen(
                         )
                         AnimatedVisibility(
                             visible = uiState.secondaryDetailsExpanded,
-                            enter = expandVertically(animationSpec = tween(Motion.MEDIUM_MILLIS)),
-                            exit = shrinkVertically(animationSpec = tween(Motion.MEDIUM_MILLIS)),
+                            // Design system 9: emphasized decelerate in, emphasized accelerate out.
+                            enter = expandVertically(
+                                animationSpec = tween(Motion.MEDIUM_MILLIS, easing = Motion.EmphasizedDecelerate),
+                            ),
+                            exit = shrinkVertically(
+                                animationSpec = tween(Motion.MEDIUM_MILLIS, easing = Motion.EmphasizedAccelerate),
+                            ),
                             modifier = Modifier.testTag(MedicationFormTestTags.SECONDARY_DETAILS_PANEL),
                         ) {
                             SecondaryDetailsFields(
@@ -491,9 +496,14 @@ private fun SecondaryDetailsToggle(
 ) {
     val expandedDescription = stringResource(R.string.medicine_details_expanded)
     val collapsedDescription = stringResource(R.string.medicine_details_collapsed)
+    // The chevron keeps time with the panel: it turns as the panel unfolds (decelerate) and turns
+    // back as it folds away (accelerate), design system 9.
     val chevronRotation by animateFloatAsState(
         targetValue = if (expanded) CHEVRON_FLIPPED_DEGREES else 0f,
-        animationSpec = tween(Motion.MEDIUM_MILLIS),
+        animationSpec = tween(
+            Motion.MEDIUM_MILLIS,
+            easing = if (expanded) Motion.EmphasizedDecelerate else Motion.EmphasizedAccelerate,
+        ),
         label = "secondary details chevron",
     )
 

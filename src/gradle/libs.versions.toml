@@ -28,6 +28,9 @@ room = "2.8.5"
 # release candidate.
 work = "2.11.2"
 fragment = "1.9.0"
+# CameraX (medicine-label-photo-prefill design D2): the in-app viewfinder. Newest stable on
+# 29 September 2026; 1.7.0 is still alpha.
+camerax = "1.6.2"
 
 # Wear OS (app-wearable-support design D9). Newest stable on 13 September 2026: Wear Compose 1.7.0
 # is still a release candidate, so 1.6.2 stands; play-services-wearable 20.0.1 is the newest.
@@ -38,6 +41,11 @@ playServicesWearable = "20.0.1"
 # Kotlin libraries
 coroutines = "1.11.0"
 serialization = "1.11.0"
+
+# Third-party (medicine-label-photo-prefill design D1): Tesseract OCR 5 packaged for Android, from
+# JitPack. Newest stable on 29 September 2026. Its AAR checksum is pinned in app/manifest-allowlist.txt,
+# so a bump here must update that line in the same change.
+tesseract4android = "4.9.0"
 
 # Test
 junit = "4.13.2"
@@ -77,6 +85,13 @@ androidx-room-testing = { group = "androidx.room", name = "room-testing", versio
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
 
+# CameraX (medicine-label-photo-prefill design D2). Never camera-mlkit-vision, camera-extensions or
+# camera-video; the manifest guard forbids the first by name.
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+androidx-camera-compose = { group = "androidx.camera", name = "camera-compose", version.ref = "camerax" }
+
 # Wear OS: the watch UI, and the only supported phone-to-watch transport.
 androidx-wear-compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "wearCompose" }
 androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "wearCompose" }
@@ -91,6 +106,10 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 # Turns the Play services Task API into suspend functions, so the Data Layer reads like the rest
 # of the codebase rather than like callbacks.
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# On-device OCR (medicine-label-photo-prefill design D1): native Tesseract and Leptonica plus a thin
+# Java API. Its only Java dependency is androidx.annotation; no Play services, Firebase or ML Kit.
+tesseract4android-openmp = { group = "cz.adaptech.tesseract4android", name = "tesseract4android-openmp", version.ref = "tesseract4android" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

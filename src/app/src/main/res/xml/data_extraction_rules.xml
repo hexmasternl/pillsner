@@ -4,12 +4,18 @@
     its verifier can only be checked with a key that never leaves this device's Keystore, so
     restoring it elsewhere would only produce an unusable lock. Excluding it means a restore always
     yields the lock disabled, which app-login's design treats as the correct behaviour.
+
+    files/ocr/ holds the OCR trained data copied out of the app's own assets before the first label
+    scan (medicine-label-photo-prefill design D1). It is derived data any device recreates itself and
+    contains nothing of the user's, so there is nothing to carry over.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" path="files/datastore/applock.preferences_pb" />
+        <exclude domain="root" path="files/ocr/" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="root" path="files/datastore/applock.preferences_pb" />
+        <exclude domain="root" path="files/ocr/" />
     </device-transfer>
 </data-extraction-rules>

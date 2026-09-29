@@ -197,6 +197,10 @@
     <string name="medicine_save_failed">No se pudo guardar este medicamento. Inténtalo de nuevo.</string>
     <string name="medication_form_active">Activo</string>
     <string name="medication_form_active_supporting">Los medicamentos inactivos no generan recordatorios</string>
+    <string name="medicine_details_more">Más detalles</string>
+    <string name="medicine_details_less">Menos detalles</string>
+    <string name="medicine_details_expanded">Desplegado</string>
+    <string name="medicine_details_collapsed">Contraído</string>
     <string name="medication_form_open_failed">No se pudo abrir el medicamento</string>
 
     <!-- Formulario de medicamento: validación -->
@@ -495,4 +499,39 @@
     <string name="stock_warning_expiring_message">Las existencias de %1$s que acabas de usar caducan pronto.</string>
     <string name="stock_warning_expired_message">Las existencias de %1$s que acabas de usar han caducado.</string>
     <string name="stock_warning_action_ordered_new">He pedido más</string>
+
+    <!-- Label scan: the entry point on the Add medicine form (medicine-label-photo-prefill design D5) -->
+    <string name="label_scan_action">Escanear una etiqueta</string>
+    <string name="label_scan_option_camera">Escanear con la cámara</string>
+    <string name="label_scan_option_photo">Elegir una foto</string>
+    <string name="label_scan_rationale_title">¿Usar la cámara?</string>
+    <string name="label_scan_rationale_body">Pillsner usa la cámara solo para leer la etiqueta que tiene delante. No se guarda ni se envía nada.</string>
+    <string name="label_scan_rationale_continue">Continuar</string>
+    <string name="label_scan_rationale_not_now">Ahora no</string>
+    <string name="label_scan_camera_unavailable">La cámara no está disponible. Aún puedes elegir una foto.</string>
+    <string name="label_scan_open_settings">Abrir ajustes</string>
+    <string name="label_scan_reading_photo">Leyendo la foto…</string>
+    <string name="label_scan_replace_title">¿Reemplazar lo que has introducido?</string>
+    <string name="label_scan_replace_body">¿Reemplazar lo que has introducido por lo leído en la etiqueta?</string>
+    <string name="label_scan_replace_confirm">Reemplazar</string>
+    <string name="label_scan_replace_keep">Conservar</string>
+    <string name="label_scan_banner_text">Rellenado a partir del escaneo de tu etiqueta. Revisa cada campo antes de guardar.</string>
+    <string name="label_scan_banner_show_text">Mostrar texto</string>
+    <string name="label_scan_banner_dismiss">Cerrar</string>
+    <string name="label_scan_text_title">Texto reconocido</string>
+    <string name="label_scan_nothing_readable">No se encontró nada legible en la etiqueta.</string>
+    <string name="label_scan_photo_unreadable">No se pudo leer la foto.</string>
+
+    <!-- Label scan: the live scanning screen (design D3) -->
+    <string name="label_scan_title">Escanear una etiqueta</string>
+    <string name="label_scan_instruction">Mantén la etiqueta dentro del marco</string>
+    <string name="label_scan_hint_adjust">Acércate, añade luz o mantén el teléfono quieto</string>
+    <string name="label_scan_hint_shutter">Toca Leer ahora para usar lo leído hasta el momento</string>
+    <string name="label_scan_preparing">Preparando el lector…</string>
+    <string name="label_scan_failed">El lector de etiquetas no pudo iniciarse. Aún puedes elegir una foto o escribir los datos.</string>
+    <string name="label_scan_shutter">Leer ahora</string>
+    <string name="label_scan_torch_on">Encender la linterna</string>
+    <string name="label_scan_torch_off">Apagar la linterna</string>
+    <string name="label_scan_read">Etiqueta leída</string>
+
 </resources>

@@ -1,12 +1,19 @@
 package nl.hexmaster.pillsner.ui.medicines.form
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
@@ -51,12 +58,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import java.time.LocalDate
@@ -73,6 +82,14 @@ import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.ui.medicines.QuantityFormatter
 import nl.hexmaster.pillsner.ui.medicines.labelRes
 import nl.hexmaster.pillsner.ui.medicines.rememberScheduleDescriptionFormatter
+import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraRationaleDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ReadingPhotoDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.RecognisedTextSheet
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ReplaceDraftDialog
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanLabelFieldIcon
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanOptionsSheet
+import nl.hexmaster.pillsner.ui.medicines.labelscan.ScanReviewBanner
+import nl.hexmaster.pillsner.ui.theme.Motion
 import nl.hexmaster.pillsner.ui.theme.PillsnerTheme
 import nl.hexmaster.pillsner.ui.theme.Sizes
 import nl.hexmaster.pillsner.ui.theme.Spacing
@@ -86,6 +103,8 @@ object MedicationFormTestTags {
     const val USED_SINCE = "add_medication_used_since"
     const val USE_UNTIL = "add_medication_use_until"
     const val PRESCRIBER = "add_medication_prescriber"
+    const val SECONDARY_DETAILS_TOGGLE = "medication_form_secondary_details_toggle"
+    const val SECONDARY_DETAILS_PANEL = "medication_form_secondary_details_panel"
     const val SCHEDULES_HEADER = "add_medication_schedules_header"
     const val ADD_SCHEDULE = "add_medication_add_schedule"
     const val NO_SCHEDULES = "add_medication_no_schedules"
@@ -115,6 +134,10 @@ object MedicationFormTestTags {
  * The Add medicine form (design D5): name, default dose, the two dates, the prescriber and the
  * schedules, with one full-width Save pinned above the keyboard.
  *
+ * On a saved medicine (the Medicine details screen) the two dates, the prescriber and the Active
+ * switch fold away behind a "More details" toggle, collapsed by default, so the name, dose,
+ * schedules and stock read at a glance (`medicine-details`, "Secondary details toggle").
+ *
  * Save is a filled button at the bottom rather than an action in the app bar because it is the
  * screen's single positive action and has to be reachable one-handed (design system 8.4, 8.11).
  */
@@ -138,6 +161,7 @@ fun MedicationFormScreen(
     onKeepEditing: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    onSecondaryDetailsToggled: () -> Unit = {},
     onOpenUsageHistory: () -> Unit = {},
     onAddStockClicked: () -> Unit = {},
     onAddStockDismissed: () -> Unit = {},
@@ -149,9 +173,20 @@ fun MedicationFormScreen(
     onRemoveStockBatchClicked: (StockBatchId) -> Unit = {},
     onRemoveStockBatchCancelled: () -> Unit = {},
     onRemoveStockBatchConfirmed: () -> Unit = {},
+    onScanLabelClicked: () -> Unit = {},
+    onScanOptionsDismissed: () -> Unit = {},
+    onScanWithCameraChosen: () -> Unit = {},
+    onChoosePhotoChosen: () -> Unit = {},
+    onRationaleContinue: () -> Unit = {},
+    onRationaleDismissed: () -> Unit = {},
+    onCancelScan: () -> Unit = {},
+    onReplaceConfirmed: () -> Unit = {},
+    onReplaceDeclined: () -> Unit = {},
+    onScanBannerDismissed: () -> Unit = {},
+    onShowScanText: () -> Unit = {},
+    onScanTextDismissed: () -> Unit = {},
 ) {
     val formatter = rememberScheduleDescriptionFormatter()
-    var prescriberMenuExpanded by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true, onBack = onBack)
 
@@ -255,12 +290,27 @@ fun MedicationFormScreen(
                     .padding(horizontal = Spacing.screenEdge, vertical = Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
             ) {
+                // Add mode only (medicine-label-scan): the review banner after an applied scan sits above
+                // the name field; the way to start a scan is the camera icon inside that field.
+                if (uiState.canScanLabel && uiState.showScanBanner) {
+                    ScanReviewBanner(
+                        showTextAvailable = uiState.scanRawText != null,
+                        onShowText = onShowScanText,
+                        onDismiss = onScanBannerDismissed,
+                    )
+                }
+
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = onNameChange,
                     label = { Text(stringResource(R.string.medicine_field_name)) },
                     isError = uiState.showErrors && uiState.nameError != null,
                     supportingText = uiState.nameError.supportingText(uiState.showErrors),
+                    trailingIcon = if (uiState.canScanLabel) {
+                        { ScanLabelFieldIcon(onClick = onScanLabelClicked) }
+                    } else {
+                        null
+                    },
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
@@ -280,59 +330,43 @@ fun MedicationFormScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                DateField(
-                    label = stringResource(R.string.medicine_field_used_since),
-                    date = uiState.usedSince,
-                    onDateChange = onUsedSinceChange,
-                    testTag = MedicationFormTestTags.USED_SINCE,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                DateField(
-                    label = stringResource(R.string.medicine_field_use_until),
-                    date = uiState.useUntil,
-                    onDateChange = onUseUntilChange,
-                    minDate = uiState.usedSince,
-                    onClear = { onUseUntilChange(null) },
-                    errorMessage = uiState.useUntilError.messageOrNull(uiState.showErrors),
-                    testTag = MedicationFormTestTags.USE_UNTIL,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                ExposedDropdownMenuBox(
-                    expanded = prescriberMenuExpanded,
-                    onExpandedChange = { prescriberMenuExpanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = stringResource(uiState.prescribedBy.labelRes()),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.medicine_field_prescribed_by)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(prescriberMenuExpanded) },
-                        textStyle = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                            .fillMaxWidth()
-                            .testTag(MedicationFormTestTags.PRESCRIBER),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = prescriberMenuExpanded,
-                        onDismissRequest = { prescriberMenuExpanded = false },
-                    ) {
-                        Prescriber.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(option.labelRes())) },
-                                onClick = {
-                                    onPrescriberChange(option)
-                                    prescriberMenuExpanded = false
-                                },
+                if (uiState.showsSecondaryDetailsToggle) {
+                    // One child of the spaced column, so a collapsed panel adds no empty gap
+                    // between the toggle and the Schedules heading.
+                    Column {
+                        SecondaryDetailsToggle(
+                            expanded = uiState.secondaryDetailsExpanded,
+                            onToggle = onSecondaryDetailsToggled,
+                        )
+                        AnimatedVisibility(
+                            visible = uiState.secondaryDetailsExpanded,
+                            // Design system 9: emphasized decelerate in, emphasized accelerate out.
+                            enter = expandVertically(
+                                animationSpec = tween(Motion.MEDIUM_MILLIS, easing = Motion.EmphasizedDecelerate),
+                            ),
+                            exit = shrinkVertically(
+                                animationSpec = tween(Motion.MEDIUM_MILLIS, easing = Motion.EmphasizedAccelerate),
+                            ),
+                            modifier = Modifier.testTag(MedicationFormTestTags.SECONDARY_DETAILS_PANEL),
+                        ) {
+                            SecondaryDetailsFields(
+                                uiState = uiState,
+                                onUsedSinceChange = onUsedSinceChange,
+                                onUseUntilChange = onUseUntilChange,
+                                onPrescriberChange = onPrescriberChange,
+                                onActiveChanged = onActiveChanged,
+                                modifier = Modifier.padding(top = Spacing.lg),
                             )
                         }
                     }
-                }
-
-                if (uiState.showsActiveSwitch) {
-                    ActiveSwitchRow(isActive = uiState.isActive, onActiveChanged = onActiveChanged)
+                } else {
+                    SecondaryDetailsFields(
+                        uiState = uiState,
+                        onUsedSinceChange = onUsedSinceChange,
+                        onUseUntilChange = onUseUntilChange,
+                        onPrescriberChange = onPrescriberChange,
+                        onActiveChanged = onActiveChanged,
+                    )
                 }
 
                 Text(
@@ -405,7 +439,159 @@ fun MedicationFormScreen(
             onCancel = onRemoveStockBatchCancelled,
         )
     }
+
+    if (uiState.showScanOptions) {
+        ScanOptionsSheet(
+            cameraAvailable = uiState.cameraAvailable,
+            onScanWithCamera = onScanWithCameraChosen,
+            onChoosePhoto = onChoosePhotoChosen,
+            onDismiss = onScanOptionsDismissed,
+        )
+    }
+
+    if (uiState.showCameraRationale) {
+        CameraRationaleDialog(onContinue = onRationaleContinue, onNotNow = onRationaleDismissed)
+    }
+
+    if (uiState.isScanning) {
+        ReadingPhotoDialog(onCancel = onCancelScan)
+    }
+
+    if (uiState.pendingInterpretation != null) {
+        ReplaceDraftDialog(onReplace = onReplaceConfirmed, onKeep = onReplaceDeclined)
+    }
+
+    if (uiState.showScanText) {
+        RecognisedTextSheet(text = uiState.scanRawText.orEmpty(), onDismiss = onScanTextDismissed)
+    }
 }
+
+/**
+ * The fields a saved medicine folds away: used since, use until, prescriber and, in edit mode,
+ * the Active switch. The add form lays them out inline; the details screen puts them inside the
+ * panel under [SecondaryDetailsToggle]. Same fields, same rules, either way.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SecondaryDetailsFields(
+    uiState: MedicationFormUiState,
+    onUsedSinceChange: (LocalDate) -> Unit,
+    onUseUntilChange: (LocalDate?) -> Unit,
+    onPrescriberChange: (Prescriber) -> Unit,
+    onActiveChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var prescriberMenuExpanded by remember { mutableStateOf(false) }
+
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
+        DateField(
+            label = stringResource(R.string.medicine_field_used_since),
+            date = uiState.usedSince,
+            onDateChange = onUsedSinceChange,
+            testTag = MedicationFormTestTags.USED_SINCE,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        DateField(
+            label = stringResource(R.string.medicine_field_use_until),
+            date = uiState.useUntil,
+            onDateChange = onUseUntilChange,
+            minDate = uiState.usedSince,
+            onClear = { onUseUntilChange(null) },
+            errorMessage = uiState.useUntilError.messageOrNull(uiState.showErrors),
+            testTag = MedicationFormTestTags.USE_UNTIL,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = prescriberMenuExpanded,
+            onExpandedChange = { prescriberMenuExpanded = it },
+        ) {
+            OutlinedTextField(
+                value = stringResource(uiState.prescribedBy.labelRes()),
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.medicine_field_prescribed_by)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(prescriberMenuExpanded) },
+                textStyle = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth()
+                    .testTag(MedicationFormTestTags.PRESCRIBER),
+            )
+            ExposedDropdownMenu(
+                expanded = prescriberMenuExpanded,
+                onDismissRequest = { prescriberMenuExpanded = false },
+            ) {
+                Prescriber.entries.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(option.labelRes())) },
+                        onClick = {
+                            onPrescriberChange(option)
+                            prescriberMenuExpanded = false
+                        },
+                    )
+                }
+            }
+        }
+
+        if (uiState.showsActiveSwitch) {
+            ActiveSwitchRow(isActive = uiState.isActive, onActiveChanged = onActiveChanged)
+        }
+    }
+}
+
+/**
+ * The "More details" / "Less details" toggle above the secondary details panel. A text button,
+ * not a tonal one: it navigates within the form rather than acting on the medicine (design
+ * system 8.4). The chevron says nothing the label does not, so it has no description of its own;
+ * the button announces its label and whether the panel is expanded or collapsed instead.
+ */
+@Composable
+private fun SecondaryDetailsToggle(
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val expandedDescription = stringResource(R.string.medicine_details_expanded)
+    val collapsedDescription = stringResource(R.string.medicine_details_collapsed)
+    // The chevron keeps time with the panel: it turns as the panel unfolds (decelerate) and turns
+    // back as it folds away (accelerate), design system 9.
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) CHEVRON_FLIPPED_DEGREES else 0f,
+        animationSpec = tween(
+            Motion.MEDIUM_MILLIS,
+            easing = if (expanded) Motion.EmphasizedDecelerate else Motion.EmphasizedAccelerate,
+        ),
+        label = "secondary details chevron",
+    )
+
+    TextButton(
+        onClick = onToggle,
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = Sizes.minTouchTarget)
+            .semantics { stateDescription = if (expanded) expandedDescription else collapsedDescription }
+            .testTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE),
+    ) {
+        Text(
+            stringResource(
+                if (expanded) R.string.medicine_details_less else R.string.medicine_details_more,
+            ),
+        )
+        Spacer(Modifier.width(Spacing.sm))
+        Icon(
+            painter = painterResource(R.drawable.ic_expand_more),
+            contentDescription = null,
+            modifier = Modifier
+                .size(Sizes.iconDefault)
+                .rotate(chevronRotation),
+        )
+    }
+}
+
+/** A chevron pointing down turned to point up: half a turn, not a size, so no token applies. */
+private const val CHEVRON_FLIPPED_DEGREES = 180f
 
 /**
  * Confirms a stock batch's manual removal (`medicine-stock-tracking`'s "Removing a stock batch"
@@ -832,6 +1018,7 @@ private fun MedicationFormScreenPreview() {
     }
 }
 
+/** The details screen as it opens: secondary details folded away. */
 @PreviewLightDark
 @Preview(name = "Large font", fontScale = 2f)
 @Composable
@@ -845,6 +1032,50 @@ private fun MedicationFormDetailsPreview() {
                 doseText = "40",
                 doseUnit = DoseUnit.MILLIGRAM,
                 usedSince = LocalDate.of(2026, 9, 13),
+                schedules = listOf(
+                    ScheduleRowState(
+                        index = 0,
+                        summary = ScheduleSummary.EveryNHours(12),
+                        amount = Quantity.of("40", DoseUnit.MILLIGRAM),
+                    ),
+                ),
+            ),
+            onNameChange = {},
+            onDoseTextChange = {},
+            onDoseUnitChange = {},
+            onUsedSinceChange = {},
+            onUseUntilChange = {},
+            onPrescriberChange = {},
+            onActiveChanged = {},
+            onAddSchedule = {},
+            onEditSchedule = {},
+            onRemoveSchedule = {},
+            onSave = {},
+            onBack = {},
+            onDiscard = {},
+            onKeepEditing = {},
+            snackbarHostState = remember { SnackbarHostState() },
+        )
+    }
+}
+
+/** The details screen with the secondary details opened by the user. */
+@PreviewLightDark
+@Preview(name = "Large font", fontScale = 2f)
+@Composable
+private fun MedicationFormDetailsExpandedPreview() {
+    PillsnerTheme {
+        MedicationFormScreen(
+            uiState = MedicationFormUiState(
+                mode = MedicationFormMode.Edit(nl.hexmaster.pillsner.domain.model.MedicationId(1)),
+                isActive = false,
+                name = "Metoprolol",
+                doseText = "40",
+                doseUnit = DoseUnit.MILLIGRAM,
+                usedSince = LocalDate.of(2026, 9, 13),
+                useUntil = LocalDate.of(2027, 3, 13),
+                prescribedBy = Prescriber.SPECIALIST,
+                secondaryDetailsExpanded = true,
                 schedules = listOf(
                     ScheduleRowState(
                         index = 0,

@@ -5,8 +5,8 @@
 | | |
 | --- | --- |
 | Applies to | The Pillsner Android app and its Wear OS companion app (`nl.hexmaster.pillsner`) |
-| Version | 1 |
-| Effective from | 14 September 2026 |
+| Version | 2 (draft; takes effect with the release that adds label scanning) |
+| Effective from | 14 September 2026 (version 1); version 2 from the day that release is published |
 | Published by | Eduard Keilholz, the Netherlands |
 
 ---
@@ -49,6 +49,9 @@ preference files in the app's own private storage, which other apps cannot read.
 | Language choice | `settings` preferences file | Your chosen app language, or nothing if you follow the phone |
 | Legal acceptance | `settings` preferences file | Which version of the Disclaimer and the Terms of Service you accepted, and the date |
 | App lock | `applock` preferences file | Whether the lock is on, whether biometric unlock is on, and a random salt plus a verifier for your PIN — never the PIN itself (see [Section 7](#7-the-app-lock)) |
+| Text-recognition model | `ocr/` folder in the app's private storage | A copy of the English recognition model bundled inside the app, made before the first label scan so the recogniser can read it. It contains nothing of yours and is excluded from backup. |
+
+When you scan a medicine label, the camera frames and the text read from them exist only in memory while the Add medicine form is open: nothing is written to storage, and what you keep is whatever you save on the form, as a medicine like any other. A photo you pick is read once and never copied.
 
 This is the complete list. Pillsner does not store your name, your date of birth, your condition,
 your prescriptions, your doctor's details beyond the free-text "prescribed by" field you fill in
@@ -65,11 +68,22 @@ yourself, or any identifier for you or your device.
 - **No advertising, and no advertising ID.** There is no ad SDK, and every release build is checked
   to confirm that no dependency has slipped an advertising-identifier permission into the app.
 - **No third-party analytics, attribution or marketing libraries.** The libraries Pillsner uses are
-  AndroidX and Kotlin first-party ones, plus Google Play services Wearable for the phone-to-watch
-  link described below.
-- **No location, contacts, camera, microphone, shared storage, call log, calendar or health-platform
-  access.** None of these permissions is requested. Pillsner does not read from or write to Health
-  Connect or any other health platform.
+  AndroidX and Kotlin first-party ones (including CameraX for the label-scanning viewfinder), Google
+  Play services Wearable for the phone-to-watch link described below, and Tesseract4Android, an
+  open-source text-recognition engine that runs entirely on the device, has no network code and
+  is pinned by checksum in the build.
+- **The camera, only when you ask for it.** Pillsner can read a medicine label through the camera
+  to fill in the Add medicine form. It asks for the camera permission only when you choose "Scan
+  with camera", after explaining why, and never at install or at start. The frames are read in the
+  app and discarded; no photo is taken, saved or sent, and the text that was read is shown to you
+  for checking and kept nowhere but the open form. Decline the permission and everything else,
+  including choosing an existing photo, works as before. Recognition happens on the device with a
+  model shipped inside the app; nothing is downloaded and no Google Play services, Firebase or
+  ML Kit component is involved.
+- **No location, contacts, microphone, shared storage, call log, calendar or health-platform
+  access.** None of these permissions is requested. Choosing an existing photo uses the system
+  photo picker, which hands Pillsner that one photo without any storage permission. Pillsner does
+  not read from or write to Health Connect or any other health platform.
 
 ### The permissions Pillsner does ask for
 
@@ -79,9 +93,17 @@ yourself, or any identifier for you or your device.
 | `USE_EXACT_ALARM` (Android 13+) and `SCHEDULE_EXACT_ALARM` (Android 12) | A dose due at 08:00 has to be announced at 08:00. Android reserves exact alarms for apps whose core function is alarms or reminders. Without it, reminders drift within a ten-minute window and the Home screen warns you. |
 | `RECEIVE_BOOT_COMPLETED` | Restarting the phone clears every pending alarm, so Pillsner has to set its own again, or your reminders would silently stop. |
 | `USE_BIOMETRIC` and `USE_FINGERPRINT` | Declared by the Android biometric library so the optional app lock can ask the system for a fingerprint or face check. It lets the app ask the question, not see the answer's raw data; your fingerprint and face never reach Pillsner. Unused if you never turn the lock on. |
+| `CAMERA` | Only to read a medicine label you hold in front of the camera, and only after you choose to scan one. Requested at that moment with an explanation, never at install or start. Frames are read in the app and thrown away; no photo is saved and nothing is sent anywhere. The camera is declared as optional, so Pillsner installs on a device without one. |
+| `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_SHORT_SERVICE` | When an alarm goes off, Pillsner has a few seconds to open its database and work out what is due. A short foreground service gives it that window; it shows a brief "Checking your medicines" notice and stops. |
+| `USE_FULL_SCREEN_INTENT` | So a due dose can present itself on a locked or busy phone rather than wait silently in the notification shade. Where Android does not grant it, the reminder is an ordinary heads-up notification. |
+| `WAKE_LOCK` and `ACCESS_NETWORK_STATE` | Declared by WorkManager, the Android library that runs the background watchdog which re-arms dropped alarms. WorkManager reads whether the network is up for its own scheduling rules; Pillsner sets no network rule, declares no `INTERNET` permission and opens no connection, so there is nothing it could do with the answer. |
+| `nl.hexmaster.pillsner.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | A permission the app defines for itself (through AndroidX Core) so that parts of the app it registers at runtime cannot be reached by other apps. Only Pillsner's own signature can hold it. |
 
-That is the whole list, as it appears in the installed app. None of these permissions gives the app
-access to anything about you beyond what you entered.
+That is the whole list, as it appears in the installed app, including what its libraries add. The
+same list is kept in the repository as `src/app/manifest-allowlist.txt`, and every build compares the
+finished app against it and fails if the two differ, so no library can add a permission unnoticed.
+None of these permissions gives the app access to anything about you beyond what you entered or
+held in front of the camera.
 
 ## 4. The one case where data leaves your phone
 
@@ -158,7 +180,8 @@ supports one, before the app opens.
 ## 8. Logging
 
 Pillsner writes no medication names or dosages to the Android log at information level or above in
-release builds. It keeps no log file of its own, and no log is transmitted anywhere.
+release builds. The text read from a medicine label, and anything derived from it, is never written to
+the log at any level; a scan logs only that it started, how long a frame took and how it ended. It keeps no log file of its own, and no log is transmitted anywhere.
 
 ## 9. Your data, and how to see, correct or remove it
 

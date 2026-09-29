@@ -197,6 +197,10 @@
     <string name="medicine_save_failed">Dit medicijn kon niet worden opgeslagen. Probeer het opnieuw.</string>
     <string name="medication_form_active">Actief</string>
     <string name="medication_form_active_supporting">Voor niet-actieve medicijnen komt geen herinnering</string>
+    <string name="medicine_details_more">Meer details</string>
+    <string name="medicine_details_less">Minder details</string>
+    <string name="medicine_details_expanded">Uitgeklapt</string>
+    <string name="medicine_details_collapsed">Ingeklapt</string>
     <string name="medication_form_open_failed">Medicijn kon niet worden geopend</string>
 
     <!-- Medicijnformulier: controles -->
@@ -495,4 +499,39 @@
     <string name="stock_warning_expiring_message">De voorraad die je zojuist van %1$s hebt gebruikt, verloopt binnenkort.</string>
     <string name="stock_warning_expired_message">De voorraad die je zojuist van %1$s hebt gebruikt, is verlopen.</string>
     <string name="stock_warning_action_ordered_new">Ik heb nieuwe besteld</string>
+
+    <!-- Label scan: the entry point on the Add medicine form (medicine-label-photo-prefill design D5) -->
+    <string name="label_scan_action">Etiket scannen</string>
+    <string name="label_scan_option_camera">Scannen met camera</string>
+    <string name="label_scan_option_photo">Foto kiezen</string>
+    <string name="label_scan_rationale_title">Camera gebruiken?</string>
+    <string name="label_scan_rationale_body">Pillsner gebruikt de camera alleen om het etiket ervoor te lezen. Er wordt niets opgeslagen of verstuurd.</string>
+    <string name="label_scan_rationale_continue">Doorgaan</string>
+    <string name="label_scan_rationale_not_now">Niet nu</string>
+    <string name="label_scan_camera_unavailable">De camera is niet beschikbaar. Je kunt nog wel een foto kiezen.</string>
+    <string name="label_scan_open_settings">Instellingen openen</string>
+    <string name="label_scan_reading_photo">Foto wordt gelezen…</string>
+    <string name="label_scan_replace_title">Vervangen wat je hebt ingevuld?</string>
+    <string name="label_scan_replace_body">Vervangen wat je hebt ingevuld door wat van het etiket is gelezen?</string>
+    <string name="label_scan_replace_confirm">Vervangen</string>
+    <string name="label_scan_replace_keep">Behouden</string>
+    <string name="label_scan_banner_text">Ingevuld vanuit je etiketscan. Controleer elk veld voordat je opslaat.</string>
+    <string name="label_scan_banner_show_text">Tekst tonen</string>
+    <string name="label_scan_banner_dismiss">Sluiten</string>
+    <string name="label_scan_text_title">Herkende tekst</string>
+    <string name="label_scan_nothing_readable">Er is niets leesbaars op het etiket gevonden.</string>
+    <string name="label_scan_photo_unreadable">De foto kon niet worden gelezen.</string>
+
+    <!-- Label scan: the live scanning screen (design D3) -->
+    <string name="label_scan_title">Etiket scannen</string>
+    <string name="label_scan_instruction">Houd het etiket binnen het kader</string>
+    <string name="label_scan_hint_adjust">Kom dichterbij, zorg voor licht of houd stil</string>
+    <string name="label_scan_hint_shutter">Tik op Nu lezen om te gebruiken wat tot nu toe is gelezen</string>
+    <string name="label_scan_preparing">De lezer wordt klaargezet…</string>
+    <string name="label_scan_failed">De etiketlezer kon niet starten. Je kunt nog wel een foto kiezen of de gegevens intypen.</string>
+    <string name="label_scan_shutter">Nu lezen</string>
+    <string name="label_scan_torch_on">Zaklamp aanzetten</string>
+    <string name="label_scan_torch_off">Zaklamp uitzetten</string>
+    <string name="label_scan_read">Etiket gelezen</string>
+
 </resources>

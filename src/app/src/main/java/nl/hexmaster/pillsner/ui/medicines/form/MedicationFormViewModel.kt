@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import nl.hexmaster.pillsner.domain.model.DoseUnit
 import nl.hexmaster.pillsner.domain.model.Medication
 import nl.hexmaster.pillsner.domain.model.MedicationId
@@ -38,6 +40,8 @@ import nl.hexmaster.pillsner.domain.validation.MedicationFieldError
 import nl.hexmaster.pillsner.domain.validation.MedicationFormValidator
 import nl.hexmaster.pillsner.domain.validation.ScheduleDraftValidator
 import nl.hexmaster.pillsner.domain.validation.SchedulePattern
+import nl.hexmaster.pillsner.data.labelscan.PhotoScanner
+import nl.hexmaster.pillsner.domain.labelscan.LabelInterpretation
 import nl.hexmaster.pillsner.ui.medicines.AmountParser
 
 /**
@@ -49,6 +53,8 @@ import nl.hexmaster.pillsner.ui.medicines.AmountParser
  *
  * @param dates today's date, re-emitted when it changes, so the Stock section's expiry heads-up and
  *   weekly projection move on at midnight while the form stays open.
+ * @param photoScanner reads a picked photo into an interpretation (medicine-label-photo-prefill D5).
+ * @param cameraAvailable whether the device has a camera, so the option sheet can offer it.
  */
 class MedicationFormViewModel(
     private val repository: MedicationRepository,
@@ -58,6 +64,8 @@ class MedicationFormViewModel(
     private val stockBatchRepository: StockBatchRepository? = null,
     private val addStockBatch: AddStockBatch? = null,
     private val dates: Flow<LocalDate> = currentDates(clock),
+    private val photoScanner: PhotoScanner? = null,
+    private val cameraAvailable: Boolean = true,
 ) : ViewModel() {
 
     /** The date the form opened on: only the starting "used since" of a new draft. */
@@ -278,10 +286,28 @@ class MedicationFormViewModel(
 
     fun onDiscardDialogDismissed() = _uiState.update { it.copy(showDiscardDialog = false) }
 
+    /**
+     * Opens or closes the secondary details panel. Pure presentation: the flag lives next to the
+     * draft in the saved state so it survives rotation and process death, but it is not part of
+     * the draft, so toggling never counts as an edit (`medicine-details`, "Secondary details
+     * toggle").
+     */
+    fun onSecondaryDetailsToggled() = setSecondaryDetailsExpanded(!_uiState.value.secondaryDetailsExpanded)
+
+    private fun setSecondaryDetailsExpanded(expanded: Boolean) {
+        savedStateHandle[SECONDARY_DETAILS_EXPANDED_KEY] = expanded
+        _uiState.update { it.copy(secondaryDetailsExpanded = expanded) }
+    }
+
     fun save() {
         val state = _uiState.value.copy(showErrors = true)
         _uiState.value = state
-        if (!state.canSave) return
+        if (!state.canSave) {
+            // An error the user cannot see is no feedback at all: when a field folded away behind
+            // the secondary details toggle is what stops the save, the panel opens on its own.
+            if (state.hasSecondaryDetailsError) setSecondaryDetailsExpanded(true)
+            return
+        }
 
         val amount = amountParser.parse(draft.doseText) ?: return
         val defaultDose = Quantity(amount, draft.doseUnit)
@@ -384,6 +410,152 @@ class MedicationFormViewModel(
         return true
     }
 
+    // --- Label scan (medicine-label-photo-prefill design D5) --------------------------------
+
+    private var scanJob: Job? = null
+
+    /**
+     * The recognised text behind the banner action "Show text". Deliberately a plain field and not
+     * part of the saved state: a label can carry a patient name, an address or a phone number, and
+     * the privacy statement promises the text exists only in memory while the form is open. After
+     * process death the banner still shows, without its "Show text" action.
+     */
+    private var scanRawText: String? = null
+
+    fun onScanLabelClicked() = _uiState.update { it.copy(showScanOptions = true) }
+
+    fun onScanOptionsDismissed() = _uiState.update { it.copy(showScanOptions = false) }
+
+    /**
+     * "Scan with camera" was chosen. With the permission already granted the scanning screen opens
+     * at once; otherwise the in-app rationale comes first, and only its Continue shows the system
+     * prompt (design D2). The permission is never requested anywhere else.
+     */
+    fun onScanWithCameraChosen(permissionGranted: Boolean) {
+        _uiState.update { it.copy(showScanOptions = false, showCameraRationale = !permissionGranted) }
+        if (permissionGranted) _effects.trySend(MedicationFormEffect.OpenLabelScan)
+    }
+
+    fun onRationaleContinue() {
+        _uiState.update { it.copy(showCameraRationale = false) }
+        _effects.trySend(MedicationFormEffect.RequestCameraPermission)
+    }
+
+    /** "Not now": no system prompt, and the form exactly as it was. */
+    fun onRationaleDismissed() = _uiState.update { it.copy(showCameraRationale = false) }
+
+    fun onCameraPermissionResult(granted: Boolean, permanentlyDenied: Boolean) {
+        val effect = if (granted) {
+            MedicationFormEffect.OpenLabelScan
+        } else {
+            MedicationFormEffect.CameraUnavailable(permanentlyDenied)
+        }
+        _effects.trySend(effect)
+    }
+
+    fun onChoosePhotoChosen() {
+        _uiState.update { it.copy(showScanOptions = false) }
+        _effects.trySend(MedicationFormEffect.PickPhoto)
+    }
+
+    /**
+     * The picker returned. Null means the user backed out of it. Otherwise the photo is read once,
+     * off the main thread, behind the modal "Reading the photo" state, and never copied (design D6).
+     *
+     * @param uri the picked photo's content URI as text, so this stays free of Android types.
+     */
+    fun onPhotoPicked(uri: String?) {
+        if (uri == null) return
+        val scanner = photoScanner ?: return
+        _uiState.update { it.copy(isScanning = true) }
+        scanJob = viewModelScope.launch {
+            val interpretation = try {
+                scanner.scan(uri)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: RuntimeException) {
+                // Deliberately no detail: a decoder message could carry the file's name.
+                Log.d(TAG, "Picked photo scan failed")
+                null
+            }
+            if (interpretation == null) {
+                _effects.trySend(MedicationFormEffect.PhotoUnreadable)
+            } else {
+                onInterpretationReceived(interpretation)
+            }
+        }.also { job ->
+            // Whatever the outcome, cancellation included, the reading state ends only once the job,
+            // and with it the recogniser session it owns, has fully completed.
+            job.invokeOnCompletion {
+                if (scanJob === job) scanJob = null
+                _uiState.update { it.copy(isScanning = false) }
+            }
+        }
+    }
+
+    /** Cancel on the "Reading the photo" state: stops the read and leaves the form unchanged. */
+    fun cancelScan() {
+        // Interrupt the native recognition first, so the cancelled job reaches its close() quickly.
+        // The modal stays up until that close has run (see the completion handler in onPhotoPicked):
+        // the recogniser is shared with the live scan, and a new session must not open against an
+        // engine the cancelled one is still about to release.
+        photoScanner?.stop()
+        scanJob?.cancel()
+    }
+
+    /**
+     * The scanning screen or the picked-photo path finished (design D5). An untouched draft takes
+     * the result at once; an edited one is asked first; an empty result changes nothing and says so.
+     */
+    fun onInterpretationReceived(interpretation: LabelInterpretation) {
+        when {
+            interpretation.isEmpty -> _effects.trySend(MedicationFormEffect.NothingReadable)
+            draft == initialDraft -> applyInterpretation(interpretation)
+            else -> _uiState.update { it.copy(pendingInterpretation = interpretation) }
+        }
+    }
+
+    fun onReplaceConfirmed() {
+        val pending = _uiState.value.pendingInterpretation ?: return
+        _uiState.update { it.copy(pendingInterpretation = null) }
+        applyInterpretation(pending)
+    }
+
+    /** "Keep": the interpretation is discarded and the draft stays as typed. */
+    fun onReplaceDeclined() = _uiState.update { it.copy(pendingInterpretation = null) }
+
+    /** Dismissed for good: the flag lives in the saved state, so rotation does not bring it back. */
+    fun onScanBannerDismissed() {
+        savedStateHandle[SCAN_BANNER_KEY] = false
+        _uiState.update { it.copy(showScanBanner = false) }
+    }
+
+    fun onShowScanText() {
+        if (scanRawText != null) _uiState.update { it.copy(showScanText = true) }
+    }
+
+    fun onScanTextDismissed() = _uiState.update { it.copy(showScanText = false) }
+
+    /**
+     * Sets exactly the fields the interpretation carries and leaves every other one, prescriber
+     * included. An empty schedule list and a null use-until mean "absent", not "clear". Goes
+     * through [updateDraft], so the pre-fill is saved like any edit and survives rotation.
+     */
+    private fun applyInterpretation(interpretation: LabelInterpretation) {
+        savedStateHandle[SCAN_BANNER_KEY] = true
+        scanRawText = interpretation.rawText
+        updateDraft { current ->
+            current.copy(
+                name = interpretation.name ?: current.name,
+                doseText = interpretation.defaultDose?.let { amountParser.format(it.value) } ?: current.doseText,
+                doseUnit = interpretation.defaultDose?.unit ?: current.doseUnit,
+                schedules = interpretation.schedules.ifEmpty { current.schedules },
+                usedSince = interpretation.usedSince,
+                useUntil = interpretation.useUntil ?: current.useUntil,
+            )
+        }
+    }
+
     // --- Plumbing -------------------------------------------------------------------------
 
     private fun updateDraft(transform: (MedicationFormDraft) -> MedicationFormDraft) {
@@ -399,6 +571,11 @@ class MedicationFormViewModel(
             lockedDoseUnit = previous.lockedDoseUnit,
             addStockState = previous.addStockState,
             pendingStockRemoval = previous.pendingStockRemoval,
+            showScanOptions = previous.showScanOptions,
+            showCameraRationale = previous.showCameraRationale,
+            isScanning = previous.isScanning,
+            pendingInterpretation = previous.pendingInterpretation,
+            showScanText = previous.showScanText,
         )
     }
 
@@ -451,6 +628,11 @@ class MedicationFormViewModel(
         lockedDoseUnit: DoseUnit? = null,
         addStockState: AddStockUiState? = null,
         pendingStockRemoval: StockBatchId? = null,
+        showScanOptions: Boolean = false,
+        showCameraRationale: Boolean = false,
+        isScanning: Boolean = false,
+        pendingInterpretation: LabelInterpretation? = null,
+        showScanText: Boolean = false,
     ): MedicationFormUiState {
         val validation = MedicationFormValidator.validate(
             name = name,
@@ -483,6 +665,20 @@ class MedicationFormViewModel(
             lockedDoseUnit = lockedDoseUnit,
             addStockState = addStockState,
             pendingStockRemoval = pendingStockRemoval,
+            cameraAvailable = cameraAvailable,
+            showScanOptions = showScanOptions,
+            showCameraRationale = showCameraRationale,
+            isScanning = isScanning,
+            pendingInterpretation = pendingInterpretation,
+            showScanText = showScanText,
+            // The flag lives in the saved state, so the banner survives rotation and process death
+            // until the user dismisses it and never comes back once they have (design D5). The text
+            // itself does not: it survives rotation with the view model and is gone after process death.
+            showScanBanner = savedStateHandle.get<Boolean>(SCAN_BANNER_KEY) ?: false,
+            scanRawText = scanRawText,
+            // The saved state is the one source of truth for the panel, so a state rebuilt after a
+            // draft edit and a new view model after process death both read the same flag.
+            secondaryDetailsExpanded = savedStateHandle[SECONDARY_DETAILS_EXPANDED_KEY] ?: false,
         )
     }
 
@@ -491,6 +687,12 @@ class MedicationFormViewModel(
 
         /** The name navigation gives the route argument of [MedicationFormGraph]. */
         const val MEDICATION_ID_ARG = "medicationId"
+
+        /** Where the secondary details panel's open/closed flag lives, next to the draft. */
+        const val SECONDARY_DETAILS_EXPANDED_KEY = "secondary_details_expanded"
+
+        /** The review banner shown flag, next to the draft (medicine-label-photo-prefill D5). */
+        const val SCAN_BANNER_KEY = "scan_banner_shown"
 
         /**
          * The daily dose times depend only on the interval and the first dose, but the shape needs

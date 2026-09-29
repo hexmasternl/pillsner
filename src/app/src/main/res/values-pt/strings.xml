@@ -197,6 +197,10 @@
     <string name="medicine_save_failed">Não foi possível guardar este medicamento. Tenta novamente.</string>
     <string name="medication_form_active">Ativo</string>
     <string name="medication_form_active_supporting">Os medicamentos inativos não têm lembretes</string>
+    <string name="medicine_details_more">Mais detalhes</string>
+    <string name="medicine_details_less">Menos detalhes</string>
+    <string name="medicine_details_expanded">Expandido</string>
+    <string name="medicine_details_collapsed">Recolhido</string>
     <string name="medication_form_open_failed">Não foi possível abrir o medicamento</string>
 
     <!-- Formulário do medicamento: validação -->
@@ -495,4 +499,39 @@
     <string name="stock_warning_expiring_message">O estoque de %1$s que você acabou de usar vence em breve.</string>
     <string name="stock_warning_expired_message">O estoque de %1$s que você acabou de usar venceu.</string>
     <string name="stock_warning_action_ordered_new">Já pedi mais</string>
+
+    <!-- Label scan: the entry point on the Add medicine form (medicine-label-photo-prefill design D5) -->
+    <string name="label_scan_action">Digitalizar um rótulo</string>
+    <string name="label_scan_option_camera">Digitalizar com a câmara</string>
+    <string name="label_scan_option_photo">Escolher uma foto</string>
+    <string name="label_scan_rationale_title">Usar a câmara?</string>
+    <string name="label_scan_rationale_body">O Pillsner usa a câmara apenas para ler o rótulo à sua frente. Nada é guardado nem enviado.</string>
+    <string name="label_scan_rationale_continue">Continuar</string>
+    <string name="label_scan_rationale_not_now">Agora não</string>
+    <string name="label_scan_camera_unavailable">A câmara não está disponível. Ainda podes escolher uma foto.</string>
+    <string name="label_scan_open_settings">Abrir definições</string>
+    <string name="label_scan_reading_photo">A ler a foto…</string>
+    <string name="label_scan_replace_title">Substituir o que introduziste?</string>
+    <string name="label_scan_replace_body">Substituir o que introduziste pelo que foi lido no rótulo?</string>
+    <string name="label_scan_replace_confirm">Substituir</string>
+    <string name="label_scan_replace_keep">Manter</string>
+    <string name="label_scan_banner_text">Preenchido a partir da digitalização do teu rótulo. Verifica cada campo antes de guardar.</string>
+    <string name="label_scan_banner_show_text">Mostrar texto</string>
+    <string name="label_scan_banner_dismiss">Fechar</string>
+    <string name="label_scan_text_title">Texto reconhecido</string>
+    <string name="label_scan_nothing_readable">Não foi encontrado nada legível no rótulo.</string>
+    <string name="label_scan_photo_unreadable">Não foi possível ler a foto.</string>
+
+    <!-- Label scan: the live scanning screen (design D3) -->
+    <string name="label_scan_title">Digitalizar um rótulo</string>
+    <string name="label_scan_instruction">Mantém o rótulo dentro da moldura</string>
+    <string name="label_scan_hint_adjust">Aproxima-te, acrescenta luz ou mantém o telemóvel imóvel</string>
+    <string name="label_scan_hint_shutter">Toca em Ler agora para usar o que foi lido até aqui</string>
+    <string name="label_scan_preparing">A preparar o leitor…</string>
+    <string name="label_scan_failed">O leitor de rótulos não conseguiu iniciar. Ainda podes escolher uma foto ou escrever os dados.</string>
+    <string name="label_scan_shutter">Ler agora</string>
+    <string name="label_scan_torch_on">Ligar a lanterna</string>
+    <string name="label_scan_torch_off">Desligar a lanterna</string>
+    <string name="label_scan_read">Rótulo lido</string>
+
 </resources>

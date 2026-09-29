@@ -1,6 +1,7 @@
 package nl.hexmaster.pillsner.ui.medicines.form
 
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
@@ -112,12 +113,84 @@ class MedicationDetailsFlowTest {
         composeRule.onAllNodesWithTag(ScheduleRowTestTags.ROW).assertCountEquals(2)
         composeRule.onNodeWithText("40 mg every 12 hours").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("20 mg once a day").performScrollTo().assertIsDisplayed()
+
+        expandSecondaryDetails()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.USED_SINCE).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag(MedicationFormTestTags.PRESCRIBER).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Specialist").assertIsDisplayed()
         composeRule.onNodeWithTag(MedicationFormTestTags.ACTIVE_SWITCH).performScrollTo().assertIsOn()
+    }
+
+    @Test
+    fun theSecondaryDetailsStartCollapsedBehindMoreDetails() {
+        openMetoprolol()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE)
+            .performScrollTo()
+            .assertIsDisplayed()
+            .assert(hasText("More details"))
+        composeRule.onNodeWithTag(MedicationFormTestTags.USED_SINCE).assertDoesNotExist()
+        composeRule.onNodeWithTag(MedicationFormTestTags.USE_UNTIL).assertDoesNotExist()
+        composeRule.onNodeWithTag(MedicationFormTestTags.PRESCRIBER).assertDoesNotExist()
+        composeRule.onNodeWithTag(MedicationFormTestTags.ACTIVE_SWITCH).assertDoesNotExist()
+        // The blocks that stay: schedules and stock are still on the screen without any tap.
+        composeRule.onNodeWithTag(MedicationFormTestTags.SCHEDULES_HEADER).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag(MedicationFormTestTags.STOCK_HEADER).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun lessDetailsHidesTheSecondaryFieldsAgain() {
+        openMetoprolol()
+        expandSecondaryDetails()
+        composeRule.onNodeWithTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE).assert(hasText("Less details"))
+        composeRule.onNodeWithTag(MedicationFormTestTags.USED_SINCE).performScrollTo().assertIsDisplayed()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE).performScrollTo().performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE).assert(hasText("More details"))
+        composeRule.onNodeWithTag(MedicationFormTestTags.USED_SINCE).assertDoesNotExist()
+        composeRule.onNodeWithTag(MedicationFormTestTags.ACTIVE_SWITCH).assertDoesNotExist()
+    }
+
+    @Test
+    fun togglingTheSecondaryDetailsThenBackDoesNotAskToDiscard() {
+        openMetoprolol()
+        expandSecondaryDetails()
+        composeRule.onNodeWithTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE).performScrollTo().performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.BACK).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(DiscardDialogTestTags.DISCARD).assertDoesNotExist()
+        composeRule.onNodeWithTag(NavigationTestTags.MEDICINES_TITLE).assertIsDisplayed()
+        assertEquals(Prescriber.SPECIALIST, stored(1).prescribedBy)
+    }
+
+    @Test
+    fun anEditInsideThePanelIsSavedAfterCollapsingIt() {
+        openMetoprolol()
+        expandSecondaryDetails()
+        composeRule.onNodeWithTag(MedicationFormTestTags.PRESCRIBER).performScrollTo().performClick()
+        composeRule.onNodeWithText("Pharmacist").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE).performScrollTo().performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(MedicationFormTestTags.PRESCRIBER).assertDoesNotExist()
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.SAVE).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(NavigationTestTags.MEDICINES_TITLE).assertIsDisplayed()
+        assertEquals(Prescriber.PHARMACIST, stored(1).prescribedBy)
     }
 
     @Test
     fun anInactiveMedicineOpensWithItsSwitchOff_andTurningItOnMovesTheTile() {
         openTileWithText("Zolpidem")
+        expandSecondaryDetails()
 
         val switch = composeRule.onNodeWithTag(MedicationFormTestTags.ACTIVE_SWITCH)
         switch.performScrollTo().assertIsOff()
@@ -195,6 +268,12 @@ class MedicationDetailsFlowTest {
     // --- Helpers --------------------------------------------------------------------------
 
     private fun openMetoprolol() = openTileWithText("Metoprolol")
+
+    /** Taps "More details" and waits for the panel to finish unfolding. */
+    private fun expandSecondaryDetails() {
+        composeRule.onNodeWithTag(MedicationFormTestTags.SECONDARY_DETAILS_TOGGLE).performScrollTo().performClick()
+        composeRule.waitForIdle()
+    }
 
     private fun openTileWithText(name: String) {
         composeRule.onNode(hasText(name, substring = true)).performClick()

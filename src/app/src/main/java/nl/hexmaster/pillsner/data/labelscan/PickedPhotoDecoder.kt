@@ -8,7 +8,9 @@ import android.net.Uri
 import android.util.Log
 import androidx.annotation.WorkerThread
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 
 /**
  * Reads a photo the user picked into a greyscale frame for the recogniser (medicine-label-photo-
@@ -24,8 +26,9 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
     @WorkerThread
     fun decode(uri: Uri): GreyFrame? = try {
         // One read of the source, into memory: bounds, orientation and pixels all come from these
-        // bytes, so the photo is opened exactly once and never written anywhere (design D6).
-        val encoded = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+        // bytes, so the photo is opened exactly once and never written anywhere (design D6). The
+        // read is bounded: a source larger than any photo a phone takes is unreadable, not a crash.
+        val encoded = contentResolver.openInputStream(uri)?.use { readBounded(it, MAX_ENCODED_BYTES) } ?: return null
 
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(encoded, 0, encoded.size, bounds)
@@ -57,6 +60,24 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
         null
     }
 
+    /**
+     * The whole stream, or null once it exceeds [limit] bytes, so the heap never holds more than
+     * the limit for a source the picker hands over.
+     */
+    private fun readBounded(input: InputStream, limit: Int): ByteArray? {
+        val out = ByteArrayOutputStream()
+        val chunk = ByteArray(READ_CHUNK_BYTES)
+        while (true) {
+            val read = input.read(chunk)
+            if (read < 0) return out.toByteArray()
+            if (out.size() + read > limit) {
+                Log.d(TAG, "Picked photo larger than the ${limit / (1024 * 1024)} MB limit")
+                return null
+            }
+            out.write(chunk, 0, read)
+        }
+    }
+
     /** The power of two that brings [longSide] to at most [MAX_LONG_SIDE]. */
     private fun sampleSizeFor(longSide: Int): Int {
         var sample = 1
@@ -86,6 +107,10 @@ class PickedPhotoDecoder(private val contentResolver: ContentResolver) {
 
         /** Plenty for a label; bounds memory on a 48-megapixel photo (design D3). */
         const val MAX_LONG_SIDE = 2_000
+
+        /** Larger than any photo a phone camera writes (a 200-megapixel JPEG stays well under it). */
+        const val MAX_ENCODED_BYTES = 64 * 1024 * 1024
+        const val READ_CHUNK_BYTES = 64 * 1024
 
         // 0.299, 0.587 and 0.114 scaled by 256.
         const val RED_WEIGHT = 77

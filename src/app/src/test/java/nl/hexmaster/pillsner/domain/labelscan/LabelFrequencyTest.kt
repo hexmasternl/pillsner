@@ -102,6 +102,18 @@ class LabelFrequencyTest {
     }
 
     @Test
+    fun `an as-needed medicine gets no schedule, whatever rhythm sits beside the qualifier`() {
+        assertNull(detect("Take 1 tablet every 8 hours as needed"))
+        assertNull(detect("zo nodig 1 tablet, maximaal 3x daags"))
+        assertNull(detect("1 Tablette bei Bedarf"))
+        assertNull(detect("1 comprimé si besoin, 3 fois par jour"))
+        assertNull(detect("1 comprimido cada 8 horas según necesidad"))
+        assertNull(detect("1 comprimido se necessário"))
+        assertTrue(interpret(lines("ZORVALEX 50 MG", "Take 1 tablet every 8 hours as needed"), today).schedules.isEmpty())
+        assertEquals(Quantity.of("50", DoseUnit.MILLIGRAM), interpret(lines("ZORVALEX 50 MG", "1 tablet as needed"), today).defaultDose)
+    }
+
+    @Test
     fun `a count word without a per-day word is not a rhythm, but a course length beside one is fine`() {
         assertNull(detect("2 maal 1 tablet"))
         assertNull(detect("twice"))

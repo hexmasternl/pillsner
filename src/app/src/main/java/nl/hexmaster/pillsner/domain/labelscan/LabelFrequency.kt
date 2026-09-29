@@ -35,6 +35,9 @@ internal object LabelFrequency {
      */
     fun detect(line: String): Frequency? {
         if (WEEKLY_OR_MONTHLY.containsMatchIn(line)) return null
+        // "1 tablet every 8 hours as needed" is an as-needed medicine: no schedule, as the model
+        // represents it with an empty schedule list, never a fixed reminder.
+        if (AS_NEEDED.containsMatchIn(line)) return null
         BOX.find(line)?.let { match ->
             return Frequency.BoxNotation(match.groupValues.drop(1).filter { it.isNotEmpty() }.map { it.toInt() })
         }
@@ -107,6 +110,9 @@ internal object LabelFrequency {
     private val TIMES_PER_DAY_WORD = Regex("\\b$NUMBER_PATTERN\\s*(?:$TIMES)\\s*(?:$PER_DAY)\\b")
     private val TIMES_PER_DAY_DD = Regex("\\b(\\d+)\\s*dd\\b")
     private val PER_DAY_ALONE = Regex("\\b(?:$PER_DAY)\\b")
+
+    /** "zo nodig", "as needed", "bei Bedarf", "si besoin", "según necesidad", "se necessário". */
+    private val AS_NEEDED = Regex("\\b(?:" + LabelVocabulary.alternation(LabelVocabulary.asNeededPhrases) + ")\\b")
 
     /**
      * A weekly or monthly rhythm, in any of the six languages. Rhythm words only: "durante 2 semanas"

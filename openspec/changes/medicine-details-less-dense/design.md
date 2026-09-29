@@ -50,7 +50,7 @@ Existing edit-mode assertions that scroll to used since, use until, prescribed b
 - [Users who edit "use until" often now need one extra tap] → The toggle is directly under the dose field, one tap, and the panel state survives rotation, so the cost is a single tap per visit. Issue #82 explicitly accepts this in exchange for a readable screen.
 - [An error in a hidden field could be invisible] → Decision 3 opens the panel whenever Save fails on a secondary field, and the delta spec has a scenario for it.
 - [Two other active changes touch this screen] → `medicine-expiry-tracking` owns the Stock section and `medicine-details-menu-shortcuts` owns the overflow menu. This change only regroups the field column, and its delta spec does not modify "Details screen title and actions", which those two changes modify. Whichever archives first, the others rebase cleanly.
-- [TalkBack traversal after toggling] → Focus stays on the toggle; the newly visible fields follow it in traversal order because they are the next siblings in the column. Verified in the manual accessibility check in tasks.
+- [TalkBack traversal after toggling] → Focus stays on the toggle; the newly visible fields are its next siblings in the column. Automated semantics coverage exists, but the manual TalkBack traversal check remains open in task 5.3.
 - [Largest-font-scale layout] → The expanded state is the same layout as today, which the existing "Largest font scale" scenario already covers; the collapsed state is strictly shorter.
 
 ## Corrections found during implementation

@@ -1,56 +1,99 @@
 ## ADDED Requirements
 
 ### Requirement: Scan a label from the Add medicine form
-The Add medicine form SHALL offer a "Scan a label" action in add mode only. Tapping it SHALL present two options: take a photo with the device's camera app, and choose an existing photo with the system photo picker. The take-a-photo option SHALL be offered only when an activity resolves for the system image-capture intent. The action MUST NOT appear in edit mode. All text MUST come from string resources.
+The Add medicine form SHALL offer a "Scan a label" action in add mode only. Tapping it SHALL present two options: scan with the camera, and choose an existing photo with the system photo picker. The scan-with-camera option SHALL be offered only when the device reports a camera feature. The action MUST NOT appear in edit mode. All text MUST come from string resources.
 
-#### Scenario: Options on a device with a camera app
-- **WHEN** the user opens the Add medicine form on a device where a camera app is installed and taps "Scan a label"
-- **THEN** a sheet offers "Take a photo" and "Choose a photo"
+#### Scenario: Options on a device with a camera
+- **WHEN** the user opens the Add medicine form on a device with a camera and taps "Scan a label"
+- **THEN** a sheet offers "Scan with camera" and "Choose a photo"
 
-#### Scenario: Options on a device without a camera app
-- **WHEN** the user taps "Scan a label" on a device where no activity resolves for the image-capture intent
+#### Scenario: Options on a device without a camera
+- **WHEN** the user taps "Scan a label" on a device that reports no camera feature
 - **THEN** the sheet offers only "Choose a photo"
 
 #### Scenario: Not offered when editing
 - **WHEN** the user opens an existing medicine's details
 - **THEN** no "Scan a label" action is shown
 
-#### Scenario: Cancelled capture
-- **WHEN** the user chooses "Take a photo" and leaves the camera app without taking one
-- **THEN** the form is unchanged and no message is shown
+### Requirement: Camera permission is requested in context and declining costs nothing
+The app SHALL declare the `CAMERA` permission and the `android.hardware.camera.any` feature as not required. The permission SHALL be requested only when the user chooses "Scan with camera" and it is not yet granted, and only after an in-app rationale stating that the camera is used solely to read the label, that nothing is saved and that nothing is sent anywhere. The permission MUST NOT be requested at install, at app start, or on opening the form. When the permission is denied, the form SHALL remain unchanged and a message SHALL say the camera is unavailable and that a photo can still be chosen; when it is permanently denied, that message SHALL offer to open the app's system settings. No other permission MAY be added: `READ_MEDIA_IMAGES`, `READ_EXTERNAL_STORAGE`, `INTERNET` and `ACCESS_NETWORK_STATE` MUST stay undeclared.
 
-### Requirement: No permission is declared or requested for scanning
-Scanning SHALL use the system camera app through the image-capture activity result and the system photo picker. The app MUST NOT declare the `CAMERA`, `READ_MEDIA_IMAGES`, `READ_EXTERNAL_STORAGE` or `INTERNET` permission, MUST NOT declare a camera `uses-feature`, and MUST NOT show any runtime permission prompt of its own for scanning. The only manifest additions for scanning SHALL be a `queries` intent entry for the image-capture action and one non-exported `FileProvider` whose paths expose only the scan cache subdirectory.
+#### Scenario: First scan with the camera
+- **WHEN** the user chooses "Scan with camera" and the permission has never been requested
+- **THEN** the rationale is shown, "Continue" shows the system permission prompt, and granting it opens the scanning screen
 
-#### Scenario: Declared permissions unchanged
+#### Scenario: Rationale declined
+- **WHEN** the rationale is shown and the user taps "Not now"
+- **THEN** no system prompt is shown and the form is unchanged
+
+#### Scenario: Permission denied
+- **WHEN** the user denies the system prompt
+- **THEN** the form is unchanged and a message says the camera is unavailable and that a photo can still be chosen
+
+#### Scenario: Permission permanently denied
+- **WHEN** the user chooses "Scan with camera" after having permanently denied the permission
+- **THEN** the message offers an action that opens the app's system settings page
+
+#### Scenario: Already granted
+- **WHEN** the permission is already granted and the user chooses "Scan with camera"
+- **THEN** the scanning screen opens with no prompt
+
+#### Scenario: Declared permissions match the allow-list
 - **WHEN** the merged manifest of any build variant is inspected
-- **THEN** its set of `uses-permission` entries is exactly the set disclosed in the README's permission table, with no camera, media, storage or network permission
-
-#### Scenario: Provider exposes only the scan cache
-- **WHEN** the FileProvider's path configuration is inspected
-- **THEN** it lists exactly one cache path, `label-scan/`, and the provider is not exported
+- **THEN** its `uses-permission` set is exactly the previous seven permissions plus `CAMERA`, and the camera feature is declared as not required
 
 #### Scenario: Installs on a camera-less device
 - **WHEN** the app is installed on a device with no camera
 - **THEN** installation succeeds and the Add medicine form offers "Choose a photo" only
 
+### Requirement: Live scanning screen
+The scanning screen SHALL show the camera preview with a framing guide, an instruction, a shutter button, a torch toggle when the camera has a flash, and a cancel action. Frames SHALL be analysed continuously in memory while the screen is visible. The scan SHALL accept itself when two consecutive frames each yield an interpretation with a name and at least one of a default dose or a schedule, and both yield the same name; the later interpretation SHALL be used. On acceptance the screen SHALL vibrate briefly, announce that the label was read, and return to the form. The shutter SHALL return the most recent frame's interpretation, whether or not it is complete. After 8 seconds without an accepted frame the instruction SHALL change to advise moving closer, adding light or holding still. Cancel SHALL return to the form unchanged. Leaving the screen SHALL release the camera.
+
+#### Scenario: Automatic acceptance
+- **WHEN** two consecutive frames read a name of "Metoprolol" and a strength of 50 mg
+- **THEN** the screen vibrates, announces that the label was read, and the form is pre-filled with that interpretation
+
+#### Scenario: Single misread is not accepted
+- **WHEN** one frame reads a name and the next frame reads a different name
+- **THEN** the scan continues and nothing is returned to the form
+
+#### Scenario: Shutter with a partial read
+- **WHEN** the latest frame yielded only a name and the user taps the shutter
+- **THEN** the form is pre-filled with the name only and the banner is shown
+
+#### Scenario: Shutter before any read
+- **WHEN** no frame has yielded anything and the user taps the shutter
+- **THEN** the form is unchanged and a message says nothing readable was found
+
+#### Scenario: Guidance after eight seconds
+- **WHEN** eight seconds pass without an accepted frame
+- **THEN** the instruction changes to advise moving closer, adding light or holding still
+
+#### Scenario: Cancel
+- **WHEN** the user taps Cancel on the scanning screen
+- **THEN** the form is shown unchanged and the camera is released
+
+#### Scenario: App goes to the background
+- **WHEN** the scanning screen is open and the app goes to the background
+- **THEN** the camera is released and, when the app lock is enabled, the unlock screen is shown on return
+
 ### Requirement: Recognition runs entirely inside the app
-Text recognition SHALL run on the device with a recogniser and trained data that ship inside the app package. It MUST work with no network connection from the first launch, MUST NOT download any model or component, and MUST NOT use Google Play services, Firebase or ML Kit. The trained data SHALL be copied from the app's assets to the app's private files directory before first use and that directory SHALL be excluded from backup and device transfer. Recognition SHALL run off the main thread and SHALL be cancellable.
+Text recognition SHALL run on the device with a recogniser and trained data that ship inside the app package. It MUST work with no network connection from the first launch, MUST NOT download any model or component, and MUST NOT use Google Play services, Firebase or ML Kit, including the CameraX ML Kit bridge. The trained data SHALL be copied from the app's assets to the app's private files directory before first use and that directory SHALL be excluded from backup and device transfer. Recognition SHALL run off the main thread, SHALL never stall the preview, and SHALL be cancellable.
 
 #### Scenario: Airplane mode from first launch
 - **WHEN** the app is installed and first opened with all network disabled, and the user scans a label
 - **THEN** recognition completes and the form is pre-filled without any network access
 
-#### Scenario: Cancel while reading
-- **WHEN** recognition is in progress and the user taps Cancel
-- **THEN** recognition stops, the form is unchanged and the progress state disappears
+#### Scenario: Frames dropped while busy
+- **WHEN** a frame arrives while the previous one is still being recognised
+- **THEN** it is dropped, the preview keeps running, and the next frame after recognition finishes is analysed
 
 #### Scenario: Trained data replaced on update
 - **WHEN** the app is updated to a version whose bundled trained data differs
 - **THEN** the next scan uses the new data
 
 ### Requirement: Recognised text is interpreted into form fields
-The domain layer SHALL provide a pure function, with no Android or recogniser dependency, that turns the recognised lines into a label interpretation holding an optional name, an optional default dose, zero or more schedules, a used-since date and an optional use-until date. Unit, frequency, duration and "until" words SHALL be matched from one vocabulary covering English, Dutch, German, French, Spanish and Portuguese, case- and accent-insensitively, regardless of the app's language. A field the function cannot determine SHALL be absent, never guessed.
+The domain layer SHALL provide a pure function, with no Android, camera or recogniser dependency, that turns the recognised lines into a label interpretation holding an optional name, an optional default dose, zero or more schedules, a used-since date and an optional use-until date. Unit, frequency, duration and "until" words SHALL be matched from one vocabulary covering English, Dutch, German, French, Spanish and Portuguese, case- and accent-insensitively, regardless of the app's language. A field the function cannot determine SHALL be absent, never guessed.
 
 #### Scenario: Name and strength on one line
 - **WHEN** the recognised lines include "METOPROLOL 50 MG TABLET" and nothing else that looks like a name
@@ -123,14 +166,14 @@ Used since SHALL be the most recent numeric date on the label that is on or befo
 - **THEN** use until is 15 October 2026
 
 ### Requirement: Interpretation pre-fills the form for review
-Applying an interpretation SHALL set only the fields it carries (name, default dose amount and unit, schedules, used since, use until) and SHALL leave every other field, including prescriber, unchanged. When the draft is untouched the interpretation SHALL be applied at once; when the draft has edits the form SHALL ask whether to replace them, and only "Replace" applies it. After applying, the form SHALL show an attention banner stating the fields were filled from a photo and must be checked, with an action that shows the raw recognised text and a dismiss action. Pre-filled values SHALL be editable and SHALL pass through the form's ordinary validation on Save. When the interpretation carries nothing, the form SHALL be unchanged and a message SHALL say nothing readable was found. When decoding or recognition fails, a different message SHALL say the photo could not be read. Neither message MAY quote recognised text.
+Applying an interpretation SHALL set only the fields it carries (name, default dose amount and unit, schedules, used since, use until) and SHALL leave every other field, including prescriber, unchanged. When the draft is untouched the interpretation SHALL be applied at once; when the draft has edits the form SHALL ask whether to replace them, and only "Replace" applies it. After applying, the form SHALL show an attention banner stating the fields were filled from a scan and must be checked, with an action that shows the raw recognised text and a dismiss action. Pre-filled values SHALL be editable and SHALL pass through the form's ordinary validation on Save. When the interpretation is empty, the form SHALL be unchanged and a message SHALL say nothing readable was found. When decoding a picked photo or recognition fails, a different message SHALL say the photo could not be read. Neither message MAY quote recognised text.
 
 #### Scenario: Untouched form is filled
 - **WHEN** the form has no edits and a scan yields a name, 50 mg, one schedule and a used-since date
 - **THEN** the name, dose, unit, schedule row and used since show those values, prescriber is unchanged, and the banner is shown
 
 #### Scenario: Edited form asks first
-- **WHEN** the user has typed a name and then scans a label
+- **WHEN** the user has typed a name and then completes a scan
 - **THEN** a dialog asks whether to replace what was entered; "Keep" leaves the form as typed and "Replace" applies the interpretation
 
 #### Scenario: Show recognised text
@@ -143,41 +186,37 @@ Applying an interpretation SHALL set only the fields it carries (name, default d
 
 #### Scenario: Nothing readable
 - **WHEN** a scan yields an empty interpretation
-- **THEN** the form is unchanged and a message says nothing readable was found on the photo
+- **THEN** the form is unchanged and a message says nothing readable was found
 
 #### Scenario: Pre-filled value fails validation
 - **WHEN** a scan pre-fills a dose amount that the form's validation rejects and the user taps Save
 - **THEN** the medicine is not saved and the dose field shows the same error it shows for a typed value
 
-### Requirement: The photo is not retained
-A captured photo SHALL be written only to a file under the app's `label-scan` cache subdirectory, SHALL never be registered with the media store, and SHALL be deleted when the scan ends, whatever the outcome. A picked photo SHALL be read once and never copied. The scan cache subdirectory SHALL be emptied at process start and at the start of every scan. The recognised text SHALL be kept only in the form's draft state and MUST NOT be logged.
+### Requirement: Nothing is retained
+Camera frames SHALL be analysed in memory only and MUST NOT be encoded to an image file or written to any storage. A picked photo SHALL be read once and never copied. The recogniser SHALL be released when the scanning screen closes. The recognised text SHALL be kept only in the form's draft state and MUST NOT be logged.
 
-#### Scenario: Capture file deleted after success
-- **WHEN** a captured photo is recognised and the form is pre-filled
-- **THEN** no file remains under the scan cache subdirectory
+#### Scenario: No file after a camera scan
+- **WHEN** a scan with the camera completes, is cancelled or fails
+- **THEN** no new file exists under the app's cache or files directories other than the trained data
 
-#### Scenario: Capture file deleted after failure
-- **WHEN** recognition of a captured photo fails or is cancelled
-- **THEN** no file remains under the scan cache subdirectory
-
-#### Scenario: Leftover swept at start
-- **WHEN** a file exists under the scan cache subdirectory when the process starts
-- **THEN** it is deleted before any screen is shown
+#### Scenario: Picked photo not copied
+- **WHEN** a picked photo is recognised
+- **THEN** no copy of it exists under the app's cache or files directories
 
 #### Scenario: No text in logs
 - **WHEN** a scan runs in a release build
 - **THEN** no log line contains the recognised text, the name or any amount
 
 ### Requirement: Scanning is accessible
-The "Scan a label" action, the option sheet, the progress state, the banner and its actions SHALL each have a spoken label; the progress state and the result messages SHALL be announced; and the form SHALL remain fully usable without ever using the action, including with TalkBack and at the largest font scale.
+The "Scan a label" action, the option sheet, the rationale, the scanning screen's shutter, torch and cancel controls, the banner and its actions SHALL each have a spoken label. Opening the scanning screen SHALL announce the instruction, acceptance SHALL announce that the label was read, the guidance change SHALL be announced, and the result messages SHALL be announced. The form SHALL remain fully usable without ever using the action, including with TalkBack and at the largest font scale.
 
-#### Scenario: Screen reader on the action
-- **WHEN** a screen reader focuses the "Scan a label" button
-- **THEN** it announces the label and that it is a button
+#### Scenario: Screen reader on the scanning screen
+- **WHEN** a screen reader user opens the scanning screen
+- **THEN** the instruction is announced and the shutter, torch and cancel controls are reachable and labelled
 
-#### Scenario: Progress announced
-- **WHEN** recognition starts
-- **THEN** "Reading the label" is announced, and the result message is announced when it ends
+#### Scenario: Acceptance announced
+- **WHEN** the scan accepts itself
+- **THEN** "Label read" is announced before the form is shown
 
 #### Scenario: Largest font scale with the banner
 - **WHEN** the system font scale is at maximum and the banner is shown

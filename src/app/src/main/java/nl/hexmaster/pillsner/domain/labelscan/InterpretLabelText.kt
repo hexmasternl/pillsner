@@ -15,7 +15,8 @@ import java.time.LocalDate
  * 1. Dose tokens: every `<number><unit>` becomes a quantity; mass and volume units are strengths,
  *    form units are counts.
  * 2. Default dose: the first strength, otherwise the first count on an instruction line.
- * 3. Schedule amount: the count on the instruction line, otherwise the default dose.
+ * 3. Schedule amount: the count on the instruction line, otherwise a strength or volume on that
+ *    same line, otherwise the default dose.
  * 4. Frequency to schedule, through the app's own schedule shapes; anything else gives none.
  * 5. Name: the first non-noise line that shares a line with a strength, otherwise the first.
  * 6. Used since: the most recent past date within a year, otherwise today.
@@ -45,15 +46,18 @@ class InterpretLabelText {
             ?.quantity
         val defaultDose = strength ?: instructionCount
 
-        // Rules 3 and 4: the first instruction line decides.
+        // Rules 3 and 4: the first instruction line decides. Its own count ("1 tablet") is the
+        // amount; failing that its own strength or volume ("10 ml"), which outranks a strength
+        // printed elsewhere on the label ("125 mg/5 ml"); failing both, the default dose.
         val instructionIndex = frequencies.indexOfFirst { it != null }
         val schedules = if (instructionIndex < 0) {
             emptyList()
         } else {
-            val lineCount = tokens[instructionIndex].firstOrNull { !it.isStrength }?.quantity
+            val lineTokens = tokens[instructionIndex]
+            val lineAmount = (lineTokens.firstOrNull { !it.isStrength } ?: lineTokens.firstOrNull { it.isStrength })?.quantity
             LabelSchedules.build(
                 frequency = frequencies[instructionIndex]!!,
-                amount = lineCount ?: defaultDose,
+                amount = lineAmount ?: defaultDose,
                 countUnit = instructionCount?.unit ?: LabelFrequency.bareFormUnit(normalised[instructionIndex]),
                 defaultDose = defaultDose,
             )

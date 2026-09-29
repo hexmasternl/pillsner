@@ -111,7 +111,7 @@ Nothing here logs frames, text or confidence. The only log lines are debug-level
 
 1. **Dose tokens.** Every `<number><unit>` match, where the number is an integer or a decimal with `.` or `,` and the unit is a vocabulary word, becomes a `Quantity`. Strength tokens are those in a mass or volume unit (mg, g, mcg, ml). Count tokens are those in a form unit (tablet, capsule, drop, puff, unit).
 2. **Default dose** is the first strength token on the label. When there is none, it is the first count token that sits in an instruction line (a line that matches a frequency pattern), such as "1 tablet" in "take 1 tablet twice a day". When there is neither, the default dose is absent.
-3. **Schedule amount** is the count token in the instruction line when there is one; otherwise the default dose. A schedule is produced only when both an amount and a frequency were found.
+3. **Schedule amount** is the count token in the instruction line when there is one; otherwise a strength or volume token on that same line ("Take 10 ml twice daily" on a "125 mg/5 ml" label is 10 ml, not 125 mg); otherwise the default dose. A schedule is produced only when both an amount and a frequency were found.
 4. **Frequency to schedule**, using the app's existing shapes:
    - N times a day, for N from 1 to 4, becomes `EveryNDays(interval 1)` with fixed default times: 1 → 08:00; 2 → 08:00, 20:00; 3 → 08:00, 14:00, 20:00; 4 → 08:00, 12:00, 16:00, 20:00. "once" and "twice" words count as 1 and 2.
    - N times a day for N above 4 becomes `EveryNHours(24 / N, from 08:00)` when 24 / N is one of the intervals the schedule editor offers (1, 2, 3, 4, 6, 8, 12, 24); otherwise no schedule.

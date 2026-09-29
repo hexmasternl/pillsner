@@ -197,6 +197,24 @@ class LabelFrequencyTest {
     }
 
     @Test
+    fun `a volume on the instruction line outranks a strength printed elsewhere`() {
+        val result = interpret(lines("AMOXICILLINE 125 mg/5 ml", "Take 10 ml twice daily"), today)
+
+        assertEquals(Quantity.of("125", DoseUnit.MILLIGRAM), result.defaultDose)
+        assertEquals(
+            listOf(Schedule.EveryNDays(Quantity.of("10", DoseUnit.MILLILITRE), 1, listOf(eight, LocalTime.of(20, 0)))),
+            result.schedules,
+        )
+    }
+
+    @Test
+    fun `a count on the instruction line still outranks its own strength`() {
+        val result = interpret(lines("ZORVALEX 50 MG", "1 tablet (50 mg) twice daily"), today)
+
+        assertEquals(listOf(Schedule.EveryNDays(oneTablet, 1, listOf(eight, LocalTime.of(20, 0)))), result.schedules)
+    }
+
+    @Test
     fun `weekly and every-three-days rhythms produce no schedule`() {
         assertTrue(interpret(lines("ZORVALEX 50 MG", "1x per week 1 tablet"), today).schedules.isEmpty())
         assertTrue(interpret(lines("ZORVALEX 50 MG", "1 tablet iedere 3 dagen"), today).schedules.isEmpty())

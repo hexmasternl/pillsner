@@ -200,7 +200,9 @@ fun NavGraphBuilder.medicationFormGraph(
                                 // Long enough for the live region to announce "Label read" (design D3).
                                 delay(ACCEPTANCE_DWELL_MILLIS)
                             }
-                            navController.popBackStack()
+                            // This destination by name, not whatever is on top: Cancel or back during the
+                            // dwell may already have popped it, and a plain pop would then take the form.
+                            navController.popBackStack(route = LabelScan::class, inclusive = true)
                         }
                     }
                 }

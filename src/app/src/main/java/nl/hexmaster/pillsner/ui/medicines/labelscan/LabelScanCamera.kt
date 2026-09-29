@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.awaitCancellation
 import nl.hexmaster.pillsner.data.labelscan.toUprightGreyFrame
 
@@ -49,7 +50,17 @@ fun LabelScanCamera(viewModel: LabelScanViewModel, viewfinderSize: IntSize) {
 
     LaunchedEffect(lifecycleOwner, aspectRatio) {
         if (aspectRatio == null) return@LaunchedEffect
-        val provider = ProcessCameraProvider.awaitInstance(context)
+        // Acquired inside the failure path below: CameraX initialisation itself can fail on a device,
+        // and that must show the same failed state as a camera that cannot be bound.
+        val provider = try {
+            ProcessCameraProvider.awaitInstance(context)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            Log.d(TAG, "Camera provider unavailable")
+            viewModel.onCameraFailed()
+            return@LaunchedEffect
+        }
         val preview = Preview.Builder().build().apply {
             setSurfaceProvider { request -> viewModel.onSurfaceRequest(request) }
         }

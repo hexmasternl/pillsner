@@ -32,8 +32,9 @@ This file is the full account.
   (`USE_BIOMETRIC`, `USE_FINGERPRINT`, `WAKE_LOCK`, `ACCESS_NETWORK_STATE` and the app's own
   dynamic-receiver permission) have shipped since 1.0.0 without being listed; nothing about them
   changed except that they are now disclosed.
-- The download grows by the camera libraries, the native text-recognition libraries for the device's
-  processor and a 4 MB English model. <!-- size: measured in task 9.7 -->
+- The download grows by about 6 MB (from 3.1 MB to 9.0 MB on a 64-bit ARM phone, 8.7 MB on 32-bit ARM):
+  the camera libraries, the native text-recognition libraries for the device's processor and a 4 MB
+  English model.
 
 ### For developers
 

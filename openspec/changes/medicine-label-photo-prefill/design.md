@@ -212,6 +212,6 @@ No schema change and no data migration. The change ships as one feature branch. 
 
 ## Open Questions
 
-- Whether recognition quality on real labels in each of the six languages is acceptable with the English model alone. Task 8.4 answers this with a measurement before the pull request opens and records the outcome in this section.
-- Per-frame recognition time on the slowest supported test device, and whether 1280 × 960 is the right analysis resolution. Task 8.5 records it here.
-- The per-device package size increase. Task 8.6 records it here.
+- Whether recognition quality on real labels in each of the six languages is acceptable with the English model alone. Task 9.4 answers this with a measurement on a physical device before the pull request opens and records the outcome here. **Not yet measured at apply time**: the emulator has no real label to hold up. What is known: on the x86_64 emulator the real engine reads a drawn label (`LabelTextRecogniserTest`) and the interpretation returns exactly the expected fields.
+- Per-frame recognition time on the slowest supported test device, and whether 1280 × 960 is the right analysis resolution. Task 9.5 records it here. **First data point (29 September 2026, x86_64 emulator, not a slow device)**: engine open 145 to 242 ms, one 1000 × 390 greyscale frame recognised in 80 ms.
+- The per-device package size increase. **Measured (29 September 2026, task 9.7)** with bundletool 1.18.3 `get-size total --dimensions=ABI` on the release bundles of `development` (bd75ecb) and this branch: download size per device rose from about 3.10 MB to 9.00 MB on arm64-v8a (+5.9 MB), 8.68 MB on armeabi-v7a (+5.6 MB), 9.28 MB on x86_64 (+6.2 MB) and 9.26 MB on x86. The English model is 4.1 MB of that; the rest is the native Tesseract, Leptonica, libjpeg and libpng libraries for one ABI and the CameraX classes.

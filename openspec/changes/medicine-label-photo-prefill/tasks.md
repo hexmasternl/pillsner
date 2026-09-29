@@ -58,7 +58,7 @@
 
 - [x] 7.1 README: add the `CAMERA` row to the permission table (design D7 wording), name `app/manifest-allowlist.txt` as the source of truth, and add CameraX and the OCR library to the Technology table.
 - [x] 7.2 `CHANGELOG.md`: describe the feature, the new camera permission and when it is asked, the size increase and the build guard under the next release.
-- [ ] 7.3 Fill design D7's library rows and the Open Questions with the measured facts from section 9.
+- [x] 7.3 Fill design D7's library rows and the Open Questions with the measured facts from section 9.
 - [x] 7.4 Confirm `openspec/changes/medicine-label-ocr-scan/` is gone from this branch (removed with the proposal commit) and that nothing else references it.
 
 ## 8. Play listing
@@ -67,13 +67,13 @@
 
 ## 9. Verification
 
-- [ ] 9.1 Run the unit test task for `:app` and report the result verbatim.
-- [ ] 9.2 Run lint and report the result verbatim.
-- [ ] 9.3 Run the Compose and instrumented tests from 5.4 and 6.7 on an emulator and report the result verbatim.
+- [x] 9.1 Run the unit test task for `:app` and report the result verbatim.
+- [x] 9.2 Run lint and report the result verbatim.
+- [x] 9.3 Run the Compose and instrumented tests from 5.4 and 6.7 on an emulator and report the result verbatim.
 - [ ] 9.4 Manual, on a device: live-scan at least one real label or box per app language (EN, NL, DE, FR, ES, PT) and one picked photo. For each, record in design D1 which of name, default dose, schedule, used since and use until were right, wrong or absent, and how many seconds acceptance took. If a language is unusable, add its `tessdata_fast` file and re-measure, and record the size cost. If accuracy is unacceptable overall, stop and reopen design D1 rather than shipping.
 - [ ] 9.5 Measure per-frame recognition time on the slowest supported test device and record it in design D3's open question; if it exceeds about one second, lower the analysis resolution and re-measure.
 - [ ] 9.6 Manual: airplane mode from a fresh install, scan works; first-use rationale then system prompt; deny, permanently deny and settings action; camera-less emulator shows "Choose a photo" only; background during scan releases the camera and relocks when the app lock is on; rotation on the scanning screen.
-- [ ] 9.7 Build a release bundle, confirm the guard ran and passed for the release variant, and record the per-ABI download size increase (bundletool `get-size total`) in design D7 and the CHANGELOG.
+- [x] 9.7 Build a release bundle, confirm the guard ran and passed for the release variant, and record the per-ABI download size increase (bundletool `get-size total`) in design D7 and the CHANGELOG.
 - [ ] 9.8 Confirm with `adb logcat` on a release build that a scan writes no recognised text, name or amount to the log, and with the device file explorer that no image file appeared under the app's cache or files directories.
 
 ### Verification record
@@ -98,3 +98,24 @@ The line was removed again (`git diff` on the manifest is empty). `./gradlew :ap
 **5.4 and 6.7 Compose tests (29 September 2026).** On the Pixel_10 emulator: `LabelScanScreenTest` 8 tests, 0 failures; `MedicationFormScanScreenTest` 10 tests, 0 failures (`:app:connectedDebugAndroidTest` with the class filter, one class per run; the runner ignored a comma-separated pair). The "shutter before any read returns an empty interpretation" and "cancel pops without calling the form" behaviours are asserted at view-model level in `LabelScanViewModelTest` (13 tests), since the navigation composable binds a real camera.
 
 **6.8 UI review (29 September 2026).** Automated sweep from `pillsner-ui-review` over `ui/medicines/labelscan/`, `MedicationFormScreen.kt` and `MedicationFormNavigation.kt`: no hard-coded colours, sizes, shapes or text styles, no truncation, no alpha, no inline strings, no red outside danger (the review banner is `secondaryContainer`, see design D5). Check 11 flags every multi-line `Icon(` call; each has a `contentDescription` on the next line (null beside a label, a string when icon-only). Check 14 flags `CameraPermission.kt` and `LabelScanCamera.kt`, which declare non-visual composables (a permission launcher, a camera binder) and so have no preview, like a view model. Manual review: type roles (titleLarge app bar, bodyLarge copy, headlineSmall sheet headings, headlineMedium dialog titles), touch targets (48 dp, shutter 56 dp in the bottom third), live region on the instruction, strings sentence-case and verb-first. **Compliant.**
+
+**9.1 Unit tests (29 September 2026).** `./gradlew test`: BUILD SUCCESSFUL. `:app:testDebugUnitTest` ran 686 tests, 0 failures, 0 errors (the label-scan packages account for 76 domain, 14 frame-cropper, 13 scan view-model and 22 form view-model tests).
+
+**9.2 Lint (29 September 2026).** `./gradlew lint`: BUILD SUCCESSFUL. `MissingTranslation` and `ExtraTranslation` are errors in `lint.xml` and none fired; the debug report lists no issue in any file under `labelscan/`.
+
+**9.3 Instrumented tests (29 September 2026), Pixel_10 emulator.** `LabelScanScreenTest` 8/8, `MedicationFormScanScreenTest` 10/10, and `LabelTextRecogniserTest` 3/3: the bundled trained data installs and is replaced on a version change, the real Tesseract engine opens from it and reads a drawn label that the interpretation turns into name, 50 mg, one schedule and an until-date, and recognising after close returns nothing. Timings on the x86_64 emulator: engine open 145 to 242 ms, one 1000 × 390 frame recognised in 80 ms (`adb logcat -s LabelScanTest`).
+
+**9.7 Release bundle and size (29 September 2026).** `./gradlew :app:bundleRelease`: BUILD SUCCESSFUL, with `:app:verifyManifestGuardRelease` in its task graph (see below). Bundle: 24,936,192 bytes unsigned (all ABIs and languages). Per-device download size with bundletool 1.18.3 `build-apks --mode=default` then `get-size total --dimensions=ABI`, against the `development` bundle (bd75ecb, 7,528,218 bytes):
+
+| ABI | Before | After | Increase |
+| --- | --- | --- | --- |
+| arm64-v8a | 3,066,638 to 3,103,230 | 8,964,341 to 9,004,931 | about 5.9 MB |
+| armeabi-v7a | 3,066,054 to 3,102,654 | 8,644,052 to 8,684,644 | about 5.6 MB |
+| x86_64 | 3,066,558 to 3,103,161 | 9,237,754 to 9,278,354 | about 6.2 MB |
+| x86 | 3,066,762 to 3,103,347 | 9,216,147 to 9,256,745 | about 6.2 MB |
+
+Recorded in design D7's open questions and the CHANGELOG.
+
+**9.5 First data point.** On the x86_64 emulator (not the slowest supported device) the engine opens in 145 to 242 ms and reads a 1000 × 390 frame in 80 ms. The measurement on a slow physical device remains open.
+
+**Not done at apply time, needs a physical device and real labels: 9.4, 9.5 (slow device), 9.6, 9.8.** The emulator's virtual camera shows a rendered room, not a label, so live-scan accuracy, acceptance time per language and the logcat check of a real scan cannot be measured here. An end-to-end flow test that opened the real scanning screen through the navigation host was written and withdrawn: on this emulator the first test of any activity-based flow class fails with "No compose hierarchies found" before it reaches the form (the existing `MedicationFormFlowTest` fails its first test the same way), so it could not be shown to pass.

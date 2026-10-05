@@ -22,8 +22,8 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
  *
  * The service is the whole point of D4: ten seconds of receiver budget is not enough for a cold
  * start that has to open the database. When the platform refuses the service — which it should not,
- * for an exact alarm or a boot broadcast, but which is its call — the work falls back into the
- * receiver's own budget, where the wake's retry is the backstop behind it.
+ * for an exact alarm, but which is its call — the work falls back into the receiver's own budget,
+ * where the wake's retry is the backstop behind it.
  *
  * Before the first unlock after a reboot the service is skipped deliberately. A foreground service
  * has to show a notification, that notification needs its channel, and notification channels live
@@ -31,10 +31,27 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
  * one path that has no user to see it fail. The locked wake is a couple of reads from
  * device-protected storage and re-arming the alarms, which fits inside the receiver's own budget
  * with room to spare (reminder-delivery-after-reboot design D4).
+ *
+ * The wake that follows `BOOT_COMPLETED` skips the service too. From Android 15 the platform does
+ * not let a boot broadcast start a `shortService`, and it says so only once the service is already
+ * running, by refusing `startForeground()` — too late for the fallback here to see. So the boot wake
+ * runs in the receiver on every Android version, one path rather than a version branch, and it is
+ * not logged as a refusal because it is a known rule rather than a surprise. The retry and the
+ * watchdog that [SystemEventsReceiver] enqueues are the backstop if the budget runs out, and on a
+ * phone with a secure lock screen `USER_UNLOCKED` runs the full wake in the service anyway
+ * (fix-boot-wake-service-crash design D1, D3).
+ *
+ * [startService] and [wake] default to the real service and coordinator; the instrumented tests
+ * replace them to see which route a reason takes.
  */
-internal fun BroadcastReceiver.handOffWake(context: Context, reason: WakeReason) {
-    if (context.isUnlocked()) {
-        if (ReminderWakeService.startWake(context, reason)) return
+internal fun BroadcastReceiver.handOffWake(
+    context: Context,
+    reason: WakeReason,
+    startService: (Context, WakeReason) -> Boolean = ReminderWakeService::startWake,
+    wake: suspend (WakeReason) -> Unit = { context.reminderCoordinator().onWake(it) },
+) {
+    if (reason.mayStartWakeService() && context.isUnlocked()) {
+        if (startService(context, reason)) return
         context.deliveryLog().record(DeliveryEvent.SERVICE_REFUSED, reason.name)
     }
 
@@ -43,12 +60,15 @@ internal fun BroadcastReceiver.handOffWake(context: Context, reason: WakeReason)
     val pendingResult: BroadcastReceiver.PendingResult? = goAsync()
     CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
         try {
-            context.reminderCoordinator().onWake(reason)
+            wake(reason)
         } finally {
             pendingResult?.finish()
         }
     }
 }
+
+/** False for the boot wake, which the platform does not let start a `shortService` (design D1). */
+private fun WakeReason.mayStartWakeService(): Boolean = this != WakeReason.BOOT
 
 /**
  * The container a receiver works through. A receiver may be the first thing that starts the

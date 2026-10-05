@@ -26,6 +26,11 @@ import nl.hexmaster.pillsner.PillsnerApplication
  * stretch accumulated. `BOOT_COMPLETED` stays because on a device with no secure lock screen it is
  * the one that arrives.
  *
+ * The wake after `BOOT_COMPLETED` runs inside this receiver rather than in [ReminderWakeService].
+ * From Android 15 the platform refuses to let a boot broadcast promote a `shortService` to the
+ * foreground, and that refusal used to crash the process (fix-boot-wake-service-crash design D1).
+ * [handOffWake] makes that choice; the watchdog enqueued below is the net under it.
+ *
  * `RECEIVE_BOOT_COMPLETED`, already declared, covers the locked variant too; no new permission is
  * needed for any of this.
  */

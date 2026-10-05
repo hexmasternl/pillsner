@@ -14,9 +14,11 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import nl.hexmaster.pillsner.data.InMemoryDoseRepository
 import nl.hexmaster.pillsner.data.InMemoryMedicationRepository
 import nl.hexmaster.pillsner.domain.model.DoseUnit
@@ -219,6 +221,57 @@ class ReminderWakeTest {
     fun theBootBroadcast_isAccepted() {
         // Proves the receiver handles the action; what it then does is covered by the wake tests.
         SystemEventsReceiver().onReceive(context, Intent(Intent.ACTION_BOOT_COMPLETED))
+    }
+
+    @Test
+    fun theBootWake_runsInTheReceiverWithoutStartingTheService() = runBlocking {
+        val doses = InMemoryDoseRepository()
+        val scheduler = RecordingScheduler()
+        val coordinator = coordinator(doses, InMemoryMedicationRepository(listOf(hourly)), scheduler)
+        var serviceStarts = 0
+        val woke = CompletableDeferred<WakeReason>()
+
+        // From Android 15 a boot broadcast may not promote the service to the foreground, and the
+        // refusal used to crash the process (fix-boot-wake-service-crash design D1).
+        SystemEventsReceiver().handOffWake(
+            context,
+            WakeReason.BOOT,
+            startService = { _, _ -> serviceStarts++; true },
+            wake = { reason ->
+                try {
+                    coordinator.onWake(reason)
+                } finally {
+                    woke.complete(reason)
+                }
+            },
+        )
+
+        assertEquals(WakeReason.BOOT, withTimeout(10_000) { woke.await() })
+        assertEquals("The boot wake must not start the service", 0, serviceStarts)
+        assertNotNull(
+            "The dose that fell due is announced by the boot wake",
+            doses.all().first { it.scheduledAt == nineOClock }.firstRemindedAt,
+        )
+        val tenOClock = ZonedDateTime.of(today, LocalTime.of(10, 0), zone).toInstant()
+        assertTrue("The next alarm is armed", tenOClock in scheduler.reminderMoments)
+
+        doses.all().forEach { ReminderNotifier(context).cancel(it) }
+    }
+
+    @Test
+    fun anAlarmWake_stillGoesToTheService() {
+        var started: WakeReason? = null
+        var ranInReceiver = false
+
+        ReminderAlarmReceiver().handOffWake(
+            context,
+            WakeReason.ALARM,
+            startService = { _, reason -> started = reason; true },
+            wake = { ranInReceiver = true },
+        )
+
+        assertEquals(WakeReason.ALARM, started)
+        assertFalse("An accepted service start leaves nothing for the receiver to do", ranInReceiver)
     }
 
     @Test

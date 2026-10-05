@@ -128,7 +128,11 @@ enum class DeliveryEvent {
     /** The app woke before the first unlock and could only re-arm; the detail is the reason. */
     WAKE_DEFERRED,
 
-    /** The platform refused to start the wake service and the receiver ran the wake itself. */
+    /**
+     * The platform refused the wake service: either starting it, and the receiver ran the wake
+     * itself, or promoting it to the foreground, and the service ran the work in the background.
+     * The detail is the wake reason, or `ANSWER`.
+     */
     SERVICE_REFUSED,
 
     /** A reminder was posted; the detail is the dose id. */

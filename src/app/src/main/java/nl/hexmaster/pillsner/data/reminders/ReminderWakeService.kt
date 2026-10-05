@@ -42,8 +42,15 @@ class ReminderWakeService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        goForeground()
         val work = intent?.let(::commandOf)
+        // A refusal is survived, not thrown: the work below still runs, in the background, and the
+        // started service keeps the process alive far longer than the wake's nine seconds
+        // (fix-boot-wake-service-crash design D2).
+        promoteToForeground(
+            promote = ::goForeground,
+            log = (applicationContext as PillsnerApplication).container.reminderDeliveryLog,
+            detail = work?.logDetail,
+        )
         if (work == null) {
             stopSelf(startId)
             return START_NOT_STICKY
@@ -105,8 +112,16 @@ class ReminderWakeService : Service() {
 
     /** The two things the service is ever asked to do. */
     private sealed interface Command {
-        data class Wake(val reason: WakeReason) : Command
-        data class Answer(val doseId: DoseId, val action: ReminderAction) : Command
+        /** What the delivery log says about this command: never a medicine, an amount or a dose. */
+        val logDetail: String
+
+        data class Wake(val reason: WakeReason) : Command {
+            override val logDetail: String get() = reason.name
+        }
+
+        data class Answer(val doseId: DoseId, val action: ReminderAction) : Command {
+            override val logDetail: String get() = "ANSWER"
+        }
     }
 
     private fun commandOf(intent: Intent): Command? = when (intent.action) {
@@ -150,11 +165,42 @@ class ReminderWakeService : Service() {
             context.startForegroundService(intent)
             true
         } catch (error: Exception) {
-            // Starting a foreground service from the background is allowed for an exact alarm and
-            // for the boot broadcasts, which is every route here — but the allowance is the
+            // Starting a foreground service from the background is allowed for an exact alarm, a
+            // notification action and the non-boot system broadcasts — but the allowance is the
             // platform's to give, and the caller has a fallback that stays inside the receiver.
+            // The boot wake never comes here: from Android 15 a boot broadcast may not start this
+            // service type at all (fix-boot-wake-service-crash design D1). A refusal can also come
+            // later, from startForeground() inside the service; promoteToForeground handles that.
             Log.d(TAG, "Wake service refused: ${error::class.simpleName}")
             false
         }
     }
+}
+
+/**
+ * Asks for foreground status and survives being refused (fix-boot-wake-service-crash design D2).
+ *
+ * The platform can accept `startForegroundService()` and still refuse the `startForeground()` that
+ * follows: a `ForegroundServiceStartNotAllowedException` from Android 12, a `SecurityException` for
+ * a missing type permission, an `IllegalStateException` for a type it will not grant. The first is
+ * itself an `IllegalStateException`, so catching the two base types covers all three on every API
+ * level. A refusal is recorded as [DeliveryEvent.SERVICE_REFUSED] with [detail]; anything else is a
+ * bug and is thrown on.
+ *
+ * @return whether the service is now in the foreground.
+ */
+internal fun promoteToForeground(promote: () -> Unit, log: ReminderDeliveryLog, detail: String?): Boolean =
+    try {
+        promote()
+        true
+    } catch (refusal: IllegalStateException) {
+        recordRefusal(refusal, log, detail)
+    } catch (refusal: SecurityException) {
+        recordRefusal(refusal, log, detail)
+    }
+
+private fun recordRefusal(error: RuntimeException, log: ReminderDeliveryLog, detail: String?): Boolean {
+    Log.d("Reminders", "Foreground refused: ${error::class.simpleName}")
+    log.record(DeliveryEvent.SERVICE_REFUSED, detail)
+    return false
 }

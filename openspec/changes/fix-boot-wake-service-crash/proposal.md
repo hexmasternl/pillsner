@@ -2,6 +2,8 @@
 
 ## Why
 
+**GitHub Issue:** #88 (https://github.com/hexmasternl/pillsner/issues/88)
+
 Pillsner crashes right after the phone reboots. On Android 15 and later, a `BOOT_COMPLETED` broadcast may not start a `shortService` foreground service. The boot wake still goes to `ReminderWakeService`. `startForegroundService()` succeeds, then `startForeground(..., FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)` throws `ForegroundServiceStartNotAllowedException: FGS type shortService not allowed to start from BOOT_COMPLETED!` (`ReminderWakeService.kt:100`, from `onStartCommand`). The existing guard only wraps `startForegroundService()`, so the receiver's fallback never runs. The process dies and the reboot wake is lost: no recompute, no catch-up reminders, no new alarm. This breaks the product's core promise to remind reliably.
 
 ## What Changes

@@ -84,8 +84,10 @@ gh pr list --search "<change-name> in:title" --state all --json number,title,url
    half-state (the issue exists but the link that lets this skill find it next time doesn't), not a
    normal in-progress edit worth leaving for a later, larger commit. Use a message such as
    `docs: link GitHub issue #<number> in <name> proposal`, in the imperative mood with the change
-   name in the body, per `CLAUDE.md`'s commit conventions. Do not push it — pushing is not part of
-   propose mode.
+   name in the body, per `CLAUDE.md`'s commit conventions. This can be the same commit as the
+   proposal itself: `.claude/skills/git-workflow/SKILL.md` (lifecycle step 1) commits the new
+   change on `development` and pushes it immediately after propose, and that push carries this
+   link too.
 7. Report the issue URL to the user.
 
 ## Mode: apply-complete
@@ -113,28 +115,26 @@ This mode both comments on the issue and opens the pull request that will close 
 4. Compose the summary text once: what was implemented, key decisions or corrections made along the
    way, verification status (call out anything **not** verified as plainly as `tasks.md` does — do
    not round a partial verification up to "done"), and the commit list. This same text is used for
-   both the PR body and the issue comment below.
-5. Push the branch and open the PR:
-   - Confirm which branch holds the change's commits (usually the current branch, named
-     `feature/<change-name>` per `CLAUDE.md`'s git conventions and cut from `development` per
-     `.claude/skills/git-workflow/SKILL.md`) and that it is based on an up-to-date `development`.
-   - Show the user the branch name, PR title, and PR body — the PR body is the summary from step 4
-     plus a closing line `Closes #<issue-number>` and a link to the change folder
-     (`openspec/changes/<name>/`) — and ask for confirmation before doing anything that touches the
-     remote. This is a push and a publicly visible PR, not a local edit, so always confirm even when
-     the rest of this mode is being run without being asked.
-   - On confirmation: push the branch (`git push -u origin <branch>` if it has no upstream yet, or a
-     plain `git push` otherwise), then
-     `gh pr create --title "<title>" --body "<body>" --base development --head <branch>`.
+   both the PR body and the issue comment below. If any task needed manual testing, the summary
+   opens with the **Manual testing required before merge** callout defined in
+   `.claude/skills/git-workflow/SKILL.md` (lifecycle step 5) — a `> [!WARNING]` block with one
+   unchecked checkbox per manual test, its steps and its expected result — before anything else.
+5. Push the branch and open the PR, without asking first — pushing and opening the PR is the agreed
+   end of every change (see `.claude/skills/git-workflow/SKILL.md`, lifecycle step 5):
+   - Confirm which branch holds the change's commits (usually `feature/<change-name>`, in its
+     worktree under `../pillsner-worktrees/<change-name>`), that it has no uncommitted work (make a
+     final commit if it does), and that it is based on an up-to-date `development`.
+   - Push the branch (`git push -u origin <branch>` if it has no upstream yet, or a plain
+     `git push` otherwise), then
+     `gh pr create --title "<title>" --body "<body>" --base development --head <branch>`, where
+     the body is the summary from step 4 plus a closing line `Closes #<issue-number>` and a link to
+     the change folder (`openspec/changes/<name>/`).
    - Add `**Pull Request:** #<number> (<url>)` as its own line directly under the
      `**GitHub Issue:**` line in `proposal.md`, then commit that edit immediately, same as the issue
      link edit in **Mode: propose** step 6 (message such as
-     `docs: link pull request #<number> in <name> proposal`). Push this commit too — the branch was
-     just pushed and confirmed with the user in this same step, so adding one more commit to it
-     needs no separate confirmation; use `git push` (no new confirmation needed, it is the same
-     push already agreed to).
-   - If the user declines the push/PR step, still complete step 6 (the issue comment) so the
-     implementation summary isn't lost, and tell them the PR is still pending.
+     `docs: link pull request #<number> in <name> proposal`), and `git push`.
+   - Then monitor the PR for merge conflicts and failing checks and fix them, as described in
+     `.claude/skills/git-workflow/SKILL.md` (lifecycle step 6).
 6. Compose the issue comment: the same summary from step 4, plus a line noting the PR
    (`Opened #<pr-number>, which will close this issue on merge.`) when one was created. End it with
    the marker line `<!-- github-openspec-sync: apply-complete -->` (on its own line, so it does not
@@ -203,12 +203,11 @@ when the user just wants to check.
   because they exist to make the issue/PR findable on the next run, not as work in progress; it
   never commits anything else unasked. It never creates or deletes branches, never merges a PR,
   never force-pushes, and never touches any other git remote operation beyond the plain `git push`
-  noted in **Mode: apply-complete** step 5. Branch creation and cleanup are
+  noted in **Mode: apply-complete** step 5. Branch and worktree creation, the commits and pushes
+  on `development` after propose and archive, PR monitoring, and cleanup are
   `.claude/skills/git-workflow/SKILL.md`'s job, not this skill's.
-- Always show the user the exact branch name, PR title, and PR body before pushing or running
-  `gh pr create`, and wait for confirmation — this holds every time this mode runs, whether invoked
-  proactively or on request, because a push and a public PR are visible, shared-state actions per
-  `CLAUDE.md`'s risk policy, not local edits.
+- Pushing the feature branch and opening its PR into `development` happen without asking, because
+  the user has agreed that every finished change ends that way. Report the PR URL afterwards.
 - Merging the pull request is always a human action. This skill never merges, and never asks the
   user to merge as a way of forcing the issue closed sooner.
 - Never close or comment on an issue this skill did not itself locate via the `proposal.md` link or

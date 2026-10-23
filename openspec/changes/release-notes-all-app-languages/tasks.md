@@ -7,7 +7,7 @@
 
 ## 2. Whatsnew files
 
-- [ ] 2.1 Add `whatsnew-de-DE`, `whatsnew-fr-FR`, `whatsnew-es-ES` and `whatsnew-pt-PT` (European Portuguese) as natural translations of the current English notes. Change the language bullet to "six languages" in all six files, `en-US` and `nl-NL` included. Verify the check from 1.1 now passes.
+- [x] 2.1 Add `whatsnew-de-DE`, `whatsnew-fr-FR`, `whatsnew-es-ES` and `whatsnew-pt-PT` (European Portuguese) as natural translations of the current English notes. Change the language bullet to "six languages" in all six files, `en-US` and `nl-NL` included. Verify the check from 1.1 now passes.
 
 ## 3. Drafting in six languages
 

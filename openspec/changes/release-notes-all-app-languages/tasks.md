@@ -11,7 +11,7 @@
 
 ## 3. Drafting in six languages
 
-- [ ] 3.1 In `collect_release_notes.py`, introduce the `LANGUAGES` table. Replace `--style-en/--style-nl` with `--whatsnew-dir`, and `--english-file/--dutch-file` with repeatable `--draft <code>=<file>`. Render one comment section per language in table order, each naming its whatsnew file, with the hidden marker unchanged. Add unit tests for `build_comment_body` (all six headings in order, marker present, the "nothing new" body unchanged) and for prompt building (every style file included). Verify `python3 -m unittest discover -s .github/scripts` passes.
+- [x] 3.1 In `collect_release_notes.py`, introduce the `LANGUAGES` table. Replace `--style-en/--style-nl` with `--whatsnew-dir`, and `--english-file/--dutch-file` with repeatable `--draft <code>=<file>`. Render one comment section per language in table order, each naming its whatsnew file, with the hidden marker unchanged. Add unit tests for `build_comment_body` (all six headings in order, marker present, the "nothing new" body unchanged) and for prompt building (every style file included). Verify `python3 -m unittest discover -s .github/scripts` passes.
 - [ ] 3.2 In `release-notes.yml`, pass `--whatsnew-dir distribution/whatsnew` to `format-prompt`. Replace the English and Dutch drafting steps with six steps (en, nl, de, fr, es, pt) that share one English system prompt naming the target language. Pass every response to `comment` through `--draft`. Update the header comment. Verify the YAML parses and every `steps.draft_<code>.outputs.response` reference matches a step id.
 
 ## 4. Documentation and release readiness

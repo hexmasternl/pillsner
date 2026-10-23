@@ -57,7 +57,7 @@ class RoomStockBatchRepository(
     }
 }
 
-private fun StockBatchEntity.toDomain(): StockBatch = StockBatch(
+internal fun StockBatchEntity.toDomain(): StockBatch = StockBatch(
     id = StockBatchId(id),
     medicationId = MedicationId(medicationId),
     remaining = remainingValue,

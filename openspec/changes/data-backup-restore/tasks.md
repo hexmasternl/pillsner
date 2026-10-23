@@ -38,11 +38,11 @@
 
 - [x] 5.1 After a successful import, rebuild the reminder/alarm schedule from the imported data, cancelling stale alarms and scheduling new ones, reusing the existing post-reset rebuild path.
 - [x] 5.2 After a successful import, publish the imported doses to a paired watch, replacing whatever it held before, reusing the existing post-reset watch sync path.
-- [ ] 5.3 Add an instrumented test confirming alarms and watch state match the imported data after import.
+- [x] 5.3 Add an instrumented test confirming alarms and watch state match the imported data after import.
 
 ## 6. Verification
 
-- [ ] 6.1 Run unit tests and lint; fix any failures.
-- [ ] 6.2 Run instrumented tests covering export/import, alarm scheduling and watch sync.
-- [ ] 6.3 Manually verify: export with a passphrase, uninstall and reinstall (or reset), import the file, and confirm medicines, schedules, stock and history match exactly.
-- [ ] 6.4 Manually verify a wrong passphrase, a corrupted file, and cancelling each picker all leave existing data untouched.
+- [x] 6.1 Run unit tests and lint; fix any failures.
+- [x] 6.2 Run instrumented tests covering export/import, alarm scheduling and watch sync.
+- [x] 6.3 Manually verify: export with a passphrase, uninstall and reinstall (or reset), import the file, and confirm medicines, schedules, stock and history match exactly.
+- [x] 6.4 Manually verify a wrong passphrase, a corrupted file, and cancelling each picker all leave existing data untouched.

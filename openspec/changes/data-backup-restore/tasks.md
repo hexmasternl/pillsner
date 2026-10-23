@@ -8,13 +8,13 @@
 
 ## 2. Data: file format, versioning and encryption
 
-- [ ] 2.1 Define the `.pill` file header (magic marker, format version, salt, KDF iteration count, nonce) and a format-version-1 payload schema for `BackupSnapshot`: JSON, GZIP-compressed with `java.util.zip`, then encrypted.
-- [ ] 2.2 Implement PBKDF2-HMAC-SHA256 key derivation and AES-256-GCM encrypt/decrypt using `javax.crypto`, with a random salt and nonce generated per export and a fixed iteration count of 600,000 written to the header.
-- [ ] 2.3 Implement the format-version-1 serialiser/deserialiser for `BackupSnapshot`, including GZIP compression before encryption and decompression after decryption.
-- [ ] 2.4 Implement version-mismatch handling: fail with a clear, distinguishable error when the file's format version is newer than any this app version deserialises.
-- [ ] 2.5 Implement wrong-passphrase and corrupted-file handling: any GCM authentication failure surfaces as one clear "could not be read" error, never a partial result.
-- [ ] 2.6 Reject a header whose iteration count falls outside 100,000–2,000,000 before attempting PBKDF2, surfacing the same clear "could not be read" error.
-- [ ] 2.7 Add unit tests for encrypt/decrypt round-trip (including that the payload is compressed), wrong passphrase, corrupted ciphertext, an unrecognised format version, and an out-of-range iteration count rejected without deriving a key.
+- [x] 2.1 Define the `.pill` file header (magic marker, format version, salt, KDF iteration count, nonce) and a format-version-1 payload schema for `BackupSnapshot`: JSON, GZIP-compressed with `java.util.zip`, then encrypted.
+- [x] 2.2 Implement PBKDF2-HMAC-SHA256 key derivation and AES-256-GCM encrypt/decrypt using `javax.crypto`, with a random salt and nonce generated per export and a fixed iteration count of 600,000 written to the header.
+- [x] 2.3 Implement the format-version-1 serialiser/deserialiser for `BackupSnapshot`, including GZIP compression before encryption and decompression after decryption.
+- [x] 2.4 Implement version-mismatch handling: fail with a clear, distinguishable error when the file's format version is newer than any this app version deserialises.
+- [x] 2.5 Implement wrong-passphrase and corrupted-file handling: any GCM authentication failure surfaces as one clear "could not be read" error, never a partial result.
+- [x] 2.6 Reject a header whose iteration count falls outside 100,000–2,000,000 before attempting PBKDF2, surfacing the same clear "could not be read" error.
+- [x] 2.7 Add unit tests for encrypt/decrypt round-trip (including that the payload is compressed), wrong passphrase, corrupted ciphertext, an unrecognised format version, and an out-of-range iteration count rejected without deriving a key.
 
 ## 3. Platform: Storage Access Framework integration
 

@@ -43,16 +43,24 @@ class ReminderWakeService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val work = intent?.let(::commandOf)
-        // A refusal is survived, not thrown: the work below still runs, in the background, and the
-        // started service keeps the process alive far longer than the wake's nine seconds
-        // (fix-boot-wake-service-crash design D2).
-        promoteToForeground(
+        val promoted = promoteToForeground(
             promote = ::goForeground,
             log = (applicationContext as PillsnerApplication).container.reminderDeliveryLog,
             detail = work?.logDetail,
         )
         if (work == null) {
             stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
+        if (!promoted) {
+            // A service started with startForegroundService() that never reaches the foreground
+            // must not outlive the promotion window, or the platform may still crash the process.
+            // So it stops at once and the work runs on a scope of its own, the way a receiver's
+            // fallback does; the service's scope would be cancelled with it
+            // (fix-boot-wake-service-crash design D2).
+            stopSelf(startId)
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { run(work) }
             return START_NOT_STICKY
         }
 

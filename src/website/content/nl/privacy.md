@@ -17,6 +17,14 @@ params:
     - heading: "Helemaal geen internettoestemming"
       body: "Pillsner vraagt niet om internettoegang. Een app die het netwerk niet kan bereiken, kan je gegevens er ook niet naartoe lekken, hoe hij ook gebouwd is. Het vraagt ook nooit om je locatie of je contacten."
       note: "Met de horloge-app geïnstalleerd reizen de doses die je nog moet innemen ook naar je horloge, over de directe verbinding tussen de twee gekoppelde toestellen. Er gaat niets naar een server, en geen van beide apps vraagt om internettoegang."
+    - heading: "De camera, alleen als jij dat vraagt"
+      body: "Pillsner vraagt alleen om de camera als je bij het toevoegen van een medicijn kiest voor Scannen met camera, en vertelt eerst waarom. Het leest het etiket op je telefoon zelf, bewaart geen foto en geen tekst, en stuurt niets weg. Zeg je nee, dan verlies je niets: je kunt nog steeds een foto kiezen of de gegevens intypen."
+    - heading: "Een back-up die alleen jij hebt"
+      body: "Gegevens exporteren in Instellingen schrijft je medicijnen, schema's, voorraad en geschiedenis naar één bestand, op de plek die jij kiest. Pillsner stuurt het nergens naartoe; waar het daarna heen gaat, bepaal jij."
+      points:
+        - "Beveiligd met een wachtwoordzin die je zelf kiest, en die niet te herstellen is als je hem vergeet"
+        - "Je app-vergrendeling, taal en thema staan niet in het bestand"
+        - "Gegevens importeren vervangt wat op de telefoon staat door de inhoud van het bestand, nadat je dat bevestigt"
     - heading: "Een optionele app-vergrendeling"
       body: "Zet de app-vergrendeling aan en Pillsner vraagt om een pincode — en, eenmaal ingesteld, je vingerafdruk of gezicht — voordat het opent. Schermafbeeldingen en de miniatuur bij recente apps worden verborgen zolang het aanstaat."
       points:

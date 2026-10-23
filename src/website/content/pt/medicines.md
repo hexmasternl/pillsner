@@ -23,6 +23,12 @@ params:
         - "Um nome, uma quantidade e uma unidade que corresponda à forma como o medicamento é realmente tomado"
         - "Uma data de início e uma data de fim, quando o tratamento tiver uma"
         - "Quem o receitou, para que mais tarde saiba quem o pôs a tomá-lo"
+    - heading: "Ou digitalize o rótulo"
+      body: "Prefere não escrever tudo? No formulário Adicionar medicamento, toque em Digitalizar um rótulo e aponte a câmara para o rótulo da farmácia ou para a caixa, ou escolha uma foto que já tirou. O Pillsner lê o texto no seu telemóvel e preenche o nome, a dose, a frequência com que o deve tomar e as datas que encontrar, para que as verifique antes de guardar."
+      points:
+        - "Lê rótulos em inglês, neerlandês, alemão, francês, espanhol e português"
+        - "O que não consegue ler com certeza fica vazio, em vez de ser adivinhado"
+        - "Funciona sem ligação à internet e não guarda nenhuma imagem nem nenhum texto"
     - heading: "Mudar de ideias"
       body: "Toque num medicamento para o abrir e alterar o que quiser: o nome, a dose, as datas, quem o receitou, os horários e se o está a tomar atualmente."
       note: "Editar nunca reescreve o histórico. As tomas a que já respondeu mantêm o nome e a quantidade com que foram tomadas; só o que ainda está à sua frente segue a alteração."

@@ -23,6 +23,12 @@ params:
         - "Un nom, une quantité et une unité qui correspondent à la façon dont le médicament est réellement pris"
         - "Une date de début, et une date de fin lorsque le traitement en a une"
         - "Le prescripteur, pour savoir plus tard qui vous l'a prescrit"
+    - heading: "Ou scannez l'étiquette"
+      body: "Vous préférez ne pas tout saisir ? Dans le formulaire Ajouter un médicament, touchez Scanner une étiquette et dirigez l'appareil photo vers l'étiquette de la pharmacie ou la boîte, ou choisissez une photo déjà prise. Pillsner lit le texte sur votre téléphone et remplit le nom, la dose, la fréquence de prise et les dates qu'elle trouve, pour que vous les vérifiiez avant d'enregistrer."
+      points:
+        - "Lit les étiquettes en anglais, néerlandais, allemand, français, espagnol et portugais"
+        - "Ce qu'elle ne peut pas lire avec certitude reste vide plutôt que deviné"
+        - "Fonctionne sans connexion, et ne conserve ni image ni texte"
     - heading: "Changer d'avis"
       body: "Touchez un médicament pour l'ouvrir et modifier tout ce que vous voulez : son nom, sa dose, ses dates, qui l'a prescrit, ses horaires, et si vous le prenez actuellement."
       note: "Une modification ne réécrit jamais l'historique. Les prises auxquelles vous avez déjà répondu gardent le nom et la quantité sous lesquels elles ont été prises ; seul ce qui vous attend encore suit le changement."

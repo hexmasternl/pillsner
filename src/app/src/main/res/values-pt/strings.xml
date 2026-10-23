@@ -261,6 +261,42 @@
     <string name="reset_dialog_confirm">Apagar tudo</string>
     <string name="reset_done_message">Tudo foi apagado</string>
 
+    <!-- Cópia de segurança e restauro (data-backup-restore) -->
+    <string name="backup_header">Os seus dados</string>
+    <string name="backup_explanation">Guarde tudo num ficheiro que mantém consigo, ou recupere-o a partir de um. O Pillsner nunca envia o ficheiro por si próprio.</string>
+    <string name="backup_export_title">Exportar dados</string>
+    <string name="backup_export_summary">Medicamentos, horários, stock e histórico, num ficheiro bloqueado</string>
+    <string name="backup_import_title">Importar dados</string>
+    <string name="backup_import_summary">Substituir o que está neste telemóvel por uma cópia de segurança</string>
+    <string name="backup_progress_exporting">A exportar os seus dados…</string>
+    <string name="backup_progress_reading">A abrir a cópia de segurança…</string>
+    <string name="backup_progress_importing">A importar os seus dados…</string>
+    <string name="backup_export_dialog_title">Escolha uma frase-passe</string>
+    <string name="backup_export_dialog_body">A cópia de segurança fica bloqueada com esta frase-passe. Vai precisar dela para a importar mais tarde.</string>
+    <string name="backup_export_dialog_no_recovery">Uma frase-passe esquecida não pode ser recuperada. Sem ela, a cópia de segurança não pode ser aberta.</string>
+    <string name="backup_field_passphrase">Frase-passe</string>
+    <string name="backup_field_confirmation">Escreva-a novamente</string>
+    <string name="backup_error_mismatch">As duas frases-passe são diferentes. Escreva a mesma duas vezes.</string>
+    <string name="backup_export_dialog_confirm">Escolher onde guardar</string>
+    <string name="backup_import_dialog_title">Abrir cópia de segurança</string>
+    <string name="backup_import_dialog_body">Introduza a frase-passe que escolheu ao exportar esta cópia de segurança.</string>
+    <string name="backup_error_wrong_passphrase">Esta frase-passe não abre a cópia de segurança. Verifique-a e tente novamente. Se estiver correta, o ficheiro foi alterado desde a exportação.</string>
+    <string name="backup_import_dialog_confirm">Abrir</string>
+    <string name="backup_confirm_title">Substituir os seus dados?</string>
+    <string name="backup_confirm_replaced">Todos os medicamentos, horários, stock e o seu histórico completo de tomas neste telemóvel serão substituídos pela cópia de segurança. Não é possível anular.</string>
+    <string name="backup_confirm_kept">O seu idioma, tema, bloqueio da app e os documentos que aceitou ficam como estão.</string>
+    <string name="backup_confirm_checkbox">Compreendo que os meus dados atuais serão substituídos</string>
+    <string name="backup_confirm_action">Substituir dados</string>
+    <string name="backup_message_export_done">Os seus dados foram exportados</string>
+    <string name="backup_message_export_cancelled">Exportação cancelada. Nenhum ficheiro foi guardado.</string>
+    <string name="backup_message_export_failed">Não foi possível guardar a cópia de segurança. Tente novamente ou escolha outro local.</string>
+    <string name="backup_message_import_done">Os seus dados foram importados</string>
+    <string name="backup_message_import_cancelled">Importação cancelada. Nada foi alterado.</string>
+    <string name="backup_message_import_failed">A importação não terminou. Nada foi alterado.</string>
+    <string name="backup_message_not_a_backup">Este ficheiro não é uma cópia de segurança do Pillsner, ou está danificado. Nada foi alterado.</string>
+    <string name="backup_message_newer_version">Esta cópia de segurança foi criada por uma versão mais recente do Pillsner. Atualize a app e tente novamente.</string>
+    <string name="backup_message_read_failed">Não foi possível abrir o ficheiro. Nada foi alterado.</string>
+
     <!-- Detalhes da dose -->
     <string name="dose_detail_title">Dose</string>
     <string name="dose_detail_close">Fechar</string>

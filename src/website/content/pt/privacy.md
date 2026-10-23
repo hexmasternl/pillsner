@@ -17,6 +17,14 @@ params:
     - heading: "Nenhuma permissão de internet"
       body: "O Pillsner não pede acesso à internet. Uma aplicação que não consegue chegar à rede não lhe pode fugir com os seus dados, seja como for construída. Também nunca pede a sua localização nem os seus contactos."
       note: "Com a aplicação do relógio instalada, as tomas que ainda tem de fazer viajam também para o seu relógio pela ligação direta entre os dois dispositivos emparelhados. Nada vai para um servidor, e nenhuma das aplicações pede acesso à internet."
+    - heading: "A câmara, só quando pede"
+      body: "O Pillsner só pede para usar a câmara quando escolhe Digitalizar com a câmara ao adicionar um medicamento, e explica primeiro porquê. Lê o rótulo no próprio telemóvel, não guarda nenhuma imagem nem nenhum texto, e não envia nada para lado nenhum. Se disser que não, não perde nada: pode na mesma escolher uma foto ou escrever os dados."
+    - heading: "Uma cópia de segurança que só você guarda"
+      body: "Exportar dados, nas Definições, grava os seus medicamentos, horários, stock e histórico num único ficheiro, no sítio que escolher. O Pillsner nunca o envia para lado nenhum; para onde vai a seguir é consigo."
+      points:
+        - "Protegido por uma frase-passe que escolhe e que não pode ser recuperada se a esquecer"
+        - "O bloqueio da aplicação, o idioma e o tema não estão no ficheiro"
+        - "Importar dados substitui o que está no telemóvel pelo conteúdo do ficheiro, depois de confirmar"
     - heading: "Um bloqueio de aplicação opcional"
       body: "Ative o bloqueio da aplicação e o Pillsner pede um PIN — e, depois de configurado, a sua impressão digital ou o seu rosto — antes de abrir. As capturas de ecrã e a miniatura nas aplicações recentes ficam ocultas enquanto está ativo."
       points:

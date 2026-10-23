@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -85,6 +86,10 @@ class AboutSectionTest {
         }
     }
 
+    /** Where the row tagged [tag] starts, or null while it is not composed. */
+    private fun topOf(tag: String): Float? =
+        composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().firstOrNull()?.positionInRoot?.y
+
     private fun scrollToAboutRow() {
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag(AboutSectionTestTags.ABOUT_ROW))
@@ -104,17 +109,23 @@ class AboutSectionTest {
     fun aboutSectionComesAfterSecurity() {
         setSettings()
 
-        // Scrolling down to About must pass Security: if About were first, the Security row would
-        // not be above it in the list order the semantics tree reports.
-        scrollToAboutRow()
-        val securityTop = composeRule.onNodeWithTag(SecuritySectionTestTags.CHANGE_PIN_ROW)
-            .fetchSemanticsNode().positionInRoot.y
-        val aboutTop = composeRule.onNodeWithTag(AboutSectionTestTags.ABOUT_ROW)
-            .fetchSemanticsNode().positionInRoot.y
+        // Checked from both ends, because the two rows need not fit on one screen: a lazy list
+        // composes only what is visible, and scrolling to a row brings it to the top when there is
+        // content below it to make room. With Change PIN in view, About is either below it or not
+        // composed yet; with About in view, Change PIN is either above it or already scrolled away.
+        composeRule.onNode(hasScrollAction())
+            .performScrollToNode(hasTestTag(SecuritySectionTestTags.CHANGE_PIN_ROW))
+        val securityTop = topOf(SecuritySectionTestTags.CHANGE_PIN_ROW)!!
+        val aboutWhileSecurityShows = topOf(AboutSectionTestTags.ABOUT_ROW)
+        assert(aboutWhileSecurityShows == null || aboutWhileSecurityShows > securityTop) {
+            "About was at $aboutWhileSecurityShows, above Change PIN at $securityTop"
+        }
 
-        assert(aboutTop > securityTop) {
-            "Expected the About row below the Security section, but About was at $aboutTop and " +
-                "Change PIN at $securityTop"
+        scrollToAboutRow()
+        val aboutTop = topOf(AboutSectionTestTags.ABOUT_ROW)!!
+        val securityWhileAboutShows = topOf(SecuritySectionTestTags.CHANGE_PIN_ROW)
+        assert(securityWhileAboutShows == null || securityWhileAboutShows < aboutTop) {
+            "Change PIN was at $securityWhileAboutShows, below About at $aboutTop"
         }
     }
 

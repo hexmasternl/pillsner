@@ -2,7 +2,9 @@
 
 ## Purpose
 TBD - created by archiving change app-medicine-add. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Medications are stored on the device with Room
 The app SHALL persist medications and their schedules in a Room database stored only on the device. No medication data MUST leave the device through this capability.
 
@@ -98,9 +100,11 @@ Version 4: adds `planned_at` (default 0, backfilled from `scheduled_at` on migra
 
 Version 5: adds a composite index on the `doses` table's outcome and scheduled moment columns, so a query for pending doses (outcome not yet recorded) ordered by scheduled moment stays a single index scan as the table grows. No column or data change.
 
+Version 6: adds a `stock_batches` table (medication reference with cascade delete, a remaining-amount value column, a remaining-amount unit column, a strength-per-unit column (how much of the medication's default dose unit one unit of the batch is worth, stored as exact decimal text), an expiry date column, an added-at moment column, an index on medication and expiry date for first-expiry-first-out queries) and a nullable `low_stock_acknowledgement` column on `medications` (default `NULL`), owned by the `medicine-stock-tracking` capability.
+
 #### Scenario: Schema exports present
 - **WHEN** the project is built
-- **THEN** schema JSON files for versions 1 through 5 exist under the app module's schemas directory and are checked in
+- **THEN** schema JSON files for versions 1 through 6 exist under the app module's schemas directory and are checked in
 
 #### Scenario: Cascade delete of schedules
 - **WHEN** a medication row is deleted directly through the DAO
@@ -121,6 +125,18 @@ Version 5: adds a composite index on the `doses` table's outcome and scheduled m
 #### Scenario: Pending query uses the composite index
 - **WHEN** the query plan for `SELECT * FROM doses WHERE outcome IS NULL ORDER BY scheduled_at ASC` is inspected on a version 5 database
 - **THEN** it uses the composite index on `(outcome, scheduled_at)` rather than a full table scan
+
+#### Scenario: Migrate 5 to 6 keeps data
+- **WHEN** the migration test creates a version 5 database with a medication, a schedule and a dose row and runs the migration to version 6
+- **THEN** validation against the exported version 6 schema passes, the medication, schedule and dose rows are unchanged, the medication's new `low_stock_acknowledgement` column is `NULL`, and the `stock_batches` table exists and is empty
+
+#### Scenario: Stock batch cascade delete
+- **WHEN** a medication row with stock batch rows is deleted directly through the DAO
+- **THEN** its stock batch rows are deleted as well
+
+#### Scenario: Stock batch round-trip
+- **WHEN** a stock batch of 30 tablets expiring 1 June is saved for a medicine and read back
+- **THEN** its remaining amount is exactly 30 tablets and its expiry date is 1 June
 
 ### Requirement: Active flag is updated in place
 The Room-backed repository SHALL set a medication's active flag with a single update statement on the `medications` row identified by its id. The statement MUST NOT touch the `schedules` or `doses` tables and MUST NOT require a schema change: the `is_active` column has existed since version 1. Observers of the medication stream SHALL receive a new emission after the update. Updating an id that does not exist SHALL affect no rows and raise no error.
@@ -214,4 +230,3 @@ No production code path SHALL delete a row from the `medications` table, with on
 #### Scenario: No single medicine can be removed
 - **WHEN** a caller holds one medication and wants it gone
 - **THEN** the repository offers no way to remove it; deactivating it is the only option, and its dose history is kept
-

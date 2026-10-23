@@ -1,5 +1,9 @@
 package nl.hexmaster.pillsner.ui
 
+import android.content.ActivityNotFoundException
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
+import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +75,9 @@ import nl.hexmaster.pillsner.ui.navigation.Settings
 import nl.hexmaster.pillsner.ui.navigation.TopLevelDestination
 import nl.hexmaster.pillsner.ui.navigation.topLevelDestinations
 import nl.hexmaster.pillsner.ui.settings.SettingsScreen
+import nl.hexmaster.pillsner.ui.settings.backup.BackupCallbacks
+import nl.hexmaster.pillsner.ui.settings.backup.BackupPickerRequest
+import nl.hexmaster.pillsner.ui.settings.backup.BackupViewModel
 import nl.hexmaster.pillsner.ui.settings.about.AboutScreen
 import nl.hexmaster.pillsner.ui.settings.diagnostics.ReminderDiagnosticsScreen
 import nl.hexmaster.pillsner.ui.settings.diagnostics.ReminderDiagnosticsViewModel
@@ -105,6 +112,37 @@ fun PillsnerApp(
 ) {
     val appLockUiState by appLockViewModel.uiState.collectAsStateWithLifecycle()
 
+    // Above the lock gate, like the nav controller (data-backup-restore). The system file picker is
+    // another app, so opening it relocks this one and takes Settings out of composition; a launcher
+    // registered in Settings would be gone by the time the picked file came back. Here the result
+    // always has a launcher and an activity-scoped view model to land in, and the flow carries on
+    // once the user unlocks.
+    val backupViewModel: BackupViewModel = viewModel(factory = viewModelFactory)
+    val createBackupDocument = rememberLauncherForActivityResult(CreateDocument(BACKUP_MIME_TYPE)) { uri ->
+        backupViewModel.onExportDocumentChosen(uri?.toString())
+    }
+    val openBackupDocument = rememberLauncherForActivityResult(OpenDocument()) { uri ->
+        backupViewModel.onImportDocumentChosen(uri?.toString())
+    }
+    LaunchedEffect(backupViewModel) {
+        backupViewModel.pickerRequests.collect { request ->
+            when (request) {
+                is BackupPickerRequest.CreateDocument -> try {
+                    createBackupDocument.launch(request.suggestedName)
+                } catch (_: ActivityNotFoundException) {
+                    backupViewModel.onExportDocumentChosen(null)
+                }
+                BackupPickerRequest.OpenDocument -> try {
+                    // Any type: a backup that went through email or a cloud drive rarely keeps a
+                    // MIME type of its own. The header check refuses whatever is not one.
+                    openBackupDocument.launch(arrayOf("*/*"))
+                } catch (_: ActivityNotFoundException) {
+                    backupViewModel.onImportDocumentChosen(null)
+                }
+            }
+        }
+    }
+
     when (appLockUiState.lockState) {
         LockState.Loading -> Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {}
 
@@ -129,6 +167,7 @@ fun PillsnerApp(
             appInfo = appInfo,
             modifier = modifier,
             navController = navController,
+            backupViewModel = backupViewModel,
         )
     }
 }
@@ -146,6 +185,7 @@ private fun PillsnerAppContent(
     appInfo: AppInfo,
     modifier: Modifier = Modifier,
     navController: NavHostController,
+    backupViewModel: BackupViewModel,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -288,6 +328,7 @@ private fun PillsnerAppContent(
                 val themeState by themeViewModel.state.collectAsStateWithLifecycle()
                 val resetViewModel: ResetViewModel = viewModel(factory = viewModelFactory)
                 val resetState by resetViewModel.uiState.collectAsStateWithLifecycle()
+                val backupState by backupViewModel.uiState.collectAsStateWithLifecycle()
                 SettingsScreen(
                     languageState = languageState,
                     onLanguageSelected = languageViewModel::onLanguageSelected,
@@ -322,6 +363,20 @@ private fun PillsnerAppContent(
                     onResetConfirmationToggled = resetViewModel::onConfirmationToggled,
                     onResetConfirmed = resetViewModel::onConfirmed,
                     onResetDismissed = resetViewModel::onDismiss,
+                    backupState = backupState,
+                    backupMessages = backupViewModel.messages,
+                    backupCallbacks = BackupCallbacks(
+                        onExportTapped = backupViewModel::onExportTapped,
+                        onExportPassphraseChange = backupViewModel::onExportPassphraseChange,
+                        onExportConfirmationChange = backupViewModel::onExportConfirmationChange,
+                        onExportPassphraseConfirmed = backupViewModel::onExportPassphraseConfirmed,
+                        onImportTapped = backupViewModel::onImportTapped,
+                        onImportPassphraseChange = backupViewModel::onImportPassphraseChange,
+                        onImportPassphraseConfirmed = backupViewModel::onImportPassphraseConfirmed,
+                        onImportConfirmationToggled = backupViewModel::onImportConfirmationToggled,
+                        onImportConfirmed = backupViewModel::onImportConfirmed,
+                        onDialogDismissed = backupViewModel::onDialogDismissed,
+                    ),
                 )
             }
             composable<About> {
@@ -393,3 +448,6 @@ private fun NavHostController.navigateTopLevel(destination: TopLevelDestination)
         restoreState = true
     }
 }
+
+/** What the create-document picker is told a backup is; `.pill` has no registered type of its own. */
+private const val BACKUP_MIME_TYPE = "application/octet-stream"

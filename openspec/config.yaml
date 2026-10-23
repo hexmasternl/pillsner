@@ -18,3 +18,7 @@ schema: spec-driven
 #       - Always include a "Non-goals" section
 #     tasks:
 #       - Break tasks into chunks of max 2 hours
+
+rules:
+  tasks:
+    - When the change adds or changes anything a user of the app can see or notice (a feature, a behaviour change, a permission, a language, where data goes), include a task group "Website" that updates the marketing website in all six locales through the website-feature-sync skill, with the verification "hugo --minify --panicOnWarning passes and every locale has the same structure as English". When the change has no user-visible effect, include no website task.

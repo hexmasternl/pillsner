@@ -44,7 +44,7 @@ params:
           label: "À propos de l'application montre"
   privacy:
     heading: "Confidentialité par défaut"
-    body: "Toutes les données restent sur votre appareil. Aucun compte, aucune synchronisation dans le cloud et aucune analyse. Pillsner ne déclare aucune permission internet et ne demande que ce dont elle a besoin pour vous rappeler de façon fiable. Jamais votre position, vos contacts ou un accès réseau."
+    body: "Toutes les données restent sur votre appareil. Aucun compte, aucune synchronisation dans le cloud et aucune analyse. Pillsner ne déclare aucune permission internet et ne demande que ce dont elle a besoin pour vous rappeler de façon fiable, plus l'appareil photo si vous choisissez de scanner une étiquette. Jamais votre position, vos contacts ou un accès réseau."
     link_label: "Comment Pillsner protège vos données"
   help:
     heading: "Questions, bugs et idées"

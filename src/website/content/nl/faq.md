@@ -28,8 +28,9 @@ params:
         - "Als een dosis ooit aan de beurt is en er geen herinnering aankwam, vertelt het startscherm je dat en wijst het je op de achtergrondinstellingen die het veroorzaakten."
     - question: "Wat gebeurt er als ik een nieuwe telefoon krijg?"
       answer:
-        - "Pillsner slaat alles op het toestel op, dus het neemt je gegevens niet vanzelf mee. Als Androids eigen back-up aanstaat voor je Google-account, kan Android de gegevens van Pillsner opnemen in de back-up die het naar je nieuwe telefoon terugzet."
-        - "De app-vergrendeling wordt bewust uitgesloten van die back-up en van de overdracht van toestel naar toestel, dus die stel je opnieuw in op de nieuwe telefoon."
+        - "Neem je gegevens mee. Open op de oude telefoon Instellingen en tik op Gegevens exporteren: Pillsner bewaart je medicijnen, schema's, voorraad en geschiedenis in één bestand, beveiligd met een wachtwoordzin die je zelf kiest. Zet dat bestand op een plek waar de nieuwe telefoon bij kan, tik daar op Gegevens importeren en voer dezelfde wachtwoordzin in."
+        - "Importeren vervangt alles op de nieuwe telefoon door wat in het bestand staat, nadat je dat bevestigt. Een vergeten wachtwoordzin is niet te herstellen, dus bewaar hem goed. Je taal, thema en app-vergrendeling staan niet in het bestand; die stel je op de nieuwe telefoon opnieuw in."
+        - "Als Androids eigen back-up aanstaat voor je Google-account, kan Android de gegevens van Pillsner ook vanzelf op je nieuwe telefoon terugzetten. De app-vergrendeling blijft ook buiten die back-up."
     - question: "Kan ik een medicijn verwijderen?"
       answer:
         - "Een medicijn wordt nooit verwijderd; er een stoppen zet het op inactief. Het medicijn, de schema's en elke dosis die het opleverde blijven op je toestel, zodat je geschiedenis logisch blijft."
@@ -45,6 +46,13 @@ params:
       answer:
         - "Als een hele tablet. Een tablet die je hebt aangebroken, kan niet terug in de verpakking, dus elk deel van een pil dat je gebruikt, telt als de hele pil. Een dosis van 40 mg uit tabletten van 500 mg haalt één tablet van je voorraad af."
         - "Heb je ook tabletten waarvan de sterkte precies bij de dosis past, dan neemt Pillsner de dosis daaruit, zodat er geen tablet verspild wordt. Breek je tabletten bewust en neem je de andere helft later, dan telt elke dosis toch als een hele tablet, zodat Pillsner je liever iets te vroeg dan te laat waarschuwt."
+    - question: "Kan Pillsner het etiket van mijn medicijn lezen?"
+      answer:
+        - "Ja, als je een medicijn toevoegt. Tik op Etiket scannen en richt de camera op het apotheeketiket of de doos, of kies een foto die je al had gemaakt. Pillsner vult de naam, de dosis, hoe vaak je het inneemt en de data in die het kan lezen."
+        - "Controleer elk veld voordat je opslaat: een scan helpt je op weg, maar heeft niet het laatste woord. De tekst wordt op je telefoon gelezen, zonder verbinding, en de foto en de tekst worden niet bewaard."
+    - question: "Is er een donkere modus?"
+      answer:
+        - "Ja. Pillsner volgt standaard de lichte of donkere instelling van je telefoon. Onder Thema in Instellingen kun je in plaats daarvan Licht of Donker kiezen. De horloge-app houdt zijn eigen uiterlijk."
     - question: "Welke talen spreekt Pillsner?"
       answer:
         - "Engels, Nederlands, Duits, Frans, Spaans en Portugees. De app volgt vanzelf de taal van je telefoon, en je kunt die in Instellingen overschrijven."

@@ -27,10 +27,11 @@ params:
         image: "dose-confirmation.png"
         alt: "Confirming a dose in Pillsner with I took it, Not yet or Not going to"
     - heading: "Your history"
-      body: "A history view shows your adherence over time, so you or the person helping you can see how a course actually went rather than how it was meant to go."
+      body: "Open a medicine and choose Usage history from its menu to see how the last week, month or three months went: the share of doses you took, and a chart of what was taken, skipped or missed. So you or the person helping you can see how a course actually went rather than how it was meant to go."
       points:
-        - "Every dose you have ever answered, kept on your device"
         - "Taken, skipped and missed shown as what they are"
+        - "A timing chart shows how far from the scheduled time you took your doses, on average: lower is better"
+        - "A rolling year of doses kept on your device; older ones are removed automatically"
         - "Useful to bring to an appointment, without sending anything anywhere"
     - heading: "It stays yours"
       body: "Your intake history never leaves your phone. There is no account and no cloud copy, and no one else can see it."

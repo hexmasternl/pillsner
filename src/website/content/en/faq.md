@@ -28,8 +28,9 @@ params:
         - "If a dose ever comes due and no reminder arrived, the home screen tells you and points you at the background settings that caused it."
     - question: "What happens when I get a new phone?"
       answer:
-        - "Pillsner stores everything on the device, so it does not carry your data across by itself. If Android's own backup is switched on for your Google account, Android may include Pillsner's data in the backup it restores onto your new phone."
-        - "The app lock is deliberately excluded from that backup and from device-to-device transfer, so you set it up again on the new phone."
+        - "Take your data with you. On the old phone, open Settings and tap Export data: Pillsner saves your medicines, schedules, stock and history in one file, locked with a passphrase you choose. Put that file somewhere the new phone can reach, then tap Import data there and enter the same passphrase."
+        - "Importing replaces everything on the new phone with what is in the file, after you confirm. There is no way to recover a forgotten passphrase, so keep it safe. Your language, theme and app lock are not in the file; you set them again on the new phone."
+        - "If Android's own backup is switched on for your Google account, Android may also restore Pillsner's data onto your new phone by itself. The app lock is left out of that backup too."
     - question: "Can I delete a medicine?"
       answer:
         - "A medicine is never deleted; stopping one deactivates it. The medicine, its schedules and every dose it produced stay on your device, so your history keeps making sense."
@@ -45,6 +46,13 @@ params:
       answer:
         - "As a whole tablet. A tablet you break into cannot go back in the package, so any part of a pill you use counts as the whole pill. A 40 mg dose from 500 mg tablets takes one tablet off your stock."
         - "If you also have tablets whose strength matches the dose, Pillsner takes the dose from those instead, so no tablet is wasted. If you split tablets on purpose and take the other half later, each dose still counts a whole tablet, so Pillsner warns you a little early rather than too late."
+    - question: "Can Pillsner read the label on my medicine?"
+      answer:
+        - "Yes, when you add a medicine. Tap Scan a label, then point the camera at the pharmacy label or the box, or choose a photo you already took. Pillsner fills in the name, the dose, how often to take it and the dates it can read."
+        - "Check every field before you save: a scan is a head start, not a final answer. The text is read on your phone, without a connection, and neither the picture nor the text is kept."
+    - question: "Is there a dark mode?"
+      answer:
+        - "Yes. Pillsner follows your phone's light or dark setting by default. Under Theme in Settings you can choose Light or Dark instead. The watch app keeps its own look."
     - question: "Which languages does Pillsner speak?"
       answer:
         - "English, Dutch, German, French, Spanish and Portuguese. The app follows your phone's language on its own, and you can override it in Settings."

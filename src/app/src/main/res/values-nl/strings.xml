@@ -261,6 +261,42 @@
     <string name="reset_dialog_confirm">Alles wissen</string>
     <string name="reset_done_message">Alles is gewist</string>
 
+    <!-- Back-up en herstel (data-backup-restore) -->
+    <string name="backup_header">Je gegevens</string>
+    <string name="backup_explanation">Bewaar alles in een bestand dat je zelf houdt, of zet het daaruit terug. Pillsner verstuurt het bestand zelf nooit.</string>
+    <string name="backup_export_title">Gegevens exporteren</string>
+    <string name="backup_export_summary">Medicijnen, schema\'s, voorraad en geschiedenis, in één vergrendeld bestand</string>
+    <string name="backup_import_title">Gegevens importeren</string>
+    <string name="backup_import_summary">Vervang wat op deze telefoon staat door een back-up</string>
+    <string name="backup_progress_exporting">Je gegevens worden geëxporteerd…</string>
+    <string name="backup_progress_reading">De back-up wordt geopend…</string>
+    <string name="backup_progress_importing">Je gegevens worden geïmporteerd…</string>
+    <string name="backup_export_dialog_title">Kies een wachtwoordzin</string>
+    <string name="backup_export_dialog_body">De back-up wordt met deze wachtwoordzin vergrendeld. Je hebt hem later nodig om de back-up te importeren.</string>
+    <string name="backup_export_dialog_no_recovery">Een vergeten wachtwoordzin kan niet worden hersteld. Zonder de wachtwoordzin is de back-up niet te openen.</string>
+    <string name="backup_field_passphrase">Wachtwoordzin</string>
+    <string name="backup_field_confirmation">Typ hem nog een keer</string>
+    <string name="backup_error_mismatch">De twee wachtwoordzinnen zijn verschillend. Typ twee keer dezelfde.</string>
+    <string name="backup_export_dialog_confirm">Kies waar je opslaat</string>
+    <string name="backup_import_dialog_title">Back-up openen</string>
+    <string name="backup_import_dialog_body">Voer de wachtwoordzin in die je koos toen je deze back-up exporteerde.</string>
+    <string name="backup_error_wrong_passphrase">Deze wachtwoordzin opent de back-up niet. Controleer hem en probeer het opnieuw. Klopt hij wel, dan is het bestand na het exporteren veranderd.</string>
+    <string name="backup_import_dialog_confirm">Openen</string>
+    <string name="backup_confirm_title">Je gegevens vervangen?</string>
+    <string name="backup_confirm_replaced">Elk medicijn, elk schema, alle voorraad en je volledige innamegeschiedenis op deze telefoon worden vervangen door de back-up. Dit kun je niet ongedaan maken.</string>
+    <string name="backup_confirm_kept">Je taal, je thema, je appvergrendeling en de documenten die je hebt geaccepteerd blijven zoals ze zijn.</string>
+    <string name="backup_confirm_checkbox">Ik begrijp dat mijn huidige gegevens worden vervangen</string>
+    <string name="backup_confirm_action">Gegevens vervangen</string>
+    <string name="backup_message_export_done">Je gegevens zijn geëxporteerd</string>
+    <string name="backup_message_export_cancelled">Exporteren geannuleerd. Er is geen bestand opgeslagen.</string>
+    <string name="backup_message_export_failed">De back-up kon niet worden opgeslagen. Probeer het opnieuw of kies een andere plek.</string>
+    <string name="backup_message_import_done">Je gegevens zijn geïmporteerd</string>
+    <string name="backup_message_import_cancelled">Importeren geannuleerd. Er is niets veranderd.</string>
+    <string name="backup_message_import_failed">Het importeren is niet afgerond. Er is niets veranderd.</string>
+    <string name="backup_message_not_a_backup">Dit bestand is geen Pillsner-back-up, of het is beschadigd. Er is niets veranderd.</string>
+    <string name="backup_message_newer_version">Deze back-up is gemaakt met een nieuwere versie van Pillsner. Werk de app bij en probeer het opnieuw.</string>
+    <string name="backup_message_read_failed">Het bestand kon niet worden geopend. Er is niets veranderd.</string>
+
     <!-- Dosisdetails -->
     <string name="dose_detail_title">Dosis</string>
     <string name="dose_detail_close">Sluiten</string>

@@ -79,10 +79,17 @@ Pillsner is built around exactly those needs and nothing more.
 
 **Privacy by default**
 - All data lives on the device. There is no account, no cloud sync and no analytics unless explicitly added and clearly disclosed in a future release.
+- A backup leaves the device only when you export one and put it somewhere yourself. Pillsner asks for no storage permission: Android's file picker grants it access to that one file only.
 - With the watch app installed, the doses you still have to take also travel to your watch: their names, amounts and times, and for each one the medicine's default dose, its schedule and its remaining stock, so the watch can show them without asking the phone again. They go over the direct Bluetooth or local network link between the two paired devices, through Google Play services, which stores them on the watch; nothing goes to a server, and neither app asks for internet access. Uninstalling the watch app removes them.
 - An optional app lock protects the app with a PIN and, once set up, biometric unlock. Screenshots and the recent apps thumbnail are hidden while it is on.
 - You can change your PIN in Settings without turning the lock off. Changing the PIN, turning biometric unlock off and turning the lock off each ask you to confirm it is you first, with your fingerprint or face where you have one, and with the PIN itself for turning the lock off. Each confirmation is good for that one change.
 - On the lock screen a reminder can show only "Time for your medicine", never the name or the amount, whenever your phone is set to hide sensitive notifications.
+
+**Your data, in a file you keep**
+- **Export data** in Settings saves every medicine, schedule, stock batch and your complete intake history to a single `.pill` file, wherever you choose through Android's own file picker: the phone's storage, a USB stick, or a cloud drive app you already use. Pillsner itself never sends the file anywhere.
+- The file is compressed and locked with a passphrase you choose (AES-256-GCM, with the key derived through PBKDF2-HMAC-SHA256). There is no way to recover a forgotten passphrase, and the export screen says so before you choose one.
+- **Import data** reads such a file back on the same phone or a new one. A wrong passphrase, a damaged or altered file, or a backup made by a newer version of Pillsner is refused with a plain message, and nothing on the phone changes. A good file replaces everything on the phone after one more confirmation; there is no merging. Reminders and the watch follow the imported data straight away.
+- The backup never contains your app lock PIN, your biometric setting, the documents you accepted or anything about a paired watch. Those stay with the phone they belong to.
 
 **Starting over**
 - Settings ends with a danger zone holding one button: **Reset app**. It erases every medicine, every schedule and your complete intake history from the device, so a phone being handed on, or an app filled with a trial run, does not have to be uninstalled to be emptied.

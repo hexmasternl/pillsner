@@ -26,6 +26,8 @@ abstract class PillsnerDatabase : RoomDatabase() {
 
     abstract fun stockBatchDao(): StockBatchDao
 
+    abstract fun backupDao(): BackupDao
+
     companion object {
         const val VERSION = 6
         const val NAME = "pillsner.db"

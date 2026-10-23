@@ -45,6 +45,12 @@ import nl.hexmaster.pillsner.domain.model.AppLanguage
 import nl.hexmaster.pillsner.domain.model.AppTheme
 import nl.hexmaster.pillsner.ui.navigation.NavigationTestTags
 import nl.hexmaster.pillsner.ui.settings.about.AboutSection
+import nl.hexmaster.pillsner.ui.settings.backup.BackupCallbacks
+import nl.hexmaster.pillsner.ui.settings.backup.BackupDialogHost
+import nl.hexmaster.pillsner.ui.settings.backup.BackupMessage
+import nl.hexmaster.pillsner.ui.settings.backup.BackupSection
+import nl.hexmaster.pillsner.ui.settings.backup.BackupUiState
+import nl.hexmaster.pillsner.ui.settings.backup.backupMessageTexts
 import nl.hexmaster.pillsner.ui.settings.about.PreviewAppInfo
 import nl.hexmaster.pillsner.ui.settings.diagnostics.ReminderDiagnosticsSection
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSection
@@ -102,6 +108,9 @@ fun SettingsScreen(
     onResetConfirmed: () -> Unit,
     onResetDismissed: () -> Unit,
     modifier: Modifier = Modifier,
+    backupState: BackupUiState = BackupUiState(),
+    backupMessages: Flow<BackupMessage> = emptyFlow(),
+    backupCallbacks: BackupCallbacks = BackupCallbacks.NONE,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val pinChanged = stringResource(R.string.applock_pin_changed_message)
@@ -129,6 +138,17 @@ fun SettingsScreen(
             }
         }
     }
+
+    val backupMessageText = backupMessageTexts()
+    LaunchedEffect(backupMessages) {
+        backupMessages.collect { message -> snackbarHostState.showSnackbar(backupMessageText(message)) }
+    }
+
+    BackupDialogHost(
+        dialog = backupState.dialog,
+        working = backupState.work != null,
+        callbacks = backupCallbacks,
+    )
 
     if (resetState.dialogVisible) {
         ResetAppDialog(
@@ -209,6 +229,16 @@ fun SettingsScreen(
 
                 item(key = "about") {
                     AboutSection(appInfo = appInfo, onAboutTapped = onAboutTapped)
+                }
+
+                // Directly above the danger zone (data-backup-restore): export is the thing to do
+                // before reaching for a reset, so it is the last stop on the way there.
+                item(key = "backup") {
+                    BackupSection(
+                        state = backupState,
+                        onExportTapped = backupCallbacks.onExportTapped,
+                        onImportTapped = backupCallbacks.onImportTapped,
+                    )
                 }
 
                 // Last, so the one irreversible thing the app can do takes a deliberate scroll to

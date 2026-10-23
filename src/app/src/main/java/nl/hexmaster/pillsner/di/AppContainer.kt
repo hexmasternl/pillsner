@@ -36,6 +36,9 @@ import nl.hexmaster.pillsner.data.RoomDoseRepository
 import nl.hexmaster.pillsner.data.RoomMedicationRepository
 import nl.hexmaster.pillsner.data.RoomUpcomingDosesRepository
 import nl.hexmaster.pillsner.data.appinfo.BuildConfigAppInfoProvider
+import nl.hexmaster.pillsner.data.backup.BackupFileCodec
+import nl.hexmaster.pillsner.data.backup.ContentResolverBackupDocuments
+import nl.hexmaster.pillsner.data.backup.RoomBackupDataStore
 import nl.hexmaster.pillsner.data.stock.DataStoreStockWarningQueue
 import nl.hexmaster.pillsner.data.stock.RoomStockBatchRepository
 import nl.hexmaster.pillsner.data.db.PillsnerDatabase
@@ -66,6 +69,8 @@ import nl.hexmaster.pillsner.data.reset.RoomAppDataEraser
 import nl.hexmaster.pillsner.data.settings.DataStoreLanguageRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreLegalRepository
 import nl.hexmaster.pillsner.data.settings.DataStoreThemeRepository
+import nl.hexmaster.pillsner.domain.backup.ExportBackup
+import nl.hexmaster.pillsner.domain.backup.ImportBackup
 import nl.hexmaster.pillsner.domain.history.SummariseTimeDeviation
 import nl.hexmaster.pillsner.domain.history.SummariseUsageHistory
 import nl.hexmaster.pillsner.domain.intake.AnswerDose
@@ -109,6 +114,7 @@ import nl.hexmaster.pillsner.ui.medicines.form.MedicationFormViewModel
 import nl.hexmaster.pillsner.ui.medicines.history.MedicineHistoryViewModel
 import nl.hexmaster.pillsner.ui.medicines.labelscan.CameraPermission
 import nl.hexmaster.pillsner.ui.medicines.labelscan.LabelScanViewModel
+import nl.hexmaster.pillsner.ui.settings.backup.BackupViewModel
 import nl.hexmaster.pillsner.ui.settings.language.LanguageSectionViewModel
 import nl.hexmaster.pillsner.ui.settings.legal.LegalViewModel
 import nl.hexmaster.pillsner.ui.settings.reset.ResetViewModel
@@ -374,6 +380,28 @@ class AppContainer(
         refresh = { reminderCoordinator.requestWake(WakeReason.MEDICATIONS_CHANGED) },
     )
 
+    // --- Backup and restore (data-backup-restore) ----------------------------------------------
+
+    private val backupDataStore = RoomBackupDataStore(database)
+    private val exportBackup = ExportBackup(backupDataStore)
+
+    /**
+     * After an import, the same corrections as after a reset, through the same ports: the replaced
+     * doses' notifications come down, what was observed about them is forgotten, and the wake that
+     * follows re-arms the alarms and republishes to the watch.
+     */
+    private val importBackup = ImportBackup(
+        store = backupDataStore,
+        teardown = reminderNotifier::cancelAll,
+        history = {
+            reminderPreferences.clearSilentlyMissedReminder()
+            this.stockWarningQueue.clearAll()
+        },
+        refresh = { reminderCoordinator.requestWake(WakeReason.MEDICATIONS_CHANGED) },
+    )
+    private val backupFileCodec = BackupFileCodec()
+    private val backupDocuments = ContentResolverBackupDocuments(applicationContext.contentResolver)
+
     // --- Label scanning (medicine-label-photo-prefill design D1, D3, D4) ----------------------
 
     /** Puts the bundled trained data where Tesseract reads it; runs before the first scan. */
@@ -467,6 +495,7 @@ class AppContainer(
         initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }
         initializer { ResetViewModel(eraseAllData) }
+        initializer { BackupViewModel(exportBackup, importBackup, backupFileCodec, backupDocuments, clock) }
         initializer { ReminderDiagnosticsViewModel(reminderDeliveryLog) }
         initializer {
             MedicationFormViewModel(

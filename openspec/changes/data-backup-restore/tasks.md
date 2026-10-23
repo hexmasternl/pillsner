@@ -20,7 +20,7 @@
 
 - [ ] 3.1 Wire "Export data" to `ACTION_CREATE_DOCUMENT` and write the encrypted file to the chosen `Uri`.
 - [ ] 3.2 Wire "Import data" to `ACTION_OPEN_DOCUMENT` and read the encrypted file from the chosen `Uri`.
-- [ ] 3.3 Run both file operations off the main thread via a coroutine, with a progress state exposed to the UI.
+- [x] 3.3 Run both file operations off the main thread via a coroutine, with a progress state exposed to the UI.
 - [ ] 3.4 Verify no broad storage permission is requested — only the per-file SAF grant.
 
 ## 4. UI: Settings entry points and dialogs
@@ -36,8 +36,8 @@
 
 ## 5. Post-import reconciliation
 
-- [ ] 5.1 After a successful import, rebuild the reminder/alarm schedule from the imported data, cancelling stale alarms and scheduling new ones, reusing the existing post-reset rebuild path.
-- [ ] 5.2 After a successful import, publish the imported doses to a paired watch, replacing whatever it held before, reusing the existing post-reset watch sync path.
+- [x] 5.1 After a successful import, rebuild the reminder/alarm schedule from the imported data, cancelling stale alarms and scheduling new ones, reusing the existing post-reset rebuild path.
+- [x] 5.2 After a successful import, publish the imported doses to a paired watch, replacing whatever it held before, reusing the existing post-reset watch sync path.
 - [ ] 5.3 Add an instrumented test confirming alarms and watch state match the imported data after import.
 
 ## 6. Verification

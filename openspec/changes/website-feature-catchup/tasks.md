@@ -2,8 +2,25 @@
 
 ## 1. Audit
 
-- [ ] 1.1 Run `website-feature-sync` in audit mode against every change archived since 2026-09-23. Record each one in this task as "belongs / doesn't belong (reason)", and for the ones that belong, list the page and what's missing. Verify: every archived change dated 2026-09-23 or later appears in the list.
-- [ ] 1.2 Check the claims that most often go stale (audit step 3): the privacy page against `src/app/manifest-allowlist.txt`, the FAQ's permission and data answers, the languages against `hugo.toml` and the app's `values-*` folders, and the watch page against the `wearable-app` spec. Verify: each check is recorded here with its outcome.
+- [x] 1.1 Run `website-feature-sync` in audit mode against every change archived since 2026-09-23. Record each one in this task as "belongs / doesn't belong (reason)", and for the ones that belong, list the page and what's missing. Verify: every archived change dated 2026-09-23 or later appears in the list.
+  Audit result (archived changes since 2026-09-22, the day before the site's last content commit):
+  - `deployment-release-notes`: doesn't belong (release tooling).
+  - `dose-history-retention`: belongs. The FAQ already says history is kept for a rolling year, but `tracking.md` "Your history" still says "Every dose you have ever answered", which is now false. → tracking.md.
+  - `edge-to-edge-deprecated-theme-attributes`: doesn't belong (internal platform fix).
+  - `medicine-history-time-deviation`: belongs. The per-medicine Usage history (1 week / 1 month / 3 months, adherence, outcome chart) and its timing accuracy chart are not described; "Your history" is vague. → tracking.md.
+  - `readme-marketing-rewrite`: doesn't belong (README).
+  - `wear-per-minute-tick-efficiency`: doesn't belong (performance).
+  - `data-backup-restore`: belongs. The FAQ new-phone answer is now wrong, and the privacy page is silent. → faq.md, privacy.md.
+  - `medicine-expiry-tracking`: already covered (medicines.md stock sections, FAQ).
+  - `medicine-label-photo-prefill`: belongs. Not described anywhere, and the camera permission isn't disclosed. → medicines.md, privacy.md, plus a new FAQ question ("Can Pillsner read the box?"); `_index.md` privacy summary ("asks for only what it needs to remind you reliably") is no longer complete.
+  - `website-multipage-expansion`, `website-responsive-menu`: don't belong (the site itself).
+  - `whole-pill-stock-deduction`: already covered (FAQ, medicines.md).
+  - Older, outside the window but found missing: `app-theme-setting`. There's no mention of the light/dark/system choice. → faq.md.
+- [x] 1.2 Check the claims that most often go stale (audit step 3): the privacy page against `src/app/manifest-allowlist.txt`, the FAQ's permission and data answers, the languages against `hugo.toml` and the app's `values-*` folders, and the watch page against the `wearable-app` spec. Verify: each check is recorded here with its outcome.
+  Stale-claim checks:
+  - Permissions (`manifest-allowlist.txt`): CAMERA is new and undisclosed → fixed in 2.2 and on Home. INTERNET is still absent, so "no internet permission" holds. ACCESS_NETWORK_STATE (WorkManager, predates this change) isn't described; Home's "never asks for … network access" is accurate, since the app can't open a connection. Left as is. Notification, exact alarm, boot, full-screen and biometric permissions are all covered implicitly by the reminder and app lock copy.
+  - Languages: `hugo.toml` has en, nl, fr, es, pt, de; the app has `values` plus `values-{de,es,fr,nl,pt}`; the FAQ lists the same six. OK.
+  - Watch: the `wearable-app` spec says a six-hour list; `_index.md`, `faq.md` and `wearable.md` say six hours. OK.
 
 ## 2. Website: correct claims the app no longer meets
 

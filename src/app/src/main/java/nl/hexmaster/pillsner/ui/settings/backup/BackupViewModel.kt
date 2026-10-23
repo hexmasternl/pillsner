@@ -80,12 +80,13 @@ class BackupViewModel(
         val dialog = _uiState.value.dialog as? BackupDialog.ExportPassphrase ?: return
         if (!dialog.canProceed) return
         exportPassphrase = dialog.passphrase.toCharArray()
-        _uiState.update { it.copy(dialog = null) }
+        _uiState.update { it.copy(dialog = null, pickerOpen = true) }
         _pickerRequests.trySend(BackupPickerRequest.CreateDocument(suggestedName()))
     }
 
     /** @param location the picked document, or null when the user cancelled the picker. */
     fun onExportDocumentChosen(location: String?) {
+        _uiState.update { it.copy(pickerOpen = false) }
         val passphrase = exportPassphrase
         exportPassphrase = null
         if (location == null) {
@@ -127,6 +128,7 @@ class BackupViewModel(
 
     fun onImportTapped() {
         if (!_uiState.value.actionsEnabled) return
+        _uiState.update { it.copy(pickerOpen = true) }
         _pickerRequests.trySend(BackupPickerRequest.OpenDocument)
     }
 
@@ -137,6 +139,7 @@ class BackupViewModel(
      * @param location the picked document, or null when the user cancelled the picker.
      */
     fun onImportDocumentChosen(location: String?) {
+        _uiState.update { it.copy(pickerOpen = false) }
         if (location == null) {
             _messages.trySend(BackupMessage.IMPORT_CANCELLED)
             return

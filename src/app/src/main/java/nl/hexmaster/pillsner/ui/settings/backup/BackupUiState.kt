@@ -6,12 +6,16 @@ package nl.hexmaster.pillsner.ui.settings.backup
  * @property dialog the dialog in front of the user, or null.
  * @property work what is running in the background, or null. Both actions are disabled while
  *   anything runs, so a double tap starts one export, not two.
+ * @property pickerOpen whether a system picker has been asked for and has not answered yet. It
+ *   counts as running too: a second request would launch the same launcher while its first is
+ *   still out, which throws.
  */
 data class BackupUiState(
     val dialog: BackupDialog? = null,
     val work: BackupWork? = null,
+    val pickerOpen: Boolean = false,
 ) {
-    val actionsEnabled: Boolean get() = work == null && dialog == null
+    val actionsEnabled: Boolean get() = work == null && dialog == null && !pickerOpen
 }
 
 /** The long-running steps, each shown as indeterminate progress with its own label. */

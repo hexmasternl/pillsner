@@ -216,6 +216,38 @@ class BackupViewModelTest {
     }
 
     @Test
+    fun `a second tap while a picker is open asks for no second picker`() = runTest(dispatcher) {
+        collect()
+
+        viewModel.onImportTapped()
+        viewModel.onImportTapped()
+        viewModel.onExportTapped()
+        advanceUntilIdle()
+
+        assertEquals(listOf(BackupPickerRequest.OpenDocument), pickers)
+        assertFalse(viewModel.uiState.value.actionsEnabled)
+        assertNull("No passphrase dialog behind the open picker", viewModel.uiState.value.dialog)
+
+        // The picker answering, even with a cancel, frees the actions again.
+        viewModel.onImportDocumentChosen(null)
+        assertTrue(viewModel.uiState.value.actionsEnabled)
+    }
+
+    @Test
+    fun `the export picker counts as open until it answers`() = runTest(dispatcher) {
+        collect()
+        enterExportPassphrase("secret")
+        viewModel.onExportPassphraseConfirmed()
+
+        viewModel.onImportTapped()
+        advanceUntilIdle()
+
+        assertEquals(1, pickers.size)
+        viewModel.onExportDocumentChosen(null)
+        assertTrue(viewModel.uiState.value.actionsEnabled)
+    }
+
+    @Test
     fun `a picker result with no passphrase waiting discards the empty file`() = runTest(dispatcher) {
         // What a process death while the picker was open looks like to the new view model.
         collect()

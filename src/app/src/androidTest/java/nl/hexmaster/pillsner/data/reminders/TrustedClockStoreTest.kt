@@ -8,6 +8,7 @@ import nl.hexmaster.pillsner.domain.scheduling.TrustedNow
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -19,6 +20,11 @@ class TrustedClockStoreTest {
     private val store = TrustedClockStore(context)
 
     private val sample = TrustedNow.Sample(trustedNowMillis = 1_000_000L, anchorElapsedRealtimeMillis = 5_000L)
+
+    // The store is the app's real one, and tests that drive the real AppContainer seed it through
+    // the trusted-clock guard, so it is cleared before as well as after each test here.
+    @Before
+    fun setUp() = runBlocking { store.clear() }
 
     @After
     fun tearDown() = runBlocking { store.clear() }

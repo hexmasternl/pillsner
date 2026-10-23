@@ -95,6 +95,7 @@ commands below instead, which pin the base ref to `development` every time.
    exactly what still has to be tested by hand, with steps and expected results, so it can go into
    the pull request (step 5).
 5. **Finishing a change** — once every task in `tasks.md` is `[x]`:
+   - Run the `verify-change` skill, which writes the change's `## Verification` section.
    - Make a final commit of anything outstanding, then push the feature branch:
      `git push -u origin feature/<name>` (or plain `git push` once it has an upstream).
    - Once everything is pushed, open a pull request from `feature/<name>` **into `development`**.
@@ -126,6 +127,8 @@ commands below instead, which pin the base ref to `development` every time.
      merging `development` in keeps the history intact.
    - **Failing checks**: read the failing check's log (`gh run view <run-id> --log-failed`), fix
      the cause in the worktree, commit and push.
+   - **Review comments** (Copilot reviews every push): handle them with the `pr-review-response`
+     skill.
    - If a conflict can't be resolved without a product decision (both sides changed the same
      behaviour in incompatible ways), stop and ask the user rather than picking a side.
    - Repeat until the PR reports no conflicts and no failing checks, then tell the user it's ready

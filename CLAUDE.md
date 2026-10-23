@@ -29,6 +29,9 @@ Keep that promise front of mind. When a change makes the app bigger, more connec
 | `.github/copilot-instructions.md` | Guidance for GitHub Copilot code review: what to report on a pull request and what to skip. | Hand-maintained. Keep it short; code review reads only about the first 4,000 characters. |
 | `.claude/skills/github-openspec-sync/` | Keeps a GitHub issue, pull request and OpenSpec change in sync: creates the issue on propose, pushes the branch and opens a `development`-targeted pull request with an implementation summary when a change's tasks finish, and closes the issue on archive. | Hand-maintained. Not part of the generated OpenSpec workflow; invoked proactively alongside it. |
 | `.claude/skills/git-workflow/` | Defines the branching model — `main` mirrors production, `development` is the integration branch, feature branches are cut from it per change — and the lifecycle for creating, merging, cleaning up and releasing across them. | Hand-maintained. Update when the branching or release process changes. |
+| `.claude/skills/emulator-tests/` | Runs instrumented tests fast: reuses or headlessly boots the emulator, selects the test classes a change affects from its git diff plus a fixed safety set, and reports what it skipped. | Hand-maintained. Update when test packages, the safety set or the emulator setup change. |
+| `.claude/skills/website-feature-sync/` | Keeps the marketing website (`src/website/`) describing what the app does: updates the right pages in all six locales inside each user-visible change's own pull request, and audits the site for gaps. | Hand-maintained. Reached through the website task that `openspec/config.yaml`'s `tasks` rule adds to user-visible changes. |
+| `.claude/skills/{verify-change,adb-device-scenarios,room-schema-change,app-strings,pr-review-response,changes-status,release-prep,dependency-bump,wear-sync-contract,bug-triage}/` | Development workflow skills: the pre-PR verification gate, scripted emulator scenarios for reboot/time zone/DST/clock changes, the Room schema checklist, six-locale strings, answering PR review comments, an overview of in-flight changes, release readiness, version bumps, the phone–watch payload contract, and bug triage. | Hand-maintained. Update when the process, file locations or tooling they describe change. |
 | `README.md` | Public-facing project description. | Keep accurate. |
 | `LICENSE` | MIT. | Do not change. |
 
@@ -107,7 +110,7 @@ These are the intended choices. Deviations must be justified in a change proposa
 
 ## Build and verification
 
-The Gradle project root is the `src` folder. Run Gradle wrapper tasks from there. The tasks that matter most are the debug assembly, the unit test task, the lint task and the instrumented test task. Run the unit tests and lint before declaring any task in a change done, and run instrumented tests when scheduling, notification or database code changed.
+The Gradle project root is the `src` folder. Run Gradle wrapper tasks from there. The tasks that matter most are the debug assembly, the unit test task, the lint task and the instrumented test task. Run the unit tests and lint before declaring any task in a change done, and run instrumented tests when scheduling, notification or database code changed. Run instrumented tests through the `emulator-tests` skill, which runs only the affected classes plus a safety set unless the change is wide enough to need the full suite, and always reports how much it skipped.
 
 ## Domain glossary
 

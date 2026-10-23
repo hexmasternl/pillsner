@@ -56,6 +56,10 @@ Wherever the stock system compares or totals quantities across batches, it SHALL
 - **WHEN** a medicine is dosed in milligrams with a 25 mg schedule and has two batches of 20 mg tablets: one expiring sooner with 1 tablet remaining, and one expiring later with 10 tablets. A dose is then recorded taken.
 - **THEN** the sooner batch is exhausted (20 mg), and the 5 mg still owed takes 1 whole tablet from the later batch, leaving it at 9
 
+#### Scenario: A conversion that does not divide exactly never over-deducts
+- **WHEN** a medicine is dosed in milligrams with a 2 mg dose and has one batch counted in millilitres, each millilitre worth 3 mg
+- **THEN** the batch gives up at most 2 mg worth of millilitres, rounded down at the conversion precision, and any negligible remainder is not drawn from a further batch
+
 #### Scenario: Default dose unit is locked while stock is recorded
 - **WHEN** a medicine has at least one stock batch and the user changes its default dose unit on the Medicine details form
 - **THEN** the form shows an error on the dose field straight away and does not save until the unit is changed back or every stock batch is removed, since each batch's strength is relative to that unit

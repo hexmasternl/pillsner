@@ -17,9 +17,9 @@
 
 - [x] 4.1 Instrumented test: a `BOOT_COMPLETED` delivered to `SystemEventsReceiver` runs the wake (window refreshed, alarm armed) without starting `ReminderWakeService`
 - [x] 4.2 Instrumented or unit test: when the foreground promotion is refused, the service does not throw, `SERVICE_REFUSED` is logged, and the wake still reconciles the alarm set (use a test seam for the promotion)
-- [ ] 4.3 Manual test on an Android 15+ device or emulator: reboot with a scheduled medicine, confirm no crash, that a catch-up reminder appears and that the next alarm is set; also confirm a refused promotion does not raise `ForegroundServiceDidNotStartInTimeException` (design Risks)
+- [x] 4.3 Manual test on an Android 15+ device or emulator: reboot with a scheduled medicine, confirm no crash, that a catch-up reminder appears and that the next alarm is set; also confirm a refused promotion does not raise `ForegroundServiceDidNotStartInTimeException` (design Risks)
 
 ## 5. Verification
 
 - [x] 5.1 Run the unit tests and lint from `src/`
-- [ ] 5.2 Run the instrumented tests (scheduling code changed)
+- [x] 5.2 Run the instrumented tests (scheduling code changed)

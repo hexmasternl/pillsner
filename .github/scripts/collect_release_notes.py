@@ -21,6 +21,17 @@ import sys
 COMMENT_MARKER = "<!-- release-notes-drafting -->"
 ARCHIVE_DIR = "openspec/changes/archive/"
 
+# Every language the app supports, in comment order: (code, Play locale, comment heading).
+# The Play locale names the distribution/whatsnew/whatsnew-<locale> file release.yml uploads.
+LANGUAGES = [
+    ("en", "en-US", "What's new (English)"),
+    ("nl", "nl-NL", "Wat is er nieuw (Nederlands)"),
+    ("de", "de-DE", "Was ist neu (Deutsch)"),
+    ("fr", "fr-FR", "Quoi de neuf (Français)"),
+    ("es", "es-ES", "Novedades (Español)"),
+    ("pt", "pt-PT", "Novidades (Português)"),
+]
+
 
 def run(args: list[str], input: str | None = None) -> subprocess.CompletedProcess:
     return subprocess.run(
@@ -138,24 +149,28 @@ def cmd_collect(args: argparse.Namespace) -> None:
             f.write(f"has_content={'true' if result['has_content'] else 'false'}\n")
 
 
-def cmd_format_prompt(args: argparse.Namespace) -> None:
-    with open(args.context, encoding="utf-8") as f:
-        context = json.load(f)
+def whatsnew_file_name(play_locale: str) -> str:
+    return f"whatsnew-{play_locale}"
 
-    with open(args.style_en, encoding="utf-8") as f:
-        style_en = f.read().strip()
-    with open(args.style_nl, encoding="utf-8") as f:
-        style_nl = f.read().strip()
 
-    lines = [
-        "Style reference -- the current Play Store \"what's new\" text (English):",
-        style_en,
-        "",
-        "Style reference -- the current Play Store \"what's new\" text (Dutch):",
-        style_nl,
-        "",
-        "Changes shipped in this release:",
-    ]
+def read_styles(whatsnew_dir: str) -> dict[str, str]:
+    """The current whatsnew text per Play locale, for every app language that has a file."""
+    styles = {}
+    for _, play_locale, _ in LANGUAGES:
+        path = os.path.join(whatsnew_dir, whatsnew_file_name(play_locale))
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as f:
+                styles[play_locale] = f.read().strip()
+    return styles
+
+
+def build_prompt(context: dict, styles: dict[str, str]) -> str:
+    lines = []
+    for play_locale, style in styles.items():
+        lines.append(f"Style reference -- the current Play Store \"what's new\" text ({play_locale}):")
+        lines.append(style)
+        lines.append("")
+    lines.append("Changes shipped in this release:")
 
     if context["changes"]:
         for change in context["changes"]:
@@ -176,8 +191,14 @@ def cmd_format_prompt(args: argparse.Namespace) -> None:
         "in the same tone, length and bullet style as the style reference above. "
         "Do not invent features that are not described above."
     )
+    return "\n".join(lines)
 
-    prompt = "\n".join(lines)
+
+def cmd_format_prompt(args: argparse.Namespace) -> None:
+    with open(args.context, encoding="utf-8") as f:
+        context = json.load(f)
+
+    prompt = build_prompt(context, read_styles(args.whatsnew_dir))
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
             f.write(prompt)
@@ -197,31 +218,41 @@ def find_marker_comment_id(pr_number: str) -> int | None:
     return None
 
 
-def build_comment_body(nothing_new: bool, english: str, dutch: str) -> str:
+def build_comment_body(nothing_new: bool, drafts: dict[str, str]) -> str:
+    """One section per app language, in LANGUAGES order; drafts are keyed by language code."""
     if nothing_new:
         body = "Nothing new to summarize for this release.\n"
     else:
-        body = (
-            "## What's new (English)\n\n"
-            f"{english.strip()}\n\n"
-            "## Wat is er nieuw (Nederlands)\n\n"
-            f"{dutch.strip()}\n\n"
-            "_Draft only -- copy the text you want into `distribution/whatsnew/whatsnew-en-US` "
-            "and `distribution/whatsnew/whatsnew-nl-NL` before merging._\n"
+        sections = []
+        for code, play_locale, heading in LANGUAGES:
+            target = f"distribution/whatsnew/{whatsnew_file_name(play_locale)}"
+            sections.append(f"## {heading}\n\n_For `{target}`_\n\n{drafts.get(code, '').strip()}\n\n")
+        body = "".join(sections) + (
+            "_Draft only -- copy the text you want into each language's file under "
+            "`distribution/whatsnew/` before merging. Play allows 500 characters per file._\n"
         )
     return f"{body}\n{COMMENT_MARKER}\n"
 
 
-def cmd_comment(args: argparse.Namespace) -> None:
-    english = ""
-    dutch = ""
-    if not args.nothing_new:
-        with open(args.english_file, encoding="utf-8") as f:
-            english = f.read()
-        with open(args.dutch_file, encoding="utf-8") as f:
-            dutch = f.read()
+def parse_draft_args(values: list[str]) -> dict[str, str]:
+    """Maps each `<code>=<file>` argument to its language code."""
+    files = {}
+    for value in values:
+        code, separator, path = value.partition("=")
+        if not separator or not path:
+            raise ValueError(f"--draft expects <code>=<file>, got {value!r}")
+        files[code] = path
+    return files
 
-    body = build_comment_body(args.nothing_new, english, dutch)
+
+def cmd_comment(args: argparse.Namespace) -> None:
+    drafts = {}
+    if not args.nothing_new:
+        for code, path in parse_draft_args(args.draft).items():
+            with open(path, encoding="utf-8") as f:
+                drafts[code] = f.read()
+
+    body = build_comment_body(args.nothing_new, drafts)
     existing_id = find_marker_comment_id(args.pr)
     if existing_id:
         run(
@@ -252,23 +283,28 @@ def main() -> None:
 
     format_parser = subparsers.add_parser("format-prompt")
     format_parser.add_argument("--context", required=True)
-    format_parser.add_argument("--style-en", required=True)
-    format_parser.add_argument("--style-nl", required=True)
+    format_parser.add_argument("--whatsnew-dir", required=True)
     format_parser.add_argument("--out")
     format_parser.set_defaults(func=cmd_format_prompt)
 
     comment_parser = subparsers.add_parser("comment")
     comment_parser.add_argument("--pr", required=True)
     comment_parser.add_argument("--nothing-new", action="store_true")
-    comment_parser.add_argument("--english-file")
-    comment_parser.add_argument("--dutch-file")
+    comment_parser.add_argument("--draft", action="append", default=[], metavar="CODE=FILE")
     comment_parser.set_defaults(func=cmd_comment)
 
     args = parser.parse_args()
-    if args.command == "comment" and not args.nothing_new and not (
-        args.english_file and args.dutch_file
-    ):
-        parser.error("comment requires --nothing-new or both --english-file and --dutch-file")
+    if args.command == "comment" and not args.nothing_new:
+        expected = {code for code, _, _ in LANGUAGES}
+        try:
+            given = set(parse_draft_args(args.draft))
+        except ValueError as error:
+            parser.error(str(error))
+        if given != expected:
+            parser.error(
+                "comment requires --nothing-new or one --draft <code>=<file> for each of: "
+                + ", ".join(code for code, _, _ in LANGUAGES)
+            )
 
     try:
         args.func(args)

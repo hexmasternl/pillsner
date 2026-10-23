@@ -23,33 +23,6 @@ The details screen SHALL be titled "Medicine details" from a string resource in 
 - **WHEN** the form is opened from the add button
 - **THEN** no Stock section is shown, since an unsaved medicine cannot hold stock
 
-### Requirement: Stock section
-The Medicine details screen, in edit mode only, SHALL show a "Stock" section below the schedules section, listing the medicine's stock batches ordered by expiry date ascending, each row showing its remaining amount and its expiry date formatted for the device locale, and an "Add stock" button that opens the add-stock form owned by the `medicine-stock-tracking` capability. When the medicine has no stock batches, the section SHALL state that no stock is tracked for this medicine and SHALL still offer "Add stock". The section SHALL also show, when applicable, an inline note of the medicine's current low-stock and/or expiry-at-use state, recomputed live rather than tied to the last time a dose was taken.
-
-#### Scenario: No stock tracked yet
-- **WHEN** the details screen opens for a medicine with no stock batches
-- **THEN** the Stock section states that no stock is tracked and offers "Add stock"
-
-#### Scenario: Batches listed by expiry
-- **WHEN** a medicine has two batches, one expiring 1 March with 10 tablets remaining and one expiring 1 June with 30 tablets remaining
-- **THEN** the section lists the 1 March batch first, then the 1 June batch, each with its own remaining amount and date
-
-#### Scenario: Add stock reachable
-- **WHEN** the user taps "Add stock"
-- **THEN** the add-stock form opens for that medicine
-
-#### Scenario: Inline low-stock note
-- **WHEN** the medicine's current remaining stock does not cover its projected usage for the next 7 days
-- **THEN** the Stock section shows an inline note stating stock is low, independent of whether a dose has been taken since the screen opened
-
-#### Scenario: Inline expiry note
-- **WHEN** the medicine's soonest-expiring batch with remaining stock is within 30 days of, or past, its expiry date
-- **THEN** the Stock section shows an inline note naming that batch's expiry state
-
-#### Scenario: Section reflects a batch just added
-- **WHEN** the user adds a stock batch from the section and returns to the details screen
-- **THEN** the new batch appears in the list at its expiry-ordered position without leaving and reopening the screen
-
 ### Requirement: Editing preserves history
 Saving an edit SHALL NOT alter any recorded intake. Doses that are still pending SHALL follow the edited medicine: their name and amount SHALL become the medicine's current name and amount, and doses the edited schedules no longer call for SHALL be withdrawn, including a dose the user has already been reminded about. Withdrawing a dose SHALL remove any reminder showing for it. A dose that already has an outcome — taken, skipped or missed — SHALL be left exactly as it is. Editing a medicine's other fields SHALL NOT alter its stock batches, and adding stock from the Stock section SHALL NOT alter any pending or recorded dose.
 
@@ -84,3 +57,32 @@ Saving an edit SHALL NOT alter any recorded intake. Doses that are still pending
 #### Scenario: Adding stock does not touch pending doses
 - **WHEN** a medicine has a pending dose today and the user adds a stock batch from the details screen
 - **THEN** the pending dose is unchanged and still due at its original time
+
+## ADDED Requirements
+
+### Requirement: Stock section
+The Medicine details screen, in edit mode only, SHALL show a "Stock" section below the schedules section, listing the medicine's stock batches ordered by expiry date ascending, each row showing its remaining amount and its expiry date formatted for the device locale, and an "Add stock" button that opens the add-stock form owned by the `medicine-stock-tracking` capability. When the medicine has no stock batches, the section SHALL state that no stock is tracked for this medicine and SHALL still offer "Add stock". The section SHALL also show, when applicable, an inline note of the medicine's current low-stock and/or expiry-at-use state, recomputed live rather than tied to the last time a dose was taken.
+
+#### Scenario: No stock tracked yet
+- **WHEN** the details screen opens for a medicine with no stock batches
+- **THEN** the Stock section states that no stock is tracked and offers "Add stock"
+
+#### Scenario: Batches listed by expiry
+- **WHEN** a medicine has two batches, one expiring 1 March with 10 tablets remaining and one expiring 1 June with 30 tablets remaining
+- **THEN** the section lists the 1 March batch first, then the 1 June batch, each with its own remaining amount and date
+
+#### Scenario: Add stock reachable
+- **WHEN** the user taps "Add stock"
+- **THEN** the add-stock form opens for that medicine
+
+#### Scenario: Inline low-stock note
+- **WHEN** the medicine's current remaining stock does not cover its projected usage for the next 7 days
+- **THEN** the Stock section shows an inline note stating stock is low, independent of whether a dose has been taken since the screen opened
+
+#### Scenario: Inline expiry note
+- **WHEN** the medicine's soonest-expiring batch with remaining stock is within 30 days of, or past, its expiry date
+- **THEN** the Stock section shows an inline note naming that batch's expiry state
+
+#### Scenario: Section reflects a batch just added
+- **WHEN** the user adds a stock batch from the section and returns to the details screen
+- **THEN** the new batch appears in the list at its expiry-ordered position without leaving and reopening the screen

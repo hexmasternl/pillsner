@@ -2,13 +2,19 @@
 
 ## Purpose
 TBD - created by archiving change website-single-page-hugo. Update Purpose after archive.
+
 ## Requirements
-### Requirement: Single-page informational layout
-The marketing website SHALL present all content as one page per locale (no multi-page navigation), organised into a hero, a "why Pillsner" section, a feature highlights section, a privacy/permissions callout, and a footer.
+
+### Requirement: Multi-page informational layout
+The marketing website SHALL present its content as a set of dedicated pages per locale — Home, Medicines, Schedules & reminders, Tracking your progress, On your wrist, Privacy & security, FAQ, Report a bug and Request a feature — rather than one single page, with Home summarising the other pages and linking to each of them.
 
 #### Scenario: Visitor lands on the site
-- **WHEN** a visitor opens the site's root URL
-- **THEN** the hero, why-Pillsner, features, privacy callout and footer sections are all present on that single page, in that order, reachable by scrolling or in-page anchor links
+- **WHEN** a visitor opens a locale's root URL
+- **THEN** the Home page presents a hero, a short why-Pillsner summary and a feature-summary list, each feature-summary item linking to its own dedicated page
+
+#### Scenario: Visitor opens a dedicated page
+- **WHEN** a visitor navigates to the Medicines, Schedules & reminders, Tracking your progress, On your wrist, Privacy & security, FAQ, Report a bug or Request a feature page for a given locale
+- **THEN** that page renders fully translated content specific to its topic, using the same header, footer and visual identity as every other page on the site
 
 ### Requirement: Play Store call to action
 The site SHALL link to the Google Play Store listing for application id `nl.hexmaster.pillsner` via a prominent button, present in both the hero and the footer.
@@ -85,3 +91,53 @@ The site SHALL build to static HTML/CSS/JS/assets via Hugo such that it can be s
 #### Scenario: Site is built
 - **WHEN** the Hugo build command runs against `src/website/`
 - **THEN** it produces a complete static output directory that can be served as-is by a static file host, with no server-side code required at request time
+
+### Requirement: Cross-page navigation
+The site SHALL provide a persistent header navigation menu and footer links present on every page, listing every page of the site, and the language switcher SHALL remain available and functional from any page, not only Home.
+
+#### Scenario: Visitor browses from a non-home page
+- **WHEN** a visitor is on any page other than Home
+- **THEN** the header navigation menu lists links to every other page, and selecting a different language in the switcher shows the equivalent page in that language rather than redirecting to Home
+
+#### Scenario: Visitor follows a feature-summary link from Home
+- **WHEN** a visitor clicks a feature-summary item on the Home page
+- **THEN** the browser navigates to that feature's dedicated page in the visitor's current locale
+
+### Requirement: Responsive grouped header navigation
+The header navigation SHALL group the site's pages into four top-level entries — Home, Features (Medicines, Schedules, Tracking, On your wrist), Privacy, and Help (FAQ, Report a bug, Request a feature) — and SHALL adapt to the viewport: on viewports 960 px wide and wider it SHALL fit on a single row with the Features and Help groups opening as dropdown menus, and on narrower viewports it SHALL collapse behind a single Menu button that opens a panel listing every page under its group. The header SHALL never wrap onto more than one row of navigation at any viewport width in any supported locale.
+
+#### Scenario: Visitor on a wide screen
+- **WHEN** a visitor opens any page in a viewport at least 960 px wide
+- **THEN** the header shows the brand, the four top-level entries and the language switcher on one row, and no page link other than Home and Privacy is visible until its group is opened
+
+#### Scenario: Visitor opens a group on a wide screen
+- **WHEN** a visitor activates the Features or Help entry with a pointer, touch, or the Enter or Space key
+- **THEN** a dropdown lists that group's pages, and pressing Escape or activating anywhere outside it closes it again
+
+#### Scenario: Visitor on a phone
+- **WHEN** a visitor opens any page in a viewport narrower than 960 px
+- **THEN** the header shows only the brand, the language switcher and a Menu button, each with a touch target of at least 48 × 48 px
+
+#### Scenario: Visitor opens the menu on a phone
+- **WHEN** the visitor activates the Menu button
+- **THEN** a panel below the header lists every page grouped under the Features and Help headings, each link with a touch target at least 48 px tall, the panel scrolls independently if it is taller than the remaining viewport, and the button's accessible name and expanded state change to reflect that the menu is open
+
+#### Scenario: Visitor closes the menu on a phone
+- **WHEN** the menu panel is open and the visitor presses Escape, activates the Menu button again or selects a link
+- **THEN** the panel closes and keyboard focus returns to the Menu button unless the visitor navigated away
+
+#### Scenario: Visitor sees where they are
+- **WHEN** a visitor is on any page
+- **THEN** that page's link is marked as the current page both visually and with `aria-current="page"`, and on wide screens the group containing it is visually marked as well
+
+#### Scenario: Long labels in another locale
+- **WHEN** the site is shown in any supported locale, including the one with the longest navigation labels
+- **THEN** the wide-screen header still fits on one row at 960 px, and no navigation label is truncated
+
+#### Scenario: Visitor has JavaScript disabled
+- **WHEN** a visitor without JavaScript opens any page
+- **THEN** every page remains reachable from the header: on narrow viewports the menu is rendered expanded as a stacked list, and on wide viewports the Features and Help dropdowns still open and close
+
+#### Scenario: Visitor prefers reduced motion
+- **WHEN** the visitor's system requests reduced motion
+- **THEN** the menu panel and dropdowns open and close without animation

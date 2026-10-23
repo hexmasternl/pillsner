@@ -1,4 +1,96 @@
-## ADDED Requirements
+# medicine-stock-tracking Specification
+
+## Purpose
+TBD - created by archiving change medicine-expiry-tracking. Update Purpose after archive.
+
+## Requirements
+
+### Requirement: Stock batch model
+The domain layer SHALL define a `StockBatch` with an identifier, the medication it belongs to, a remaining amount, a unit, a strength (how much of the medication's default dose unit one unit of this batch is worth), an expiry date, and the moment it was added. Domain types MUST NOT depend on Android framework classes. A batch's unit MAY differ from its medication's default dose unit; when it matches, the batch's strength SHALL be exactly 1.
+
+#### Scenario: Batch belongs to one medicine
+- **WHEN** a stock batch is created for a medicine
+- **THEN** it carries that medicine's identifier and no other medicine can reference it
+
+#### Scenario: Unit matches the medicine
+- **WHEN** a medicine's default dose unit is millilitre and the user adds a stock batch in millilitres
+- **THEN** the batch's amount is recorded in millilitres with a strength of 1
+
+#### Scenario: Unit differs from the medicine
+- **WHEN** a medicine's default dose unit is milligram and the user adds a stock batch of 20 tablets, each worth 20 mg
+- **THEN** the batch's amount is recorded as 20 tablets with a strength of 20
+
+### Requirement: A medicine with no stock recorded is unaffected
+A medicine with zero stock batches SHALL behave exactly as it did before this capability existed: no consumption, no low-stock check, no expiry-at-use check, and no stock indicator anywhere. The capability activates for a medicine the moment its first stock batch is added, and only for that medicine.
+
+#### Scenario: No batches, no effect
+- **WHEN** a medicine has never had a stock batch added and a dose of it is recorded taken
+- **THEN** no consumption occurs, no stock warning is shown, and no stock indicator appears anywhere for that medicine
+
+#### Scenario: Activates on first batch
+- **WHEN** the user adds the first stock batch to a medicine that previously had none
+- **THEN** the next dose of that medicine recorded taken is deducted from that batch and the medicine becomes subject to the low-stock and expiry-at-use checks
+
+### Requirement: Add stock form
+The Medicine details screen's Stock section SHALL offer an "Add stock" form with four fields:
+
+- **Quantity**: a decimal number greater than zero, parsed using the device locale. When the chosen unit is a whole-pill unit (see "Whole-pill units"), the quantity SHALL be a whole number.
+- **Unit**: chosen from the same fixed unit list the rest of the app uses, defaulting to the medicine's own default dose unit.
+- **Strength**: shown only when the chosen unit differs from the medicine's default dose unit. It is a decimal number greater than zero, labelled with both units so the direction of the conversion is unambiguous (for example "mg per tablet").
+- **Expiry date**: required, chosen with a date picker.
+
+When the chosen unit matches the medicine's default dose unit, the strength field SHALL NOT be shown and the batch's strength SHALL be recorded as 1. An expiry date already in the past SHALL be accepted with a non-blocking warning stating so, never rejected. Saving a valid batch SHALL add it to the medicine's stock in a single write. It SHALL also clear the medicine's low-stock acknowledgement, whether or not the new batch actually restores sufficiency.
+
+#### Scenario: Valid batch, unit matches the dose
+- **WHEN** the user enters "300" and unit "millilitre" for a medicine dosed in millilitres, with no strength field shown, and selects an expiry date six months away
+- **THEN** a batch of 300 millilitres with a strength of 1 and that expiry date is added to the medicine's stock
+
+#### Scenario: Valid batch, unit differs from the dose
+- **WHEN** a medicine is dosed in milligrams and the user enters quantity "20", unit "tablet", strength "20" (mg per tablet), and an expiry date six months away
+- **THEN** a batch of 20 tablets with a strength of 20 and that expiry date is added to the medicine's stock
+
+#### Scenario: Fractional pill quantity rejected
+- **WHEN** the user chooses unit "tablet" or "capsule", enters "20.5" and attempts to save
+- **THEN** the batch is not saved and the quantity field shows an error stating the amount must be a whole number of tablets or capsules
+
+#### Scenario: Fractional quantity accepted for a continuous unit
+- **WHEN** the user chooses unit "millilitre", enters "150.5" and saves with a valid expiry date
+- **THEN** a batch of 150.5 millilitres is added to the medicine's stock
+
+#### Scenario: Strength field appears only when needed
+- **WHEN** the user opens the Add stock form for a medicine dosed in milligrams and changes the unit from milligram to tablet
+- **THEN** the strength field appears, labelled "mg per tablet"; changing the unit back to milligram hides it again
+
+#### Scenario: Zero or negative quantity rejected
+- **WHEN** the user enters "0" and attempts to save
+- **THEN** the batch is not saved and the quantity field shows an error stating the amount must be greater than zero
+
+#### Scenario: Zero or negative strength rejected
+- **WHEN** the chosen unit differs from the medicine's default dose unit and the user enters "0" for strength and attempts to save
+- **THEN** the batch is not saved and the strength field shows an error stating the amount must be greater than zero
+
+#### Scenario: Past expiry date accepted with a warning
+- **WHEN** the user selects an expiry date that has already passed
+- **THEN** the form shows a non-blocking warning stating the date is in the past, and saving still succeeds
+
+#### Scenario: Adding stock clears a standing acknowledgement
+- **WHEN** a medicine's low-stock warning was previously suppressed with "I ordered new" and the user adds a new stock batch, even one too small to restore sufficiency
+- **THEN** the medicine's acknowledgement is cleared and the next insufficient take warns again
+
+### Requirement: Removing a stock batch
+Every batch row in the Stock section SHALL carry a delete affordance. Tapping it SHALL ask for confirmation before anything is removed, presented as an `AlertDialog` naming the batch and stating that removing it cannot be undone, with a confirm action and a way to cancel. Confirming SHALL remove exactly that batch from the medicine's stock; cancelling, or dismissing the dialog any other way, SHALL leave every batch unchanged. This is the only way a stock batch's own fields can be corrected once saved — editing a batch in place is out of scope, so a mistaken entry is removed and re-added instead. Removing a medicine's last remaining batch SHALL take that medicine out of stock tracking entirely, exactly as if it had never had a batch added.
+
+#### Scenario: Confirming removes the batch
+- **WHEN** the user taps the delete affordance on a batch row and confirms
+- **THEN** that batch no longer appears in the Stock section and its consumption and warnings no longer consider it
+
+#### Scenario: Cancelling leaves the batch untouched
+- **WHEN** the user taps the delete affordance on a batch row and cancels, or dismisses the dialog without confirming
+- **THEN** the batch is unchanged and still appears in the Stock section
+
+#### Scenario: Removing the last batch disables the feature again
+- **WHEN** a medicine has exactly one stock batch and the user removes it, confirming
+- **THEN** the medicine has no stock batches left and behaves exactly as a medicine that never had stock recorded: no consumption, no low-stock check, no expiry-at-use check, and no stock indicator
 
 ### Requirement: Whole-pill units
 The domain layer SHALL treat `TABLET` and `CAPSULE` as whole-pill units: a stock batch counted in one of them holds and loses only whole units, because a pill cannot be returned to stock once any part of it has been used. Every other unit (`MILLIGRAM`, `GRAM`, `MICROGRAM`, `MILLILITRE`, `DROP`, `PUFF`, `UNIT`) SHALL keep exact decimal arithmetic. A whole-pill batch's usable remaining amount SHALL be its recorded remaining amount rounded down to a whole number. Everything that reads a batch's remaining stock SHALL use the usable remaining amount: consumption, the low-stock check, the tile and details-screen heads-up, and the Stock section. A fractional amount left over in a whole-pill batch from before this requirement existed SHALL be rounded down and written back as a whole number the next time a dose is drawn from that batch, without a schema migration.
@@ -18,8 +110,6 @@ The domain layer SHALL treat `TABLET` and `CAPSULE` as whole-pill units: a stock
 #### Scenario: Legacy fractional remainder is displayed as whole pills
 - **WHEN** a tablet batch holds 49.92 tablets, recorded before this requirement existed, and no dose has been drawn from it since
 - **THEN** the Stock section and every stock comparison treat it as 49 tablets
-
-## MODIFIED Requirements
 
 ### Requirement: Stock unit conversion (strength)
 Wherever the stock system compares or totals quantities across batches, it SHALL work in the medicine's default dose unit, converting each batch's usable remaining amount by multiplying it by that batch's `strengthPerUnit`. This covers the low-stock check, the tile and details-screen heads-up, and first-expiry-first-out consumption itself. A batch whose unit already matches the medicine's default dose unit (strength 1) needs no conversion. A medicine whose stock and doses share one continuous unit throughout SHALL therefore behave exactly as plain subtraction and comparison in that unit. When a dose amount is converted into a whole-pill batch's own unit (see "Whole-pill units"), the result SHALL be rounded **up** to the next whole pill, because any part of a pill used counts as the whole pill used. For every other batch, the conversion SHALL stay exact decimal division.
@@ -55,6 +145,10 @@ Wherever the stock system compares or totals quantities across batches, it SHALL
 #### Scenario: Rounding up applies to what is still owed per batch
 - **WHEN** a medicine is dosed in milligrams with a 25 mg schedule and has two batches of 20 mg tablets: one expiring sooner with 1 tablet remaining, and one expiring later with 10 tablets. A dose is then recorded taken.
 - **THEN** the sooner batch is exhausted (20 mg), and the 5 mg still owed takes 1 whole tablet from the later batch, leaving it at 9
+
+#### Scenario: A conversion that does not divide exactly never over-deducts
+- **WHEN** a medicine is dosed in milligrams with a 2 mg dose and has one batch counted in millilitres, each millilitre worth 3 mg
+- **THEN** the batch gives up at most 2 mg worth of millilitres, rounded down at the conversion precision, and any negligible remainder is not drawn from a further batch
 
 #### Scenario: Default dose unit is locked while stock is recorded
 - **WHEN** a medicine has at least one stock batch and the user changes its default dose unit on the Medicine details form
@@ -155,48 +249,66 @@ When a taken dose leaves stock low and the medicine's low-stock acknowledgement 
 - **WHEN** a taken dose leaves remaining stock at or above the medicine's projected weekly usage
 - **THEN** no low-stock warning is shown, and any previously set acknowledgement is left as-is
 
-### Requirement: Add stock form
-The Medicine details screen's Stock section SHALL offer an "Add stock" form with four fields:
+### Requirement: Expiry-at-use warning
+After consumption, the domain layer SHALL classify the batch FEFO drew from first into one of `NONE`, `APPROACHING` (within 30 days of its expiry date) or `PAST` (its expiry date has passed), relative to the current date. When the classification is `APPROACHING` or `PAST`, the app SHALL show an expiry-at-use warning naming that state, every time it recurs, with a single dismissal and no suppression: this warning has no acknowledgement state, unlike the low-stock warning, since only exhausting or replacing that batch changes the underlying fact.
 
-- **Quantity**: a decimal number greater than zero, parsed using the device locale. When the chosen unit is a whole-pill unit (see "Whole-pill units"), the quantity SHALL be a whole number.
-- **Unit**: chosen from the same fixed unit list the rest of the app uses, defaulting to the medicine's own default dose unit.
-- **Strength**: shown only when the chosen unit differs from the medicine's default dose unit. It is a decimal number greater than zero, labelled with both units so the direction of the conversion is unambiguous (for example "mg per tablet").
-- **Expiry date**: required, chosen with a date picker.
+#### Scenario: Drawn batch approaching expiry
+- **WHEN** a taken dose is drawn from a batch expiring in 10 days
+- **THEN** the expiry-at-use warning is shown stating stock expires soon
 
-When the chosen unit matches the medicine's default dose unit, the strength field SHALL NOT be shown and the batch's strength SHALL be recorded as 1. An expiry date already in the past SHALL be accepted with a non-blocking warning stating so, never rejected. Saving a valid batch SHALL add it to the medicine's stock in a single write. It SHALL also clear the medicine's low-stock acknowledgement, whether or not the new batch actually restores sufficiency.
+#### Scenario: Drawn batch past expiry
+- **WHEN** a taken dose is drawn from a batch whose expiry date has passed
+- **THEN** the expiry-at-use warning is shown stating the stock used has expired
 
-#### Scenario: Valid batch, unit matches the dose
-- **WHEN** the user enters "300" and unit "millilitre" for a medicine dosed in millilitres, with no strength field shown, and selects an expiry date six months away
-- **THEN** a batch of 300 millilitres with a strength of 1 and that expiry date is added to the medicine's stock
+#### Scenario: Drawn batch far from expiry
+- **WHEN** a taken dose is drawn from a batch expiring in 90 days
+- **THEN** no expiry-at-use warning is shown
 
-#### Scenario: Valid batch, unit differs from the dose
-- **WHEN** a medicine is dosed in milligrams and the user enters quantity "20", unit "tablet", strength "20" (mg per tablet), and an expiry date six months away
-- **THEN** a batch of 20 tablets with a strength of 20 and that expiry date is added to the medicine's stock
+#### Scenario: Recurs every time, never suppressed
+- **WHEN** the user dismisses the expiry-at-use warning and later takes another dose drawn from the same still-approaching-expiry batch
+- **THEN** the expiry-at-use warning is shown again, with no way to suppress it
 
-#### Scenario: Fractional pill quantity rejected
-- **WHEN** the user chooses unit "tablet" or "capsule", enters "20.5" and attempts to save
-- **THEN** the batch is not saved and the quantity field shows an error stating the amount must be a whole number of tablets or capsules
+### Requirement: Combined warning presentation
+When a single taken dose triggers the low-stock warning, the expiry-at-use warning, or both, the app SHALL present them in one dialog rather than two, since both stem from the same take. When the app is in the foreground at the moment the dose is recorded, the dialog SHALL be shown immediately. When it is not — the dose was answered from the notification or from a wearable while the app was backgrounded — the warning SHALL be deferred and shown the next time the app is opened, evaluated fresh against the medicine's stock state at that moment rather than replayed from the original event. Multiple deferred takes for the same medicine SHALL collapse into a single warning reflecting current state when the app is next opened.
 
-#### Scenario: Fractional quantity accepted for a continuous unit
-- **WHEN** the user chooses unit "millilitre", enters "150.5" and saves with a valid expiry date
-- **THEN** a batch of 150.5 millilitres is added to the medicine's stock
+#### Scenario: Both warnings from one take
+- **WHEN** a taken dose both leaves stock low and is drawn from an expiring batch
+- **THEN** one dialog states both, with "OK" and "I ordered new" for the low-stock part and a single acknowledgement for the expiry part
 
-#### Scenario: Strength field appears only when needed
-- **WHEN** the user opens the Add stock form for a medicine dosed in milligrams and changes the unit from milligram to tablet
-- **THEN** the strength field appears, labelled "mg per tablet"; changing the unit back to milligram hides it again
+#### Scenario: Foreground take warns immediately
+- **WHEN** the app is open and the user answers "I took it" on the dose detail screen, triggering a warning
+- **THEN** the warning dialog appears without leaving the current flow
 
-#### Scenario: Zero or negative quantity rejected
-- **WHEN** the user enters "0" and attempts to save
-- **THEN** the batch is not saved and the quantity field shows an error stating the amount must be greater than zero
+#### Scenario: Foreground take on another screen warns there
+- **WHEN** the app is open on any screen other than Home, such as Medicines or Settings, and the user answers "I took it" from the reminder notification, triggering a warning
+- **THEN** the warning dialog appears over that screen at once, without the user having to return to Home
 
-#### Scenario: Zero or negative strength rejected
-- **WHEN** the chosen unit differs from the medicine's default dose unit and the user enters "0" for strength and attempts to save
-- **THEN** the batch is not saved and the strength field shows an error stating the amount must be greater than zero
+#### Scenario: Resetting the app forgets pending warnings
+- **WHEN** a stock warning is still waiting to be shown and the user resets the app
+- **THEN** the pending warning is erased with the rest of the data and is never shown afterwards
 
-#### Scenario: Past expiry date accepted with a warning
-- **WHEN** the user selects an expiry date that has already passed
-- **THEN** the form shows a non-blocking warning stating the date is in the past, and saving still succeeds
+#### Scenario: Backgrounded take defers the warning
+- **WHEN** the user answers "I took it" from the reminder notification while the app is not open, triggering a warning
+- **THEN** no dialog appears at that moment, and the warning appears the next time the app is opened
 
-#### Scenario: Adding stock clears a standing acknowledgement
-- **WHEN** a medicine's low-stock warning was previously suppressed with "I ordered new" and the user adds a new stock batch, even one too small to restore sufficiency
-- **THEN** the medicine's acknowledgement is cleared and the next insufficient take warns again
+#### Scenario: Multiple deferred takes collapse
+- **WHEN** two doses of the same medicine are answered "I took it" from notifications while the app is backgrounded, both leaving stock low
+- **THEN** only one low-stock warning is shown the next time the app opens, reflecting the medicine's current state
+
+### Requirement: No sensitive logging on the stock path
+Stock consumption, the low-stock check and the expiry-at-use check MUST NOT log medicine names, dose amounts or stock quantities at info level or above in release builds.
+
+#### Scenario: Log inspection
+- **WHEN** the stock tracking package is inspected
+- **THEN** no info, warning or error log statement includes a medicine name, a dose amount or a stock quantity
+
+### Requirement: Stock tracking accessibility
+Every element the Add stock form, the Stock section and the warning dialog introduce SHALL have a spoken label, every validation error and every advisory warning SHALL be announced when it appears, and each SHALL remain usable at the largest system font scale with no clipped or truncated text.
+
+#### Scenario: Screen reader on the low-stock warning
+- **WHEN** a screen reader focuses the low-stock warning dialog
+- **THEN** it announces the warning text and both response labels, "OK" and "I ordered new"
+
+#### Scenario: Largest font scale on the Add stock form
+- **WHEN** the system font scale is at its largest setting and the Add stock form shows a past-expiry warning
+- **THEN** every field, the warning and the save action are reachable by scrolling with no clipped text

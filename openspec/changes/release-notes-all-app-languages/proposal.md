@@ -3,6 +3,7 @@
 ## Why
 
 **GitHub Issue:** #100 (https://github.com/hexmasternl/pillsner/issues/100)
+**Pull Request:** #101 (https://github.com/hexmasternl/pillsner/pull/101)
 
 Play release notes ship only in English and Dutch. The app itself speaks six languages, so German, French, Spanish and Portuguese users read "what's new" in another language, and Play Console shows "Enter or paste your release notes" placeholders on every release (issue #100). The release-notes drafting spec names only English and Dutch, so the pipeline is doing what was agreed. The agreement is what has to change.
 

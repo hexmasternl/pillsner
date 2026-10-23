@@ -132,7 +132,7 @@ private fun ExportPassphraseDialog(state: BackupDialog.ExportPassphrase, callbac
                 onClick = callbacks.onExportPassphraseConfirmed,
                 enabled = state.canProceed,
                 modifier = Modifier
-                    .heightIn(min = Sizes.minTouchTarget)
+                    .heightIn(min = Sizes.primaryActionHeight)
                     .testTag(BackupDialogTestTags.EXPORT_CONTINUE),
             ) {
                 Text(stringResource(R.string.backup_export_dialog_confirm))
@@ -173,7 +173,7 @@ private fun ImportPassphraseDialog(state: BackupDialog.ImportPassphrase, working
                 onClick = callbacks.onImportPassphraseConfirmed,
                 enabled = state.canProceed && !working,
                 modifier = Modifier
-                    .heightIn(min = Sizes.minTouchTarget)
+                    .heightIn(min = Sizes.primaryActionHeight)
                     .testTag(BackupDialogTestTags.IMPORT_OPEN),
             ) {
                 Text(stringResource(R.string.backup_import_dialog_confirm))
@@ -234,7 +234,7 @@ private fun ConfirmImportDialog(state: BackupDialog.ConfirmImport, working: Bool
                     contentColor = MaterialTheme.colorScheme.onError,
                 ),
                 modifier = Modifier
-                    .heightIn(min = Sizes.minTouchTarget)
+                    .heightIn(min = Sizes.primaryActionHeight)
                     .testTag(BackupDialogTestTags.CONFIRM_REPLACE),
             ) {
                 Text(stringResource(R.string.backup_confirm_action))

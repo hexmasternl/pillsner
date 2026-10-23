@@ -44,5 +44,5 @@
 
 - [x] 6.1 Run unit tests and lint; fix any failures.
 - [x] 6.2 Run instrumented tests covering export/import, alarm scheduling and watch sync.
-- [x] 6.3 Manually verify: export with a passphrase, uninstall and reinstall (or reset), import the file, and confirm medicines, schedules, stock and history match exactly.
-- [x] 6.4 Manually verify a wrong passphrase, a corrupted file, and cancelling each picker all leave existing data untouched.
+- [x] 6.3 Manually verify: export with a passphrase, uninstall and reinstall (or reset), import the file, and confirm medicines, schedules, stock and history match exactly. _(Automated coverage done; the on-device run is pending as the manual-testing checklist in PR #92, per the git-workflow manual-testing rule.)_
+- [x] 6.4 Manually verify a wrong passphrase, a corrupted file, and cancelling each picker all leave existing data untouched. _(Automated coverage done; the on-device run is pending as the manual-testing checklist in PR #92, per the git-workflow manual-testing rule.)_

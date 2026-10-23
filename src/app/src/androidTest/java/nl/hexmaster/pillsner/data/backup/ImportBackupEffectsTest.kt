@@ -120,7 +120,9 @@ class ImportBackupEffectsTest {
         assertTrue("The imported schedules planned doses", pending.isNotEmpty())
         assertTrue("Only the imported medicine is planned", pending.all { it.medicationName == "Imported medicine" })
         val armed = armedAlarmStore.armed()
-        assertEquals(scheduler.lastSchedule, armed)
+        // The store keeps milliseconds; a retry moment the wake computes from the clock can carry
+        // more, so the two are compared at the store's precision.
+        assertEquals(scheduler.lastSchedule.map { it.copy(at = it.at.truncatedTo(ChronoUnit.MILLIS)) }.toSet(), armed)
         assertFalse("The old dose's alarm is gone", armed.any { it.at == oldMoment })
         // Every future dose the imported schedules imply has its alarm. (A dose already due may
         // also have armed a repeat, which is the imported data's own and is fine.)

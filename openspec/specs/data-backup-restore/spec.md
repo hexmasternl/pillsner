@@ -1,4 +1,9 @@
-## ADDED Requirements
+# data-backup-restore Specification
+
+## Purpose
+Lets a user keep a copy of everything Pillsner stores on the device, and restore it on the same or a new phone, without an account or any network: a passphrase-encrypted, compressed `.pill` file written and read only through the Storage Access Framework, at the user's explicit choice. Import replaces the on-device dataset after confirmation and brings reminders and a paired watch in line with it.
+
+## Requirements
 
 ### Requirement: Settings offers Export data and Import data actions
 The Settings screen SHALL show an "Export data" action and an "Import data" action, placed above the existing Danger zone section. Both MUST be reachable without leaving Settings for anything other than the platform's file picker and, for export, a passphrase entry step.
@@ -23,18 +28,18 @@ Tapping "Export data" SHALL first ask the user to enter and confirm a passphrase
 - **THEN** no file is created and no data is modified
 
 ### Requirement: The exported file contains user data only, excluding device-only state
-The exported file SHALL contain every medication (active and inactive), every schedule, and every recorded intake with its outcome and timestamp. It MUST NOT contain the app lock PIN verifier or biometric-unlock setting, the accepted-legal-document timestamps, or any Wear OS pairing state. There is no stock/refill field to export: `Medication` and `MedicationEntity` do not track stock today, so the backup contract has nothing to carry for it until a future change adds that field.
+The exported file SHALL contain every medication (active and inactive) including its low-stock acknowledgement, every schedule, every dose with its recorded intake outcome and timestamp, and every stock batch (`medicine-stock-tracking`) with its remaining amount, unit, strength and expiry date. It MUST NOT contain the app lock PIN verifier or biometric-unlock setting, the accepted-legal-document timestamps, or any Wear OS pairing state.
 
 #### Scenario: User data is included
-- **WHEN** a dataset with medicines, schedules and a mix of taken, skipped and missed doses is exported
-- **THEN** the resulting file, once decrypted, contains all of that medicine, schedule and intake data
+- **WHEN** a dataset with medicines, schedules, stock batches and a mix of taken, skipped and missed doses is exported
+- **THEN** the resulting file, once decrypted, contains all of that medicine, schedule, stock and intake data
 
 #### Scenario: Device-only state is excluded
 - **WHEN** an export is produced on a device with an app lock PIN enabled and a paired watch
 - **THEN** the resulting file, once decrypted, contains neither the PIN verifier, the biometric setting, nor any watch pairing state
 
 ### Requirement: The exported file is encrypted and carries a plaintext format version
-The app SHALL derive an AES-256-GCM key from the export passphrase using PBKDF2-HMAC-SHA256 with a random per-export salt and a fixed iteration count of 600,000 (the current OWASP-recommended minimum for PBKDF2-HMAC-SHA256), and SHALL encrypt the entire data payload with that key and a random per-export nonce. The salt, the KDF iteration count, the nonce and an explicit integer format version SHALL be stored in an unencrypted header; none of these fields is treated as secret. On import, the app MUST reject a header whose iteration count is outside a fixed allowed range (100,000 to 2,000,000) before attempting PBKDF2, rather than spending CPU deriving a key from an untrusted, unbounded count.
+The app SHALL derive an AES-256-GCM key from the export passphrase using PBKDF2-HMAC-SHA256 with a random per-export salt and a fixed iteration count of 600,000 (the current OWASP-recommended minimum for PBKDF2-HMAC-SHA256), and SHALL GZIP-compress the serialised data payload and then encrypt the entire compressed payload with that key and a random per-export nonce. Compression always happens before encryption, never after. The salt, the KDF iteration count, the nonce and an explicit integer format version SHALL be stored in an unencrypted header; none of these fields is treated as secret. On import, the app MUST reject a header whose iteration count is outside a fixed allowed range (100,000 to 2,000,000) before attempting PBKDF2, rather than spending CPU deriving a key from an untrusted, unbounded count.
 
 #### Scenario: Header is readable without the passphrase
 - **WHEN** an exported file is inspected without its passphrase
@@ -67,7 +72,7 @@ If the selected file's format version is newer than every format version the run
 - **THEN** the import fails with a message naming the version mismatch, and no on-device data changes
 
 ### Requirement: A successful import is confirmed and then replaces the entire dataset
-After the passphrase and format checks pass, the app SHALL show a confirmation dialog naming that every existing medicine, schedule and intake record will be replaced by the contents of the chosen file, styled after the existing reset confirmation. Only on explicit confirmation SHALL the app remove every existing medication, schedule and dose row and replace them with the file's contents, in a single transaction: either the replacement fully succeeds or the on-device dataset is left exactly as it was before the import.
+After the passphrase and format checks pass, the app SHALL show a confirmation dialog naming that every existing medicine, schedule, stock and intake record will be replaced by the contents of the chosen file, styled after the existing reset confirmation. Only on explicit confirmation SHALL the app remove every existing medication, schedule, stock batch and dose row and replace them with the file's contents, in a single transaction: either the replacement fully succeeds or the on-device dataset is left exactly as it was before the import.
 
 #### Scenario: Confirmation names what will be replaced
 - **WHEN** a valid file and correct passphrase are supplied
@@ -79,7 +84,7 @@ After the passphrase and format checks pass, the app SHALL show a confirmation d
 
 #### Scenario: A successful import replaces everything
 - **WHEN** the user confirms an import
-- **THEN** the on-device medications, schedules and doses tables contain exactly what the imported file described, and nothing from before the import remains
+- **THEN** the on-device medications, schedules, stock batches and doses tables contain exactly what the imported file described, and nothing from before the import remains
 
 #### Scenario: A failure partway through the transaction changes nothing
 - **WHEN** the replacement transaction cannot complete

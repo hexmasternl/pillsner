@@ -28,8 +28,9 @@ params:
         - "Si une prise arrive un jour à échéance et qu'aucun rappel n'est apparu, l'écran d'accueil vous le signale et vous oriente vers les réglages d'arrière-plan qui en sont la cause."
     - question: "Que se passe-t-il quand je change de téléphone ?"
       answer:
-        - "Pillsner stocke tout sur l'appareil, elle ne transfère donc pas vos données d'elle-même. Si la sauvegarde d'Android est activée pour votre compte Google, Android peut inclure les données de Pillsner dans la sauvegarde qu'il restaure sur votre nouveau téléphone."
-        - "Le verrouillage de l'application est délibérément exclu de cette sauvegarde et du transfert d'appareil à appareil, vous le reconfigurez donc sur le nouveau téléphone."
+        - "Emportez vos données avec vous. Sur l'ancien téléphone, ouvrez les Réglages et touchez Exporter les données : Pillsner enregistre vos médicaments, horaires, stock et historique dans un seul fichier, verrouillé par une phrase secrète que vous choisissez. Placez ce fichier à un endroit accessible depuis le nouveau téléphone, puis touchez Importer les données sur celui-ci et saisissez la même phrase secrète."
+        - "L'importation remplace tout ce qui se trouve sur le nouveau téléphone par le contenu du fichier, après votre confirmation. Une phrase secrète oubliée ne peut pas être récupérée : conservez-la précieusement. Votre langue, votre thème et le verrouillage de l'application ne figurent pas dans le fichier ; vous les configurez de nouveau sur le nouveau téléphone."
+        - "Si la sauvegarde d'Android est activée pour votre compte Google, Android peut aussi restaurer de lui-même les données de Pillsner sur votre nouveau téléphone. Le verrouillage de l'application est exclu de cette sauvegarde également."
     - question: "Puis-je supprimer un médicament ?"
       answer:
         - "Un médicament n'est jamais supprimé ; en arrêter un le désactive. Le médicament, ses horaires et chaque prise qu'il a produite restent sur votre appareil, pour que votre historique garde du sens."
@@ -45,6 +46,13 @@ params:
       answer:
         - "Comme un comprimé entier. Un comprimé entamé ne peut pas retourner dans l'emballage, donc toute partie d'une pilule utilisée compte comme la pilule entière. Une dose de 40 mg prise sur des comprimés de 500 mg retire un comprimé de votre stock."
         - "Si vous avez aussi des comprimés dont le dosage correspond à la dose, Pillsner prend la dose sur ceux-là, pour qu'aucun comprimé ne soit gaspillé. Si vous coupez vos comprimés volontairement et prenez l'autre moitié plus tard, chaque prise compte quand même un comprimé entier : Pillsner vous prévient alors un peu tôt plutôt que trop tard."
+    - question: "Pillsner peut-elle lire l'étiquette de mon médicament ?"
+      answer:
+        - "Oui, lorsque vous ajoutez un médicament. Touchez Scanner une étiquette, puis dirigez l'appareil photo vers l'étiquette de la pharmacie ou la boîte, ou choisissez une photo déjà prise. Pillsner remplit le nom, la dose, la fréquence de prise et les dates qu'elle parvient à lire."
+        - "Vérifiez chaque champ avant d'enregistrer : un scan est un point de départ, pas une réponse définitive. Le texte est lu sur votre téléphone, sans connexion, et ni l'image ni le texte ne sont conservés."
+    - question: "Y a-t-il un mode sombre ?"
+      answer:
+        - "Oui. Par défaut, Pillsner suit le réglage clair ou sombre de votre téléphone. Sous Thème, dans les Réglages, vous pouvez choisir Clair ou Sombre à la place. L'application montre garde sa propre apparence."
     - question: "Quelles langues Pillsner parle-t-elle ?"
       answer:
         - "L'anglais, le néerlandais, l'allemand, le français, l'espagnol et le portugais. L'application suit d'elle-même la langue de votre téléphone, et vous pouvez la remplacer dans les Réglages."

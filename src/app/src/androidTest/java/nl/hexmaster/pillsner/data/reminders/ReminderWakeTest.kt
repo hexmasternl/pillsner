@@ -158,7 +158,7 @@ class ReminderWakeTest {
         coordinator.onWake(WakeReason.ALARM)
         val announced = doses.all().first { it.scheduledAt == nineOClock }
         assertNotNull("The dose should have been announced first", announced.firstRemindedAt)
-        assertTrue("Its reminder should be showing", isShowing(announced.id.value.toInt()))
+        assertTrue("Its reminder should be showing", showsWithinTimeout(announced.id.value.toInt()))
 
         // The user moves the medicine off nine o'clock, so they no longer take it then.
         medications.update(MedicationId(1)) {
@@ -170,9 +170,9 @@ class ReminderWakeTest {
             "The dose the user no longer takes should be gone",
             doses.all().none { it.scheduledAt == nineOClock },
         )
-        assertFalse(
+        assertTrue(
             "Its reminder should have gone with it",
-            isShowing(announced.id.value.toInt()),
+            goneWithinTimeout(announced.id.value.toInt()),
         )
 
         doses.all().forEach { ReminderNotifier(context).cancel(it) }
@@ -186,6 +186,7 @@ class ReminderWakeTest {
 
         coordinator.onWake(WakeReason.ALARM)
         val announced = doses.all().first { it.scheduledAt == nineOClock }
+        assertTrue("Its reminder should be showing first", showsWithinTimeout(announced.id.value.toInt()))
 
         // The same edit, but the app woke because the clock moved, not because the user changed
         // anything. A dose they have already been told about keeps its moment.
@@ -198,7 +199,7 @@ class ReminderWakeTest {
             "The announced dose should still be there",
             doses.all().any { it.id == announced.id },
         )
-        assertTrue("Its reminder should still be showing", isShowing(announced.id.value.toInt()))
+        assertTrue("Its reminder should still be showing", showsWithinTimeout(announced.id.value.toInt()))
 
         doses.all().forEach { ReminderNotifier(context).cancel(it) }
     }
@@ -292,6 +293,25 @@ class ReminderWakeTest {
             .activeNotifications
             .any { it.id == id }
 
+    /**
+     * Whether the notification reaches the shade within [SHADE_TIMEOUT_MILLIS]. `notify` and
+     * `cancel` hand the change to the system and return, so `activeNotifications` catches up a
+     * moment later, and on a slow emulator a check made on the spot reads the old shade.
+     */
+    private fun showsWithinTimeout(id: Int): Boolean = shadeSettles { isShowing(id) }
+
+    /** Whether the notification has left the shade within [SHADE_TIMEOUT_MILLIS]. */
+    private fun goneWithinTimeout(id: Int): Boolean = shadeSettles { !isShowing(id) }
+
+    private fun shadeSettles(condition: () -> Boolean): Boolean {
+        val deadline = System.currentTimeMillis() + SHADE_TIMEOUT_MILLIS
+        while (System.currentTimeMillis() < deadline) {
+            if (condition()) return true
+            Thread.sleep(SHADE_POLL_MILLIS)
+        }
+        return condition()
+    }
+
     private fun coordinator(
         doses: InMemoryDoseRepository,
         medications: MedicationRepository,
@@ -336,5 +356,10 @@ class ReminderWakeTest {
         /** The moments a reminder would fire at, which is what the wake tests are about. */
         val reminderMoments: Set<Instant>
             get() = schedule.filter { it.kind == WakeKind.REMINDER }.mapTo(mutableSetOf()) { it.at }
+    }
+
+    private companion object {
+        const val SHADE_TIMEOUT_MILLIS = 5_000L
+        const val SHADE_POLL_MILLIS = 50L
     }
 }

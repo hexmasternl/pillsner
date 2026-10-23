@@ -261,6 +261,42 @@
     <string name="reset_dialog_confirm">Alles löschen</string>
     <string name="reset_done_message">Alles wurde gelöscht</string>
 
+    <!-- Sicherung und Wiederherstellung (data-backup-restore) -->
+    <string name="backup_header">Deine Daten</string>
+    <string name="backup_explanation">Speichere alles in einer Datei, die du selbst aufbewahrst, oder hole es daraus zurück. Pillsner verschickt die Datei nie selbst.</string>
+    <string name="backup_export_title">Daten exportieren</string>
+    <string name="backup_export_summary">Medikamente, Zeitpläne, Vorrat und Verlauf in einer gesperrten Datei</string>
+    <string name="backup_import_title">Daten importieren</string>
+    <string name="backup_import_summary">Ersetze, was auf diesem Telefon ist, durch eine Sicherung</string>
+    <string name="backup_progress_exporting">Deine Daten werden exportiert…</string>
+    <string name="backup_progress_reading">Die Sicherung wird geöffnet…</string>
+    <string name="backup_progress_importing">Deine Daten werden importiert…</string>
+    <string name="backup_export_dialog_title">Passphrase wählen</string>
+    <string name="backup_export_dialog_body">Die Sicherung wird mit dieser Passphrase gesperrt. Du brauchst sie später, um die Sicherung zu importieren.</string>
+    <string name="backup_export_dialog_no_recovery">Eine vergessene Passphrase lässt sich nicht wiederherstellen. Ohne sie kann die Sicherung nicht geöffnet werden.</string>
+    <string name="backup_field_passphrase">Passphrase</string>
+    <string name="backup_field_confirmation">Noch einmal eingeben</string>
+    <string name="backup_error_mismatch">Die beiden Passphrasen sind verschieden. Gib zweimal dieselbe ein.</string>
+    <string name="backup_export_dialog_confirm">Speicherort wählen</string>
+    <string name="backup_import_dialog_title">Sicherung öffnen</string>
+    <string name="backup_import_dialog_body">Gib die Passphrase ein, die du beim Exportieren dieser Sicherung gewählt hast.</string>
+    <string name="backup_error_wrong_passphrase">Diese Passphrase öffnet die Sicherung nicht. Prüfe sie und versuche es erneut. Stimmt sie, wurde die Datei nach dem Exportieren verändert.</string>
+    <string name="backup_import_dialog_confirm">Öffnen</string>
+    <string name="backup_confirm_title">Deine Daten ersetzen?</string>
+    <string name="backup_confirm_replaced">Alle Medikamente, Zeitpläne, Vorräte und dein gesamter Einnahmeverlauf auf diesem Telefon werden durch die Sicherung ersetzt. Das lässt sich nicht rückgängig machen.</string>
+    <string name="backup_confirm_kept">Deine Sprache, dein Design, deine App-Sperre und die akzeptierten Dokumente bleiben, wie sie sind.</string>
+    <string name="backup_confirm_checkbox">Ich verstehe, dass meine aktuellen Daten ersetzt werden</string>
+    <string name="backup_confirm_action">Daten ersetzen</string>
+    <string name="backup_message_export_done">Deine Daten wurden exportiert</string>
+    <string name="backup_message_export_cancelled">Export abgebrochen. Es wurde keine Datei gespeichert.</string>
+    <string name="backup_message_export_failed">Die Sicherung konnte nicht gespeichert werden. Versuche es erneut oder wähle einen anderen Ort.</string>
+    <string name="backup_message_import_done">Deine Daten wurden importiert</string>
+    <string name="backup_message_import_cancelled">Import abgebrochen. Es wurde nichts geändert.</string>
+    <string name="backup_message_import_failed">Der Import wurde nicht abgeschlossen. Es wurde nichts geändert.</string>
+    <string name="backup_message_not_a_backup">Diese Datei ist keine Pillsner-Sicherung oder sie ist beschädigt. Es wurde nichts geändert.</string>
+    <string name="backup_message_newer_version">Diese Sicherung stammt aus einer neueren Version von Pillsner. Aktualisiere die App und versuche es erneut.</string>
+    <string name="backup_message_read_failed">Die Datei konnte nicht geöffnet werden. Es wurde nichts geändert.</string>
+
     <!-- Dosisdetails -->
     <string name="dose_detail_title">Dosis</string>
     <string name="dose_detail_close">Schließen</string>

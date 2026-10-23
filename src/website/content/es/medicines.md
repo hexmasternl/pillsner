@@ -23,6 +23,12 @@ params:
         - "Un nombre, una cantidad y una unidad acorde a cómo se toma realmente el medicamento"
         - "Una fecha de inicio, y una fecha de fin cuando el tratamiento la tiene"
         - "Quién lo recetó, para que sepas más adelante quién te lo indicó"
+    - heading: "O escanea la etiqueta"
+      body: "¿Prefieres no escribirlo todo? En el formulario Añadir medicamento, toca Escanear una etiqueta y apunta la cámara a la etiqueta de la farmacia o a la caja, o elige una foto que ya hiciste. Pillsner lee el texto en tu teléfono y rellena el nombre, la dosis, cada cuánto tomarlo y las fechas que encuentra, para que lo revises antes de guardar."
+      points:
+        - "Lee etiquetas en inglés, neerlandés, alemán, francés, español y portugués"
+        - "Lo que no puede leer con certeza se queda vacío en lugar de adivinarse"
+        - "Funciona sin conexión y no guarda ninguna imagen ni ningún texto"
     - heading: "Cambiar de opinión"
       body: "Toca un medicamento para abrirlo y cambiar cualquier cosa: su nombre, su dosis, sus fechas, quién lo recetó, sus horarios y si lo estás tomando actualmente."
       note: "Editar nunca reescribe el historial. Las tomas que ya has respondido conservan el nombre y la cantidad con los que se registraron; solo lo que aún tienes por delante sigue el cambio."

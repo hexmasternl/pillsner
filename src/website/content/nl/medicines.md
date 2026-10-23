@@ -23,6 +23,12 @@ params:
         - "Een naam, een hoeveelheid en een eenheid die past bij hoe het medicijn echt wordt ingenomen"
         - "Een startdatum, en een einddatum als de kuur er een heeft"
         - "De voorschrijver, zodat je later weet wie je eraan zette"
+    - heading: "Of scan het etiket"
+      body: "Liever niet alles intypen? Tik in het formulier Medicijn toevoegen op Etiket scannen en richt de camera op het apotheeketiket of de doos, of kies een foto die je al had gemaakt. Pillsner leest de tekst op je telefoon en vult de naam, de dosis, hoe vaak je het inneemt en de data in die het vindt, zodat jij ze kunt controleren voordat je opslaat."
+      points:
+        - "Leest etiketten in het Engels, Nederlands, Duits, Frans, Spaans en Portugees"
+        - "Wat het niet zeker kan lezen, blijft leeg in plaats van gegokt"
+        - "Werkt zonder verbinding, en bewaart geen foto en geen tekst"
     - heading: "Van gedachten veranderen"
       body: "Tik op een medicijn om het te openen en alles aan te passen: de naam, de dosis, de data, wie het voorschreef, de schema's, en of je het op dit moment inneemt."
       note: "Bewerken herschrijft nooit de geschiedenis. Doses die je al hebt beantwoord houden de naam en hoeveelheid waaronder ze werden ingenomen; alleen wat nog voor je ligt volgt de wijziging."

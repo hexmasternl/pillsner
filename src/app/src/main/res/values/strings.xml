@@ -290,6 +290,42 @@
     <string name="reset_dialog_confirm">Erase everything</string>
     <string name="reset_done_message">Everything has been erased</string>
 
+    <!-- Backup and restore (data-backup-restore) -->
+    <string name="backup_header">Your data</string>
+    <string name="backup_explanation">Save everything to a file you keep, or bring it back from one. Pillsner never sends the file anywhere itself.</string>
+    <string name="backup_export_title">Export data</string>
+    <string name="backup_export_summary">Medicines, schedules, stock and history, in one locked file</string>
+    <string name="backup_import_title">Import data</string>
+    <string name="backup_import_summary">Replace what is on this phone with a backup</string>
+    <string name="backup_progress_exporting">Exporting your data…</string>
+    <string name="backup_progress_reading">Opening the backup…</string>
+    <string name="backup_progress_importing">Importing your data…</string>
+    <string name="backup_export_dialog_title">Choose a passphrase</string>
+    <string name="backup_export_dialog_body">The backup is locked with this passphrase. You need it to import the backup later.</string>
+    <string name="backup_export_dialog_no_recovery">There is no way to recover a forgotten passphrase. Without it, the backup cannot be opened.</string>
+    <string name="backup_field_passphrase">Passphrase</string>
+    <string name="backup_field_confirmation">Type it again</string>
+    <string name="backup_error_mismatch">The two passphrases are different. Type the same one twice.</string>
+    <string name="backup_export_dialog_confirm">Choose where to save</string>
+    <string name="backup_import_dialog_title">Open backup</string>
+    <string name="backup_import_dialog_body">Enter the passphrase you chose when you exported this backup.</string>
+    <string name="backup_error_wrong_passphrase">This passphrase does not open the backup. Check it and try again. If it is right, the file has been changed since it was exported.</string>
+    <string name="backup_import_dialog_confirm">Open</string>
+    <string name="backup_confirm_title">Replace your data?</string>
+    <string name="backup_confirm_replaced">Every medicine, schedule, stock record and your complete intake history on this phone will be replaced by the backup. This cannot be undone.</string>
+    <string name="backup_confirm_kept">Your language, theme, app lock and the documents you accepted stay as they are.</string>
+    <string name="backup_confirm_checkbox">I understand my current data will be replaced</string>
+    <string name="backup_confirm_action">Replace data</string>
+    <string name="backup_message_export_done">Your data has been exported</string>
+    <string name="backup_message_export_cancelled">Export cancelled. No file was saved.</string>
+    <string name="backup_message_export_failed">The backup could not be saved. Try again, or choose another place.</string>
+    <string name="backup_message_import_done">Your data has been imported</string>
+    <string name="backup_message_import_cancelled">Import cancelled. Nothing was changed.</string>
+    <string name="backup_message_import_failed">The import did not finish. Nothing was changed.</string>
+    <string name="backup_message_not_a_backup">This file is not a Pillsner backup, or it is damaged. Nothing was changed.</string>
+    <string name="backup_message_newer_version">This backup was made by a newer version of Pillsner. Update the app, then try again.</string>
+    <string name="backup_message_read_failed">The file could not be opened. Nothing was changed.</string>
+
     <!-- Dose detail (app-welcome-screen-reminder-details design D10) -->
     <string name="dose_detail_title">Dose</string>
     <string name="dose_detail_close">Close</string>

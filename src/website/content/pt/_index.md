@@ -44,7 +44,7 @@ params:
           label: "Sobre a aplicação para relógio"
   privacy:
     heading: "Privacidade por predefinição"
-    body: "Todos os dados permanecem no seu dispositivo. Não há conta, nem sincronização na nuvem, nem análises. O Pillsner não declara qualquer permissão de internet e só pede o que precisa para o avisar de forma fiável. Nunca a sua localização, contactos ou acesso à rede."
+    body: "Todos os dados permanecem no seu dispositivo. Não há conta, nem sincronização na nuvem, nem análises. O Pillsner não declara qualquer permissão de internet e só pede o que precisa para o avisar de forma fiável, além da câmara se decidir digitalizar um rótulo. Nunca a sua localização, contactos ou acesso à rede."
     link_label: "Como o Pillsner protege os seus dados"
   help:
     heading: "Dúvidas, erros e ideias"

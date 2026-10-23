@@ -27,10 +27,11 @@ params:
         image: "dose-confirmation.png"
         alt: "A confirmar uma toma no Pillsner com Tomei, Ainda não ou Não vou tomar"
     - heading: "O seu histórico"
-      body: "Uma vista de histórico mostra a sua adesão ao longo do tempo, para que você, ou quem o ajuda, possa ver como um tratamento realmente correu, em vez de como era suposto correr."
+      body: "Abra um medicamento e escolha Histórico de utilização no seu menu para ver como correram a última semana, o último mês ou os últimos três meses: a parte das tomas que fez e um gráfico do que foi tomado, saltado ou falhado. Assim, você, ou quem o ajuda, pode ver como um tratamento realmente correu, em vez de como era suposto correr."
       points:
-        - "Todas as tomas a que alguma vez respondeu, guardadas no seu dispositivo"
         - "Tomadas, saltadas e falhadas mostradas como aquilo que são"
+        - "Um gráfico de precisão de horário mostra, em média, a que distância da hora prevista fez as suas tomas: quanto mais baixo, melhor"
+        - "O último ano de tomas guardado no seu dispositivo; as mais antigas são removidas automaticamente"
         - "Útil para levar a uma consulta, sem enviar nada para lado nenhum"
     - heading: "Continua a ser seu"
       body: "O seu histórico de tomas nunca sai do seu telemóvel. Não há conta nem cópia na nuvem, e mais ninguém o pode ver."

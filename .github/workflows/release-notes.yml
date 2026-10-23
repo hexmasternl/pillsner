@@ -1,9 +1,9 @@
 name: Draft release notes
 
-# Drafts brief, bilingual (EN/NL) Play Store "what's new" text for a development -> main release
-# pull request, from the OpenSpec changes (and fallback merged PRs) it contains, and posts it as
-# an updatable PR comment for a human to review and hand-copy. Never commits or pushes anything,
-# and never blocks ci.yml or release.yml.
+# Drafts brief Play Store "what's new" text in every app language (en, nl, de, fr, es, pt) for a
+# development -> main release pull request, from the OpenSpec changes (and fallback merged PRs)
+# it contains, and posts it as an updatable PR comment for a human to review and hand-copy.
+# Never commits or pushes anything, and never blocks ci.yml or release.yml.
 
 on:
   pull_request:
@@ -53,8 +53,7 @@ jobs:
         run: |
           python3 .github/scripts/collect_release_notes.py format-prompt \
             --context "${{ runner.temp }}/release-notes-context.json" \
-            --style-en distribution/whatsnew/whatsnew-en-US \
-            --style-nl distribution/whatsnew/whatsnew-nl-NL \
+            --whatsnew-dir distribution/whatsnew \
             --out "${{ runner.temp }}/release-notes-prompt.txt"
 
       - name: Set up Node.js
@@ -81,9 +80,10 @@ jobs:
             You write brief, warm, non-technical "what's new" release notes for the Google Play
             Store listing of a medication-reminder app called Pillsner. Write only the notes
             themselves, as a short list of bullet points (no more than 6), in plain English,
-            matching the tone and length of the style reference you are given. Do not invent
-            features that are not described in the input. Respond in English only: no Dutch text,
-            no translation, no headings or labels naming the language, just the bullet points.
+            matching the tone and length of the style reference you are given, and staying
+            under 500 characters. Do not invent features that are not described in the input.
+            Respond in English only: no other language, no translation, no headings or labels
+            naming the language, just the bullet points.
           prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
@@ -96,13 +96,89 @@ jobs:
           model: ""
           token: ${{ github.token }}
           system-prompt: >-
-            Je schrijft korte, vriendelijke, niet-technische "wat is er nieuw"-releaseteksten voor
-            de Google Play Store-vermelding van een medicatie-herinnerings-app genaamd Pillsner.
-            Schrijf alleen de tekst zelf, als een korte lijst met opsommingstekens (maximaal 6),
-            in duidelijk Nederlands, met dezelfde toon en lengte als het meegegeven
-            stijlvoorbeeld. Verzin geen functies die niet in de invoer worden beschreven. Antwoord
-            uitsluitend in het Nederlands: geen Engelse tekst, geen vertaling, geen koppen of
-            labels die de taal noemen, alleen de opsommingstekens.
+            You write brief, warm, non-technical "what's new" release notes for the Google Play
+            Store listing of a medication-reminder app called Pillsner. Write only the notes
+            themselves, as a short list of bullet points (no more than 6), in plain Dutch,
+            matching the tone and length of the style reference you are given, and staying
+            under 500 characters. Do not invent features that are not described in the input.
+            Respond in Dutch only: no other language, no translation, no headings or labels
+            naming the language, just the bullet points.
+          prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
+
+      - name: Draft German release notes
+        if: steps.collect.outputs.has_content == 'true'
+        id: draft_de
+        uses: actions/ai-inference@v3
+        with:
+          model: ""
+          token: ${{ github.token }}
+          system-prompt: >-
+            You write brief, warm, non-technical "what's new" release notes for the Google Play
+            Store listing of a medication-reminder app called Pillsner. Write only the notes
+            themselves, as a short list of bullet points (no more than 6), in plain German,
+            matching the tone and length of the style reference you are given, and staying
+            under 500 characters. Do not invent features that are not described in the input.
+            Respond in German only: no other language, no translation, no headings or labels
+            naming the language, just the bullet points.
+          prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
+
+      - name: Draft French release notes
+        if: steps.collect.outputs.has_content == 'true'
+        id: draft_fr
+        uses: actions/ai-inference@v3
+        with:
+          model: ""
+          token: ${{ github.token }}
+          system-prompt: >-
+            You write brief, warm, non-technical "what's new" release notes for the Google Play
+            Store listing of a medication-reminder app called Pillsner. Write only the notes
+            themselves, as a short list of bullet points (no more than 6), in plain French,
+            matching the tone and length of the style reference you are given, and staying
+            under 500 characters. Do not invent features that are not described in the input.
+            Respond in French only: no other language, no translation, no headings or labels
+            naming the language, just the bullet points.
+          prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
+
+      - name: Draft Spanish release notes
+        if: steps.collect.outputs.has_content == 'true'
+        id: draft_es
+        uses: actions/ai-inference@v3
+        with:
+          model: ""
+          token: ${{ github.token }}
+          system-prompt: >-
+            You write brief, warm, non-technical "what's new" release notes for the Google Play
+            Store listing of a medication-reminder app called Pillsner. Write only the notes
+            themselves, as a short list of bullet points (no more than 6), in plain Spanish,
+            matching the tone and length of the style reference you are given, and staying
+            under 500 characters. Do not invent features that are not described in the input.
+            Respond in Spanish only: no other language, no translation, no headings or labels
+            naming the language, just the bullet points.
+          prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
+
+      - name: Draft European Portuguese release notes
+        if: steps.collect.outputs.has_content == 'true'
+        id: draft_pt
+        uses: actions/ai-inference@v3
+        with:
+          model: ""
+          token: ${{ github.token }}
+          system-prompt: >-
+            You write brief, warm, non-technical "what's new" release notes for the Google Play
+            Store listing of a medication-reminder app called Pillsner. Write only the notes
+            themselves, as a short list of bullet points (no more than 6), in plain European Portuguese,
+            matching the tone and length of the style reference you are given, and staying
+            under 500 characters. Do not invent features that are not described in the input.
+            Respond in European Portuguese only: no other language, no translation, no headings or labels
+            naming the language, just the bullet points.
           prompt-file: ${{ runner.temp }}/release-notes-prompt.txt
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.GIHUB_COPILOT_API_KEY }}
@@ -110,12 +186,24 @@ jobs:
       - name: Post drafted release notes comment
         if: steps.collect.outputs.has_content == 'true'
         env:
-          ENGLISH_DRAFT: ${{ steps.draft_en.outputs.response }}
-          DUTCH_DRAFT: ${{ steps.draft_nl.outputs.response }}
+          DRAFT_EN: ${{ steps.draft_en.outputs.response }}
+          DRAFT_NL: ${{ steps.draft_nl.outputs.response }}
+          DRAFT_DE: ${{ steps.draft_de.outputs.response }}
+          DRAFT_FR: ${{ steps.draft_fr.outputs.response }}
+          DRAFT_ES: ${{ steps.draft_es.outputs.response }}
+          DRAFT_PT: ${{ steps.draft_pt.outputs.response }}
         run: |
-          printf '%s' "$ENGLISH_DRAFT" > "${{ runner.temp }}/draft-en.txt"
-          printf '%s' "$DUTCH_DRAFT" > "${{ runner.temp }}/draft-nl.txt"
+          printf '%s' "$DRAFT_EN" > "${{ runner.temp }}/draft-en.txt"
+          printf '%s' "$DRAFT_NL" > "${{ runner.temp }}/draft-nl.txt"
+          printf '%s' "$DRAFT_DE" > "${{ runner.temp }}/draft-de.txt"
+          printf '%s' "$DRAFT_FR" > "${{ runner.temp }}/draft-fr.txt"
+          printf '%s' "$DRAFT_ES" > "${{ runner.temp }}/draft-es.txt"
+          printf '%s' "$DRAFT_PT" > "${{ runner.temp }}/draft-pt.txt"
           python3 .github/scripts/collect_release_notes.py comment \
             --pr "${{ github.event.pull_request.number }}" \
-            --english-file "${{ runner.temp }}/draft-en.txt" \
-            --dutch-file "${{ runner.temp }}/draft-nl.txt"
+            --draft en="${{ runner.temp }}/draft-en.txt" \
+            --draft nl="${{ runner.temp }}/draft-nl.txt" \
+            --draft de="${{ runner.temp }}/draft-de.txt" \
+            --draft fr="${{ runner.temp }}/draft-fr.txt" \
+            --draft es="${{ runner.temp }}/draft-es.txt" \
+            --draft pt="${{ runner.temp }}/draft-pt.txt"

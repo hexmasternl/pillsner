@@ -44,7 +44,7 @@ params:
           label: "Mehr über die Uhren-App"
   privacy:
     heading: "Datenschutz von Anfang an"
-    body: "Alle Daten bleiben auf deinem Gerät. Es gibt kein Konto, keine Cloud-Synchronisierung und keine Analyse. Pillsner beansprucht überhaupt keine Internetberechtigung und fragt nur das ab, was für zuverlässige Erinnerungen nötig ist. Niemals deinen Standort, deine Kontakte oder Netzwerkzugriff."
+    body: "Alle Daten bleiben auf deinem Gerät. Es gibt kein Konto, keine Cloud-Synchronisierung und keine Analyse. Pillsner beansprucht überhaupt keine Internetberechtigung und fragt nur das ab, was für zuverlässige Erinnerungen nötig ist, dazu die Kamera, wenn du ein Etikett scannen willst. Niemals deinen Standort, deine Kontakte oder Netzwerkzugriff."
     link_label: "Wie Pillsner deine Daten schützt"
   help:
     heading: "Fragen, Fehler und Ideen"

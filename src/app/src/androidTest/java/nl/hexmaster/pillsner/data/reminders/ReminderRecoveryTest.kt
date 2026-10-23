@@ -34,6 +34,7 @@ import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
 import nl.hexmaster.pillsner.domain.scheduling.WakeSchedule
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -198,16 +199,17 @@ class ReminderRecoveryTest {
     }
 
     @Test
-    fun aStepThatThrows_isRetriedLikeATimeout() = runBlocking {
+    fun aStepThatThrows_isNotRetriedLikeATimeout() = runBlocking {
         val doses = InMemoryDoseRepository(listOf(dose(1, at(today, 9, 0))))
         val scheduler = RecordingScheduler()
 
         coordinator(doses, notifier = ThrowingNotifier(), scheduler = scheduler)
             .onWake(WakeReason.ALARM)
 
-        // A wake that threw has not announced what was due any more than one that ran out of
-        // time has, and every step of it is idempotent, so it is tried again the same way.
-        assertEquals("A wake that threw tries again shortly", setOf(now.plus(RETRY)), scheduler.moments)
+        // An exception is not a timeout (spec: reminder-scheduling): every step is idempotent, so
+        // the ordinary alarm set is reconciled from what is stored, and no retry is armed.
+        assertFalse("A wake that threw arms no retry", now.plus(RETRY) in scheduler.moments)
+        assertTrue("An alarm is set on every path, this one included", scheduler.moments.isNotEmpty())
         assertNull("Nothing was announced, so nothing is reminded", doses.all().first().firstRemindedAt)
     }
 

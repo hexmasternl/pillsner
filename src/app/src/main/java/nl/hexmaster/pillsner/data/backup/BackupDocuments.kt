@@ -2,8 +2,6 @@ package nl.hexmaster.pillsner.data.backup
 
 import android.content.ContentResolver
 import android.net.Uri
-import android.provider.DocumentsContract
-import android.provider.OpenableColumns
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
@@ -33,24 +31,17 @@ interface BackupDocuments {
 
     /** The whole document at [location]. */
     suspend fun read(location: String): ByteArray
-
-    /**
-     * Removes the document at [location], but only when it is known to be empty; best effort,
-     * never throws. For a picked document nothing was ever written to, whose previous contents (if
-     * any) are therefore still intact; an empty one is the picker's own placeholder.
-     */
-    suspend fun discardIfEmpty(location: String)
 }
 
 /**
  * The rollback around a non-atomic overwrite, kept free of Android types so it can be tested.
  *
  * [readPrevious] runs first and is held in memory until the new contents are safely written. If
- * [write] then fails:
- * - a document that held something gets those contents written back;
- * - a document proven empty beforehand, which is what the picker creates, is removed;
- * - a document whose previous contents could not be read is left alone: nothing is deleted that
- *   was not shown to be this export's own.
+ * [write] then fails, a document that held something gets those contents written back. Nothing is
+ * ever deleted: the picker does not say whether it created the document or handed back an existing
+ * one, and an empty document could be either, so the only safe rule is that a picked document stays
+ * where the user put it. The cost is an empty file left behind by a failed export, which the user
+ * named and was told about.
  *
  * The rollback is best effort and never hides the original failure, which is rethrown.
  *
@@ -60,7 +51,6 @@ internal suspend fun replaceKeepingPrevious(
     bytes: ByteArray,
     readPrevious: suspend () -> ByteArray?,
     write: suspend (ByteArray) -> Unit,
-    delete: suspend () -> Unit,
 ) {
     val previous = readPrevious()
     try {
@@ -69,11 +59,7 @@ internal suspend fun replaceKeepingPrevious(
         throw cancelled
     } catch (failure: Exception) {
         try {
-            when {
-                previous == null -> Unit
-                previous.isEmpty() -> delete()
-                else -> write(previous)
-            }
+            if (previous != null && previous.isNotEmpty()) write(previous)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -92,24 +78,11 @@ class ContentResolverBackupDocuments(private val resolver: ContentResolver) : Ba
             bytes = bytes,
             readPrevious = { runCatching { readBytes(uri) }.getOrNull() },
             write = { contents -> writeBytes(uri, contents) },
-            delete = { DocumentsContract.deleteDocument(resolver, uri) },
         )
     }
 
     override suspend fun read(location: String): ByteArray = withContext(Dispatchers.IO) {
         readBytes(Uri.parse(location))
-    }
-
-    override suspend fun discardIfEmpty(location: String) {
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val uri = Uri.parse(location)
-                val size = resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
-                    if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else null
-                }
-                if (size == 0L) DocumentsContract.deleteDocument(resolver, uri)
-            }
-        }
     }
 
     private fun writeBytes(uri: Uri, bytes: ByteArray) {

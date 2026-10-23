@@ -4,24 +4,23 @@ import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * Spec: data-backup-restore. Overwriting a picked document never costs the user what was there,
- * because the Storage Access Framework truncates before it writes and has no atomic replace.
+ * because the Storage Access Framework truncates before it writes and has no atomic replace, and a
+ * picked document is never deleted, because nothing says whether the export created it.
  */
 class ReplaceKeepingPreviousTest {
 
     private val newBackup = byteArrayOf(9, 9, 9)
     private val oldBackup = byteArrayOf(1, 2, 3)
+    private val failure = IOException("disk full")
 
     /** A document as the platform behaves: a write truncates first, then may fail. */
-    private inner class Document(var contents: ByteArray?, private var failingWrites: Int = 0) {
-        var deleted = false
+    private inner class Document(var contents: ByteArray, private var failingWrites: Int = 0) {
         val writes = mutableListOf<ByteArray>()
 
         suspend fun replace(readable: Boolean = true) = replaceKeepingPrevious(
@@ -36,14 +35,8 @@ class ReplaceKeepingPreviousTest {
                 }
                 contents = bytes
             },
-            delete = {
-                deleted = true
-                contents = null
-            },
         )
     }
-
-    private val failure = IOException("disk full")
 
     @Test
     fun `a write that succeeds replaces the contents`() = runBlocking {
@@ -52,7 +45,6 @@ class ReplaceKeepingPreviousTest {
         document.replace()
 
         assertArrayEquals(newBackup, document.contents)
-        assertFalse(document.deleted)
     }
 
     @Test
@@ -63,26 +55,26 @@ class ReplaceKeepingPreviousTest {
 
         assertSame("The caller hears about the original failure", failure, thrown)
         assertArrayEquals("The old backup is back, byte for byte", oldBackup, document.contents)
-        assertFalse(document.deleted)
     }
 
     @Test
-    fun `a failed write into the picker's fresh empty document removes it`() {
+    fun `a failed write into an empty document leaves it as an empty document`() {
+        // The picker's fresh placeholder and a zero-byte file the user already had look the same.
         val document = Document(ByteArray(0), failingWrites = 1)
 
         assertThrows(IOException::class.java) { runBlocking { document.replace() } }
 
-        assertTrue("Nothing of the user's was there, so nothing is left behind", document.deleted)
+        // Left in place by construction: the rollback has no way to delete a document at all.
+        assertEquals("Nothing is written back, since there was nothing", 1, document.writes.size)
     }
 
     @Test
-    fun `a document whose contents could not be read is never deleted`() {
+    fun `a document whose contents could not be read gets nothing written back`() {
         val document = Document(oldBackup, failingWrites = 1)
 
         assertThrows(IOException::class.java) { runBlocking { document.replace(readable = false) } }
 
-        assertFalse("Not shown to be this export's own, so not ours to delete", document.deleted)
-        assertEquals("And nothing is written back that was never read", 1, document.writes.size)
+        assertEquals("Nothing is written back that was never read", 1, document.writes.size)
     }
 
     @Test
@@ -93,6 +85,5 @@ class ReplaceKeepingPreviousTest {
 
         assertSame(failure, thrown)
         assertEquals("The restore was attempted", 2, document.writes.size)
-        assertFalse("Nothing deleted a document that held something", document.deleted)
     }
 }

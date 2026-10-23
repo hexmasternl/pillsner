@@ -58,7 +58,7 @@ class BackupViewModelTest {
 
     private val documents = object : BackupDocuments {
         val files = mutableMapOf<String, ByteArray>()
-        val discarded = mutableListOf<String>()
+
         /** The next write truncates the document, as a real one does, and then fails. */
         var failWrites = false
 
@@ -75,20 +75,9 @@ class BackupViewModelTest {
                 }
                 files[location] = contents
             },
-            delete = {
-                discarded += location
-                files.remove(location)
-            },
         )
 
         override suspend fun read(location: String) = files[location] ?: throw IOException("gone")
-
-        /** As the real one: a document the picker just made is empty, so it holds no entry here. */
-        override suspend fun discardIfEmpty(location: String) {
-            if (files[location]?.isNotEmpty() == true) return
-            discarded += location
-            files.remove(location)
-        }
     }
 
     private lateinit var viewModel: BackupViewModel
@@ -202,8 +191,11 @@ class BackupViewModelTest {
     }
 
     @Test
-    fun `a write that fails removes the half-made file and says so`() = runTest(dispatcher) {
+    fun `a write that fails into an empty document leaves it in place and says so`() = runTest(dispatcher) {
+        // Empty: the picker's fresh placeholder, or a file the user already had. Nothing can tell
+        // which, so neither is deleted.
         collect()
+        documents.files["content://doc/1"] = ByteArray(0)
         documents.failWrites = true
         enterExportPassphrase("secret")
         viewModel.onExportPassphraseConfirmed()
@@ -211,7 +203,7 @@ class BackupViewModelTest {
         viewModel.onExportDocumentChosen("content://doc/1")
         advanceUntilIdle()
 
-        assertEquals(listOf("content://doc/1"), documents.discarded)
+        assertTrue("The picked document is still there", documents.files.containsKey("content://doc/1"))
         assertEquals(listOf(BackupMessage.EXPORT_FAILED), messages)
     }
 
@@ -233,7 +225,6 @@ class BackupViewModelTest {
             byteArrayOf(1, 2, 3),
             documents.files.getValue("content://old-backup"),
         )
-        assertTrue(documents.discarded.isEmpty())
         assertEquals(listOf(BackupMessage.EXPORT_FAILED), messages)
     }
 
@@ -270,14 +261,15 @@ class BackupViewModelTest {
     }
 
     @Test
-    fun `a picker result with no passphrase waiting discards the empty file`() = runTest(dispatcher) {
+    fun `a picker result with no passphrase waiting writes nothing and leaves the document`() = runTest(dispatcher) {
         // What a process death while the picker was open looks like to the new view model.
         collect()
+        documents.files["content://doc/1"] = byteArrayOf(1, 2, 3)
 
         viewModel.onExportDocumentChosen("content://doc/1")
         advanceUntilIdle()
 
-        assertEquals(listOf("content://doc/1"), documents.discarded)
+        assertArrayEquals(byteArrayOf(1, 2, 3), documents.files.getValue("content://doc/1"))
         assertEquals(listOf(BackupMessage.EXPORT_FAILED), messages)
     }
 

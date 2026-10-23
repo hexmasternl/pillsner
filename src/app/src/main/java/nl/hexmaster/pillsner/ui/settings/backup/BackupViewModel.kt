@@ -97,37 +97,25 @@ class BackupViewModel(
 
         viewModelScope.launch {
             if (passphrase == null) {
-                // The process died while the picker was open and took the passphrase with it. A
-                // fresh, empty file the picker made is no use to anyone; anything else is left.
-                documents.discardIfEmpty(location)
+                // The process died while the picker was open and took the passphrase with it. The
+                // picked document is left as it is: nothing here can tell a placeholder the picker
+                // just made from a file the user already had.
                 _messages.send(BackupMessage.EXPORT_FAILED)
                 return@launch
             }
             _uiState.update { it.copy(work = BackupWork.EXPORTING) }
-            // Never an exception's text in either failure below: it is not for the user, and
-            // nothing about the data should reach a log either.
             try {
-                // The whole file exists in memory before the document is opened at all, so a
-                // failure here leaves whatever was picked untouched; only the picker's own empty
-                // placeholder is removed.
-                val bytes = try {
-                    withContext(cryptoDispatcher) { codec.encode(exportBackup(), passphrase) }
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (_: Exception) {
-                    documents.discardIfEmpty(location)
-                    _messages.send(BackupMessage.EXPORT_FAILED)
-                    return@launch
-                }
-                try {
-                    // Rolls the document back itself if the write fails partway.
-                    documents.replace(location, bytes)
-                    _messages.send(BackupMessage.EXPORT_DONE)
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (_: Exception) {
-                    _messages.send(BackupMessage.EXPORT_FAILED)
-                }
+                // The whole file exists in memory before the document is opened, so an encoding
+                // failure never touches it, and the replace rolls a failed write back itself.
+                val bytes = withContext(cryptoDispatcher) { codec.encode(exportBackup(), passphrase) }
+                documents.replace(location, bytes)
+                _messages.send(BackupMessage.EXPORT_DONE)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Never the exception's text: it is not for the user, and nothing about the data
+                // should reach a log either.
+                _messages.send(BackupMessage.EXPORT_FAILED)
             } finally {
                 passphrase.fill(' ')
                 _uiState.update { it.copy(work = null) }

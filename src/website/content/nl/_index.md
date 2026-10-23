@@ -44,7 +44,7 @@ params:
           label: "Over de horloge-app"
   privacy:
     heading: "Privacy als standaard"
-    body: "Alle gegevens blijven op je toestel. Er is geen account, geen cloudsynchronisatie en geen analytics. Pillsner vraagt helemaal geen internettoestemming en vraagt alleen om wat nodig is om je betrouwbaar te herinneren. Nooit om je locatie, contacten of netwerktoegang."
+    body: "Alle gegevens blijven op je toestel. Er is geen account, geen cloudsynchronisatie en geen analytics. Pillsner vraagt helemaal geen internettoestemming en vraagt alleen om wat nodig is om je betrouwbaar te herinneren, plus de camera als je ervoor kiest een etiket te scannen. Nooit om je locatie, contacten of netwerktoegang."
     link_label: "Hoe Pillsner je gegevens beschermt"
   help:
     heading: "Vragen, fouten en ideeën"

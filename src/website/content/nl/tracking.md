@@ -27,10 +27,11 @@ params:
         image: "dose-confirmation.png"
         alt: "Een dosis bevestigen in Pillsner met Ingenomen, Nog niet of Niet doen"
     - heading: "Je geschiedenis"
-      body: "Een geschiedenisweergave toont je therapietrouw over tijd, zodat jij of degene die je helpt kan zien hoe een kuur echt verliep in plaats van hoe hij bedoeld was."
+      body: "Open een medicijn en kies Gebruiksgeschiedenis in het menu om te zien hoe de afgelopen week, maand of drie maanden gingen: welk deel van je doses je innam, en een grafiek van wat er ingenomen, overgeslagen of gemist werd. Zo kunnen jij of degene die je helpt zien hoe een kuur echt verliep in plaats van hoe hij bedoeld was."
       points:
-        - "Elke dosis die je ooit beantwoordde, bewaard op je toestel"
         - "Ingenomen, overgeslagen en gemist getoond als wat ze zijn"
+        - "Een grafiek van je tijdigheid laat zien hoe ver je gemiddeld van het geplande tijdstip zat: lager is beter"
+        - "Een doorlopend jaar aan doses bewaard op je toestel; oudere worden automatisch verwijderd"
         - "Handig om mee te nemen naar een afspraak, zonder iets ergens naartoe te sturen"
     - heading: "Het blijft van jou"
       body: "Je innamegeschiedenis verlaat nooit je telefoon. Er is geen account en geen cloudkopie, en niemand anders kan het zien."

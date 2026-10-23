@@ -23,6 +23,12 @@ params:
         - "A name, an amount and a unit that matches how the medicine is actually taken"
         - "A start date, and an end date when the course has one"
         - "The prescriber, so you know later who put you on it"
+    - heading: "Or scan the label"
+      body: "Rather not type it all? On the Add medicine form, tap Scan a label and point the camera at the pharmacy label or the box, or choose a photo you already took. Pillsner reads the text on your phone and fills in the name, the dose, how often to take it and the dates it finds, for you to check before you save."
+      points:
+        - "Reads labels in English, Dutch, German, French, Spanish and Portuguese"
+        - "Anything it cannot read for certain stays empty rather than guessed"
+        - "Works without a connection, and keeps no picture and no text"
     - heading: "Changing your mind"
       body: "Tap a medicine to open it and change anything: its name, its dose, its dates, who prescribed it, its schedules, and whether you are currently taking it."
       note: "Editing never rewrites history. Doses you have already answered keep the name and amount they were taken under; only what is still ahead of you follows the change."

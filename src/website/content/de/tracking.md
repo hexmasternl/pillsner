@@ -27,10 +27,11 @@ params:
         image: "dose-confirmation.png"
         alt: "Eine Dosis in Pillsner bestätigen mit Ich habe es genommen, Noch nicht oder Werde ich nicht"
     - heading: "Dein Verlauf"
-      body: "Eine Verlaufsansicht zeigt deine Einnahmetreue im Zeitverlauf, sodass du oder die Person, die dir hilft, sehen kann, wie eine Behandlung tatsächlich verlief statt wie sie gedacht war."
+      body: "Öffne ein Medikament und wähle Nutzungsverlauf aus seinem Menü, um zu sehen, wie die letzte Woche, der letzte Monat oder die letzten drei Monate gelaufen sind: der Anteil der Dosen, die du genommen hast, und ein Diagramm davon, was genommen, übersprungen oder verpasst wurde. So kannst du oder die Person, die dir hilft, sehen, wie eine Behandlung tatsächlich verlief statt wie sie gedacht war."
       points:
-        - "Jede Dosis, die du je beantwortet hast, auf deinem Gerät gespeichert"
         - "Genommen, übersprungen und verpasst als das gezeigt, was sie sind"
+        - "Ein Diagramm zur Einnahmegenauigkeit zeigt, wie weit du im Schnitt von der geplanten Zeit abgewichen bist: weniger ist besser"
+        - "Ein rollierendes Jahr an Dosen bleibt auf deinem Gerät; ältere werden automatisch entfernt"
         - "Nützlich, um sie zu einem Termin mitzubringen, ohne irgendetwas irgendwohin zu senden"
     - heading: "Es bleibt deins"
       body: "Dein Einnahmeverlauf verlässt nie dein Handy. Es gibt kein Konto und keine Cloud-Kopie, und niemand sonst kann ihn sehen."

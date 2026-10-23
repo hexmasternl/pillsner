@@ -28,8 +28,9 @@ params:
         - "Falls eine Dosis doch einmal fällig wird und keine Erinnerung kam, sagt der Startbildschirm dir das und weist dich auf die Hintergrundeinstellungen hin, die es verursacht haben."
     - question: "Was passiert, wenn ich ein neues Handy bekomme?"
       answer:
-        - "Pillsner speichert alles auf dem Gerät, es überträgt deine Daten also nicht von selbst. Wenn Androids eigenes Backup für dein Google-Konto eingeschaltet ist, nimmt Android die Daten von Pillsner möglicherweise in das Backup auf, das es auf dein neues Handy zurückspielt."
-        - "Die App-Sperre ist bewusst von diesem Backup und von der Geräte-zu-Geräte-Übertragung ausgenommen, du richtest sie also auf dem neuen Handy erneut ein."
+        - "Nimm deine Daten mit. Öffne auf dem alten Handy die Einstellungen und tippe auf Daten exportieren: Pillsner speichert deine Medikamente, Zeitpläne, deinen Vorrat und deinen Verlauf in einer Datei, gesperrt mit einer Passphrase, die du selbst wählst. Lege diese Datei dort ab, wo das neue Handy sie erreicht, tippe dort auf Daten importieren und gib dieselbe Passphrase ein."
+        - "Der Import ersetzt nach deiner Bestätigung alles auf dem neuen Handy durch den Inhalt der Datei. Eine vergessene Passphrase lässt sich nicht wiederherstellen, bewahre sie also gut auf. Sprache, Design und App-Sperre sind nicht in der Datei; du richtest sie auf dem neuen Handy neu ein."
+        - "Wenn Androids eigenes Backup für dein Google-Konto eingeschaltet ist, spielt Android die Daten von Pillsner möglicherweise auch von selbst auf dein neues Handy zurück. Die App-Sperre ist auch von diesem Backup ausgenommen."
     - question: "Kann ich ein Medikament löschen?"
       answer:
         - "Ein Medikament wird nie gelöscht; eines abzusetzen deaktiviert es. Das Medikament, seine Zeitpläne und jede Dosis, die es erzeugt hat, bleiben auf deinem Gerät, damit dein Verlauf weiterhin Sinn ergibt."
@@ -45,6 +46,13 @@ params:
       answer:
         - "Als ganze Tablette. Eine angebrochene Tablette kann nicht zurück in die Packung, also zählt jeder Teil einer Tablette, den du verwendest, als ganze Tablette. Eine Dosis von 40 mg aus Tabletten zu 500 mg zieht eine Tablette von deinem Vorrat ab."
         - "Hast du auch Tabletten, deren Stärke genau zur Dosis passt, nimmt Pillsner die Dosis von diesen, damit keine Tablette verschwendet wird. Teilst du Tabletten absichtlich und nimmst die andere Hälfte später, zählt jede Dosis trotzdem als ganze Tablette, sodass Pillsner dich lieber etwas zu früh als zu spät warnt."
+    - question: "Kann Pillsner das Etikett meines Medikaments lesen?"
+      answer:
+        - "Ja, wenn du ein Medikament hinzufügst. Tippe auf Etikett scannen und richte die Kamera auf das Apothekenetikett oder die Packung, oder wähle ein Foto, das du schon gemacht hast. Pillsner trägt den Namen, die Dosis, wie oft du es nimmst, und die Daten ein, die es lesen kann."
+        - "Prüfe jedes Feld, bevor du speicherst: Ein Scan nimmt dir Tipparbeit ab, ersetzt aber nicht deinen Blick. Der Text wird auf deinem Handy gelesen, ohne Verbindung, und weder das Bild noch der Text wird aufbewahrt."
+    - question: "Gibt es einen Dunkelmodus?"
+      answer:
+        - "Ja. Pillsner folgt standardmäßig der hellen oder dunklen Einstellung deines Handys. Unter Design in den Einstellungen kannst du stattdessen Hell oder Dunkel wählen. Die Uhren-App behält ihr eigenes Aussehen."
     - question: "Welche Sprachen spricht Pillsner?"
       answer:
         - "Englisch, Niederländisch, Deutsch, Französisch, Spanisch und Portugiesisch. Die App folgt von selbst der Sprache deines Handys, und du kannst sie in den Einstellungen übersteuern."

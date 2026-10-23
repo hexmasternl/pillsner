@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #94 (https://github.com/hexmasternl/pillsner/issues/94)
+**Pull Request:** #95 (https://github.com/hexmasternl/pillsner/pull/95)
 
 The marketing website at `src/website/` last changed its content on 2026-09-23. Several features shipped after that without the site being updated, because the `website-feature-sync` skill and the matching `tasks` rule in `openspec/config.yaml` didn't exist yet (issue #94). Two of the gaps go beyond missing information. The FAQ and the privacy page now make claims that the app no longer matches, about how data moves to a new phone and about which permissions the app asks for. Visitors rely on exactly those pages.
 

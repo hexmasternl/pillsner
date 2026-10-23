@@ -23,6 +23,12 @@ params:
         - "Ein Name, eine Menge und eine Einheit, die dazu passt, wie das Medikament tatsächlich eingenommen wird"
         - "Ein Startdatum und ein Enddatum, wenn die Behandlung eines hat"
         - "Die verschreibende Person, damit du später weißt, wer es dir verordnet hat"
+    - heading: "Oder scanne das Etikett"
+      body: "Lieber nicht alles eintippen? Tippe im Formular Medikament hinzufügen auf Etikett scannen und richte die Kamera auf das Apothekenetikett oder die Packung, oder wähle ein Foto, das du schon gemacht hast. Pillsner liest den Text auf deinem Handy und trägt den Namen, die Dosis, wie oft du es nimmst, und die gefundenen Daten ein, damit du sie vor dem Speichern prüfst."
+      points:
+        - "Liest Etiketten auf Englisch, Niederländisch, Deutsch, Französisch, Spanisch und Portugiesisch"
+        - "Was es nicht sicher lesen kann, bleibt leer, statt geraten zu werden"
+        - "Funktioniert ohne Verbindung und behält kein Bild und keinen Text"
     - heading: "Deine Meinung ändern"
       body: "Tippe auf ein Medikament, um es zu öffnen, und ändere alles: seinen Namen, seine Dosis, seinen Zeitraum, wer es verschrieben hat, seine Zeitpläne und ob du es gerade einnimmst."
       note: "Bearbeiten schreibt niemals die Vergangenheit um. Dosen, die du bereits beantwortet hast, behalten den Namen und die Menge, unter denen sie genommen wurden; nur was noch vor dir liegt, folgt der Änderung."

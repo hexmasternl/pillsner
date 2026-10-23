@@ -27,10 +27,11 @@ params:
         image: "dose-confirmation.png"
         alt: "Confirmer une prise dans Pillsner avec Je l'ai pris, Pas encore ou Je ne vais pas le prendre"
     - heading: "Votre historique"
-      body: "Une vue d'historique montre votre observance dans le temps, pour que vous ou la personne qui vous aide puissiez voir comment un traitement s'est réellement déroulé plutôt que comment il était censé se dérouler."
+      body: "Ouvrez un médicament et choisissez Historique d'utilisation dans son menu pour voir comment se sont passés la dernière semaine, le dernier mois ou les trois derniers mois : la part des prises effectuées, et un graphique de ce qui a été pris, passé ou manqué. Vous ou la personne qui vous aide pouvez ainsi voir comment un traitement s'est réellement déroulé plutôt que comment il était censé se dérouler."
       points:
-        - "Chaque prise à laquelle vous avez déjà répondu, conservée sur votre appareil"
         - "Pris, passé et manqué montrés pour ce qu'ils sont"
+        - "Un graphique de précision des horaires montre de combien, en moyenne, vos prises se sont écartées de l'heure prévue : moins, c'est mieux"
+        - "Une année glissante de prises conservée sur votre appareil ; les plus anciennes sont supprimées automatiquement"
         - "Utile à apporter à un rendez-vous, sans rien envoyer où que ce soit"
     - heading: "Cela reste à vous"
       body: "Votre historique de prises ne quitte jamais votre téléphone. Il n'y a ni compte ni copie dans le cloud, et personne d'autre ne peut le voir."

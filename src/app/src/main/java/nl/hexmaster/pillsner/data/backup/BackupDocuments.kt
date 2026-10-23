@@ -6,6 +6,7 @@ import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -18,48 +19,85 @@ import kotlinx.coroutines.withContext
  */
 interface BackupDocuments {
 
-    /** Replaces the contents of the document at [location] with [bytes]. */
-    suspend fun write(location: String, bytes: ByteArray)
+    /**
+     * Makes [bytes] the contents of the document at [location], or leaves it as it was.
+     *
+     * The create-document picker can hand back an existing document the user chose to overwrite,
+     * such as their previous backup, and the Storage Access Framework has no atomic replace: a
+     * write truncates first. So a failure partway must not cost the user what was there. See
+     * [replaceKeepingPrevious] for exactly what happens on failure.
+     *
+     * @throws Exception when the new contents could not be written, after the rollback.
+     */
+    suspend fun replace(location: String, bytes: ByteArray)
 
     /** The whole document at [location]. */
     suspend fun read(location: String): ByteArray
 
     /**
      * Removes the document at [location], but only when it is known to be empty; best effort,
-     * never throws.
-     *
-     * The create-document picker can hand back an existing document the user chose to overwrite,
-     * so "the export failed" must never mean "delete what was picked": that could be the user's
-     * previous backup. An empty document is either the picker's own fresh placeholder or holds
-     * nothing left to lose. A document of unknown size is left alone.
+     * never throws. For a picked document nothing was ever written to, whose previous contents (if
+     * any) are therefore still intact; an empty one is the picker's own placeholder.
      */
     suspend fun discardIfEmpty(location: String)
+}
+
+/**
+ * The rollback around a non-atomic overwrite, kept free of Android types so it can be tested.
+ *
+ * [readPrevious] runs first and is held in memory until the new contents are safely written. If
+ * [write] then fails:
+ * - a document that held something gets those contents written back;
+ * - a document proven empty beforehand, which is what the picker creates, is removed;
+ * - a document whose previous contents could not be read is left alone: nothing is deleted that
+ *   was not shown to be this export's own.
+ *
+ * The rollback is best effort and never hides the original failure, which is rethrown.
+ *
+ * @param readPrevious the current contents, or null when they could not be read.
+ */
+internal suspend fun replaceKeepingPrevious(
+    bytes: ByteArray,
+    readPrevious: suspend () -> ByteArray?,
+    write: suspend (ByteArray) -> Unit,
+    delete: suspend () -> Unit,
+) {
+    val previous = readPrevious()
+    try {
+        write(bytes)
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (failure: Exception) {
+        try {
+            when {
+                previous == null -> Unit
+                previous.isEmpty() -> delete()
+                else -> write(previous)
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // The original failure is what the caller reports; a failed rollback adds nothing it can act on.
+        }
+        throw failure
+    }
 }
 
 /** The wired [BackupDocuments], over the content resolver. */
 class ContentResolverBackupDocuments(private val resolver: ContentResolver) : BackupDocuments {
 
-    override suspend fun write(location: String, bytes: ByteArray) = withContext(Dispatchers.IO) {
-        // "wt" truncates, so writing over an older backup the user picked never leaves its tail.
-        val output = resolver.openOutputStream(Uri.parse(location), "wt") ?: throw IOException("No output stream")
-        output.use { it.write(bytes) }
+    override suspend fun replace(location: String, bytes: ByteArray) = withContext(Dispatchers.IO) {
+        val uri = Uri.parse(location)
+        replaceKeepingPrevious(
+            bytes = bytes,
+            readPrevious = { runCatching { readBytes(uri) }.getOrNull() },
+            write = { contents -> writeBytes(uri, contents) },
+            delete = { DocumentsContract.deleteDocument(resolver, uri) },
+        )
     }
 
     override suspend fun read(location: String): ByteArray = withContext(Dispatchers.IO) {
-        val input = resolver.openInputStream(Uri.parse(location)) ?: throw IOException("No input stream")
-        input.use { stream ->
-            val out = ByteArrayOutputStream()
-            val buffer = ByteArray(BUFFER_BYTES)
-            while (true) {
-                val read = stream.read(buffer)
-                if (read < 0) break
-                out.write(buffer, 0, read)
-                // A real backup is compressed and far below this; anything larger is not one, and
-                // reading on would only fill the heap.
-                if (out.size() > BackupFileCodec.MAX_PAYLOAD_BYTES) throw BackupReadException.NotABackup("File too large")
-            }
-            out.toByteArray()
-        }
+        readBytes(Uri.parse(location))
     }
 
     override suspend fun discardIfEmpty(location: String) {
@@ -71,6 +109,29 @@ class ContentResolverBackupDocuments(private val resolver: ContentResolver) : Ba
                 }
                 if (size == 0L) DocumentsContract.deleteDocument(resolver, uri)
             }
+        }
+    }
+
+    private fun writeBytes(uri: Uri, bytes: ByteArray) {
+        // "wt" truncates, so the new contents never keep a longer old file's tail.
+        val output = resolver.openOutputStream(uri, "wt") ?: throw IOException("No output stream")
+        output.use { it.write(bytes) }
+    }
+
+    private fun readBytes(uri: Uri): ByteArray {
+        val input = resolver.openInputStream(uri) ?: throw IOException("No input stream")
+        return input.use { stream ->
+            val out = ByteArrayOutputStream()
+            val buffer = ByteArray(BUFFER_BYTES)
+            while (true) {
+                val read = stream.read(buffer)
+                if (read < 0) break
+                out.write(buffer, 0, read)
+                // A real backup is compressed and far below this; anything larger is not one, and
+                // reading on would only fill the heap.
+                if (out.size() > BackupFileCodec.MAX_PAYLOAD_BYTES) throw BackupReadException.NotABackup("File too large")
+            }
+            out.toByteArray()
         }
     }
 

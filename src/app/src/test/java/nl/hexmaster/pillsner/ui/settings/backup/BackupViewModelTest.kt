@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import nl.hexmaster.pillsner.data.backup.BackupDocuments
 import nl.hexmaster.pillsner.data.backup.BackupFileCodec
+import nl.hexmaster.pillsner.data.backup.replaceKeepingPrevious
 import nl.hexmaster.pillsner.domain.backup.BackupDataStore
 import nl.hexmaster.pillsner.domain.backup.BackupFixtures
 import nl.hexmaster.pillsner.domain.backup.BackupSnapshot
@@ -24,6 +25,7 @@ import nl.hexmaster.pillsner.domain.backup.ExportBackup
 import nl.hexmaster.pillsner.domain.backup.ImportBackup
 import nl.hexmaster.pillsner.domain.backup.StoredDataset
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -57,12 +59,27 @@ class BackupViewModelTest {
     private val documents = object : BackupDocuments {
         val files = mutableMapOf<String, ByteArray>()
         val discarded = mutableListOf<String>()
+        /** The next write truncates the document, as a real one does, and then fails. */
         var failWrites = false
 
-        override suspend fun write(location: String, bytes: ByteArray) {
-            if (failWrites) throw IOException("disk full")
-            files[location] = bytes
-        }
+        /** Through the real rollback, so these tests see what the app does on a failed write. */
+        override suspend fun replace(location: String, bytes: ByteArray) = replaceKeepingPrevious(
+            bytes = bytes,
+            // A document the picker just made is empty, so it holds no entry here.
+            readPrevious = { files[location] ?: ByteArray(0) },
+            write = { contents ->
+                if (failWrites) {
+                    failWrites = false
+                    files[location] = ByteArray(0)
+                    throw IOException("disk full")
+                }
+                files[location] = contents
+            },
+            delete = {
+                discarded += location
+                files.remove(location)
+            },
+        )
 
         override suspend fun read(location: String) = files[location] ?: throw IOException("gone")
 
@@ -199,8 +216,9 @@ class BackupViewModelTest {
     }
 
     @Test
-    fun `a failed export never removes a document that already held something`() = runTest(dispatcher) {
-        // The user picked their previous backup to overwrite it, and the write then failed.
+    fun `a failed export puts back the document it was overwriting`() = runTest(dispatcher) {
+        // The user picked their previous backup to overwrite it, and the write truncated it and
+        // then failed.
         collect()
         documents.files["content://old-backup"] = byteArrayOf(1, 2, 3)
         documents.failWrites = true
@@ -210,7 +228,11 @@ class BackupViewModelTest {
         viewModel.onExportDocumentChosen("content://old-backup")
         advanceUntilIdle()
 
-        assertTrue("The old backup is still there", documents.files.containsKey("content://old-backup"))
+        assertArrayEquals(
+            "The old backup is back, byte for byte",
+            byteArrayOf(1, 2, 3),
+            documents.files.getValue("content://old-backup"),
+        )
         assertTrue(documents.discarded.isEmpty())
         assertEquals(listOf(BackupMessage.EXPORT_FAILED), messages)
     }

@@ -1,5 +1,6 @@
 package nl.hexmaster.pillsner.domain.backup
 
+import kotlinx.coroutines.CancellationException
 import nl.hexmaster.pillsner.domain.reset.ReminderHistoryReset
 import nl.hexmaster.pillsner.domain.reset.ReminderRefresh
 import nl.hexmaster.pillsner.domain.reset.ReminderTeardown
@@ -24,10 +25,27 @@ class ImportBackup(
     private val refresh: ReminderRefresh,
 ) {
 
+    /**
+     * @throws Exception only when the replace itself failed, in which case nothing changed. Once it
+     *   has landed the import has happened, whatever follows: a correction that fails is skipped,
+     *   the ones after it still run, and the caller is never told "nothing was changed" about data
+     *   that was. Each correction heals on the next wake anyway, as after a reset.
+     */
     suspend operator fun invoke(snapshot: BackupSnapshot) {
         store.replaceAll(snapshot)
-        teardown.cancelAll()
-        history.forget()
-        refresh.refresh()
+        settle { teardown.cancelAll() }
+        settle { history.forget() }
+        settle { refresh.refresh() }
+    }
+
+    private suspend fun settle(correction: suspend () -> Unit) {
+        try {
+            correction()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Deliberately swallowed, see invoke. Nothing about the failure is logged: it would be
+            // about the user's medication data.
+        }
     }
 }

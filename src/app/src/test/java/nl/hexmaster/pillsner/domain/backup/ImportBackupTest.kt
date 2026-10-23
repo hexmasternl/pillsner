@@ -61,6 +61,21 @@ class ImportBackupTest {
         // The data is as it was, so the reminders and the evidence about it must be too.
         assertEquals(emptyList<String>(), steps)
     }
+
+    @Test
+    fun `a correction that fails after the replace neither undoes the import nor skips the rest`() = runBlocking {
+        val importing = ImportBackup(
+            store = store,
+            teardown = { error("the notification manager is gone") },
+            history = { steps += "forget" },
+            refresh = { steps += "refresh" },
+        )
+
+        // Does not throw: the data has been replaced, and the caller must not say it was not.
+        importing(BackupFixtures.populated())
+
+        assertEquals(listOf("replace", "forget", "refresh"), steps)
+    }
 }
 
 /** Spec: data-backup-restore, a snapshot that cannot be restored whole is refused whole. */

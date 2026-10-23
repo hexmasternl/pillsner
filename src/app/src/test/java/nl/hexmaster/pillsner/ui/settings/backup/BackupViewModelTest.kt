@@ -66,7 +66,9 @@ class BackupViewModelTest {
 
         override suspend fun read(location: String) = files[location] ?: throw IOException("gone")
 
-        override suspend fun discard(location: String) {
+        /** As the real one: a document the picker just made is empty, so it holds no entry here. */
+        override suspend fun discardIfEmpty(location: String) {
+            if (files[location]?.isNotEmpty() == true) return
             discarded += location
             files.remove(location)
         }
@@ -193,6 +195,23 @@ class BackupViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf("content://doc/1"), documents.discarded)
+        assertEquals(listOf(BackupMessage.EXPORT_FAILED), messages)
+    }
+
+    @Test
+    fun `a failed export never removes a document that already held something`() = runTest(dispatcher) {
+        // The user picked their previous backup to overwrite it, and the write then failed.
+        collect()
+        documents.files["content://old-backup"] = byteArrayOf(1, 2, 3)
+        documents.failWrites = true
+        enterExportPassphrase("secret")
+        viewModel.onExportPassphraseConfirmed()
+
+        viewModel.onExportDocumentChosen("content://old-backup")
+        advanceUntilIdle()
+
+        assertTrue("The old backup is still there", documents.files.containsKey("content://old-backup"))
+        assertTrue(documents.discarded.isEmpty())
         assertEquals(listOf(BackupMessage.EXPORT_FAILED), messages)
     }
 

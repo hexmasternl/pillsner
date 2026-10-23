@@ -96,9 +96,9 @@ class BackupViewModel(
 
         viewModelScope.launch {
             if (passphrase == null) {
-                // The process died while the picker was open and took the passphrase with it. The
-                // picker has already made an empty file, which is no use to anyone.
-                documents.discard(location)
+                // The process died while the picker was open and took the passphrase with it. A
+                // fresh, empty file the picker made is no use to anyone; anything else is left.
+                documents.discardIfEmpty(location)
                 _messages.send(BackupMessage.EXPORT_FAILED)
                 return@launch
             }
@@ -111,8 +111,10 @@ class BackupViewModel(
                 throw cancelled
             } catch (_: Exception) {
                 // Never the exception's text: it is not for the user, and nothing about the data
-                // should reach a log either.
-                documents.discard(location)
+                // should reach a log either. Only an empty document is removed: the picker may have
+                // handed back the user's previous backup to overwrite, and a failure here must
+                // never be the thing that deletes it.
+                documents.discardIfEmpty(location)
                 _messages.send(BackupMessage.EXPORT_FAILED)
             } finally {
                 passphrase.fill(' ')

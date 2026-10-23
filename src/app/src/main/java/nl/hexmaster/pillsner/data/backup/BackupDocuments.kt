@@ -3,6 +3,7 @@ package nl.hexmaster.pillsner.data.backup
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +24,16 @@ interface BackupDocuments {
     /** The whole document at [location]. */
     suspend fun read(location: String): ByteArray
 
-    /** Removes a document this app created and could not finish; best effort, never throws. */
-    suspend fun discard(location: String)
+    /**
+     * Removes the document at [location], but only when it is known to be empty; best effort,
+     * never throws.
+     *
+     * The create-document picker can hand back an existing document the user chose to overwrite,
+     * so "the export failed" must never mean "delete what was picked": that could be the user's
+     * previous backup. An empty document is either the picker's own fresh placeholder or holds
+     * nothing left to lose. A document of unknown size is left alone.
+     */
+    suspend fun discardIfEmpty(location: String)
 }
 
 /** The wired [BackupDocuments], over the content resolver. */
@@ -53,9 +62,15 @@ class ContentResolverBackupDocuments(private val resolver: ContentResolver) : Ba
         }
     }
 
-    override suspend fun discard(location: String) {
+    override suspend fun discardIfEmpty(location: String) {
         withContext(Dispatchers.IO) {
-            runCatching { DocumentsContract.deleteDocument(resolver, Uri.parse(location)) }
+            runCatching {
+                val uri = Uri.parse(location)
+                val size = resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else null
+                }
+                if (size == 0L) DocumentsContract.deleteDocument(resolver, uri)
+            }
         }
     }
 

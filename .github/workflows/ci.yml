@@ -125,9 +125,31 @@ jobs:
       - name: Install the pinned SDK components
         run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
 
+      - name: Cache the managed-device images and AVDs
+        # The system images and the AVDs Gradle creates from them are large and slow to set up. A
+        # hit skips the download and lets the AVD resume from its snapshot instead of cold-booting
+        # (ci-instrumented-tests D4). Keyed on the two build files, which hold the device blocks.
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/gradle-managed
+            ${{ env.ANDROID_HOME }}/system-images
+          key: managed-devices-${{ runner.os }}-${{ hashFiles('src/app/build.gradle.kts', 'src/wear/build.gradle.kts') }}
+
       - name: Run the instrumented tests on the managed devices
         # The full suite of both modules, never a selection: this is the gate local selective runs
         # rely on. The devices are defined in each module's testOptions.managedDevices.
         run: >
           ./gradlew :app:phoneApi37DebugAndroidTest :wear:watchApi37DebugAndroidTest
           -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+
+      - name: Upload instrumented test reports on failure
+        # Without these the job only says a task failed, not which test or why (ci-instrumented-tests D6).
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumented-test-reports
+          path: |
+            src/*/build/reports/androidTests/**
+            src/*/build/outputs/androidTest-results/**
+          retention-days: 7

@@ -137,8 +137,8 @@ the `Pixel_10` AVD — use the managed-device tasks (each one downloads its imag
 it headless, runs the module's whole suite and shuts it down):
 
 ```bash
-./gradlew :app:phoneApi37DebugAndroidTest
-./gradlew :wear:watchApi37DebugAndroidTest
+./gradlew :app:phoneApi37DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+./gradlew :wear:watchApi37DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 ```
 
 This is also how to run the `wear` tests on a real Wear OS image. Results land under

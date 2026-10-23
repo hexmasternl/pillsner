@@ -38,4 +38,14 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Run `verify-change` and record the result as the Verification section of this file. Verify: the Hugo build passes and no file outside `src/website/content/` and the site's image folder changed (`git diff --stat development`).
+- [x] 4.1 Run `verify-change` and record the result as the Verification section of this file. Verify: the Hugo build passes and no file outside `src/website/content/` and the site's image folder changed (`git diff --stat development`).
+
+## Verification
+
+- Website build: pass (`hugo --minify --panicOnWarning`, no errors or warnings; `public/` removed afterwards)
+- Website structure: pass. For `faq`, `privacy`, `medicines` and `tracking`, all six locales have the same counts of sections, FAQ questions, points and screenshots as English; `_index.md` changed one line in each locale.
+- Diff scope: only `src/website/content/{en,nl,fr,es,pt,de}/` and this change folder (`git diff --name-only development...HEAD`)
+- Not run: unit tests, lint, assemble debug, UI review, instrumented tests, device scenarios, Room and Wear checks. No file under `src/app`, `src/wear` or `src/shared` changed.
+- Not run: visual skim with `hugo server`. The new sections reuse existing section and FAQ shapes, with no new screenshots or layout.
+- Screenshots: none added. Label scanning has no screenshot; one can be added later from the emulator with made-up medicine names.
+- Manual testing still needed: none. A native speaker's read of the nl, fr, es, pt and de copy is welcome. Known pre-existing inconsistency, left as is: the French site says "Réglages" where the app says "Paramètres".

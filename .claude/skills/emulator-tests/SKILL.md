@@ -11,8 +11,11 @@ The instrumented suite (about 430 tests in `app`, 16 in `wear`) is the slow part
 change. Most of a change's risk sits in a handful of packages, so most of the suite doesn't need
 to run for it. This skill runs the part that does, and says plainly what it skipped.
 
-CI does not run instrumented tests, so a selective run here is not backed by a full run elsewhere
-yet. That's why the skipped count always goes into the report and the pull request summary.
+CI runs the full instrumented suite of both modules on every pull request (the `instrumented-tests`
+job in `.github/workflows/ci.yml`, on Gradle Managed Devices), so a selective run here is the fast
+local check and CI is the backstop that catches what selection missed. The skipped count still
+goes into the report and the pull request summary, so a reviewer knows the full run's result is
+the one to wait for.
 
 All Gradle commands run from the `src` folder of the checkout you're working in — for a change
 being applied, that's `../pillsner-worktrees/<name>/src`, not the main checkout.
@@ -102,7 +105,8 @@ Pass the classes as a comma-separated list of fully-qualified names:
 
 - `wear` the same way with `:wear:connectedDebugAndroidTest`. If its APK won't install on the
   phone emulator (a watch-only feature requirement), report the wear tests as **not run** — don't
-  create a Wear AVD unasked.
+  create a Wear AVD unasked; `:wear:watchApi37DebugAndroidTest` (below) runs them on the build's
+  own watch device, and CI runs them on every pull request.
 - Re-running one failing test while fixing it: `class=<fqcn>#<method>`. Re-run the full selection
   once the fix is in, not just the one test.
 - Run Gradle with `run_in_background` for anything but a handful of classes and wait for the
@@ -124,7 +128,24 @@ summary (`github-openspec-sync`'s **apply-complete** mode) under its verificatio
   the time actually goes, so the next speed-up can be aimed at the right step.
 
 A selective run is never described as "all instrumented tests pass". Say "the affected
-instrumented tests pass (selective run, N of M)".
+instrumented tests pass (selective run, N of M); the full suite runs in CI on the pull request".
+
+## A clean full run locally
+
+To run the full suite exactly as CI does — on a fresh emulator the build defines, without touching
+the `Pixel_10` AVD — use the managed-device tasks (each one downloads its image on first use, boots
+it headless, runs the module's whole suite and shuts it down):
+
+```bash
+./gradlew :app:phoneApi37DebugAndroidTest
+./gradlew :wear:watchApi37DebugAndroidTest
+```
+
+This is also how to run the `wear` tests on a real Wear OS image. Results land under
+`<module>/build/reports/androidTests/managedDevice/` and
+`<module>/build/outputs/androidTest-results/managedDevice/`. They are much slower than a selective
+run on the already-running emulator, so use them when CI reports a failure you can't reproduce, or
+when the user asks for a full run that matches CI.
 
 ## Guardrails
 
@@ -132,5 +153,8 @@ instrumented tests pass (selective run, N of M)".
 - Never mark a failing test `@Ignore`, delete it, or narrow the selection to drop it. Fix it, or
   report it as failing.
 - If the user asks for the full suite, run the full suite.
-- Never change Gradle configuration, add a test runner argument to `build.gradle.kts`, or add
-  Gradle Managed Devices from this skill — those change the build and need an OpenSpec change.
+- Never let a selective local run stand in for the CI run: a pull request whose
+  `instrumented-tests` check failed is not ready, whatever the local selection said.
+- Never change Gradle configuration, add a test runner argument to `build.gradle.kts`, or add or
+  change a Gradle Managed Device from this skill — those change the build and need an OpenSpec
+  change.

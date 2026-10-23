@@ -16,6 +16,6 @@
 
 ## 3. Documentation and handover
 
-- [ ] 3.1 Update the README's `.github/workflows/` row to describe the `instrumented-tests` job, and verify the description matches `ci.yml`
-- [ ] 3.2 Update `.claude/skills/emulator-tests/SKILL.md` so its report and guardrails say the full suite runs in CI on every pull request, and document the managed-device tasks as the way to run a clean full suite locally
+- [x] 3.1 Update the README's `.github/workflows/` row to describe the `instrumented-tests` job, and verify the description matches `ci.yml`
+- [x] 3.2 Update `.claude/skills/emulator-tests/SKILL.md` so its report and guardrails say the full suite runs in CI on every pull request, and document the managed-device tasks as the way to run a clean full suite locally
 - [ ] 3.3 Manual: the repository owner adds the `instrumented-tests` check as a required status check to the `protect-development` ruleset on GitHub. Mention it prominently in the pull request summary

@@ -123,8 +123,10 @@ class AppResetEffectsTest {
 
         // Dose ids restart at 1 after a reset, so a surviving notification would collide with a
         // dose that has nothing to do with it. Cancelling them all is why this step is not optional.
-        assertFalse("No reminder may survive a reset", isShowing(dose.id))
-        assertEquals(0, activeNotificationCount())
+        // `cancelAll` returns before the shade has caught up, just as `notify` does, so the empty
+        // shade is waited for too.
+        assertTrue("No reminder may survive a reset", waitUntilShadeIsEmpty())
+        assertFalse(isShowing(dose.id))
     }
 
     @Test
@@ -234,6 +236,16 @@ class AppResetEffectsTest {
             Thread.sleep(POLL_MILLIS)
         }
         return false
+    }
+
+    /** Polls for the app's notifications to have left the shade, for up to [TIMEOUT_MILLIS]. */
+    private fun waitUntilShadeIsEmpty(): Boolean {
+        val deadline = System.currentTimeMillis() + TIMEOUT_MILLIS
+        while (System.currentTimeMillis() < deadline) {
+            if (activeNotificationCount() == 0) return true
+            Thread.sleep(POLL_MILLIS)
+        }
+        return activeNotificationCount() == 0
     }
 
     private fun isShowing(id: DoseId): Boolean =

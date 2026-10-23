@@ -2,8 +2,8 @@
 
 ## 1. Failing check first
 
-- [ ] 1.1 Add `.github/scripts/test_collect_release_notes.py` with a `unittest` asserting that `distribution/whatsnew/` has `whatsnew-en-US`, `-nl-NL`, `-de-DE`, `-fr-FR`, `-es-ES` and `-pt-PT`, each non-empty and at most 500 characters, naming the language or file on failure. Verify `python3 -m unittest discover -s .github/scripts` fails on `development` because the four new files are missing (issue #100).
-- [ ] 1.2 Add a "Release notes check" step to `ci.yml` that runs that command from the repository root, before the Gradle setup. Verify the workflow YAML parses (`actionlint`, or by reading it against an existing step).
+- [x] 1.1 Add `.github/scripts/test_collect_release_notes.py` with a `unittest` asserting that `distribution/whatsnew/` has `whatsnew-en-US`, `-nl-NL`, `-de-DE`, `-fr-FR`, `-es-ES` and `-pt-PT`, each non-empty and at most 500 characters, naming the language or file on failure. Verify `python3 -m unittest discover -s .github/scripts` fails on `development` because the four new files are missing (issue #100).
+- [x] 1.2 Add a "Release notes check" step to `ci.yml` that runs that command from the repository root, before the Gradle setup. Verify the workflow YAML parses (`actionlint`, or by reading it against an existing step).
 
 ## 2. Whatsnew files
 

@@ -2,8 +2,8 @@ name: Draft release notes
 
 # Drafts brief Play Store "what's new" text in every app language (en, nl, de, fr, es, pt) for a
 # development -> main release pull request, from the OpenSpec changes (and fallback merged PRs)
-# it contains, and posts it as an updatable PR comment for a human to review and hand-copy. Never commits or pushes anything,
-# and never blocks ci.yml or release.yml.
+# it contains, and posts it as an updatable PR comment for a human to review and hand-copy.
+# Never commits or pushes anything, and never blocks ci.yml or release.yml.
 
 on:
   pull_request:

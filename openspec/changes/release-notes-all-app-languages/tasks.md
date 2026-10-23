@@ -16,5 +16,5 @@
 
 ## 4. Documentation and release readiness
 
-- [ ] 4.1 Update the `distribution/whatsnew/` row in `README.md` to "one plain-text file per app language (six)". Check `CHANGELOG.md`'s intro still holds. Verify by reading both.
+- [x] 4.1 Update the `distribution/whatsnew/` row in `README.md` to "one plain-text file per app language (six)". Check `CHANGELOG.md`'s intro still holds. Verify by reading both.
 - [ ] 4.2 Confirm in Play Console that de-DE, fr-FR, es-ES and pt-PT are store-listing languages, or note in the pull request description that a maintainer must add them before the next release. Verify the PR description carries the outcome.

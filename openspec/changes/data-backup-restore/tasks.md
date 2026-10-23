@@ -18,21 +18,21 @@
 
 ## 3. Platform: Storage Access Framework integration
 
-- [ ] 3.1 Wire "Export data" to `ACTION_CREATE_DOCUMENT` and write the encrypted file to the chosen `Uri`.
-- [ ] 3.2 Wire "Import data" to `ACTION_OPEN_DOCUMENT` and read the encrypted file from the chosen `Uri`.
+- [x] 3.1 Wire "Export data" to `ACTION_CREATE_DOCUMENT` and write the encrypted file to the chosen `Uri`.
+- [x] 3.2 Wire "Import data" to `ACTION_OPEN_DOCUMENT` and read the encrypted file from the chosen `Uri`.
 - [x] 3.3 Run both file operations off the main thread via a coroutine, with a progress state exposed to the UI.
-- [ ] 3.4 Verify no broad storage permission is requested — only the per-file SAF grant.
+- [x] 3.4 Verify no broad storage permission is requested — only the per-file SAF grant.
 
 ## 4. UI: Settings entry points and dialogs
 
-- [ ] 4.1 Add "Export data" and "Import data" actions to the Settings screen, above the Danger zone section, following `docs/design-system.md`.
-- [ ] 4.2 Build the passphrase entry + confirmation dialog for export, disabling proceed until the two values match and neither is empty.
-- [ ] 4.3 Build the passphrase entry dialog for import.
-- [ ] 4.4 Build the import confirmation dialog, styled after the existing reset confirmation, naming that existing medicines, schedules, stock and intake history will be replaced.
-- [ ] 4.5 Surface export/import success and each distinct failure (wrong passphrase, corrupted file, unrecognised version, cancelled picker) as clear, non-technical messages.
-- [ ] 4.6 Gate both actions behind the app lock, consistent with how other screens showing medication data are gated.
-- [ ] 4.7 Add all new strings to both `values/strings.xml` and the Dutch translation; no medical detail in any string.
-- [ ] 4.8 Run `pillsner-ui-review` against the new Settings actions and dialogs.
+- [x] 4.1 Add "Export data" and "Import data" actions to the Settings screen, above the Danger zone section, following `docs/design-system.md`.
+- [x] 4.2 Build the passphrase entry + confirmation dialog for export, disabling proceed until the two values match and neither is empty.
+- [x] 4.3 Build the passphrase entry dialog for import.
+- [x] 4.4 Build the import confirmation dialog, styled after the existing reset confirmation, naming that existing medicines, schedules, stock and intake history will be replaced.
+- [x] 4.5 Surface export/import success and each distinct failure (wrong passphrase, corrupted file, unrecognised version, cancelled picker) as clear, non-technical messages.
+- [x] 4.6 Gate both actions behind the app lock, consistent with how other screens showing medication data are gated.
+- [x] 4.7 Add all new strings to both `values/strings.xml` and the Dutch translation; no medical detail in any string.
+- [x] 4.8 Run `pillsner-ui-review` against the new Settings actions and dialogs.
 
 ## 5. Post-import reconciliation
 

@@ -262,6 +262,42 @@
     <string name="reset_dialog_confirm">Tout effacer</string>
     <string name="reset_done_message">Tout a été effacé</string>
 
+    <!-- Sauvegarde et restauration (data-backup-restore) -->
+    <string name="backup_header">Vos données</string>
+    <string name="backup_explanation">Enregistrez tout dans un fichier que vous conservez, ou restaurez-le à partir de celui-ci. Pillsner n\'envoie jamais le fichier lui-même.</string>
+    <string name="backup_export_title">Exporter les données</string>
+    <string name="backup_export_summary">Médicaments, horaires, stock et historique, dans un fichier verrouillé</string>
+    <string name="backup_import_title">Importer les données</string>
+    <string name="backup_import_summary">Remplacer le contenu de ce téléphone par une sauvegarde</string>
+    <string name="backup_progress_exporting">Exportation de vos données…</string>
+    <string name="backup_progress_reading">Ouverture de la sauvegarde…</string>
+    <string name="backup_progress_importing">Importation de vos données…</string>
+    <string name="backup_export_dialog_title">Choisissez une phrase secrète</string>
+    <string name="backup_export_dialog_body">La sauvegarde est verrouillée avec cette phrase secrète. Vous en aurez besoin pour importer la sauvegarde plus tard.</string>
+    <string name="backup_export_dialog_no_recovery">Une phrase secrète oubliée ne peut pas être récupérée. Sans elle, la sauvegarde ne peut pas être ouverte.</string>
+    <string name="backup_field_passphrase">Phrase secrète</string>
+    <string name="backup_field_confirmation">Saisissez-la à nouveau</string>
+    <string name="backup_error_mismatch">Les deux phrases secrètes sont différentes. Saisissez deux fois la même.</string>
+    <string name="backup_export_dialog_confirm">Choisir l\'emplacement</string>
+    <string name="backup_import_dialog_title">Ouvrir la sauvegarde</string>
+    <string name="backup_import_dialog_body">Saisissez la phrase secrète choisie lors de l\'exportation de cette sauvegarde.</string>
+    <string name="backup_error_wrong_passphrase">Cette phrase secrète n\'ouvre pas la sauvegarde. Vérifiez-la et réessayez. Si elle est correcte, le fichier a été modifié depuis l\'exportation.</string>
+    <string name="backup_import_dialog_confirm">Ouvrir</string>
+    <string name="backup_confirm_title">Remplacer vos données ?</string>
+    <string name="backup_confirm_replaced">Tous les médicaments, horaires, stocks et votre historique de prise complet sur ce téléphone seront remplacés par la sauvegarde. Cette action est irréversible.</string>
+    <string name="backup_confirm_kept">Votre langue, votre thème, votre verrouillage et les documents acceptés restent inchangés.</string>
+    <string name="backup_confirm_checkbox">Je comprends que mes données actuelles seront remplacées</string>
+    <string name="backup_confirm_action">Remplacer les données</string>
+    <string name="backup_message_export_done">Vos données ont été exportées</string>
+    <string name="backup_message_export_cancelled">Exportation annulée. Aucun fichier n\'a été enregistré.</string>
+    <string name="backup_message_export_failed">La sauvegarde n\'a pas pu être enregistrée. Réessayez ou choisissez un autre emplacement.</string>
+    <string name="backup_message_import_done">Vos données ont été importées</string>
+    <string name="backup_message_import_cancelled">Importation annulée. Rien n\'a été modifié.</string>
+    <string name="backup_message_import_failed">L\'importation n\'a pas abouti. Rien n\'a été modifié.</string>
+    <string name="backup_message_not_a_backup">Ce fichier n\'est pas une sauvegarde Pillsner, ou il est endommagé. Rien n\'a été modifié.</string>
+    <string name="backup_message_newer_version">Cette sauvegarde a été créée par une version plus récente de Pillsner. Mettez l\'application à jour, puis réessayez.</string>
+    <string name="backup_message_read_failed">Le fichier n\'a pas pu être ouvert. Rien n\'a été modifié.</string>
+
     <!-- Détail de la dose -->
     <string name="dose_detail_title">Dose</string>
     <string name="dose_detail_close">Fermer</string>

@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.applock.data.AndroidBiometricAvailability
@@ -25,6 +26,7 @@ import nl.hexmaster.pillsner.applock.domain.ChangePin
 import nl.hexmaster.pillsner.applock.domain.DisableLock
 import nl.hexmaster.pillsner.applock.domain.EnablePinLock
 import nl.hexmaster.pillsner.applock.domain.IsCurrentPin
+import nl.hexmaster.pillsner.applock.domain.LockState
 import nl.hexmaster.pillsner.applock.domain.PinVerifier
 import nl.hexmaster.pillsner.applock.domain.RegisterFailedAttempt
 import nl.hexmaster.pillsner.applock.domain.ResolveInitialLockState
@@ -495,7 +497,17 @@ class AppContainer(
         initializer { ThemeSectionViewModel(themeRepository) }
         initializer { LegalViewModel(legalRepository, isLegalAccepted) }
         initializer { ResetViewModel(eraseAllData) }
-        initializer { BackupViewModel(exportBackup, importBackup, backupFileCodec, backupDocuments, clock) }
+        initializer {
+            BackupViewModel(
+                exportBackup = exportBackup,
+                importBackup = importBackup,
+                codec = backupFileCodec,
+                documents = backupDocuments,
+                clock = clock,
+                // The same two states the root gate in PillsnerApp shows content in.
+                appOpen = appLockStateHolder.state.map { it == LockState.Unlocked || it == LockState.Disabled },
+            )
+        }
         initializer { ReminderDiagnosticsViewModel(reminderDeliveryLog) }
         initializer {
             MedicationFormViewModel(

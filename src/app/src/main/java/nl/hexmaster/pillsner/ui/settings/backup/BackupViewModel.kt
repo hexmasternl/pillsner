@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,12 +33,15 @@ import nl.hexmaster.pillsner.domain.backup.ImportBackup
  * nothing on the device.
  *
  * Scoped to the activity rather than to Settings: the picker sends the app to the background, which
- * relocks it and takes Settings off screen, and the result still has to arrive somewhere. Whatever
- * the user was in the middle of is waiting for them once they unlock.
+ * relocks it and takes Settings off screen, and the result still has to arrive somewhere. A picked
+ * document is then held, untouched, until [appOpen] says the user has unlocked again: nothing is
+ * read from the database or the document behind the lock screen. Whatever the user was in the
+ * middle of carries on from there.
  *
  * The passphrase and the decrypted snapshot are held only in memory, only between the steps that
  * need them, and dropped the moment the flow ends either way.
  *
+ * @param appOpen true while the app's content may be shown: unlocked, or no lock set.
  * @param cryptoDispatcher where PBKDF2 and AES run: hundreds of milliseconds of CPU, never on main.
  */
 class BackupViewModel(
@@ -46,6 +50,7 @@ class BackupViewModel(
     private val codec: BackupFileCodec,
     private val documents: BackupDocuments,
     private val clock: Clock,
+    private val appOpen: Flow<Boolean>,
     private val cryptoDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
@@ -86,16 +91,17 @@ class BackupViewModel(
 
     /** @param location the picked document, or null when the user cancelled the picker. */
     fun onExportDocumentChosen(location: String?) {
-        _uiState.update { it.copy(pickerOpen = false) }
         val passphrase = exportPassphrase
         exportPassphrase = null
         if (location == null) {
+            _uiState.update { it.copy(pickerOpen = false) }
             passphrase?.fill(' ')
             _messages.trySend(BackupMessage.EXPORT_CANCELLED)
             return
         }
 
         viewModelScope.launch {
+            awaitAppOpen()
             if (passphrase == null) {
                 // The process died while the picker was open and took the passphrase with it. The
                 // picked document is left as it is: nothing here can tell a placeholder the picker
@@ -138,12 +144,13 @@ class BackupViewModel(
      * @param location the picked document, or null when the user cancelled the picker.
      */
     fun onImportDocumentChosen(location: String?) {
-        _uiState.update { it.copy(pickerOpen = false) }
         if (location == null) {
+            _uiState.update { it.copy(pickerOpen = false) }
             _messages.trySend(BackupMessage.IMPORT_CANCELLED)
             return
         }
         viewModelScope.launch {
+            awaitAppOpen()
             _uiState.update { it.copy(work = BackupWork.READING) }
             try {
                 val bytes = documents.read(location)
@@ -241,6 +248,15 @@ class BackupViewModel(
     override fun onCleared() {
         exportPassphrase?.fill(' ')
         endImport()
+    }
+
+    /**
+     * Suspends until the app is unlocked, then lets the picked document go on to be used. The
+     * picker counts as open until then, so nothing else can start in between.
+     */
+    private suspend fun awaitAppOpen() {
+        appOpen.first { it }
+        _uiState.update { it.copy(pickerOpen = false) }
     }
 
     private fun endImport() {

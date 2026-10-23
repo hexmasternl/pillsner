@@ -7,6 +7,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -80,6 +81,9 @@ class BackupViewModelTest {
         override suspend fun read(location: String) = files[location] ?: throw IOException("gone")
     }
 
+    /** Unlocked unless a test locks it, as the picker returning can. */
+    private val appOpen = MutableStateFlow(true)
+
     private lateinit var viewModel: BackupViewModel
     private val messages = mutableListOf<BackupMessage>()
     private val pickers = mutableListOf<BackupPickerRequest>()
@@ -98,6 +102,7 @@ class BackupViewModelTest {
             codec = codec,
             documents = documents,
             clock = clock,
+            appOpen = appOpen,
             cryptoDispatcher = dispatcher,
         )
     }
@@ -286,6 +291,64 @@ class BackupViewModelTest {
         viewModel.onImportPassphraseChange(passphrase)
         viewModel.onImportPassphraseConfirmed()
         advanceUntilIdle()
+    }
+
+    // --- Behind the lock ----------------------------------------------------------------------
+
+    @Test
+    fun `an export picked while the app is locked waits for the unlock`() = runTest(dispatcher) {
+        // Coming back from the picker relocks the app; the result arrives behind the lock screen.
+        collect()
+        enterExportPassphrase("secret")
+        viewModel.onExportPassphraseConfirmed()
+        appOpen.value = false
+
+        viewModel.onExportDocumentChosen("content://doc/1")
+        advanceUntilIdle()
+
+        assertFalse("Nothing is written behind the lock", documents.files.containsKey("content://doc/1"))
+        assertTrue(messages.isEmpty())
+        assertFalse("And nothing else can start meanwhile", viewModel.uiState.value.actionsEnabled)
+
+        appOpen.value = true
+        advanceUntilIdle()
+
+        assertEquals(BackupSnapshot.EMPTY, codec.decode(documents.files.getValue("content://doc/1"), "secret".toCharArray()))
+        assertEquals(listOf(BackupMessage.EXPORT_DONE), messages)
+        assertTrue(viewModel.uiState.value.actionsEnabled)
+    }
+
+    @Test
+    fun `an import picked while the app is locked is not read until the unlock`() = runTest(dispatcher) {
+        collect()
+        backupFile()
+        viewModel.onImportTapped()
+        appOpen.value = false
+
+        viewModel.onImportDocumentChosen("content://backup")
+        advanceUntilIdle()
+
+        assertNull("No passphrase asked for behind the lock", viewModel.uiState.value.dialog)
+        assertNull(viewModel.uiState.value.work)
+
+        appOpen.value = true
+        advanceUntilIdle()
+
+        assertEquals(BackupDialog.ImportPassphrase(), viewModel.uiState.value.dialog)
+    }
+
+    @Test
+    fun `a cancelled picker answers at once, locked or not`() = runTest(dispatcher) {
+        // Nothing is touched by a cancel, so there is nothing to wait for.
+        collect()
+        viewModel.onImportTapped()
+        appOpen.value = false
+
+        viewModel.onImportDocumentChosen(null)
+        advanceUntilIdle()
+
+        assertEquals(listOf(BackupMessage.IMPORT_CANCELLED), messages)
+        assertTrue(viewModel.uiState.value.actionsEnabled)
     }
 
     @Test

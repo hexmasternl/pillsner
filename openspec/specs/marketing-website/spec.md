@@ -2,13 +2,19 @@
 
 ## Purpose
 TBD - created by archiving change website-single-page-hugo. Update Purpose after archive.
+
 ## Requirements
-### Requirement: Single-page informational layout
-The marketing website SHALL present all content as one page per locale (no multi-page navigation), organised into a hero, a "why Pillsner" section, a feature highlights section, a privacy/permissions callout, and a footer.
+
+### Requirement: Multi-page informational layout
+The marketing website SHALL present its content as a set of dedicated pages per locale — Home, Medicines, Schedules & reminders, Tracking your progress, On your wrist, Privacy & security, FAQ, Report a bug and Request a feature — rather than one single page, with Home summarising the other pages and linking to each of them.
 
 #### Scenario: Visitor lands on the site
-- **WHEN** a visitor opens the site's root URL
-- **THEN** the hero, why-Pillsner, features, privacy callout and footer sections are all present on that single page, in that order, reachable by scrolling or in-page anchor links
+- **WHEN** a visitor opens a locale's root URL
+- **THEN** the Home page presents a hero, a short why-Pillsner summary and a feature-summary list, each feature-summary item linking to its own dedicated page
+
+#### Scenario: Visitor opens a dedicated page
+- **WHEN** a visitor navigates to the Medicines, Schedules & reminders, Tracking your progress, On your wrist, Privacy & security, FAQ, Report a bug or Request a feature page for a given locale
+- **THEN** that page renders fully translated content specific to its topic, using the same header, footer and visual identity as every other page on the site
 
 ### Requirement: Play Store call to action
 The site SHALL link to the Google Play Store listing for application id `nl.hexmaster.pillsner` via a prominent button, present in both the hero and the footer.
@@ -85,3 +91,14 @@ The site SHALL build to static HTML/CSS/JS/assets via Hugo such that it can be s
 #### Scenario: Site is built
 - **WHEN** the Hugo build command runs against `src/website/`
 - **THEN** it produces a complete static output directory that can be served as-is by a static file host, with no server-side code required at request time
+
+### Requirement: Cross-page navigation
+The site SHALL provide a persistent header navigation menu and footer links present on every page, listing every page of the site, and the language switcher SHALL remain available and functional from any page, not only Home.
+
+#### Scenario: Visitor browses from a non-home page
+- **WHEN** a visitor is on any page other than Home
+- **THEN** the header navigation menu lists links to every other page, and selecting a different language in the switcher shows the equivalent page in that language rather than redirecting to Home
+
+#### Scenario: Visitor follows a feature-summary link from Home
+- **WHEN** a visitor clicks a feature-summary item on the Home page
+- **THEN** the browser navigates to that feature's dedicated page in the visitor's current locale

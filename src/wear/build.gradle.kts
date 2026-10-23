@@ -150,6 +150,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.androidx.test.ext.junit)
+    // Declared so the catalog's version wins: ui-test-junit4 alone brings espresso-core 3.5.0, which
+    // looks up InputManager.getInstance by reflection and fails every Compose test on API 37.
+    androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

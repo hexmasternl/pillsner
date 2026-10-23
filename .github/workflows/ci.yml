@@ -136,6 +136,15 @@ jobs:
             ${{ env.ANDROID_HOME }}/system-images
           key: managed-devices-${{ runner.os }}-${{ hashFiles('src/app/build.gradle.kts', 'src/wear/build.gradle.kts') }}
 
+      - name: Install the managed-device system images
+        # Left to Gradle, both modules' setup tasks download their image at the same time and the
+        # install can fail with "Archive is not a ZIP archive". Installed here, once and in sequence,
+        # the setup tasks find them present. Keep these in step with the managedDevices blocks.
+        run: >
+          sdkmanager
+          "system-images;android-37.0;google_atd;x86_64"
+          "system-images;android-37.0;android-wear-signed;x86_64"
+
       - name: Run the instrumented tests on the managed devices
         # The full suite of both modules, never a selection: this is the gate local selective runs
         # rely on. The devices are defined in each module's testOptions.managedDevices.

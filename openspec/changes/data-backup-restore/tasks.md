@@ -1,9 +1,9 @@
 ## 1. Domain: backup snapshot model and use cases
 
-- [ ] 1.1 Define a domain-layer `BackupSnapshot` model covering every medication (with its low-stock acknowledgement), schedule, stock batch and intake record, independent of Room entities. Each medication carries an export-local `String` identifier generated at export time (not a Room row ID); each dose references its medication, if any, and each stock batch references its medication, by that same identifier rather than a database ID.
-- [ ] 1.2 Implement an `ExportBackupUseCase` that reads the current repository state into a `BackupSnapshot`, assigning each medication its export-local identifier.
+- [x] 1.1 Define a domain-layer `BackupSnapshot` model covering every medication (with its low-stock acknowledgement), schedule, stock batch and intake record, independent of Room entities. Each medication carries an export-local `String` identifier generated at export time (not a Room row ID); each dose references its medication, if any, and each stock batch references its medication, by that same identifier rather than a database ID.
+- [x] 1.2 Implement an `ExportBackupUseCase` that reads the current repository state into a `BackupSnapshot`, assigning each medication its export-local identifier.
 - [ ] 1.3 Add a `BackupDataStore` domain interface (`replaceAll(snapshot: BackupSnapshot)`) and a `RoomBackupDataStore` implementation that, in one `withTransaction` block over `PillsnerDatabase`, clears every table and reinserts the snapshot's medications, stock batches and doses, resolving each stock batch's and dose's `medicationId` from the snapshot's export-local identifiers to the newly-assigned Room IDs — following the same domain-interface-over-Room shape `AppDataEraser`/`RoomAppDataEraser` already use for `app-reset`.
-- [ ] 1.4 Implement an `ImportBackupUseCase` that calls `BackupDataStore.replaceAll` with the deserialised `BackupSnapshot`, rolling back entirely on any failure.
+- [x] 1.4 Implement an `ImportBackupUseCase` that calls `BackupDataStore.replaceAll` with the deserialised `BackupSnapshot`, rolling back entirely on any failure.
 - [ ] 1.5 Add unit tests for the use cases and `RoomBackupDataStore` covering an empty dataset, a populated dataset with doses and stock batches referencing medications by export-local identifier, a dose whose medication was already gone at export time (`null` reference), and a transaction failure during import leaving prior data intact.
 
 ## 2. Data: file format, versioning and encryption

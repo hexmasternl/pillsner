@@ -1,4 +1,5 @@
 **GitHub Issue:** #32 (https://github.com/hexmasternl/pillsner/issues/32)
+**Pull Request:** #92 (https://github.com/hexmasternl/pillsner/pull/92)
 
 ## Why
 

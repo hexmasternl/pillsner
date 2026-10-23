@@ -56,7 +56,7 @@ class LabelTextRecogniser(private val installer: TessdataInstaller) : FrameRecog
         val started = SystemClock.elapsedRealtime()
         tess.setImage(frame.pixels, frame.width, frame.height, BYTES_PER_PIXEL, frame.width)
         // Runs the recognition; the iterator below reads the result at text-line level.
-        tess.utF8Text ?: return emptyList()
+        tess.getUTF8Text() ?: return emptyList()
         val lines = mutableListOf<RecognisedLine>()
         val iterator = tess.resultIterator ?: return emptyList()
         try {

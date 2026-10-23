@@ -10,7 +10,7 @@
 ## 3. Survive a refused foreground promotion (D2)
 
 - [x] 3.1 Make `ReminderWakeService.goForeground()` return whether `startForeground()` succeeded, catching `ForegroundServiceStartNotAllowedException` (API 31+), `SecurityException` and `IllegalStateException`
-- [x] 3.2 On failure, record `DeliveryEvent.SERVICE_REFUSED` with the command's reason (no medicine names or amounts) and still run the command, then `stopSelf(startId)`
+- [x] 3.2 On failure, record `DeliveryEvent.SERVICE_REFUSED` with the command's reason (no medicine names or amounts) then `stopSelf(startId)` at once and run the command on a scope of its own
 - [x] 3.3 Fix the comment in the companion `start()` that says the boot broadcasts are allowed to start the service
 
 ## 4. Tests

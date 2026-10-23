@@ -31,6 +31,11 @@ Alternative considered: `reactivecircus/android-emulator-runner`, the common Git
 - `app`: a phone device at API 37 (the `targetSdk`), using an x86_64 `google` or `aosp-atd` image, whichever exists for API 37. ATD (Automated Test Device) images boot faster and use less memory; use one if it exists for the chosen API level, otherwise the Google APIs image.
 - `wear`: a watch device at the newest API level a Wear OS x86_64 image exists for. `wear` declares the watch feature, so a watch image is the faithful target.
 
+**Chosen (task 1.1, checked against Google's system-image repository on 23 October 2026):**
+
+- `app` → `phoneApi37`: Pixel 6, API 37, `google-atd`, x86_64 (`system-images;android-37.0;google_atd;x86_64`). All three candidates exist for API 37 (`aosp_atd`, `google_atd`, `google_apis`). ATD is chosen for boot time and memory; the Google variant rather than AOSP because the app's Wear sync goes through Play services' Wearable data layer, and the local reference AVD is a Google APIs image too, so tests see the same platform services in both places.
+- `wear` → `watchApi37`: Wear OS Small Round, API 37, `android-wear-signed`, x86_64 (`system-images;android-37.0;android-wear-signed;x86_64`). API 37 is also the newest Wear OS x86_64 image, so the watch tests at the `targetSdk` as well. There is no Wear ATD image. AGP has no alias for Wear sources; it passes `android-wear-signed` through to the package path unchanged.
+
 Testing at `minSdk` (26) as well is out of scope for this change. It would double the job time, and it's better proposed separately with evidence it's needed.
 
 ### D3. A separate CI job, parallel to `build`

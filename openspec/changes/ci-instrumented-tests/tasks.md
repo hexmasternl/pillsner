@@ -2,7 +2,7 @@
 
 ## 1. Managed devices
 
-- [ ] 1.1 Find which x86_64 system images exist for API 37 (`aosp-atd`, `google-atd`, `google`) and for Wear OS (`sdkmanager --list`), pick each device's API level and image source per design D2, and record the choice and the reason in design.md D2
+- [x] 1.1 Find which x86_64 system images exist for API 37 (`aosp-atd`, `google-atd`, `google`) and for Wear OS (`sdkmanager --list`), pick each device's API level and image source per design D2, and record the choice and the reason in design.md D2
 - [ ] 1.2 Add a phone managed device to `src/app/build.gradle.kts` `testOptions.managedDevices`, and verify `./gradlew :app:<phone>DebugAndroidTest` runs the full `app` suite locally and passes
 - [ ] 1.3 Add a watch managed device to `src/wear/build.gradle.kts`, and verify `./gradlew :wear:<watch>DebugAndroidTest` runs the full `wear` suite locally and passes (or apply the fallback in design.md Risks and record it there)
 - [ ] 1.4 Verify `./gradlew test lint assembleDebug` still passes and that the release bundle is unchanged by the device blocks (no new permission or dependency; the build permission guard passes)

@@ -17,6 +17,14 @@ params:
     - heading: "Ningún permiso de internet en absoluto"
       body: "Pillsner no pide acceso a internet. Una app que no puede llegar a la red no puede filtrar tus datos hacia ella, esté hecha como esté. Tampoco pide nunca tu ubicación ni tus contactos."
       note: "Con la app del reloj instalada, las tomas que aún tienes por delante también viajan a tu reloj por el enlace directo entre los dos dispositivos emparejados. Nada va a un servidor, y ninguna de las dos apps pide acceso a internet."
+    - heading: "La cámara, solo cuando tú lo pides"
+      body: "Pillsner pide usar la cámara solo cuando eliges Escanear con la cámara al añadir un medicamento, y antes te explica por qué. Lee la etiqueta en tu propio teléfono, no guarda ninguna imagen ni ningún texto y no envía nada a ningún sitio. Si dices que no, no pierdes nada: puedes elegir una foto o escribir los datos tú mismo."
+    - heading: "Una copia de seguridad que solo tienes tú"
+      body: "Exportar datos, en Ajustes, guarda tus medicamentos, horarios, existencias e historial en un solo archivo, en el lugar que elijas. Pillsner nunca lo envía a ningún sitio; adónde va después lo decides tú."
+      points:
+        - "Protegido con una frase de contraseña que tú eliges y que no se puede recuperar si la olvidas"
+        - "Tu bloqueo de la app, tu idioma y tu tema no están en el archivo"
+        - "Importar datos sustituye lo que hay en el teléfono por el contenido del archivo, después de que lo confirmes"
     - heading: "Un bloqueo de la app opcional"
       body: "Activa el bloqueo de la app y Pillsner pedirá un PIN —y, una vez configurado, tu huella o tu cara— antes de abrirse. Las capturas de pantalla y la miniatura de aplicaciones recientes se ocultan mientras está activado."
       points:

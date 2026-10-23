@@ -17,6 +17,14 @@ params:
     - heading: "No internet permission at all"
       body: "Pillsner does not ask for internet access. An app that cannot reach the network cannot leak your data to it, however it is built. It never asks for your location or your contacts either."
       note: "With the watch app installed, the doses you still have to take also travel to your watch over the direct link between the two paired devices. Nothing goes to a server, and neither app asks for internet access."
+    - heading: "The camera, only when you ask"
+      body: "Pillsner asks to use the camera only when you choose Scan with camera while adding a medicine, and tells you why first. It reads the label on your phone itself, keeps no picture and no text, and sends nothing anywhere. Say no and nothing is lost: you can still choose a photo or type the details in."
+    - heading: "A backup only you hold"
+      body: "Export data in Settings writes your medicines, schedules, stock and history to one file, in the place you pick. Pillsner never sends it anywhere; where it goes next is up to you."
+      points:
+        - "Locked with a passphrase you choose, which cannot be recovered if you forget it"
+        - "Your app lock, language and theme are not in the file"
+        - "Import data replaces what is on the phone with the file's contents, after you confirm"
     - heading: "An optional app lock"
       body: "Turn on the app lock and Pillsner asks for a PIN — and, once set up, your fingerprint or face — before it opens. Screenshots and the recent apps thumbnail are hidden while it is on."
       points:

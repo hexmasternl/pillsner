@@ -17,6 +17,14 @@ params:
     - heading: "Überhaupt keine Internetberechtigung"
       body: "Pillsner fragt nicht nach Internetzugriff. Eine App, die das Netzwerk nicht erreichen kann, kann deine Daten nicht dorthin leaken, wie auch immer sie gebaut ist. Sie fragt auch nie nach deinem Standort oder deinen Kontakten."
       note: "Mit installierter Uhren-App wandern die Dosen, die du noch einnehmen musst, auch über die direkte Verbindung zwischen den beiden gekoppelten Geräten zu deiner Uhr. Nichts geht an einen Server, und keine der beiden Apps fragt nach Internetzugriff."
+    - heading: "Die Kamera, nur wenn du willst"
+      body: "Pillsner fragt nur dann nach der Kamera, wenn du beim Hinzufügen eines Medikaments Mit Kamera scannen wählst, und sagt dir vorher, wozu. Es liest das Etikett auf deinem Handy selbst, behält kein Bild und keinen Text und sendet nichts irgendwohin. Sagst du Nein, geht nichts verloren: Du kannst trotzdem ein Foto auswählen oder die Angaben eintippen."
+    - heading: "Ein Backup, das nur du hast"
+      body: "Daten exportieren in den Einstellungen schreibt deine Medikamente, Zeitpläne, deinen Vorrat und deinen Verlauf in eine Datei, an dem Ort, den du wählst. Pillsner sendet sie nie irgendwohin; wohin sie danach geht, entscheidest du."
+      points:
+        - "Gesperrt mit einer Passphrase, die du wählst und die sich nicht wiederherstellen lässt, wenn du sie vergisst"
+        - "Deine App-Sperre, Sprache und dein Design sind nicht in der Datei"
+        - "Daten importieren ersetzt nach deiner Bestätigung, was auf dem Handy ist, durch den Inhalt der Datei"
     - heading: "Eine optionale App-Sperre"
       body: "Schalte die App-Sperre ein, und Pillsner fragt nach einer PIN — und, einmal eingerichtet, nach deinem Fingerabdruck oder Gesicht —, bevor es sich öffnet. Screenshots und die Vorschau in den zuletzt geöffneten Apps werden ausgeblendet, solange sie aktiv ist."
       points:

@@ -27,10 +27,11 @@ params:
         image: "dose-confirmation.png"
         alt: "Confirmando una toma en Pillsner con La tomé, Todavía no o No la voy a tomar"
     - heading: "Tu historial"
-      body: "Una vista de historial muestra tu cumplimiento a lo largo del tiempo, para que tú o quien te ayuda podáis ver cómo fue realmente un tratamiento en lugar de cómo se suponía que iba a ir."
+      body: "Abre un medicamento y elige Historial de uso en su menú para ver cómo fue la última semana, el último mes o los últimos tres meses: la proporción de tomas que hiciste y un gráfico de lo que se tomó, se omitió o se perdió. Así tú o quien te ayuda podéis ver cómo fue realmente un tratamiento en lugar de cómo se suponía que iba a ir."
       points:
-        - "Cada toma que has respondido alguna vez, guardada en tu dispositivo"
         - "Tomadas, omitidas y perdidas mostradas como lo que son"
+        - "Un gráfico de precisión de horario muestra, de media, cuánto te alejaste de la hora prevista al tomar tus dosis: cuanto más bajo, mejor"
+        - "Un año móvil de tomas guardado en tu dispositivo; las más antiguas se eliminan automáticamente"
         - "Útil para llevar a una consulta, sin enviar nada a ningún sitio"
     - heading: "Sigue siendo tuyo"
       body: "Tu historial de tomas nunca sale de tu teléfono. No hay cuenta ni copia en la nube, y nadie más puede verlo."

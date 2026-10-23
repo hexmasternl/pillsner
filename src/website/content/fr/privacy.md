@@ -17,6 +17,14 @@ params:
     - heading: "Aucune permission internet du tout"
       body: "Pillsner ne demande pas d'accès à internet. Une application qui ne peut pas atteindre le réseau ne peut pas y fuiter vos données, quelle que soit sa conception. Elle ne demande jamais non plus votre position ni vos contacts."
       note: "Avec l'application montre installée, les prises qu'il vous reste à prendre voyagent aussi vers votre montre par la liaison directe entre les deux appareils appairés. Rien ne va vers un serveur, et aucune des deux applications ne demande d'accès à internet."
+    - heading: "L'appareil photo, seulement quand vous le demandez"
+      body: "Pillsner demande à utiliser l'appareil photo uniquement lorsque vous choisissez Scanner avec l'appareil photo en ajoutant un médicament, et vous explique d'abord pourquoi. Elle lit l'étiquette sur votre téléphone même, ne conserve ni image ni texte, et n'envoie rien nulle part. Si vous refusez, vous ne perdez rien : vous pouvez toujours choisir une photo ou saisir les informations vous-même."
+    - heading: "Une sauvegarde qui reste entre vos mains"
+      body: "Exporter les données, dans les Réglages, enregistre vos médicaments, horaires, stock et historique dans un seul fichier, à l'endroit que vous choisissez. Pillsner ne l'envoie jamais nulle part ; ce que vous en faites ensuite ne dépend que de vous."
+      points:
+        - "Verrouillé par une phrase secrète que vous choisissez, et qui ne peut pas être récupérée si vous l'oubliez"
+        - "Le verrouillage de l'application, votre langue et votre thème ne figurent pas dans le fichier"
+        - "Importer les données remplace ce qui se trouve sur le téléphone par le contenu du fichier, après votre confirmation"
     - heading: "Un verrouillage d'application facultatif"
       body: "Activez le verrouillage de l'application et Pillsner demande un code PIN — et, une fois configuré, votre empreinte digitale ou votre visage — avant de s'ouvrir. Les captures d'écran et l'aperçu dans les applications récentes sont masqués quand il est actif."
       points:

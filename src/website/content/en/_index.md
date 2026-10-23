@@ -44,7 +44,7 @@ params:
           label: "About the watch app"
   privacy:
     heading: "Privacy by default"
-    body: "All data lives on your device. There is no account, no cloud sync and no analytics. Pillsner declares no internet permission at all, and asks for only what it needs to remind you reliably. It never asks for your location, contacts or network access."
+    body: "All data lives on your device. There is no account, no cloud sync and no analytics. Pillsner declares no internet permission at all, and asks only for what it needs to remind you reliably, plus the camera if you choose to scan a label. It never asks for your location, contacts or network access."
     link_label: "How Pillsner protects your data"
   help:
     heading: "Questions, bugs and ideas"

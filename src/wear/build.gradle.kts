@@ -93,6 +93,23 @@ android {
             enableSplit = false
         }
     }
+
+    testOptions {
+        managedDevices {
+            // The emulator CI runs the full instrumented suite on, and the one to use locally for a
+            // clean full run: ./gradlew :wear:watchApi37DebugAndroidTest (ci-instrumented-tests D2).
+            // A Wear OS image, because the module declares the watch feature and the data layer
+            // tests only run where the Wearable API is present.
+            localDevices {
+                create("watchApi37") {
+                    device = "Wear OS Small Round"
+                    sdkVersion = 37
+                    systemImageSource = "android-wear-signed"
+                    testedAbi = "x86_64"
+                }
+            }
+        }
+    }
 }
 
 java {

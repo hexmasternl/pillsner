@@ -18,3 +18,12 @@
 
 - [x] 4.1 Update the `distribution/whatsnew/` row in `README.md` to "one plain-text file per app language (six)". Check `CHANGELOG.md`'s intro still holds. Verify by reading both.
 - [ ] 4.2 Confirm in Play Console that de-DE, fr-FR, es-ES and pt-PT are store-listing languages, or note in the pull request description that a maintainer must add them before the next release. Verify the PR description carries the outcome.
+
+## Verification
+
+- Release notes check and script tests: pass (`python3 -m unittest discover -s .github/scripts`, 9 tests). Before the whatsnew files were added it failed with "no whatsnew file for: de-DE, fr-FR, es-ES, pt-PT".
+- Workflows: `actionlint` passes on every file in `.github/workflows/`. The `release-notes.yml` draft step ids `draft_en` … `draft_pt` all match their `outputs.response` references.
+- CLI: `format-prompt --whatsnew-dir distribution/whatsnew` includes all six style references; `comment` with an incomplete set of `--draft` arguments is rejected.
+- Not run: Gradle unit tests, lint and assembly, UI review, instrumented tests, device scenarios, Room and wear checks (no file under `src/` changed); website (no change in the app).
+- Not run end to end: the drafting workflow itself only runs on a development → main pull request, so the six AI drafts and the posted comment are first exercised by the next release PR.
+- Manual testing still needed: confirm in Play Console that de-DE, fr-FR, es-ES and pt-PT are store-listing languages before the next release (task 4.2).

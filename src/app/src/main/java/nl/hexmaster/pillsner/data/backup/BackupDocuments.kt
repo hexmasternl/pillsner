@@ -36,20 +36,23 @@ interface BackupDocuments {
 /**
  * The rollback around a non-atomic overwrite, kept free of Android types so it can be tested.
  *
- * [readPrevious] runs first and is held in memory until the new contents are safely written. If
- * [write] then fails, a document that held something gets those contents written back. Nothing is
- * ever deleted: the picker does not say whether it created the document or handed back an existing
- * one, and an empty document could be either, so the only safe rule is that a picked document stays
- * where the user put it. The cost is an empty file left behind by a failed export, which the user
- * named and was told about.
+ * [readPrevious] runs first and is held in memory until the new contents are safely written. When
+ * it fails, nothing is written at all and its failure is thrown: a write truncates first, and
+ * contents that could not be read could not be put back. If [write] then fails, a document that
+ * held something gets those contents written back.
+ *
+ * Nothing is ever deleted: the picker does not say whether it created the document or handed back
+ * an existing one, and an empty document could be either, so the only safe rule is that a picked
+ * document stays where the user put it. The cost is an empty file left behind by a failed export,
+ * which the user named and was told about.
  *
  * The rollback is best effort and never hides the original failure, which is rethrown.
  *
- * @param readPrevious the current contents, or null when they could not be read.
+ * @param readPrevious the current contents; throws when they cannot be read.
  */
 internal suspend fun replaceKeepingPrevious(
     bytes: ByteArray,
-    readPrevious: suspend () -> ByteArray?,
+    readPrevious: suspend () -> ByteArray,
     write: suspend (ByteArray) -> Unit,
 ) {
     val previous = readPrevious()
@@ -59,7 +62,7 @@ internal suspend fun replaceKeepingPrevious(
         throw cancelled
     } catch (failure: Exception) {
         try {
-            if (previous != null && previous.isNotEmpty()) write(previous)
+            if (previous.isNotEmpty()) write(previous)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -76,7 +79,7 @@ class ContentResolverBackupDocuments(private val resolver: ContentResolver) : Ba
         val uri = Uri.parse(location)
         replaceKeepingPrevious(
             bytes = bytes,
-            readPrevious = { runCatching { readBytes(uri) }.getOrNull() },
+            readPrevious = { readBytes(uri) },
             write = { contents -> writeBytes(uri, contents) },
         )
     }

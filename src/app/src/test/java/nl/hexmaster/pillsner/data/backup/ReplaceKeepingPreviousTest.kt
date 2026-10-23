@@ -18,6 +18,7 @@ class ReplaceKeepingPreviousTest {
     private val newBackup = byteArrayOf(9, 9, 9)
     private val oldBackup = byteArrayOf(1, 2, 3)
     private val failure = IOException("disk full")
+    private val unreadable = IOException("permission denied")
 
     /** A document as the platform behaves: a write truncates first, then may fail. */
     private inner class Document(var contents: ByteArray, private var failingWrites: Int = 0) {
@@ -25,7 +26,7 @@ class ReplaceKeepingPreviousTest {
 
         suspend fun replace(readable: Boolean = true) = replaceKeepingPrevious(
             bytes = newBackup,
-            readPrevious = { if (readable) contents else null },
+            readPrevious = { if (readable) contents else throw unreadable },
             write = { bytes ->
                 writes += bytes
                 contents = ByteArray(0)
@@ -69,12 +70,15 @@ class ReplaceKeepingPreviousTest {
     }
 
     @Test
-    fun `a document whose contents could not be read gets nothing written back`() {
-        val document = Document(oldBackup, failingWrites = 1)
+    fun `a document whose contents cannot be read is not written to at all`() {
+        // A write would truncate it, and what was there could never be put back.
+        val document = Document(oldBackup)
 
-        assertThrows(IOException::class.java) { runBlocking { document.replace(readable = false) } }
+        val thrown = assertThrows(IOException::class.java) { runBlocking { document.replace(readable = false) } }
 
-        assertEquals("Nothing is written back that was never read", 1, document.writes.size)
+        assertSame("The read failure is what the caller hears", unreadable, thrown)
+        assertEquals("Not one write was attempted", 0, document.writes.size)
+        assertArrayEquals("The document is exactly as it was", oldBackup, document.contents)
     }
 
     @Test

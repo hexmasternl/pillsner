@@ -3,6 +3,7 @@
 ## Why
 
 **GitHub Issue:** #107 (https://github.com/hexmasternl/pillsner/issues/107)
+**Pull Request:** #108 (https://github.com/hexmasternl/pillsner/pull/108)
 
 Google Play rejected the Wear OS app under the Wear app quality guideline on watch shapes (#107): text is cut off by the edge of a round screen. On a small round watch the empty state ("No medicines scheduled for today or tomorrow") and the footer ("Open Pillsner on your phone to sync") run into the bezel, at the default font size and more so at the largest. That is exactly the screen a reviewer sees, because a review device has no paired phone. The `wearable-app` spec already says no text may be cut off on a round screen; the app does not meet it, and nothing tests it.
 

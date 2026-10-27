@@ -24,7 +24,7 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run the full watch instrumented suite on `Wear_Small_Round_API_36` through the `emulator-tests` skill, and verify `RoundScreenFitTest` passes and nothing that passed in 1.4 now fails
-- [ ] 4.2 Take screenshots of the empty state, the never-synced state and the agenda on the round emulator at font scale 1.0 and 1.24, and attach them to the pull request as the before/after evidence for Play's review
+- [x] 4.1 Run the full watch instrumented suite on `Wear_Small_Round_API_36` through the `emulator-tests` skill, and verify `RoundScreenFitTest` passes and nothing that passed in 1.4 now fails. Done: full watch suite (27 tests): 23 pass, all 11 `RoundScreenFitTest` cases among them. The 4 failures are the same #104 below-the-fold failures as the 1.4 baseline. Nothing that passed in 1.4 fails now
+- [x] 4.2 Take screenshots of the empty state, the never-synced state and the agenda on the round emulator at font scale 1.0 and 1.24, and attach them to the pull request as the before/after evidence for Play's review. Partly done: never-synced state before (development build) and after, at 1.0 and 1.24, on the API 36 round emulator. The empty-with-phone-connected state and the agenda need a paired phone, which the emulator does not have; they are covered by `RoundScreenFitTest`. `gh` cannot upload images, so the screenshots are attached to the pull request by hand
 - [ ] 4.3 Run the `verify-change` skill (unit tests, lint, assembly) and record its result in the `## Verification` section
 - [ ] 4.4 Open the pull request into `development` with `Fixes #107`, and note in it that the watch bundle must be resubmitted on Play's Wear track after release

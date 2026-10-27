@@ -9,7 +9,7 @@
 ### Requirement: Wear OS companion app
 Pillsner SHALL ship a Wear OS application with the same application id and signing as the phone app, declared as a companion that requires the phone app. It SHALL consist of the agenda screen and the read-only dose details screen reached from it, and MUST NOT offer any action that creates, changes, confirms, snoozes or skips medicines or doses.
 
-#### Scenario: Watch app opens to the agenda
+#### Scenario: Watch app opens to the list
 - **WHEN** the user opens Pillsner on the watch
 - **THEN** the agenda of today and tomorrow is shown
 
@@ -39,7 +39,7 @@ Each list entry SHALL show the medicine name and the dose amount as formatted by
 ### Requirement: Empty state
 When no pending dose falls on today or tomorrow, the screen SHALL show the text "No medicines scheduled for today or tomorrow" from a string resource instead of the list.
 
-#### Scenario: Nothing on either day
+#### Scenario: Nothing in the window
 - **WHEN** the next pending dose is the day after tomorrow
 - **THEN** the screen shows "No medicines scheduled for today or tomorrow" and no entries
 

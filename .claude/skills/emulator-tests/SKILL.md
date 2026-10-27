@@ -69,9 +69,10 @@ Then set `hw.lcd.circular=true` in `<avd home>/Wear_Small_Round_API_36.avd/confi
 `adb shell wm size` says `384x384`, and `adb shell dumpsys window | grep RoundedCorner` shows a
 radius of 192.
 
-Known failures on this AVD (#104): tests that assert `assertIsDisplayed()` on content below the fold
-of the small round screen. Report them verbatim like any other failure; don't count them as caused
-by the change unless they started failing on its branch.
+On this small screen most of a watch list starts below the fold, so watch UI tests scroll the column
+to an item (`performScrollToNode`) before `assertIsDisplayed()`, and count items through the
+column's `CollectionInfo` (`itemCount()` in `ColumnAssertions.kt`), not by counting composed nodes
+(#104).
 
 Only one connected test run at a time per emulator. Two worktrees running
 `connected*AndroidTest` against the same device uninstall each other's APKs mid-run.

@@ -38,6 +38,7 @@ object DoseDetailsTestTags {
     const val SCHEDULE = "wear_details_schedule"
     const val STOCK = "wear_details_stock"
     const val UNAVAILABLE = "wear_details_unavailable"
+    const val LIST = "wear_details_list"
 }
 
 /**
@@ -60,6 +61,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                     state = columnState,
                     contentPadding = contentPadding,
                     verticalArrangement = Arrangement.spacedBy(WearDimens.betweenCards),
+                    modifier = Modifier.testTag(DoseDetailsTestTags.LIST),
                 ) {
                     item {
                         ListHeader(

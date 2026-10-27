@@ -1,13 +1,16 @@
 package nl.hexmaster.pillsner.wear.ui
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.Instant
 import java.util.Locale
@@ -60,6 +63,17 @@ class UpcomingDosesScreenTest {
         composeRule.setContent { PillsnerWearTheme { UpcomingDosesScreen(uiState, onDoseClick) } }
     }
 
+    private fun list() = composeRule.onNodeWithTag(UpcomingDosesTestTags.LIST)
+
+    /**
+     * Scrolls the agenda to [matcher] first: on a small round watch later entries start below the
+     * fold, and "shown" means the user can scroll to them and read them (#104).
+     */
+    private fun assertShown(matcher: SemanticsMatcher) {
+        list().performScrollToNode(matcher)
+        composeRule.onNode(matcher).assertIsDisplayed()
+    }
+
     @Test
     fun theAgendaShowsTodayAndTomorrow() {
         setScreen(
@@ -73,11 +87,13 @@ class UpcomingDosesScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("Today").assertIsDisplayed()
-        composeRule.onNodeWithText("Tomorrow").assertIsDisplayed()
-        composeRule.onNodeWithText("Ibuprofen").assertIsDisplayed()
-        composeRule.onNodeWithText("Metformin").assertIsDisplayed()
-        composeRule.onAllNodesWithTag(UpcomingDosesTestTags.DAY_HEADER).assertCountEquals(2)
+        assertShown(hasText("Today"))
+        assertShown(hasText("Ibuprofen"))
+        assertShown(hasText("Metformin"))
+        assertShown(hasText("Tomorrow"))
+        assertShown(hasText("Simvastatin"))
+        // Today, two times with one dose each; Tomorrow, one time with one dose: two day headings.
+        assertEquals(8, list().itemCount())
     }
 
     @Test
@@ -94,7 +110,10 @@ class UpcomingDosesScreenTest {
             ),
         )
 
-        composeRule.onAllNodesWithTag(UpcomingDosesTestTags.TIME_HEADER).assertCountEquals(2)
+        // Today, then one time heading over the two doses at that time, then one over the third:
+        // six items. A heading per dose would make seven.
+        assertEquals(6, list().itemCount())
+        assertShown(hasText("Simvastatin"))
     }
 
     @Test

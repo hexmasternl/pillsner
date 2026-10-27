@@ -1,15 +1,19 @@
 package nl.hexmaster.pillsner.wear.ui
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.time.Instant
 import java.util.Locale
 import nl.hexmaster.pillsner.wear.ui.theme.PillsnerWearTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,46 +41,57 @@ class DoseDetailsScreenTest {
         composeRule.setContent { PillsnerWearTheme { DoseDetailsScreen(entry, locale) } }
     }
 
+    /**
+     * Scrolls the details to [matcher] first: on a small round watch the lower lines start below the
+     * fold, and "shown" means the user can scroll to them and read them (#104).
+     */
+    private fun assertShown(matcher: SemanticsMatcher) {
+        composeRule.onNodeWithTag(DoseDetailsTestTags.LIST).performScrollToNode(matcher)
+        composeRule.onNode(matcher).assertIsDisplayed()
+    }
+
     @Test
     fun theMedicineBehindTheDoseIsShown() {
         setScreen(entry)
 
-        composeRule.onNodeWithTag(DoseDetailsTestTags.TITLE).assertIsDisplayed()
-        composeRule.onNodeWithText("Ibuprofen").assertIsDisplayed()
-        composeRule.onNodeWithText("400 mg").assertIsDisplayed()
-        composeRule.onNodeWithText("600 mg").assertIsDisplayed()
-        composeRule.onNodeWithText("400 mg twice a day").assertIsDisplayed()
-        composeRule.onNodeWithText("24 tablets").assertIsDisplayed()
+        assertShown(hasTestTag(DoseDetailsTestTags.TITLE))
+        assertShown(hasText("Ibuprofen"))
+        assertShown(hasText("400 mg"))
+        assertShown(hasText("600 mg"))
+        assertShown(hasText("400 mg twice a day"))
+        assertShown(hasText("24 tablets"))
     }
 
     @Test
     fun aMedicineWithoutStockHasNoStockLine() {
         setScreen(entry.copy(stockText = null))
 
+        assertShown(hasTestTag(DoseDetailsTestTags.SCHEDULE))
+        // Title, this dose, due, default dose, schedule: five lines, no sixth for stock.
+        assertEquals(5, composeRule.onNodeWithTag(DoseDetailsTestTags.LIST).itemCount())
         composeRule.onAllNodesWithTag(DoseDetailsTestTags.STOCK).assertCountEquals(0)
-        composeRule.onNodeWithTag(DoseDetailsTestTags.SCHEDULE).assertIsDisplayed()
     }
 
     @Test
     fun aDoseWithoutDetailsSaysSoRatherThanShowingNothing() {
         setScreen(entry.copy(defaultDoseText = null, scheduleLines = emptyList(), stockText = null))
 
-        composeRule.onNodeWithTag(DoseDetailsTestTags.UNAVAILABLE).assertIsDisplayed()
-        composeRule.onNodeWithTag(DoseDetailsTestTags.AMOUNT).assertIsDisplayed()
+        assertShown(hasTestTag(DoseDetailsTestTags.UNAVAILABLE))
+        assertShown(hasTestTag(DoseDetailsTestTags.AMOUNT))
     }
 
     @Test
     fun aDoseTomorrowSaysWhichDayItIsOn() {
         setScreen(entry.copy(isTomorrow = true))
 
-        composeRule.onNodeWithText("Tomorrow", substring = true).assertIsDisplayed()
+        assertShown(hasText("Tomorrow", substring = true))
     }
 
     @Test
     fun theDetailsAreReadInThePhoneAppsLanguage() {
         setScreen(entry, Locale.forLanguageTag("nl-NL"))
 
-        composeRule.onNodeWithText("Standaarddosis").assertIsDisplayed()
-        composeRule.onNodeWithText("Op voorraad").assertIsDisplayed()
+        assertShown(hasText("Standaarddosis"))
+        assertShown(hasText("Op voorraad"))
     }
 }

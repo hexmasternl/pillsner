@@ -7,7 +7,7 @@ metadata:
   version: "1.0"
 ---
 
-The instrumented suite (about 430 tests in `app`, 16 in `wear`) is the slow part of finishing a
+The instrumented suite (about 430 tests in `app`, 19 in `wear`) is the slow part of finishing a
 change. Most of a change's risk sits in a handful of packages, so most of the suite doesn't need
 to run for it. This skill runs the part that does, and says plainly what it skipped.
 
@@ -28,10 +28,13 @@ Booting is often the most expensive step, so never boot one that is already runn
 3. Otherwise boot one headless, with the `run_in_background` option so it keeps running after this
    step:
    `<sdk>/emulator/emulator -avd <avd> -no-window -no-audio -no-boot-anim`
-   where `<avd>` comes from `<sdk>/emulator/emulator -list-avds` (on this machine: `Pixel_10`).
+   where `<avd>` comes from `<sdk>/emulator/emulator -list-avds`: the phone AVD for `app`
+   (on this machine: `Pixel_10_Pro`) and `Wear_Small_Round_API_36` for `wear` (see "The watch
+   emulator" below). Both can run at once; pick the device per module with `ANDROID_SERIAL`.
    Leave the default quick-boot snapshot on — it turns a cold boot into a resume. Then wait for it:
    `adb wait-for-device shell 'while [ -z "$(getprop sys.boot_completed)" ]; do sleep 1; done'`.
-   Never create or delete an AVD unasked; if there is none, stop and tell the user.
+   Never create or delete an AVD unasked, except `Wear_Small_Round_API_36` as described below; if
+   there is no phone AVD, stop and tell the user.
 4. Turn animations off (cheap, and it removes a common source of slow and flaky Compose tests):
 
    ```bash
@@ -42,6 +45,33 @@ Booting is often the most expensive step, so never boot one that is already runn
 
 5. Leave the emulator running when done. The next task in this change, or the next change, reuses
    it. Shut it down only when the user asks.
+
+### The watch emulator
+
+`wear` tests run on `Wear_Small_Round_API_36`: a `wearos_small_round` AVD (384×384, round) on
+`system-images;android-36;android-wear-signed;x86_64` (Wear OS 6). Not the phone emulator, because
+`RoundScreenFitTest` only means something on a round screen and skips itself elsewhere. Not a Wear
+OS API 37 image either: there, every Compose UI test crashes inside Espresso 3.7.0
+(`NoSuchMethodException: android.hardware.input.InputManager.getInstance`), and no stable
+androidx.test release fixes it yet. Move to API 37 once one does.
+
+If the AVD is missing, create it (this is the one AVD the skill may create unasked). Windows needs
+`cmd /c` and the full path, because the `.bat` wrappers split a package path at `;`:
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+cmd /c 'echo y| D:\Android\SDK\cmdline-tools\latest\bin\sdkmanager.bat --sdk_root=D:\Android\SDK "system-images;android-36;android-wear-signed;x86_64"'
+cmd /c 'echo no| D:\Android\SDK\cmdline-tools\latest\bin\avdmanager.bat create avd -n Wear_Small_Round_API_36 -k "system-images;android-36;android-wear-signed;x86_64" -d wearos_small_round'
+```
+
+Then set `hw.lcd.circular=true` in `<avd home>/Wear_Small_Round_API_36.avd/config.ini`;
+`avdmanager` writes `false`, which makes the screen square. Check it after boot:
+`adb shell wm size` says `384x384`, and `adb shell dumpsys window | grep RoundedCorner` shows a
+radius of 192.
+
+Known failures on this AVD (#104): tests that assert `assertIsDisplayed()` on content below the fold
+of the small round screen. Report them verbatim like any other failure; don't count them as caused
+by the change unless they started failing on its branch.
 
 Only one connected test run at a time per emulator. Two worktrees running
 `connected*AndroidTest` against the same device uninstall each other's APKs mid-run.
@@ -100,9 +130,9 @@ Pass the classes as a comma-separated list of fully-qualified names:
   "-Pandroid.testInstrumentationRunnerArguments.class=nl.hexmaster.pillsner.data.db.DoseDaoTest,nl.hexmaster.pillsner.ui.dose.DoseDetailScreenTest"
 ```
 
-- `wear` the same way with `:wear:connectedDebugAndroidTest`. If its APK won't install on the
-  phone emulator (a watch-only feature requirement), report the wear tests as **not run** — don't
-  create a Wear AVD unasked.
+- `wear` the same way with `:wear:connectedDebugAndroidTest`, with `ANDROID_SERIAL` set to the
+  watch emulator. If `Wear_Small_Round_API_36` can't be created or booted, report the wear tests as
+  **not run**, and never run them on the phone emulator instead.
 - Re-running one failing test while fixing it: `class=<fqcn>#<method>`. Re-run the full selection
   once the fix is in, not just the one test.
 - Run Gradle with `run_in_background` for anything but a handful of classes and wait for the

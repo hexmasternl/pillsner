@@ -1,19 +1,24 @@
 package nl.hexmaster.pillsner.wear.ui
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.FontScale
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import java.time.Instant
 import java.util.Locale
 import kotlin.math.hypot
+import nl.hexmaster.pillsner.wear.domain.AgendaDay
 import nl.hexmaster.pillsner.wear.ui.theme.PillsnerWearTheme
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
@@ -28,8 +33,12 @@ import org.junit.runner.RunWith
  *
  * Every line of text that is on screen must lie inside the circle of the display. The check uses the
  * laid-out lines, not the node bounds, because centred text in a full-width box only reaches the
- * edge when its own line does. Only screens whose content fits without scrolling are checked: a
- * list item half under the bottom edge is content being scrolled, not content cut off.
+ * edge when its own line does. Lines are mapped to the screen through each node's drawn bounds, so
+ * the scroll transformation's scaling at the edges of a list is accounted for.
+ *
+ * What is checked: the empty and footer states, which fit without scrolling, whole; and a list
+ * scrolled to the top, in its upper half only. A line in the lower half of a list is content still
+ * to be scrolled to, not content cut off.
  */
 @RunWith(AndroidJUnit4::class)
 class RoundScreenFitTest {
@@ -43,49 +52,117 @@ class RoundScreenFitTest {
         assumeTrue("Round-screen check needs a round watch", configuration.isScreenRound)
     }
 
-    private fun setScreen(phoneConnected: Boolean, hasData: Boolean) {
+    private val morning = Instant.parse("2026-09-13T08:00:00Z")
+
+    private fun entry(id: Long, name: String, minutes: Long) = WatchDoseEntry(
+        doseId = id,
+        name = name,
+        amountText = "2 tablets",
+        scheduledAt = morning.plusSeconds(minutes * 60),
+        isOverdue = false,
+        isTomorrow = false,
+        defaultDoseText = "2 tablets",
+        scheduleLines = listOf("2 tablets twice a day"),
+        stockText = "30 tablets",
+    )
+
+    private val agenda = listOf(
+        WatchDaySection(
+            day = AgendaDay.TODAY,
+            groups = listOf(
+                WatchTimeGroup(morning, listOf(entry(1, "Examplamol", 0), entry(2, "Testafen", 0))),
+                WatchTimeGroup(morning.plusSeconds(4 * 3600), listOf(entry(3, "Placebotin", 240))),
+            ),
+        ),
+    )
+
+    private fun setContent(fontScale: Float, content: @Composable () -> Unit) {
         composeRule.setContent {
-            PillsnerWearTheme {
-                UpcomingDosesScreen(
-                    WatchUiState(
-                        sections = emptyList(),
-                        phoneConnected = phoneConnected,
-                        hasData = hasData,
-                        locale = Locale.ENGLISH,
-                    ),
-                )
+            DeviceConfigurationOverride(DeviceConfigurationOverride.FontScale(fontScale)) {
+                PillsnerWearTheme { content() }
             }
         }
     }
 
+    private fun setAgenda(
+        fontScale: Float,
+        sections: List<WatchDaySection> = emptyList(),
+        phoneConnected: Boolean = true,
+        hasData: Boolean = true,
+    ) = setContent(fontScale) {
+        UpcomingDosesScreen(WatchUiState(sections, phoneConnected, hasData, Locale.ENGLISH))
+    }
+
     @Test
     fun theEmptyStateFitsTheRoundScreen() {
-        setScreen(phoneConnected = true, hasData = true)
+        setAgenda(DEFAULT_FONT)
+        assertLinesInsideTheCircle()
+    }
 
-        assertEveryLineInsideTheCircle()
+    @Test
+    fun theEmptyStateFitsTheRoundScreenAtTheLargestFont() {
+        setAgenda(LARGEST_FONT)
+        assertLinesInsideTheCircle()
     }
 
     @Test
     fun aWatchThatHasNeverSyncedFitsTheRoundScreen() {
-        setScreen(phoneConnected = false, hasData = false)
+        setAgenda(DEFAULT_FONT, phoneConnected = false, hasData = false)
+        assertLinesInsideTheCircle()
+    }
 
-        assertEveryLineInsideTheCircle()
+    @Test
+    fun aWatchThatHasNeverSyncedFitsTheRoundScreenAtTheLargestFont() {
+        setAgenda(LARGEST_FONT, phoneConnected = false, hasData = false)
+        assertLinesInsideTheCircle()
     }
 
     @Test
     fun aPhoneOutOfReachFitsTheRoundScreen() {
-        setScreen(phoneConnected = false, hasData = true)
-
-        assertEveryLineInsideTheCircle()
+        setAgenda(DEFAULT_FONT, phoneConnected = false, hasData = true)
+        assertLinesInsideTheCircle()
     }
 
-    private fun assertEveryLineInsideTheCircle() {
+    @Test
+    fun aPhoneOutOfReachFitsTheRoundScreenAtTheLargestFont() {
+        setAgenda(LARGEST_FONT, phoneConnected = false, hasData = true)
+        assertLinesInsideTheCircle()
+    }
+
+    @Test
+    fun theTopOfTheAgendaClearsTheBezel() {
+        setAgenda(DEFAULT_FONT, sections = agenda)
+        assertLinesInsideTheCircle(upperHalfOnly = true)
+    }
+
+    @Test
+    fun theTopOfTheAgendaClearsTheBezelAtTheLargestFont() {
+        setAgenda(LARGEST_FONT, sections = agenda)
+        assertLinesInsideTheCircle(upperHalfOnly = true)
+    }
+
+    @Test
+    fun theTopOfTheDetailsClearsTheBezel() {
+        setContent(DEFAULT_FONT) { DoseDetailsScreen(entry(1, "Examplamol", 0), Locale.ENGLISH) }
+        assertLinesInsideTheCircle(upperHalfOnly = true)
+    }
+
+    @Test
+    fun theTopOfTheDetailsClearsTheBezelAtTheLargestFont() {
+        setContent(LARGEST_FONT) { DoseDetailsScreen(entry(1, "Examplamol", 0), Locale.ENGLISH) }
+        assertLinesInsideTheCircle(upperHalfOnly = true)
+    }
+
+    private fun assertLinesInsideTheCircle(upperHalfOnly: Boolean = false) {
+        composeRule.waitForIdle()
         val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
         val center = screen.center
         val radius = minOf(screen.width, screen.height) / 2f
 
         val outside = textNodes().flatMap { node ->
-            node.lineBoxes().filter { line -> !line.isInsideCircle(center, radius) }
+            node.lineBoxes()
+                .filter { line -> !upperHalfOnly || line.bottom <= center.y }
+                .filter { line -> !line.isInsideCircle(center, radius) }
                 .map { line -> "\"${node.text()}\" line at $line" }
         }
 
@@ -105,18 +182,24 @@ class RoundScreenFitTest {
             ?.joinToString { it.text }
             .orEmpty()
 
-    /** Each laid-out line of this text node, as a rectangle in root coordinates. */
+    /**
+     * Each laid-out line of this text node, as a rectangle in root coordinates. The node's drawn
+     * bounds give the offset and the scale its layers apply, so a line is placed where it is seen.
+     */
     private fun SemanticsNode.lineBoxes(): List<Rect> {
         val results = mutableListOf<TextLayoutResult>()
         config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
         val layout = results.firstOrNull() ?: return emptyList()
-        val origin = positionInRoot
+        val drawn = boundsInRoot
+        if (drawn.isEmpty || size.width == 0 || size.height == 0) return emptyList()
+        val scaleX = drawn.width / size.width
+        val scaleY = drawn.height / size.height
         return (0 until layout.lineCount).map { line ->
             Rect(
-                left = origin.x + layout.getLineLeft(line),
-                top = origin.y + layout.getLineTop(line),
-                right = origin.x + layout.getLineRight(line),
-                bottom = origin.y + layout.getLineBottom(line),
+                left = drawn.left + layout.getLineLeft(line) * scaleX,
+                top = drawn.top + layout.getLineTop(line) * scaleY,
+                right = drawn.left + layout.getLineRight(line) * scaleX,
+                bottom = drawn.top + layout.getLineBottom(line) * scaleY,
             )
         }
     }
@@ -125,4 +208,11 @@ class RoundScreenFitTest {
         listOf(topLeft, topRight, bottomLeft, bottomRight).all { corner ->
             hypot(corner.x - center.x, corner.y - center.y) <= radius
         }
+
+    private companion object {
+        const val DEFAULT_FONT = 1.0f
+
+        /** The largest of Wear OS's font sizes. */
+        const val LARGEST_FONT = 1.24f
+    }
 }

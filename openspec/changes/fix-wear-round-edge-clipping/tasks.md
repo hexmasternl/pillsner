@@ -11,8 +11,8 @@
 
 ## 2. The failing test
 
-- [ ] 2.1 In the `feature/fix-wear-round-edge-clipping` worktree, extend `RoundScreenFitTest` (D4) with font scale 1.24 for the three empty and footer states, and with "scrolled to the top" cases for the agenda (first heading) and the details screen (title), using made-up medicine names
-- [ ] 2.2 Run `RoundScreenFitTest` on `Wear_Small_Round_API_36` against the unchanged screen code, and verify it fails with the assertion message "Text crosses the edge of the round screen", not a crash; paste the failing lines into this task's commit message
+- [x] 2.1 In the `feature/fix-wear-round-edge-clipping` worktree, extend `RoundScreenFitTest` (D4) with font scale 1.24 for the three empty and footer states, and with "scrolled to the top" cases for the agenda (first heading) and the details screen (title), using made-up medicine names. Done: 10 cases; lines are mapped through each node's drawn bounds so the scroll transformation's scaling counts
+- [x] 2.2 Run `RoundScreenFitTest` on `Wear_Small_Round_API_36` against the unchanged screen code, and verify it fails with the assertion message "Text crosses the edge of the round screen", not a crash; paste the failing lines into this task's commit message. Done: 6 of 10 fail with that message, all on the empty-state text (default font: its second line at x 40–344, y 73–105 px; 1.24: its first line at x 74–310, y 40–82). The 4 "top of the agenda / details" cases already pass on unchanged code
 
 ## 3. The fix
 

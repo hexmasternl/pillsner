@@ -16,11 +16,11 @@
 
 ## 3. The fix
 
-- [ ] 3.1 Add `textInsetFraction` to `WearDimens` and a helper that turns it into dp from the screen width (D2), and verify `:wear:testDebugUnitTest` still passes, including `EdgeToEdgeContractTest`
-- [ ] 3.2 Centre the empty state vertically and give it and the footer the round-screen inset (D1, D2), and verify the empty and footer cases of `RoundScreenFitTest` pass at both font scales
-- [ ] 3.3 Give the time headings and the detail rows the round-screen inset, and the first item of each screen `ListHeaderDefaults.minimumTopListContentPadding` (D2, D3), and verify the "scrolled to the top" cases pass
-- [ ] 3.4 Tune `textInsetFraction` only as far as the test needs, and verify the German and Portuguese empty and footer strings fit by previewing them on `WearDevices.SMALL_ROUND`
-- [ ] 3.5 Add `WearDevices.LARGE_ROUND` and `SMALL_ROUND` previews for the empty and footer states, and run the `pillsner-ui-review` skill on the watch screens with no violations left
+- [x] 3.1 Add `textInsetFraction` to `WearDimens` and a helper that turns it into dp from the screen width (D2), and verify `:wear:testDebugUnitTest` still passes, including `EdgeToEdgeContractTest`. Done: `WearDimens.textInsetFraction` (0.12) and `roundTextInset()`; `:wear:testDebugUnitTest` passes
+- [x] 3.2 Centre the empty state vertically and give it and the footer the round-screen inset (D1, D2), and verify the empty and footer cases of `RoundScreenFitTest` pass at both font scales. Done: centring alone left one case failing (1.24 with the footer overflows, so the text starts at the top); fixed by D3 as corrected
+- [x] 3.3 ~~Give the time headings and the detail rows the round-screen inset, and the first heading `ListHeaderDefaults.minimumTopListContentPadding`~~ Not needed: the "scrolled to the top" cases passed on unchanged code (design D2 and D3 corrected). Instead the empty-state item gets `minimumVerticalContentPadding(ListHeaderDefaults.minimumTopListContentPadding)`, and all 10 cases pass
+- [x] 3.4 Tune `textInsetFraction` only as far as the test needs, and verify the German and Portuguese empty and footer strings fit by previewing them on `WearDevices.SMALL_ROUND`. Done by test rather than by eye: `everyLanguageFitsTheRoundScreenAtTheLargestFont` runs the never-synced state in all six locales at 1.24, upper half at rest and lower half scrolled to the end. Dutch overflows ("synchroniseren"); the spec scenario "Round screen at the largest font" is reworded for text that is taller than the screen. 11 of 11 pass with `textInsetFraction` unchanged at 0.12
+- [x] 3.5 Add `WearDevices.LARGE_ROUND` and `SMALL_ROUND` previews for the empty and footer states, and run the `pillsner-ui-review` skill on the watch screens with no violations left. Done: SMALL_ROUND and LARGE_ROUND previews for the empty and never-synced states, and font-scale 1.24 previews for both screens (the 6.3 finding). The sweep is clean, and `:wear:lintDebug` and `:wear:assembleDebug` pass
 
 ## 4. Verification
 

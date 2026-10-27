@@ -1,6 +1,9 @@
 package nl.hexmaster.pillsner.wear.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.semantics.SemanticsActions
@@ -11,6 +14,8 @@ import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -129,31 +134,50 @@ class RoundScreenFitTest {
         assertLinesInsideTheCircle()
     }
 
+    /** The tallest empty state, in every language the watch ships, longest words included. */
+    @Test
+    fun everyLanguageFitsTheRoundScreenAtTheLargestFont() {
+        var locale by mutableStateOf(Locale.ENGLISH)
+        setContent(LARGEST_FONT) {
+            UpcomingDosesScreen(WatchUiState(emptyList(), phoneConnected = false, hasData = false, locale = locale))
+        }
+
+        listOf("en", "nl", "de", "fr", "es", "pt").forEach { tag ->
+            locale = Locale.forLanguageTag(tag)
+            val list = composeRule.onNodeWithTag(UpcomingDosesTestTags.LIST)
+            list.performScrollToIndex(0)
+            assertLinesInsideTheCircle(Region.UPPER_HALF, label = "$tag at the top")
+            // Longer languages overflow at this size; their last lines are read scrolled to the end.
+            list.performScrollToIndex(1)
+            assertLinesInsideTheCircle(Region.LOWER_HALF, label = "$tag at the end")
+        }
+    }
+
     @Test
     fun theTopOfTheAgendaClearsTheBezel() {
         setAgenda(DEFAULT_FONT, sections = agenda)
-        assertLinesInsideTheCircle(upperHalfOnly = true)
+        assertLinesInsideTheCircle(Region.UPPER_HALF)
     }
 
     @Test
     fun theTopOfTheAgendaClearsTheBezelAtTheLargestFont() {
         setAgenda(LARGEST_FONT, sections = agenda)
-        assertLinesInsideTheCircle(upperHalfOnly = true)
+        assertLinesInsideTheCircle(Region.UPPER_HALF)
     }
 
     @Test
     fun theTopOfTheDetailsClearsTheBezel() {
         setContent(DEFAULT_FONT) { DoseDetailsScreen(entry(1, "Examplamol", 0), Locale.ENGLISH) }
-        assertLinesInsideTheCircle(upperHalfOnly = true)
+        assertLinesInsideTheCircle(Region.UPPER_HALF)
     }
 
     @Test
     fun theTopOfTheDetailsClearsTheBezelAtTheLargestFont() {
         setContent(LARGEST_FONT) { DoseDetailsScreen(entry(1, "Examplamol", 0), Locale.ENGLISH) }
-        assertLinesInsideTheCircle(upperHalfOnly = true)
+        assertLinesInsideTheCircle(Region.UPPER_HALF)
     }
 
-    private fun assertLinesInsideTheCircle(upperHalfOnly: Boolean = false) {
+    private fun assertLinesInsideTheCircle(region: Region = Region.WHOLE, label: String = "") {
         composeRule.waitForIdle()
         val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
         val center = screen.center
@@ -161,13 +185,13 @@ class RoundScreenFitTest {
 
         val outside = textNodes().flatMap { node ->
             node.lineBoxes()
-                .filter { line -> !upperHalfOnly || line.bottom <= center.y }
+                .filter { line -> region.contains(line, center.y) }
                 .filter { line -> !line.isInsideCircle(center, radius) }
                 .map { line -> "\"${node.text()}\" line at $line" }
         }
 
         assertTrue(
-            "Text crosses the edge of the round screen (radius $radius around $center):\n" +
+            "Text crosses the edge of the round screen $label (radius $radius around $center):\n" +
                 outside.joinToString("\n"),
             outside.isEmpty(),
         )
@@ -208,6 +232,19 @@ class RoundScreenFitTest {
         listOf(topLeft, topRight, bottomLeft, bottomRight).all { corner ->
             hypot(corner.x - center.x, corner.y - center.y) <= radius
         }
+
+    /** Which lines a check covers: all of them, or those wholly above or below the middle. */
+    private enum class Region {
+        WHOLE,
+        UPPER_HALF,
+        LOWER_HALF;
+
+        fun contains(line: Rect, middle: Float): Boolean = when (this) {
+            WHOLE -> true
+            UPPER_HALF -> line.bottom <= middle
+            LOWER_HALF -> line.top >= middle
+        }
+    }
 
     private companion object {
         const val DEFAULT_FONT = 1.0f

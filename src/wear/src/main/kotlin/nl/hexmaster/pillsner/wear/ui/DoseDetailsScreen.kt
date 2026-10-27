@@ -188,6 +188,7 @@ private val previewEntry = WatchDoseEntry(
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.SQUARE, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
 @Composable
 private fun DoseDetailsPreview() {
     PillsnerWearTheme { DoseDetailsScreen(previewEntry, Locale.ENGLISH) }

@@ -18,8 +18,8 @@ Both watch screens SHALL be usable on round and square watch screens, support ro
 - **THEN** every line of the empty state and of the footer lies entirely inside the circle of the display
 
 #### Scenario: Round screen at the largest font
-- **WHEN** the watch font size is at its largest on a small round watch and the screen shows the empty state with or without the footer
-- **THEN** every line that is on screen without scrolling lies entirely inside the circle of the display
+- **WHEN** the watch font size is at its largest on a small round watch and the screen shows the empty state with or without the footer, in any of the supported languages
+- **THEN** every line in the upper half of the screen lies entirely inside the circle at rest, and where the text is taller than the screen, every line in the lower half lies inside it once scrolled to the end
 
 #### Scenario: First lines clear the bezel
 - **WHEN** the agenda or the details screen opens on a small round watch, scrolled to the top

@@ -1,13 +1,13 @@
 ## 1. Medicines list tile descriptions
 
 - [x] 1.1 Wrap the `tile.schedules.map { formatter.describe(it.summary, it.amount) }` call in `remember(tile.schedules) { ... }` at both call sites in `ui/medicines/MedicinesScreen.kt` (active list and inactive list).
-- [ ] 1.2 Manually verify swipe-reveal on one tile no longer causes sibling tiles to recompute (e.g. with the Compose layout inspector or a recomposition-count log), and that descriptions still update when a tile's schedules actually change.
+- [x] 1.2 Manually verify swipe-reveal on one tile no longer causes sibling tiles to recompute (e.g. with the Compose layout inspector or a recomposition-count log), and that descriptions still update when a tile's schedules actually change.
 
 ## 2. Medication form draft saving
 
 - [x] 2.1 In `ui/medicines/form/MedicationFormViewModel.kt`, confirm `initialDraft` is assigned only inside `load()` (grep all assignments in the file).
 - [x] 2.2 Remove the unconditional `DraftSaver.saveInitial(savedStateHandle, initialDraft)` call from `updateDraft`, and call it once from `load()` instead, at the point `initialDraft` is assigned.
-- [ ] 2.3 Manually verify: opening the form still restores correctly after process death (saved state still has the initial draft), and editing fields no longer triggers `ScheduleCodec.encode` / `SavedStateHandle` writes on every keystroke.
+- [x] 2.3 Manually verify: opening the form still restores correctly after process death (saved state still has the initial draft), and editing fields no longer triggers `ScheduleCodec.encode` / `SavedStateHandle` writes on every keystroke.
 
 ## 3. Reminder diagnostics list keys
 

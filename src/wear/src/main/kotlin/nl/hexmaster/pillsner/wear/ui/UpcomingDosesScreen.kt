@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -15,6 +16,7 @@ import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.ListHeaderDefaults
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
@@ -28,6 +30,7 @@ import nl.hexmaster.pillsner.wear.R
 import nl.hexmaster.pillsner.wear.domain.AgendaDay
 import nl.hexmaster.pillsner.wear.ui.theme.PillsnerWearTheme
 import nl.hexmaster.pillsner.wear.ui.theme.WearDimens
+import nl.hexmaster.pillsner.wear.ui.theme.roundTextInset
 
 /** Stable tags for the watch's agenda screen, for semantics tests. */
 object UpcomingDosesTestTags {
@@ -56,13 +59,20 @@ fun UpcomingDosesScreen(
         val columnState = rememberTransformingLazyColumnState()
         val rows = remember(uiState.sections) { uiState.sections.toRows() }
         val transformationSpec = rememberTransformationSpec()
+        val textInset = roundTextInset()
 
         AppScaffold(modifier = modifier) {
             ScreenScaffold(scrollState = columnState) { contentPadding ->
                 TransformingLazyColumn(
                     state = columnState,
                     contentPadding = contentPadding,
-                    verticalArrangement = Arrangement.spacedBy(WearDimens.betweenCards),
+                    // With nothing to list, the text sits mid-screen, where a round screen is widest,
+                    // rather than under the clock where it narrows. It still scrolls if it overflows.
+                    verticalArrangement = if (uiState.isEmpty) {
+                        Arrangement.spacedBy(WearDimens.betweenCards, Alignment.CenterVertically)
+                    } else {
+                        Arrangement.spacedBy(WearDimens.betweenCards)
+                    },
                     modifier = Modifier.testTag(UpcomingDosesTestTags.LIST),
                 ) {
                     if (uiState.isEmpty) {
@@ -73,9 +83,12 @@ fun UpcomingDosesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
+                                    // At the largest font with the footer, the text no longer fits
+                                    // mid-screen and starts at the top: give it a heading's room there.
+                                    .minimumVerticalContentPadding(ListHeaderDefaults.minimumTopListContentPadding)
                                     .itemScrollTransform(this, transformationSpec)
                                     .fillMaxWidth()
-                                    .padding(horizontal = WearDimens.screenEdge)
+                                    .padding(horizontal = textInset)
                                     .testTag(UpcomingDosesTestTags.EMPTY),
                             )
                         }
@@ -114,7 +127,7 @@ fun UpcomingDosesScreen(
                                 modifier = Modifier
                                     .itemScrollTransform(this, transformationSpec)
                                     .fillMaxWidth()
-                                    .padding(horizontal = WearDimens.screenEdge, vertical = WearDimens.screenEdge)
+                                    .padding(horizontal = textInset, vertical = WearDimens.screenEdge)
                                     .testTag(UpcomingDosesTestTags.FOOTER),
                             )
                         }
@@ -253,12 +266,15 @@ private val previewSections = listOf(
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.SQUARE, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
 @Composable
 private fun UpcomingDosesPreview() {
     PillsnerWearTheme { UpcomingDosesScreen(previewState(previewSections)) }
 }
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
 @Composable
 private fun UpcomingDosesEmptyPreview() {
     PillsnerWearTheme { UpcomingDosesScreen(previewState(emptyList())) }
@@ -273,6 +289,8 @@ private fun UpcomingDosesDisconnectedPreview() {
 }
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
+@Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 private fun UpcomingDosesNeverSyncedPreview() {
     PillsnerWearTheme {

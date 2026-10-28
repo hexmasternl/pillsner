@@ -119,6 +119,20 @@ android {
             // "not mocked" and a unit test would be asserting on the stub rather than the code.
             isReturnDefaultValues = true
         }
+        managedDevices {
+            // The emulator CI runs the full instrumented suite on, and the one to use locally for a
+            // clean full run: ./gradlew :app:phoneApi37DebugAndroidTest (ci-instrumented-tests D2).
+            // An ATD image boots faster and uses less memory; the Google variant keeps Play
+            // services, which the Wearable data layer the app publishes to depends on.
+            localDevices {
+                create("phoneApi37") {
+                    device = "Pixel 6"
+                    sdkVersion = 37
+                    systemImageSource = "google-atd"
+                    testedAbi = "x86_64"
+                }
+            }
+        }
     }
 }
 

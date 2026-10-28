@@ -7,10 +7,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -89,22 +87,19 @@ class UpcomingDosesRepositoryTest {
         publish("Ibuprofen")
 
         val payload = withTimeout(TIMEOUT_MILLIS) {
-            coroutineScope {
-                val arriving = async {
-                    repository.observe().first { it?.doses?.singleOrNull()?.medicationName == "Metformin" }
-                }
-                // Let the listener attach first, so this is the update path and not the first read.
-                delay(SETTLE_MILLIS)
-                publish("Metformin")
-                arriving.await()
-            }
+            repository.observe()
+                // The first value means the listener is attached, so this is the update path and
+                // not the first read. No fixed delay: a freshly booted watch can take longer.
+                .onEach { if (it.isOnly("Ibuprofen")) publish("Metformin") }
+                .first { it.isOnly("Metformin") }
         }
 
         assertEquals(listOf("Metformin"), payload?.doses?.map { it.medicationName })
     }
 
+    private fun SyncedDoses?.isOnly(name: String) = this?.doses?.singleOrNull()?.medicationName == name
+
     private companion object {
         const val TIMEOUT_MILLIS = 20_000L
-        const val SETTLE_MILLIS = 1_000L
     }
 }

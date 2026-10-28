@@ -40,7 +40,14 @@ class UpcomingDosesRepository(
             events.release()
         }
 
-        dataClient.addListener(listener, contractUri(), DataClient.FILTER_LITERAL)
+        // Registered before the stored item is read, and waited for: a list published between the
+        // two is then either in the read or delivered to the listener. Without the wait, Play
+        // services can still be registering (it is slow right after boot) and the update is lost.
+        try {
+            dataClient.addListener(listener, contractUri(), DataClient.FILTER_LITERAL).await()
+        } catch (error: Exception) {
+            Log.d(TAG, "No dose list updates: ${error::class.simpleName}")
+        }
         trySend(readPersisted())
 
         awaitClose { dataClient.removeListener(listener) }

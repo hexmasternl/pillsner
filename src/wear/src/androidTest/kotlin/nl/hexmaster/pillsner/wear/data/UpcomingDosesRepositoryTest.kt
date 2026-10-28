@@ -7,8 +7,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -86,20 +90,39 @@ class UpcomingDosesRepositoryTest {
     fun aNewListArrivesWhileTheScreenIsOpen() = runBlocking {
         publish("Ibuprofen")
 
-        val payload = withTimeout(TIMEOUT_MILLIS) {
-            repository.observe()
-                // The first value means the listener is attached, so this is the update path and
-                // not the first read. No fixed delay: a freshly booted watch can take longer.
-                .onEach { if (it.isOnly("Ibuprofen")) publish("Metformin") }
-                .first { it.isOnly("Metformin") }
+        val payload = withTimeout(UPDATE_TIMEOUT_MILLIS) {
+            coroutineScope {
+                var phone: Job? = null
+                val arrived = repository.observe()
+                    // The first value means the listener is attached, so this is the update path
+                    // and not the first read. No fixed delay: a freshly booted watch can take longer.
+                    .onEach { if (phone == null && it.isOnly("Ibuprofen")) phone = launch { keepPublishing("Metformin") } }
+                    .first { it.isOnly("Metformin") }
+                phone?.cancel()
+                arrived
+            }
         }
 
         assertEquals(listOf("Metformin"), payload?.doses?.map { it.medicationName })
+    }
+
+    /**
+     * Publishes the list again until the test stops it, each time with a new timestamp so it is a
+     * change. A fresh emulator's Play services still updates its own modules in the first minutes,
+     * and a change made while the Wearable service restarts is never delivered; the next one is.
+     */
+    private suspend fun keepPublishing(name: String) {
+        while (true) {
+            publish(name)
+            delay(REPUBLISH_MILLIS)
+        }
     }
 
     private fun SyncedDoses?.isOnly(name: String) = this?.doses?.singleOrNull()?.medicationName == name
 
     private companion object {
         const val TIMEOUT_MILLIS = 20_000L
+        const val UPDATE_TIMEOUT_MILLIS = 60_000L
+        const val REPUBLISH_MILLIS = 3_000L
     }
 }

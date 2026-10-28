@@ -141,13 +141,16 @@ jobs:
       # The phone and the watch bundle cannot share a release: Play rejects any artifact that
       # requires android.hardware.type.watch on a phone track. Each goes to its own track, in its
       # own edit. Paths are relative to the repository root - uses-steps ignore defaults.run.
-      # changesNotSentForReview is deliberately not set. It was true while the store listing
-      # had never been reviewed, because such an app cannot have its changes sent for review
-      # through the API. That first review has now completed, and Play rejects the parameter
-      # once it does: "Changes are sent for review automatically. The query parameter
-      # changesNotSentForReview must not be set." Releases now go for review on commit.
+      # Whether Play lets the API send changes for review depends on the app's state in the
+      # console, and it changes between releases. Normally it must not be asked for
+      # ("Changes are sent for review automatically. The query parameter changesNotSentForReview
+      # must not be set."), but while a rejected or unreviewed submission is outstanding it must
+      # ("Changes cannot be sent for review automatically. Please set the query parameter
+      # changesNotSentForReview to true."). So each bundle is committed for review first and, if
+      # that fails, committed again without sending it, to be sent from the Play Console.
       - name: Upload the phone bundle to Google Play
         id: upload_phone
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -157,8 +160,22 @@ jobs:
           status: completed
           whatsNewDirectory: distribution/whatsnew
 
+      - name: Upload the phone bundle without sending it for review
+        id: upload_phone_unreviewed
+        if: ${{ steps.upload_phone.outcome == 'failure' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: nl.hexmaster.pillsner
+          releaseFiles: src/app/build/outputs/bundle/release/app-release.aab
+          tracks: ${{ steps.version.outputs.track }}
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
+          changesNotSentForReview: true
+
       - name: Upload the watch bundle to Google Play
         id: upload_watch
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -167,6 +184,19 @@ jobs:
           tracks: ${{ steps.version.outputs.wearTrack }}
           status: completed
           whatsNewDirectory: distribution/whatsnew
+
+      - name: Upload the watch bundle without sending it for review
+        id: upload_watch_unreviewed
+        if: ${{ steps.upload_watch.outcome == 'failure' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: nl.hexmaster.pillsner
+          releaseFiles: src/wear/build/outputs/bundle/release/wear-release.aab
+          tracks: ${{ steps.version.outputs.wearTrack }}
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
+          changesNotSentForReview: true
 
       - name: Tag the commit and create the GitHub release
         # Runs whether or not Play accepted the bundles, so a build that produced signed bundles is
@@ -181,17 +211,21 @@ jobs:
           WEAR_TRACK: ${{ steps.version.outputs.wearTrack }}
           CODE: ${{ steps.version.outputs.code }}
           PHONE_OUTCOME: ${{ steps.upload_phone.outcome }}
+          PHONE_UNREVIEWED_OUTCOME: ${{ steps.upload_phone_unreviewed.outcome }}
           WATCH_OUTCOME: ${{ steps.upload_watch.outcome }}
+          WATCH_UNREVIEWED_OUTCOME: ${{ steps.upload_watch_unreviewed.outcome }}
         run: |
+          # $1 is the for-review upload, $2 the fallback that doesn't send for review, $3 the track.
           describe() {
-            case "$1" in
-              success) echo "published to the Play **$2** track" ;;
-              failure) echo "NOT published: the upload to **$2** failed" ;;
-              skipped) echo "NOT published: the upload to **$2** never ran" ;;
-              *) echo "upload to **$2** ended as '$1'" ;;
+            case "$1/$2" in
+              success/*) echo "published to the Play **$3** track" ;;
+              failure/success) echo "uploaded to the Play **$3** track but NOT sent for review: send it from the Play Console" ;;
+              failure/*) echo "NOT published: the upload to **$3** failed" ;;
+              skipped/*) echo "NOT published: the upload to **$3** never ran" ;;
+              *) echo "upload to **$3** ended as '$1'" ;;
             esac
           }
-          NOTES="Phone version code ${CODE}0 $(describe "$PHONE_OUTCOME" "$TRACK"). Watch version code ${CODE}1 $(describe "$WATCH_OUTCOME" "$WEAR_TRACK")."
+          NOTES="Phone version code ${CODE}0 $(describe "$PHONE_OUTCOME" "$PHONE_UNREVIEWED_OUTCOME" "$TRACK"). Watch version code ${CODE}1 $(describe "$WATCH_OUTCOME" "$WATCH_UNREVIEWED_OUTCOME" "$WEAR_TRACK")."
           PHONE_AAB=src/app/build/outputs/bundle/release/app-release.aab
           WATCH_AAB=src/wear/build/outputs/bundle/release/wear-release.aab
           if gh release view "v$VERSION" >/dev/null 2>&1; then

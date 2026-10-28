@@ -11,8 +11,12 @@ The instrumented suite (about 430 tests in `app`, 19 in `wear`) is the slow part
 change. Most of a change's risk sits in a handful of packages, so most of the suite doesn't need
 to run for it. This skill runs the part that does, and says plainly what it skipped.
 
-CI does not run instrumented tests, so a selective run here is not backed by a full run elsewhere
-yet. That's why the skipped count always goes into the report and the pull request summary.
+CI runs the full instrumented suite of both modules on every pull request that touches anything
+outside `src/website/` (the `instrumented-tests` job in `.github/workflows/ci.yml`, on Gradle
+Managed Devices; a website-only pull request doesn't start `ci.yml`), so a selective run here is the fast
+local check and CI is the backstop that catches what selection missed. The skipped count still
+goes into the report and the pull request summary, so a reviewer knows the full run's result is
+the one to wait for.
 
 All Gradle commands run from the `src` folder of the checkout you're working in — for a change
 being applied, that's `../pillsner-worktrees/<name>/src`, not the main checkout.
@@ -51,9 +55,11 @@ Booting is often the most expensive step, so never boot one that is already runn
 `wear` tests run on `Wear_Small_Round_API_36`: a `wearos_small_round` AVD (384×384, round) on
 `system-images;android-36;android-wear-signed;x86_64` (Wear OS 6). Not the phone emulator, because
 `RoundScreenFitTest` only means something on a round screen and skips itself elsewhere. Not a Wear
-OS API 37 image either: there, every Compose UI test crashes inside Espresso 3.7.0
-(`NoSuchMethodException: android.hardware.input.InputManager.getInstance`), and no stable
-androidx.test release fixes it yet. Move to API 37 once one does.
+OS API 37 image locally: it's the one CI uses (`watchApi37`, see "A clean full run locally"), and the
+API 36 AVD keeps a second Wear OS version covered. If every Compose UI test crashes with
+`NoSuchMethodException: android.hardware.input.InputManager.getInstance` on API 37, the module
+resolved Espresso 3.5.0 through `ui-test-junit4`; `wear` declares the catalog's `espresso-core` so
+it gets 3.7.0, which works there.
 
 If the AVD is missing, create it (this is the one AVD the skill may create unasked). Windows needs
 `cmd /c` and the full path, because the `.bat` wrappers split a package path at `;`:
@@ -133,7 +139,8 @@ Pass the classes as a comma-separated list of fully-qualified names:
 
 - `wear` the same way with `:wear:connectedDebugAndroidTest`, with `ANDROID_SERIAL` set to the
   watch emulator. If `Wear_Small_Round_API_36` can't be created or booted, report the wear tests as
-  **not run**, and never run them on the phone emulator instead.
+  **not run**, and never run them on the phone emulator instead; CI still runs them on the build's
+  own watch device (see "A clean full run locally").
 - Re-running one failing test while fixing it: `class=<fqcn>#<method>`. Re-run the full selection
   once the fix is in, not just the one test.
 - Run Gradle with `run_in_background` for anything but a handful of classes and wait for the
@@ -155,7 +162,24 @@ summary (`github-openspec-sync`'s **apply-complete** mode) under its verificatio
   the time actually goes, so the next speed-up can be aimed at the right step.
 
 A selective run is never described as "all instrumented tests pass". Say "the affected
-instrumented tests pass (selective run, N of M)".
+instrumented tests pass (selective run, N of M); the full suite runs in CI on the pull request".
+
+## A clean full run locally
+
+To run the full suite exactly as CI does — on a fresh emulator the build defines, without touching
+the `Pixel_10` AVD — use the managed-device tasks (each one downloads its image on first use, boots
+it headless, runs the module's whole suite and shuts it down):
+
+```bash
+./gradlew :app:phoneApi37DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+./gradlew :wear:watchApi37DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+```
+
+This is also how to run the `wear` tests on a real Wear OS image. Results land under
+`<module>/build/reports/androidTests/managedDevice/` and
+`<module>/build/outputs/androidTest-results/managedDevice/`. They are much slower than a selective
+run on the already-running emulator, so use them when CI reports a failure you can't reproduce, or
+when the user asks for a full run that matches CI.
 
 ## Guardrails
 
@@ -163,5 +187,8 @@ instrumented tests pass (selective run, N of M)".
 - Never mark a failing test `@Ignore`, delete it, or narrow the selection to drop it. Fix it, or
   report it as failing.
 - If the user asks for the full suite, run the full suite.
-- Never change Gradle configuration, add a test runner argument to `build.gradle.kts`, or add
-  Gradle Managed Devices from this skill — those change the build and need an OpenSpec change.
+- Never let a selective local run stand in for the CI run: a pull request whose
+  `instrumented-tests` check failed is not ready, whatever the local selection said.
+- Never change Gradle configuration, add a test runner argument to `build.gradle.kts`, or add or
+  change a Gradle Managed Device from this skill — those change the build and need an OpenSpec
+  change.

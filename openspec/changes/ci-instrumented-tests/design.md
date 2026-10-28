@@ -31,6 +31,11 @@ Alternative considered: `reactivecircus/android-emulator-runner`, the common Git
 - `app`: a phone device at API 37 (the `targetSdk`), using an x86_64 `google` or `aosp-atd` image, whichever exists for API 37. ATD (Automated Test Device) images boot faster and use less memory; use one if it exists for the chosen API level, otherwise the Google APIs image.
 - `wear`: a watch device at the newest API level a Wear OS x86_64 image exists for. `wear` declares the watch feature, so a watch image is the faithful target.
 
+**Chosen (task 1.1, checked against Google's system-image repository on 23 October 2026):**
+
+- `app` → `phoneApi37`: Pixel 6, API 37, `google-atd`, x86_64 (`system-images;android-37.0;google_atd;x86_64`). All three candidates exist for API 37 (`aosp_atd`, `google_atd`, `google_apis`). ATD is chosen for boot time and memory; the Google variant rather than AOSP because the app's Wear sync goes through Play services' Wearable data layer, and the local reference AVD is a Google APIs image too, so tests see the same platform services in both places.
+- `wear` → `watchApi37`: Wear OS Small Round, API 37, `android-wear-signed`, x86_64 (`system-images;android-37.0;android-wear-signed;x86_64`). API 37 is also the newest Wear OS x86_64 image, so the watch tests at the `targetSdk` as well. There is no Wear ATD image. AGP has no alias for Wear sources; it passes `android-wear-signed` through to the package path unchanged.
+
 Testing at `minSdk` (26) as well is out of scope for this change. It would double the job time, and it's better proposed separately with evidence it's needed.
 
 ### D3. A separate CI job, parallel to `build`
@@ -57,6 +62,8 @@ On failure, the job uploads `src/*/build/reports/androidTests/**` and `src/*/bui
 - [Tests that pass locally are flaky on a slower CI emulator] → Animations are disabled by managed devices by default. A test that is still flaky gets its own fix, as an issue. It is never retried silently or excluded in this change.
 - [Job time] → Caching (D4), an ATD image where possible (D2), sharding if needed (D5). The job runs in parallel with `build`, so pull request feedback is delayed only by the difference between the two.
 - [GitHub-hosted runner minutes] → The repository is public, so standard runner minutes are free. Pushes after merge don't re-run the job (D3).
+- [The first CI run of the watch suite failed 14 of 16 tests] → `wear` didn't declare `espresso-core`, so it resolved 3.5.0 through `ui-test-junit4`, which looks up the hidden `InputManager.getInstance` by reflection and fails on API 37. `wear` now declares the catalog's `espresso-core`, as `app` already did. No new library; the tests themselves are unchanged. The local `Pixel_10` runs never caught it because they only run `app`. With that fixed, 5 of the 16 watch tests still fail on the watch: four UI tests assert on content below the fold of the small round screen (#104), and the data-layer update test times out (#105). Per the risk below they are fixed in their own changes, not here. The four UI tests were fixed by `fix-wear-round-edge-clipping` (#108). After merging that in, the full `wear` suite (27 tests) passes locally on `watchApi37`, including the data-layer update test, which also passes on a Wear OS API 36 AVD. #105 stays open until a CI run confirms it on the runner.
+- [Both setup tasks downloading their system image at once] → the install failed with "Archive is not a ZIP archive". The job installs both images with `sdkmanager` before Gradle runs; the device blocks and that step must name the same images.
 - [Wear tests need a watch image that may be large or slow] → If the watch device can't run reliably on the runner, fall back to running `wear`'s tests on the phone device and record why in this design. The spec only requires that they run on an emulator.
 
 ## Migration Plan

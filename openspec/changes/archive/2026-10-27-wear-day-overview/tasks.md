@@ -31,6 +31,6 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Run the unit tests and lint from `src/`
-- [ ] 6.2 Run the watch instrumented tests
-- [ ] 6.3 Check the watch screens against `docs/design-system.md`: theme tokens only, string resources only, minimum touch targets, readable at the largest watch font size on round and square screens
+- [x] 6.1 Run the unit tests and lint from `src/`. Done 2026-10-27 on `development` (0f1fc72): `testDebugUnitTest lintDebug` BUILD SUCCESSFUL
+- [x] 6.2 Run the watch instrumented tests. Done 2026-10-27 on the `Wear_Small_Round_API_36` AVD set up by `fix-wear-round-edge-clipping` (on API 37 every Compose UI test crashes in Espresso). The 16 tests of this change: 12 pass and 4 fail because content below the fold of a small round screen is not displayed (#104): `UpcomingDosesScreenTest#theAgendaShowsTodayAndTomorrow`, `#dosesDueAtTheSameTimeShareOneTimeHeading`, `DoseDetailsScreenTest#theDetailsAreReadInThePhoneAppsLanguage`, `#theMedicineBehindTheDoseIsShown`
+- [x] 6.3 Check the watch screens against `docs/design-system.md`: theme tokens only, string resources only, minimum touch targets, readable at the largest watch font size on round and square screens. Done 2026-10-27 with `pillsner-ui-review`: tokens, strings and touch targets comply. Two findings, both handed to `fix-wear-round-edge-clipping` (#107): the empty state and footer cross the edge of a small round screen, and neither watch screen has a large-font preview

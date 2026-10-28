@@ -7,12 +7,13 @@ metadata:
   version: "1.0"
 ---
 
-The instrumented suite (about 430 tests in `app`, 16 in `wear`) is the slow part of finishing a
+The instrumented suite (about 430 tests in `app`, 19 in `wear`) is the slow part of finishing a
 change. Most of a change's risk sits in a handful of packages, so most of the suite doesn't need
 to run for it. This skill runs the part that does, and says plainly what it skipped.
 
-CI runs the full instrumented suite of both modules on every pull request (the `instrumented-tests`
-job in `.github/workflows/ci.yml`, on Gradle Managed Devices), so a selective run here is the fast
+CI runs the full instrumented suite of both modules on every pull request that touches anything
+outside `src/website/` (the `instrumented-tests` job in `.github/workflows/ci.yml`, on Gradle
+Managed Devices; a website-only pull request doesn't start `ci.yml`), so a selective run here is the fast
 local check and CI is the backstop that catches what selection missed. The skipped count still
 goes into the report and the pull request summary, so a reviewer knows the full run's result is
 the one to wait for.
@@ -31,10 +32,13 @@ Booting is often the most expensive step, so never boot one that is already runn
 3. Otherwise boot one headless, with the `run_in_background` option so it keeps running after this
    step:
    `<sdk>/emulator/emulator -avd <avd> -no-window -no-audio -no-boot-anim`
-   where `<avd>` comes from `<sdk>/emulator/emulator -list-avds` (on this machine: `Pixel_10`).
+   where `<avd>` comes from `<sdk>/emulator/emulator -list-avds`: the phone AVD for `app`
+   (on this machine: `Pixel_10_Pro`) and `Wear_Small_Round_API_36` for `wear` (see "The watch
+   emulator" below). Both can run at once; pick the device per module with `ANDROID_SERIAL`.
    Leave the default quick-boot snapshot on — it turns a cold boot into a resume. Then wait for it:
    `adb wait-for-device shell 'while [ -z "$(getprop sys.boot_completed)" ]; do sleep 1; done'`.
-   Never create or delete an AVD unasked; if there is none, stop and tell the user.
+   Never create or delete an AVD unasked, except `Wear_Small_Round_API_36` as described below; if
+   there is no phone AVD, stop and tell the user.
 4. Turn animations off (cheap, and it removes a common source of slow and flaky Compose tests):
 
    ```bash
@@ -45,6 +49,36 @@ Booting is often the most expensive step, so never boot one that is already runn
 
 5. Leave the emulator running when done. The next task in this change, or the next change, reuses
    it. Shut it down only when the user asks.
+
+### The watch emulator
+
+`wear` tests run on `Wear_Small_Round_API_36`: a `wearos_small_round` AVD (384×384, round) on
+`system-images;android-36;android-wear-signed;x86_64` (Wear OS 6). Not the phone emulator, because
+`RoundScreenFitTest` only means something on a round screen and skips itself elsewhere. Not a Wear
+OS API 37 image locally: it's the one CI uses (`watchApi37`, see "A clean full run locally"), and the
+API 36 AVD keeps a second Wear OS version covered. If every Compose UI test crashes with
+`NoSuchMethodException: android.hardware.input.InputManager.getInstance` on API 37, the module
+resolved Espresso 3.5.0 through `ui-test-junit4`; `wear` declares the catalog's `espresso-core` so
+it gets 3.7.0, which works there.
+
+If the AVD is missing, create it (this is the one AVD the skill may create unasked). Windows needs
+`cmd /c` and the full path, because the `.bat` wrappers split a package path at `;`:
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+cmd /c 'echo y| D:\Android\SDK\cmdline-tools\latest\bin\sdkmanager.bat --sdk_root=D:\Android\SDK "system-images;android-36;android-wear-signed;x86_64"'
+cmd /c 'echo no| D:\Android\SDK\cmdline-tools\latest\bin\avdmanager.bat create avd -n Wear_Small_Round_API_36 -k "system-images;android-36;android-wear-signed;x86_64" -d wearos_small_round'
+```
+
+Then set `hw.lcd.circular=true` in `<avd home>/Wear_Small_Round_API_36.avd/config.ini`;
+`avdmanager` writes `false`, which makes the screen square. Check it after boot:
+`adb shell wm size` says `384x384`, and `adb shell dumpsys window | grep RoundedCorner` shows a
+radius of 192.
+
+On this small screen most of a watch list starts below the fold, so watch UI tests scroll the column
+to an item (`performScrollToNode`) before `assertIsDisplayed()`, and count items through the
+column's `CollectionInfo` (`itemCount()` in `ColumnAssertions.kt`), not by counting composed nodes
+(#104).
 
 Only one connected test run at a time per emulator. Two worktrees running
 `connected*AndroidTest` against the same device uninstall each other's APKs mid-run.
@@ -103,10 +137,10 @@ Pass the classes as a comma-separated list of fully-qualified names:
   "-Pandroid.testInstrumentationRunnerArguments.class=nl.hexmaster.pillsner.data.db.DoseDaoTest,nl.hexmaster.pillsner.ui.dose.DoseDetailScreenTest"
 ```
 
-- `wear` the same way with `:wear:connectedDebugAndroidTest`. If its APK won't install on the
-  phone emulator (a watch-only feature requirement), report the wear tests as **not run** — don't
-  create a Wear AVD unasked; `:wear:watchApi37DebugAndroidTest` (below) runs them on the build's
-  own watch device, and CI runs them on every pull request.
+- `wear` the same way with `:wear:connectedDebugAndroidTest`, with `ANDROID_SERIAL` set to the
+  watch emulator. If `Wear_Small_Round_API_36` can't be created or booted, report the wear tests as
+  **not run**, and never run them on the phone emulator instead; CI still runs them on the build's
+  own watch device (see "A clean full run locally").
 - Re-running one failing test while fixing it: `class=<fqcn>#<method>`. Re-run the full selection
   once the fix is in, not just the one test.
 - Run Gradle with `run_in_background` for anything but a handful of classes and wait for the

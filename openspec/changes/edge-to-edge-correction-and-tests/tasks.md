@@ -19,9 +19,9 @@
 
 ## 4. Top-level screens above the bottom navigation
 
-- [ ] 4.1 Add a test through the app shell (design D4) that seeds enough medicines to scroll, scrolls Medicines to the last tile with the 3-button preset, and asserts its bottom edge is at or above the bottom navigation bar with no band larger than the list's content padding token between them. Verify it passes, or record the failure
-- [ ] 4.2 Repeat 4.1's assertion for Home (with enough doses to scroll) and for Settings (scrolled to Reset app). Verify they pass, or record the failure
-- [ ] 4.3 Correct any failure from 4.1–4.2 with inset modifiers only (for example `consumeWindowInsets` where an inset is doubled), record it in the findings table, and verify the tests now pass along with `PillsnerAppNavigationTest`
+- [x] 4.1 Add a test through the app shell (design D4) that seeds enough medicines to scroll, scrolls Medicines to the last tile with the 3-button preset, and asserts its bottom edge is at or above the bottom navigation bar with no band larger than the list's content padding token between them. Verify it passes, or record the failure
+- [x] 4.2 Repeat 4.1's assertion for Home (with enough doses to scroll) and for Settings (scrolled to Reset app). Verify they pass, or record the failure
+- [x] 4.3 Correct any failure from 4.1–4.2 with inset modifiers only (for example `consumeWindowInsets` where an inset is doubled), record it in the findings table, and verify the tests now pass along with `PillsnerAppNavigationTest`
 
 ## 5. Manual verification matrix
 

@@ -2,8 +2,8 @@
 
 ## 1. Preconditions and test helper
 
-- [ ] 1.1 Verify the `app-welcome-screen` scaffold exists and that both `MainActivity` classes still call `enableEdgeToEdge()` before `super.onCreate()` (both `EdgeToEdgeContractTest`s pass), and stop if either is missing
-- [ ] 1.2 Add the inset test helper from design D1–D3 under `src/app/src/androidTest/java/nl/hexmaster/pillsner/ui/insets/`. It hosts content in an edge-to-edge `ComponentActivity`, applies named synthetic inset presets (gesture, 3-button, landscape with cutout, keyboard open) and provides `assertInsideSafeDrawingArea()`. Verify with a small self-test of the helper: a node padded with `safeDrawingPadding()` passes, an unpadded node at the bottom edge fails, and the insets read back in composition match the preset
+- [x] 1.1 Verify the `app-welcome-screen` scaffold exists and that both `MainActivity` classes still call `enableEdgeToEdge()` before `super.onCreate()` (both `EdgeToEdgeContractTest`s pass), and stop if either is missing
+- [x] 1.2 Add the inset test helper from design D1–D3 under `src/app/src/androidTest/java/nl/hexmaster/pillsner/ui/insets/`. It hosts content in an edge-to-edge `ComponentActivity`, applies named synthetic inset presets (gesture, 3-button, landscape with cutout, keyboard open) and provides `assertInsideSafeDrawingArea()`. Verify with a small self-test of the helper: a node padded with `safeDrawingPadding()` passes, an unpadded node at the bottom edge fails, and the insets read back in composition match the preset
 
 ## 2. Dose detail answers
 

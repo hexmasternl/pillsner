@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.unit.Dp
 import androidx.core.view.ViewCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
@@ -213,6 +214,25 @@ fun SemanticsNodeInteraction.assertInsideSafeDrawingArea(
         bounds.bottom <= safe.bottom + tolerance
     if (!inside) {
         throw AssertionError("Node bounds $bounds reach outside the safe drawing area $safe")
+    }
+    return this
+}
+
+/**
+ * Asserts that no more than [maxGap] separates the node's bottom edge from the safe drawing
+ * area's: a bar pinned above the keyboard or the navigation bar must sit right on it. A larger gap
+ * means an inset was applied twice.
+ */
+fun SemanticsNodeInteraction.assertBottomGapToSafeAreaAtMost(
+    host: EdgeToEdgeHost<*>,
+    maxGap: Dp,
+): SemanticsNodeInteraction {
+    val gap = host.safeDrawingArea().bottom - unclippedBoundsInWindow().bottom
+    val allowed = maxGap.value * host.density + host.tolerancePx
+    if (gap > allowed) {
+        throw AssertionError(
+            "Node ends ${gap / host.density} dp above the safe drawing area, more than $maxGap: an inset applied twice?",
+        )
     }
     return this
 }

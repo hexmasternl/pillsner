@@ -13,9 +13,9 @@
 
 ## 3. Medication form and schedule editor
 
-- [ ] 3.1 Add a test that, with the keyboard-open preset and a field near the bottom focused, the medication form's Save action lies inside the safe drawing area and no gap larger than the bar's own padding token separates it from the keyboard (no doubled IME inset). Verify it passes, or record the failure
-- [ ] 3.2 Add the same test for the schedule editor's Done action, and both actions at `FontScale(2f)` with the 3-button preset. Verify they pass, or record the failure
-- [ ] 3.3 Correct any failure from 3.1–3.2 with inset modifiers only, record it in the findings table, and verify the tests now pass along with the existing medication form, schedule and `MedicineHistoryMenuTest` tests
+- [x] 3.1 Add a test that, with the keyboard-open preset and a field near the bottom focused, the medication form's Save action lies inside the safe drawing area and no gap larger than the bar's own padding token separates it from the keyboard (no doubled IME inset). Verify it passes, or record the failure
+- [x] 3.2 Add the same test for the schedule editor's Done action, and both actions at `FontScale(2f)` with the 3-button preset. Verify they pass, or record the failure
+- [x] 3.3 Correct any failure from 3.1–3.2 with inset modifiers only, record it in the findings table, and verify the tests now pass along with the existing medication form, schedule and `MedicineHistoryMenuTest` tests
 
 ## 4. Top-level screens above the bottom navigation
 

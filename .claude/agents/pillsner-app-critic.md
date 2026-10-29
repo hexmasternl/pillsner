@@ -58,7 +58,7 @@ Contract: `openspec/specs/<capability>/spec.md`, plus the delta specs in `opensp
 - Malformed or hostile input: an empty or whitespace-only medication name, a very long name in every locale, an amount of zero or negative, a restored backup that is corrupt, truncated or from a newer schema version.
 - Races and lifecycle: the user answers a reminder at the same moment the next alarm fires; two notification actions tapped quickly; the process is killed between recording an intake and rescheduling; a reboot arrives while a migration is pending; a permission is revoked while an alarm is scheduled.
 
-**Contracts and boundaries.** Report a public type, use case or repository method that leaks its implementation (returns a Room entity to the UI, exposes an `AlarmManager` request code, takes an epoch millis where the domain speaks in `ZonedDateTime` or `LocalTime` without saying which zone), and any non-obvious assumption about time or ordering that is not in KDoc. The fix you ask for is the written-down assumption or the narrower interface, so the next reader does not have to rediscover it.
+**Contracts and boundaries.** Report a public type, use case or repository method that leaks its implementation (returns a Room entity to the UI, exposes an `AlarmManager` request code, takes an epoch millis where the domain speaks in `ZonedDateTime` or `LocalTime` without saying which zone), and any non-obvious assumption about time or ordering that is not in KDoc. The fix you ask for is the written-down assumption or the narrower interface, so the next reader does not have to rediscover it. Judge the Kotlin itself against the `kotlin-conventions` skill, and report a break only when it causes a bug or a leaky contract, not as style.
 
 ## How you work
 

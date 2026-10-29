@@ -78,7 +78,7 @@ Contract: `openspec/specs/wearable-app/spec.md`, `openspec/specs/wearable-sync/s
 - Staleness and connection: data received, then the phone disconnects for hours; never received anything and no phone; the phone app uninstalled; a new payload arriving while the details screen for a dose that no longer exists is open.
 - Lifecycle and races: `WearDataListenerService` receiving data while the app is closed and while it is open; two payloads arriving in quick succession, out of order; process death between receiving and persisting; the language changing on the phone while the watch app is open.
 
-**Contracts and boundaries.** Report a shared type that leaks either side's implementation (a Room ID, a phone-only enum, a pre-formatted string the watch then has to parse, an epoch millis with no stated zone), and any assumption about ordering, uniqueness or time zone that is not in KDoc on `SyncedDoses` or `WearSyncContract`. The fix you ask for is the written-down assumption or the narrower type.
+**Contracts and boundaries.** Report a shared type that leaks either side's implementation (a Room ID, a phone-only enum, a pre-formatted string the watch then has to parse, an epoch millis with no stated zone), and any assumption about ordering, uniqueness or time zone that is not in KDoc on `SyncedDoses` or `WearSyncContract`. The fix you ask for is the written-down assumption or the narrower type. Judge the Kotlin itself against the `kotlin-conventions` skill, and report a break only when it causes a bug or a leaky contract, not as style.
 
 ## How you work
 

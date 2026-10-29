@@ -1,6 +1,6 @@
 ---
 name: change-delivery-loop
-description: The main session's loop for delivering a Pillsner change with agents - hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI), send what it changed to pillsner-test-runner, then have the finished change reviewed by the matching critics (pillsner-app-critic, pillsner-wear-critic, pillsner-play-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
+description: The main session's loop for delivering a Pillsner change with agents - have pillsner-proposal-critic review the proposal before any code, hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI), send what it changed to pillsner-test-runner, then have the finished change reviewed by the matching critics (pillsner-app-critic, pillsner-wear-critic, pillsner-play-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
 license: MIT
 metadata:
   author: pillsner
@@ -13,6 +13,10 @@ wrong. This skill passes work between them, enforces the limits, and keeps the r
 
 It runs inside the `/opsx:apply` lifecycle: the change's worktree and `feature/<change-name>` branch
 exist (the `git-workflow` skill), and `tasks.md` is the list of work.
+
+## 0. Review the proposal first
+
+Before the first task, run `pillsner-proposal-critic` on the change, at most two rounds: round 1 on the proposal as written; if a Blocker or Major is left, revise the proposal, design, delta specs or tasks (or have the author do it) and run round 2. Open findings after round 2 go to the user, who decides whether to apply anyway. Record the rows in the ledger (step 5). Skip this step only when resuming a change whose proposal was already reviewed and has not changed since.
 
 ## 1. Implement, one task at a time
 

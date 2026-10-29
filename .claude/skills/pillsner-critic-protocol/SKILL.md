@@ -1,6 +1,6 @@
 ---
 name: pillsner-critic-protocol
-description: The rules every Pillsner critic agent follows, whatever it reviews - read for independence, report a finding only with a failing test, a counterexample or an exact rule citation, calibrate depth from the critic ledger, stop after the round limit, and report in one fixed format with stable finding IDs and ledger rows. Loaded at the start of every review by pillsner-app-critic, pillsner-wear-critic and pillsner-play-critic. Also use when briefing a critic or reading its report, to know what to expect.
+description: The rules every Pillsner critic agent follows, whatever it reviews - read for independence, report a finding only with a failing test, a counterexample or an exact rule citation, calibrate depth from the critic ledger, stop after the round limit, and report in one fixed format with stable finding IDs and ledger rows. Loaded at the start of every review by pillsner-app-critic, pillsner-wear-critic, pillsner-play-critic and pillsner-proposal-critic. Also use when briefing a critic or reading its report, to know what to expect.
 license: MIT
 metadata:
   author: pillsner
@@ -84,7 +84,7 @@ Lead with one line: **ship**, **ship after fixes** or **do not ship**, the scope
 lenses applied (and which areas got a light pass).
 
 Then the findings, most severe first. Give each a stable ID with your critic's prefix (`APP-n`,
-`WEAR-n`, `PLAY-n`), kept across rounds, and:
+`WEAR-n`, `PLAY-n`, `SPEC-n`), kept across rounds, and:
 
 - **Severity**: *Blocker* (Play would reject it, a reminder can be lost or a dose shown wrong, data
   leaves the device, a spec requirement is broken), *Major* (a spec scenario or listed edge case

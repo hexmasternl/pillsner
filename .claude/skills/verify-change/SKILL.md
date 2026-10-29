@@ -13,6 +13,8 @@ lint error doesn't cost an emulator run, and writes down what ran and what didn'
 
 Run it from the change's worktree (`../pillsner-worktrees/<name>`). Gradle commands run from `src/`.
 
+**Tests go to the test runner.** When the `pillsner-test-runner` agent is available (the main session, usually inside the `change-delivery-loop` skill), send it one test request with `scope: branch` and use its report for the unit-test line of step 2 and for step 5; do not run `./gradlew test` or the emulator tests yourself as well. Only where no agent can be started, run them directly as below.
+
 ## 1. Classify the diff
 
 `git diff --name-only development...HEAD` plus uncommitted files. Note which of these the change
@@ -32,7 +34,7 @@ touches; each one switches on a step below.
 ## 2. Fast checks (stop at the first failure)
 
 ```bash
-./gradlew test          # unit tests, every module
+./gradlew test          # unit tests, every module (skip when the test runner ran them)
 ./gradlew lint          # includes MissingTranslation/ExtraTranslation as errors (app/lint.xml)
 ./gradlew assembleDebug # also runs the build permission guard
 ```
@@ -52,7 +54,7 @@ Run the `pillsner-ui-review` skill over the changed composables. Its findings ar
 
 ## 5. Instrumented tests
 
-Run the `emulator-tests` skill (selective, with its safety set). Keep its report — the "N of M"
+Use the test runner's report, or run the `emulator-tests` skill (selective: affected tests only). Keep the report — the "N of M"
 line goes into the verification section.
 
 ## 6. Device scenarios

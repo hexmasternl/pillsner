@@ -25,7 +25,7 @@ Use these names in the `Area` column. Add one only when none fits, and add it he
 
 ## Precision
 
-Review periodically: per critic and per area, real ÷ (real + accepted-risk + noise). An area that stays at zero real findings over many reviews is one the critics should skip; a critic whose precision stays low needs its mandate narrowed.
+Review periodically (the `pillsner-tech-debt-scout` agent computes it): per critic and per area, real ÷ (real + accepted-risk + noise). An area that stays at zero real findings over many reviews is one the critics should skip; a critic whose precision stays low needs its mandate narrowed.
 
 ## Findings
 

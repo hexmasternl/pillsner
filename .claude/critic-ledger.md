@@ -31,3 +31,7 @@ Review periodically (the `pillsner-tech-debt-scout` agent computes it): per crit
 
 | Date | Critic | Scope | Round | ID | Severity | Area | Outcome | Note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-29 | app | edge-to-edge-correction-and-tests | 1 | APP-1 | Major | app/ui | real | Landscape-cutout test checked only centred nodes; now asserts Back and title, proven by mutation |
+| 2026-10-29 | app | edge-to-edge-correction-and-tests | 1 | APP-2 | Major | app/ui | real | Large-font tests now assert title and Back against the status bar |
+| 2026-10-29 | app | edge-to-edge-correction-and-tests | 1 | APP-3 | Major | app/ui | real | tasks.md 5.x now say per line what ran and what was handed to manual testing |
+| 2026-10-29 | app | edge-to-edge-correction-and-tests | 1 | APP-4 | Minor | app/ui | real | Helper waits out insets animations and its KDoc states the limit |

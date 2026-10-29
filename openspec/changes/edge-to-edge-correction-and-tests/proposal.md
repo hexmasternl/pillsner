@@ -1,6 +1,7 @@
 ## Why
 
 **GitHub Issue:** #113 (https://github.com/hexmasternl/pillsner/issues/113)
+**Pull Request:** #114 (https://github.com/hexmasternl/pillsner/pull/114)
 
 `edge-to-edge-insets` (#72, PR #73, archived 2026-10-29) made both activities enable edge-to-edge and fixed the phone screens its audit found broken, but it was archived with its proof unfinished. The `app-theme` requirement "Content stays clear of system bars, cutouts and the keyboard" now promises five things that no automated test checks: dose answers clear of the 3-button navigation bar, nothing under a landscape cutout, form actions above the keyboard, lists that scroll fully above the bottom navigation, and nothing hidden at the largest font. The manual audit only covered API 37 in light theme at the default font size. Dark theme, the largest font, API 26–36 and the watch were never checked, so gaps may still be shipping, and the button that confirms a dose is exactly the kind of content they hide.
 

@@ -7,9 +7,9 @@
 
 ## 2. Dose detail answers
 
-- [ ] 2.1 Add a test that, with the 3-button preset, the dose detail screen's Taken, Snooze, Skip and Close buttons lie fully inside the safe drawing area and each can be clicked. Verify it passes on `development` as it is, or record the failure and continue to 2.3
-- [ ] 2.2 Add the same assertion at `DeviceConfigurationOverride.FontScale(2f)`, and for the landscape-with-cutout preset with the answers scrolled into view. Verify both pass, or record the failure
-- [ ] 2.3 Correct any failure from 2.1–2.2 with inset modifiers only (design D6), record it in the findings table below, and verify the tests now pass and `DoseDetailScreenTest` still passes
+- [x] 2.1 Add a test that, with the 3-button preset, the dose detail screen's Taken, Snooze, Skip and Close buttons lie fully inside the safe drawing area and each can be clicked. Verify it passes on `development` as it is, or record the failure and continue to 2.3
+- [x] 2.2 Add the same assertion at `DeviceConfigurationOverride.FontScale(2f)`, and for the landscape-with-cutout preset with the answers scrolled into view. Verify both pass, or record the failure
+- [x] 2.3 Correct any failure from 2.1–2.2 with inset modifiers only (design D6), record it in the findings table below, and verify the tests now pass and `DoseDetailScreenTest` still passes
 
 ## 3. Medication form and schedule editor
 

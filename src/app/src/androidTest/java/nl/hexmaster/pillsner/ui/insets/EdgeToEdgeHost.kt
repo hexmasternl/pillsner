@@ -2,6 +2,7 @@ package nl.hexmaster.pillsner.ui.insets
 
 import android.app.UiAutomation
 import android.content.res.Configuration
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +13,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -32,6 +34,11 @@ import org.junit.runners.model.Statement
  * edge-to-edge and replaces whatever insets the system dispatches with the preset's, on every
  * dispatch: a later real dispatch (a keyboard, a rotation settling) cannot overwrite them.
  *
+ * One path bypasses it: while a real insets animation runs (the soft keyboard sliding in after a
+ * text field takes focus), Compose reads the animation's progress values, and the preset comes
+ * back only when the animation ends. [safeDrawingArea] waits for that rather than asserting on a
+ * frame in between.
+ *
  * Use it as the test's only rule and drive the content through [composeRule]:
  *
  * ```
@@ -47,6 +54,7 @@ class EdgeToEdgeHost<A : ComponentActivity>(private val activityClass: Class<A>)
 
     private var scenario: ActivityScenario<A>? = null
     private var rotated = false
+    private var autoRotateWasOn = false
     private var preset: InsetPreset? = null
 
     /** What `WindowInsets.safeDrawing` read in composition last, in pixels. */
@@ -128,12 +136,14 @@ class EdgeToEdgeHost<A : ComponentActivity>(private val activityClass: Class<A>)
      */
     fun safeDrawingArea(): Rect {
         val expected = checkNotNull(preset) { "Launch the host first" }.safeDrawingPx(density)
-        composeRule.waitForIdle()
-        val observed = observedSafeDrawing
-        if (observed != expected) {
+        // A real keyboard animation can briefly put its own values in front of the preset's.
+        try {
+            composeRule.waitUntil(INSETS_SETTLE_TIMEOUT_MS) { observedSafeDrawing == expected }
+        } catch (timeout: ComposeTimeoutException) {
             throw AssertionError(
-                "WindowInsets.safeDrawing read $observed in composition, not the $preset preset's $expected; " +
-                    "the synthetic insets did not reach the content",
+                "WindowInsets.safeDrawing read $observedSafeDrawing in composition, not the $preset preset's " +
+                    "$expected; the synthetic insets did not reach the content",
+                timeout,
             )
         }
         var width = 0
@@ -170,19 +180,26 @@ class EdgeToEdgeHost<A : ComponentActivity>(private val activityClass: Class<A>)
 
     private fun rotateToLandscape() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        autoRotateWasOn = Settings.System.getInt(
+            instrumentation.targetContext.contentResolver,
+            Settings.System.ACCELEROMETER_ROTATION,
+            0,
+        ) == 1
         instrumentation.uiAutomation.setRotation(UiAutomation.ROTATION_FREEZE_90)
         rotated = true
         instrumentation.waitForIdleSync()
     }
 
+    /** Back to portrait, and auto-rotate back to how the device had it, so later tests see neither. */
     private fun restoreRotation() {
         val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
         uiAutomation.setRotation(UiAutomation.ROTATION_FREEZE_0)
-        uiAutomation.setRotation(UiAutomation.ROTATION_UNFREEZE)
+        if (autoRotateWasOn) uiAutomation.setRotation(UiAutomation.ROTATION_UNFREEZE)
     }
 
     private companion object {
         const val TOLERANCE_DP = 0.5f
+        const val INSETS_SETTLE_TIMEOUT_MS = 5_000L
     }
 }
 

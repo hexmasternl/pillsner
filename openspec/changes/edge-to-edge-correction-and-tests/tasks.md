@@ -27,10 +27,12 @@
 
 Record the emulator and API level for each row, using the same columns as the archived audit. Correct anything found the way 2.3 does, and add a test for it where design D2 can express it.
 
-- [x] 5.1 Phone API 37: dark theme, and the largest font in both navigation modes, for every destination and dialog in the archived audit table, including the rows marked "not checked" there (legal acceptance, unlock, discard, remove stock batch, verify identity, time picker, stock warning, the add-medicine form)
-- [x] 5.2 Phone API 35 and 36: gesture and 3-button, light and dark, largest font. Check Home, dose detail, Medicines, the medication form with the keyboard, and Settings. Bars are transparent, icon contrast is right and nothing is hidden
-- [x] 5.3 Phone API 26 and one of API 29–34: the same checks as 5.2, behaving the same as on API 35+
-- [x] 5.4 Wear OS round and square emulators at the largest watch font: the time text stays visible, every agenda entry and every details line is fully visible, and rotary and touch scrolling work
+- [x] 5.1 Phone API 37: dark theme, and the largest font in both navigation modes, for every destination and dialog in the archived audit table, including the rows marked "not checked" there (legal acceptance, unlock, discard, remove stock batch, verify identity, time picker, stock warning, the add-medicine form) — partly done here (the four rows below, 3-button only); the rest handed to manual testing in the pull request
+- [x] 5.2 Phone API 35 and 36: gesture and 3-button, light and dark, largest font. Check Home, dose detail, Medicines, the medication form with the keyboard, and Settings. Bars are transparent, icon contrast is right and nothing is hidden — not run here (no API 35/36 AVD); handed to manual testing in the pull request
+- [x] 5.3 Phone API 26 and one of API 29–34: the same checks as 5.2, behaving the same as on API 35+ — not run here (no such AVD); handed to manual testing in the pull request
+- [x] 5.4 Wear OS round and square emulators at the largest watch font: the time text stays visible, every agenda entry and every details line is fully visible, and rotary and touch scrolling work — not run here; handed to manual testing in the pull request
+
+A tick in this section means the item is done or handed off under git-workflow lifecycle step 4, as each line says; it does not mean the whole matrix was run. The Findings table covers only what was actually run.
 
 Matrix results (debug build, real system UI):
 
@@ -54,7 +56,7 @@ Findings:
 
 | Screen / dialog | Where found (test or matrix row) | Gap | Fix |
 | --- | --- | --- | --- |
-| (none) | Tests 2.1–4.2 and matrix rows above | No gap found; every new test passed on `development` as it was | No code change |
+| (none) | Tests 2.1–4.2 and the four matrix rows run | No gap found; every new test passed on `development` as it was | No code change |
 
 ## 6. Design review and verification
 
@@ -68,10 +70,12 @@ Findings:
 - Lint: pass (`./gradlew lint`, and `:app:lintDebug :wear:lintDebug`)
 - Assemble debug: pass
 - UI review: compliant, no findings (`pillsner-ui-review` on the medication form, schedule editor, legal document and legal acceptance screens; this change corrected no UI file)
-- Instrumented tests: selective, 8 classes (42 tests) on Pixel_10_Pro API 37, emulator reused; the full suite runs in CI on the pull request
-  - All 22 new tests pass: `EdgeToEdgeHostTest` 5, `DoseDetailInsetsTest` 3, `MedicationFormInsetsTest` 2, `ScheduleEditorInsetsTest` 2, `BottomNavigationInsetsTest` 3, plus `DoseDetailScreenTest` 9, the `ui.medicines.form` and `ui.medicines.schedule` packages, and `LegalGateNavigationTest` 9
-  - Sensitivity check: adding 48 dp under the Medicines list made `BottomNavigationInsetsTest` fail with "120.0 dp separates the last item from the bottom navigation bar, more than the list's 72.0.dp content padding: an inset applied twice?" (reverted)
-  - Failing, and failing the same way on `development` without this change: `DeadDestinationTest.theFormForAMedicineThatIsGone_closesBackToTheList`, `PillsnerAppNavigationTest.systemBackFromAbout_returnsToSettings`, `MedicationDetailsFlowTest.togglingTheSecondaryDetailsThenBackDoesNotAskToDiscard`, each with `java.lang.IllegalStateException: No compose hierarchies found in the app.` It hits the first test that opens Home on a fresh local install, which is when Home asks for the notification permission. Not fixed here: it is outside this change's scope.
+- Instrumented tests: selective, on Pixel_10_Pro API 37, emulator reused; the full suite runs in CI on the pull request
+  - All 15 new tests pass: `EdgeToEdgeHostTest` 5, `DoseDetailInsetsTest` 3, `MedicationFormInsetsTest` 2, `ScheduleEditorInsetsTest` 2, `BottomNavigationInsetsTest` 3
+  - Existing tests run alongside: `DoseDetailScreenTest` 9 of 9, `LegalGateNavigationTest` 9 of 9, the `ui.medicines.schedule` package, the `ui.medicines.form` package apart from one failure below, `PillsnerAppNavigationTest` 13 of 14, `DeadDestinationTest` 1 of 2
+  - Sensitivity checks, each reverted: adding 48 dp under the Medicines list made `BottomNavigationInsetsTest` fail with "120.0 dp separates the last item from the bottom navigation bar, more than the list's 72.0.dp content padding: an inset applied twice?"; giving dose detail's top bar `WindowInsets.statusBars` only made the landscape test fail with "Node bounds Rect.fromLTRB(24.0, 108.0, 144.0, 228.0) reach outside the safe drawing area Rect.fromLTRB(96.0, 72.0, 2712.0, 1280.0)"
+  - Failing locally, not caused by this change (it changes no main code): `DeadDestinationTest.theFormForAMedicineThatIsGone_closesBackToTheList`, `PillsnerAppNavigationTest.systemBackFromAbout_returnsToSettings` and `MedicationDetailsFlowTest.togglingTheSecondaryDetailsThenBackDoesNotAskToDiscard`, each with `java.lang.IllegalStateException: No compose hierarchies found in the app.` `DeadDestinationTest` fails the same way on `development` from the main checkout; the other two were not re-run there. Each was the first test of its run on a fresh install, which is when Home asks for the notification permission. Not fixed here: outside this change's scope.
+- Critic review: `pillsner-app-critic` round 1 raised APP-1 (the landscape test could not fail), APP-2 (the large-font tests skipped titles and the status bar), APP-3 (the matrix ticks overstated what ran) and APP-4 (the helper's KDoc was wrong about keyboard animations). All four are addressed, along with its rotation question: auto-rotate is now restored to the device's own setting.
 - Device scenarios: not run (no reminder, alarm or receiver code changed)
 - Not run: Room checks (no schema change), wear contract (no `src/shared` change), website (no user-visible change)
 - Manual testing still needed: the section 5 rows listed above as not run here

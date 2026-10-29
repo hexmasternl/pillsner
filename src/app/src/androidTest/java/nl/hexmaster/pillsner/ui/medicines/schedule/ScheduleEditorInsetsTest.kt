@@ -46,8 +46,11 @@ class ScheduleEditorInsetsTest {
     }
 
     @Test
-    fun largestFont_doneIsClearOfTheNavigationBar() {
+    fun largestFont_titleBackAndDoneAreClearOfBothBars() {
         showEditor(InsetPreset.THREE_BUTTON, fontScale = 2f)
+
+        composeRule.onNodeWithTag(ScheduleEditorTestTags.BACK).assertInsideSafeDrawingArea(host)
+        composeRule.onNodeWithTag(ScheduleEditorTestTags.TITLE).assertInsideSafeDrawingArea(host)
 
         composeRule.onNodeWithTag(ScheduleEditorTestTags.DONE)
             .assertInsideSafeDrawingArea(host)

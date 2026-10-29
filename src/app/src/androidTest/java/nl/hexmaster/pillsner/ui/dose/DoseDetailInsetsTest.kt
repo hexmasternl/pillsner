@@ -52,17 +52,26 @@ class DoseDetailInsetsTest {
     }
 
     @Test
-    fun largestFont_everyAnswerAndCloseIsClearOfTheBar() {
+    fun largestFont_titleBackAnswersAndCloseAreClearOfBothBars() {
         showScreen(InsetPreset.THREE_BUTTON, fontScale = LARGEST_FONT_SCALE)
 
+        assertTopBarInsideSafeArea()
         assertAnswersAndCloseInsideSafeArea()
     }
 
     @Test
-    fun landscapeWithCutout_everyAnswerAndCloseIsClearOfTheCutoutAndTheBar() {
+    fun landscapeWithCutout_nothingSitsUnderTheCutoutOrTheBar() {
         showScreen(InsetPreset.LANDSCAPE_CUTOUT)
 
+        // In landscape the content column is capped and centred, far from the cutout; the top bar
+        // spans the full width, so Back and the title are what a dropped cutout inset would hide.
+        assertTopBarInsideSafeArea()
         assertAnswersAndCloseInsideSafeArea()
+    }
+
+    private fun assertTopBarInsideSafeArea() {
+        composeRule.onNodeWithTag(DoseDetailTestTags.BACK).assertInsideSafeDrawingArea(host)
+        composeRule.onNodeWithTag(DoseDetailTestTags.TITLE).assertInsideSafeDrawingArea(host)
     }
 
     /** The answers scroll and Close does not, so each answer is scrolled into view first. */

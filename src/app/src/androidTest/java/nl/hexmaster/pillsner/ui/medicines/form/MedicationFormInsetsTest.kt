@@ -46,8 +46,11 @@ class MedicationFormInsetsTest {
     }
 
     @Test
-    fun largestFont_saveIsClearOfTheNavigationBar() {
+    fun largestFont_titleBackAndSaveAreClearOfBothBars() {
         showForm(InsetPreset.THREE_BUTTON, fontScale = 2f)
+
+        composeRule.onNodeWithTag(MedicationFormTestTags.BACK).assertInsideSafeDrawingArea(host)
+        composeRule.onNodeWithTag(MedicationFormTestTags.TITLE).assertInsideSafeDrawingArea(host)
 
         composeRule.onNodeWithTag(MedicationFormTestTags.SAVE)
             .assertInsideSafeDrawingArea(host)

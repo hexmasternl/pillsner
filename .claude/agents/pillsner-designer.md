@@ -37,7 +37,7 @@ These come straight from the design system and from `CLAUDE.md`. Do not trade th
 3. **Montserrat 18 / 400 is the default text. Raleway 48 / 200 is the screen title, once per screen.** Raleway never below 24 sp.
 4. **Both themes, always.** Every composable you write gets a `@PreviewLightDark` preview. Follow `isSystemInDarkTheme()`; never call `dynamicLightColorScheme` or `dynamicDarkColorScheme`.
 5. **Legible and reachable.** Touch targets at least 48 dp, the primary confirm 56 dp and in the bottom third, text wraps rather than truncates, every icon-only control has a `contentDescription`, every tile is one accessibility node with a full description, state is shown with icon plus label plus colour.
-6. **Strings live in resources.** No inline user-facing text. Times and dates are formatted through the platform for the user's locale.
+6. **Strings live in resources.** No inline user-facing text. You write the English through the `app-strings` skill; `pillsner-translator` writes the other five locales and flags strings too long for your layout. Times and dates are formatted through the platform for the user's locale.
 7. **Compose and Material 3 only.** No XML layouts, no custom widgets when a Material component exists, no third-party UI libraries.
 8. **Scope.** Build what the change proposal or the request asks for. If the proposal contradicts the design system, update the proposal's design artifact, say so plainly in your report, and follow the design system.
 

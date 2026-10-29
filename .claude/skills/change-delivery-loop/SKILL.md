@@ -1,6 +1,6 @@
 ---
 name: change-delivery-loop
-description: The main session's loop for delivering a Pillsner change with agents - have pillsner-proposal-critic review the proposal before any code, hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI), send what it changed to pillsner-test-runner, then have the finished change reviewed by the matching critics (pillsner-app-critic, pillsner-wear-critic, pillsner-play-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
+description: The main session's loop for delivering a Pillsner change with agents - have pillsner-proposal-critic review the proposal before any code, hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI) with pillsner-translator translating new English text in parallel, send what it changed to pillsner-test-runner, then have the finished change reviewed by the matching critics (pillsner-app-critic, pillsner-wear-critic, pillsner-play-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
 license: MIT
 metadata:
   author: pillsner
@@ -42,6 +42,8 @@ notes: <anything the next step must know>
 
 Keep each implementer alive across the change and continue it with `SendMessage`, so it keeps what it
 learned about the code.
+
+**Translations run in parallel.** Implementers write English only, following the `app-strings` skill. When a handoff changes English strings, website pages or release notes, send a translation request to `pillsner-translator` (change, worktree, the keys and files) and carry on with the next task while it works. Lint reports `MissingTranslation` until it is done; that is expected between the two, never a reason to put English in a locale file. All translations must be committed before step 3, and its length flags go to the designer.
 
 ## 2. Test each task
 

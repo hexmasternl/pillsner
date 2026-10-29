@@ -36,7 +36,7 @@ Strings aren't shared between the modules. A text both show is defined in both, 
    `pluralStringResource(R.plurals.key, count, count)`.
 5. **Escape** apostrophes (`\'`) and quotes, which French, Portuguese and Dutch use often. Use real
    typographic characters where the existing strings do (`…`, `–`).
-6. **Translate into all five locales in the same commit.** Before translating, read that locale's
+6. **Translate into all five locales in the same change** - by the `pillsner-translator` agent when the change runs through the `change-delivery-loop` skill, in its own commit before verification; otherwise in the same commit. Before translating, read that locale's
    file for the terms it already uses for the same concepts and reuse them — the Dutch file's word
    for "dose" must stay the same word everywhere. Translate the meaning, not word for word.
 7. **Content descriptions** for icons and images are strings too, in every locale, and describe the

@@ -41,6 +41,8 @@ Run from the main checkout, on an up-to-date `development` (`git pull --ff-only`
    holds a version to bump.
 7. **Manual tests owed.** List any manual-testing callouts in the merged PRs since the last release
    whose checkboxes are still unticked. Those are the user's to do before release.
+8. **Play readiness.** Run the `pillsner-play-critic` agent with `scope: release`. Its Blockers hold
+   the release; its Console items go into the hand-over for the user to confirm in Play Console.
 
 ## Hand over
 

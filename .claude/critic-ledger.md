@@ -1,6 +1,6 @@
 # Critic ledger
 
-How the findings of `pillsner-app-critic` and `pillsner-wear-critic` turned out. The critics read this before every review to decide how deep to go per area; whoever ran the critic records the outcome here once the author has acted on the findings. It answers one question: is each critic pulling its weight, and where?
+How the findings of `pillsner-app-critic`, `pillsner-wear-critic` and `pillsner-play-critic` turned out. The critics read this before every review to decide how deep to go per area; whoever ran the critic records the outcome here once the author has acted on the findings. It answers one question: is each critic pulling its weight, and where?
 
 ## How to record
 
@@ -18,8 +18,9 @@ Use these names in the `Area` column. Add one only when none fits, and add it he
 
 | Critic | Areas |
 | --- | --- |
-| app | `app/reminders` (alarms, notifications, boot and time receivers), `app/intake` (recording outcomes, adherence), `app/schedule` (schedule model and editor), `app/data` (Room, migrations, backup and restore), `app/ui` (screens and theme), `app/strings`, `app/play` (manifest, permissions, build, release, disclosures) |
-| wear | `wear/ui`, `wear/strings`, `wear/sync` (src/shared, publisher, listener, repository), `wear/time` (agenda, midnight, time zones, per-minute timer), `wear/play` (manifest, Wear OS quality, distribution) |
+| app | `app/reminders` (alarms, notifications, boot and time receivers), `app/intake` (recording outcomes, adherence), `app/schedule` (schedule model and editor), `app/data` (Room, migrations, backup and restore), `app/ui` (screens and theme), `app/strings` |
+| wear | `wear/ui`, `wear/strings`, `wear/sync` (src/shared, publisher, listener, repository), `wear/time` (agenda, midnight, time zones, per-minute timer), `wear/quality` (round screens, rotary, fonts, TalkBack) |
+| play | `app/play` (phone manifest, permissions, target API, health and Data safety, backup rules), `wear/play` (watch manifest, form factor, Wear target API, distribution, listing), `release` (bundles, signing, workflow) |
 
 ## Precision
 

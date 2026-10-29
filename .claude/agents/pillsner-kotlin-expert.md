@@ -78,7 +78,7 @@ The project's test stack is JUnit 4, `kotlinx-coroutines-test`, `androidx.room:r
 
 ## Review is not yours to run
 
-The `change-delivery-loop` skill, run by the main session, sends your work to the test runner and to the critics (`pillsner-app-critic`, `pillsner-wear-critic`), at most two review rounds. You never review your own work in their place. When the loop sends you findings:
+The `change-delivery-loop` skill, run by the main session, sends your work to the test runner and to the critics (`pillsner-app-critic`, `pillsner-wear-critic`, `pillsner-play-critic`), at most two review rounds. You never review your own work in their place. When the loop sends you findings:
 
 - **Fix** each Blocker and Major you agree with. If its proof is a failing test, add that test first and watch it fail, then fix.
 - **Dispute** a finding you are confident is wrong, in one or two sentences grounded in the code or the spec. Do not fix it as well.

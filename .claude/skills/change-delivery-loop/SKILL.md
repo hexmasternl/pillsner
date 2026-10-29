@@ -1,6 +1,6 @@
 ---
 name: change-delivery-loop
-description: The main session's loop for delivering a Pillsner change with agents - hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI), send what it changed to pillsner-test-runner, then have the finished change reviewed by the matching critics (pillsner-app-critic, pillsner-wear-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
+description: The main session's loop for delivering a Pillsner change with agents - hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI), send what it changed to pillsner-test-runner, then have the finished change reviewed by the matching critics (pillsner-app-critic, pillsner-wear-critic, pillsner-play-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
 license: MIT
 metadata:
   author: pillsner
@@ -67,6 +67,7 @@ that applies, in parallel:
 | --- | --- |
 | `src/app` (except `data/wear/`) | `pillsner-app-critic` |
 | `src/wear`, `src/shared`, `src/app/.../data/wear/` | `pillsner-wear-critic` |
+| A manifest, a Gradle file, the version catalog, permissions, backup rules, `.github/workflows/release.yml`, the website privacy page, or the change is a release | `pillsner-play-critic` |
 
 **Brief for independence.** Give each critic the change name, the worktree, the scope
 (`git diff development...HEAD`) and the round number; in round 2, also the previous round's findings

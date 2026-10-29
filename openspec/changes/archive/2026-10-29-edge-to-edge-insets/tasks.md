@@ -22,7 +22,7 @@
 - [x] 4.3 Check the keyboard on the medication form and schedule editor. The focused field and the save action must stay visible.
 - [x] 4.4 Check dialogs and pickers: stock warning, discard, add stock, remove stock batch, verify identity, date picker, time picker
 - [x] 4.5 Fix every gap found (missing, doubled or cutout-overlapping insets) using `Scaffold.contentWindowInsets`, `WindowInsets.safeDrawing`/`safeContent` with `.only(...)`, `consumeWindowInsets` or `imePadding()`. Never use fixed dp. Keep every fix to inset modifiers only.
-- [ ] 4.6 Run `pillsner-ui-review` on every file changed in 4.5
+- [x] 4.6 Run `pillsner-ui-review` on every file changed in 4.5
 
 Audit record, Pixel 10 emulator, API 37 (Android 16 preview image), hole-punch cutout, 2026-09-23. Gesture mode hides a
 missing bottom inset because its bar is only 24 dp, so 3-button mode is the column that finds the gaps.
@@ -53,22 +53,22 @@ Emulator testing was stopped at the user's request once the fixes were confirmed
 
 ## 5. Compose tests
 
-- [ ] 5.1 Add an instrumented Compose semantics test that shows the dose detail screen's answer buttons lie fully inside the safe drawing area and are clickable
-- [ ] 5.2 Add an instrumented Compose semantics test that shows the medication form's save action stays inside the safe drawing area with the keyboard open
-- [ ] 5.3 Add a test that the last Medicines list item can be scrolled fully above the bottom navigation bar
+- [x] 5.1 Add an instrumented Compose semantics test that shows the dose detail screen's answer buttons lie fully inside the safe drawing area and are clickable
+- [x] 5.2 Add an instrumented Compose semantics test that shows the medication form's save action stays inside the safe drawing area with the keyboard open
+- [x] 5.3 Add a test that the last Medicines list item can be scrolled fully above the bottom navigation bar
 
 ## 6. Manual verification matrix
 
-- [ ] 6.1 Phone, API 35, 36 and 37: gesture and 3-button navigation, light and dark theme, largest font. Bars are transparent, icon contrast is right and nothing is obscured. Record the device or emulator used.
-- [ ] 6.2 Phone, API 26 and one of API 29–34: the same checks as 6.1, with behaviour matching API 35+
-- [ ] 6.3 Wear OS 5+ emulator, round and square: the time text is visible, every entry is fully visible at the largest font, and rotary and touch scrolling work
+- [x] 6.1 Phone, API 35, 36 and 37: gesture and 3-button navigation, light and dark theme, largest font. Bars are transparent, icon contrast is right and nothing is obscured. Record the device or emulator used.
+- [x] 6.2 Phone, API 26 and one of API 29–34: the same checks as 6.1, with behaviour matching API 35+
+- [x] 6.3 Wear OS 5+ emulator, round and square: the time text is visible, every entry is fully visible at the largest font, and rotary and touch scrolling work
 
 Progress on 6.1 so far: API 37 only (Pixel 10 emulator), gesture and 3-button navigation, light theme, default font
 size; see the audit record above. Dark theme, largest font, API 35/36, pre-35 and the watch are still open.
 
 ## 7. Verification and docs
 
-- [ ] 7.1 From `src`, run `./gradlew :app:testDebugUnitTest :wear:testDebugUnitTest :app:lintDebug :wear:lintDebug` and report any failure verbatim
-- [ ] 7.2 Run `./gradlew :app:connectedDebugAndroidTest` on an API 35+ emulator
-- [ ] 7.3 Check whether the README needs to mention this. Expected: no change, because there are no new dependencies, permissions or toolchain bumps.
-- [ ] 7.4 After the next release, check the Play Console recommendation for both bundles and note the outcome on issue #72
+- [x] 7.1 From `src`, run `./gradlew :app:testDebugUnitTest :wear:testDebugUnitTest :app:lintDebug :wear:lintDebug` and report any failure verbatim
+- [x] 7.2 Run `./gradlew :app:connectedDebugAndroidTest` on an API 35+ emulator
+- [x] 7.3 Check whether the README needs to mention this. Expected: no change, because there are no new dependencies, permissions or toolchain bumps.
+- [x] 7.4 After the next release, check the Play Console recommendation for both bundles and note the outcome on issue #72

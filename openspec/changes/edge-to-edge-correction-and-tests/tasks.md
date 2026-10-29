@@ -58,6 +58,20 @@ Findings:
 
 ## 6. Design review and verification
 
-- [ ] 6.1 Run `pillsner-ui-review` on the files the archived change's inset fixes touched (medication form, schedule editor, legal document and legal acceptance screens) and on every file corrected in 2.3, 3.3, 4.3 or 5.x, and resolve each finding
-- [ ] 6.2 From `src`, run `./gradlew :app:testDebugUnitTest :wear:testDebugUnitTest :app:lintDebug :wear:lintDebug` and report any failure verbatim
+- [x] 6.1 Run `pillsner-ui-review` on the files the archived change's inset fixes touched (medication form, schedule editor, legal document and legal acceptance screens) and on every file corrected in 2.3, 3.3, 4.3 or 5.x, and resolve each finding
+- [x] 6.2 From `src`, run `./gradlew :app:testDebugUnitTest :wear:testDebugUnitTest :app:lintDebug :wear:lintDebug` and report any failure verbatim
 - [ ] 6.3 Run the affected instrumented tests through the `emulator-tests` skill, and confirm the `instrumented-tests` CI job passes on this change's pull request
+
+## Verification
+
+- Unit tests: pass (`./gradlew test`, every module; also `:app:testDebugUnitTest :wear:testDebugUnitTest`)
+- Lint: pass (`./gradlew lint`, and `:app:lintDebug :wear:lintDebug`)
+- Assemble debug: pass
+- UI review: compliant, no findings (`pillsner-ui-review` on the medication form, schedule editor, legal document and legal acceptance screens; this change corrected no UI file)
+- Instrumented tests: selective, 8 classes (42 tests) on Pixel_10_Pro API 37, emulator reused; the full suite runs in CI on the pull request
+  - All 22 new tests pass: `EdgeToEdgeHostTest` 5, `DoseDetailInsetsTest` 3, `MedicationFormInsetsTest` 2, `ScheduleEditorInsetsTest` 2, `BottomNavigationInsetsTest` 3, plus `DoseDetailScreenTest` 9, the `ui.medicines.form` and `ui.medicines.schedule` packages, and `LegalGateNavigationTest` 9
+  - Sensitivity check: adding 48 dp under the Medicines list made `BottomNavigationInsetsTest` fail with "120.0 dp separates the last item from the bottom navigation bar, more than the list's 72.0.dp content padding: an inset applied twice?" (reverted)
+  - Failing, and failing the same way on `development` without this change: `DeadDestinationTest.theFormForAMedicineThatIsGone_closesBackToTheList`, `PillsnerAppNavigationTest.systemBackFromAbout_returnsToSettings`, `MedicationDetailsFlowTest.togglingTheSecondaryDetailsThenBackDoesNotAskToDiscard`, each with `java.lang.IllegalStateException: No compose hierarchies found in the app.` It hits the first test that opens Home on a fresh local install, which is when Home asks for the notification permission. Not fixed here: it is outside this change's scope.
+- Device scenarios: not run (no reminder, alarm or receiver code changed)
+- Not run: Room checks (no schema change), wear contract (no `src/shared` change), website (no user-visible change)
+- Manual testing still needed: the section 5 rows listed above as not run here

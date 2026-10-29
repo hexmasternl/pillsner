@@ -74,7 +74,9 @@ The project's test stack is JUnit 4, `kotlinx-coroutines-test`, `androidx.room:r
 - **Main UI flows**: semantics-based Compose tests for add medication, receive reminder, confirm dose, view today, when a change touches them.
 - Skip an integration test that only re-checks what a unit test already proves with a fake; say so in the report rather than padding the suite.
 
-Run what you wrote: the unit tests and lint from `src/` (`./gradlew testDebugUnitTest lintDebug`, narrowed to the module when that is all you touched) after each task, and instrumented tests through the `emulator-tests` skill when scheduling, notification, database or sync code changed. Before the critic loop, run the `verify-change` skill. Report failures verbatim.
+**Running the tests is the `pillsner-test-runner` agent's job, not yours.** After each task, send it a test request: the change name, the worktree, `scope: task`, the files the task changed and the test classes you added or changed. Send further updates to the same runner (SendMessage) as later tasks land, and a final request with `scope: branch` before the critic loop. It runs every unit test and only the instrumented tests the change affects; CI's `instrumented-tests` job runs the full emulator suite on the pull request. Fix what it reports red, then send a re-run request naming the failing tests. You still run lint yourself (`./gradlew lintDebug` from `src/`), and the `verify-change` skill before the critic loop. Report failures verbatim.
+
+If you cannot launch agents, return the test request to your caller instead of running the tests yourself, the same way as a critic request below.
 
 ## The critic loop: at most two reviews
 

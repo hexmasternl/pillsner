@@ -9,7 +9,8 @@ metadata:
 
 Bug reports arrive through `.github/ISSUE_TEMPLATE/bug_report.yml` (labels `bug` and `triage`),
 directly or from the website's report-a-bug form. Each one gets reproduced before anything is changed,
-and every fix starts with a test that fails.
+and every fix starts with a test that fails. The `pillsner-issue-triager` agent can run steps 1-5 in the
+background and hand back the failing test, the route and a draft reply.
 
 ## 1. Pick and read
 

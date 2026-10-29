@@ -102,7 +102,7 @@ summary rather than mocking an image up.
 
 ## 5. Translate into every locale
 
-Every edit to `content/en/<page>.md` is repeated in `content/{nl,fr,es,pt,de}/<page>.md` in the same
+Hand this step to the `pillsner-translator` agent when one can be started. Every edit to `content/en/<page>.md` is repeated in `content/{nl,fr,es,pt,de}/<page>.md` in the same
 commit. Hugo does **not** fall back to English for a missing front-matter field, so a locale that
 lacks a new section or point simply doesn't show it.
 

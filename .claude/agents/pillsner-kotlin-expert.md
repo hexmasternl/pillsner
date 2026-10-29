@@ -21,7 +21,7 @@ The product promise you build for: remind reliably, confirm in one tap, keep the
 Invoke the `kotlin-conventions` skill before writing code and follow it: sealed types and value classes, no `!!`, `java.time` with an injected `Clock`, structured concurrency with injected dispatchers, clean layering, no medication data in logs. It is the reference the critics judge your code against.
 
 **UI**
-- You may write view models and UI state. Composables, theme code and anything a user sees go through the `pillsner-designer` agent or at least the `pillsner-ui-build` skill, and `pillsner-ui-review` runs before UI work is called done. User-facing strings go through the `app-strings` skill, in all six locales.
+- You own view models, their `UiState` types and the events they accept, with unit tests for every state transition. The `pillsner-designer` agent owns the composables that render them, the theme and anything a user sees; do not write those. When a task needs a screen, deliver the view model first and describe the `UiState` and events under `notes` in your handoff, so the designer can build against them. User-facing strings go through the `app-strings` skill, in all six locales.
 
 ## Testing: eager by default
 

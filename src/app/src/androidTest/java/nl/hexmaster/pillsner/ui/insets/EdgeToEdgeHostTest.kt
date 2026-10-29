@@ -37,9 +37,15 @@ class EdgeToEdgeHostTest {
     fun anUnpaddedNodeAtTheBottomEdgeFails() {
         host.show(InsetPreset.THREE_BUTTON) { BottomStrip(Modifier) }
 
-        assertThrows(AssertionError::class.java) {
+        // Only the overlap message counts: the helper also throws when the preset never reaches
+        // composition, and that must not pass this test.
+        val failure = assertThrows(AssertionError::class.java) {
             host.composeRule.onNodeWithTag(STRIP).assertInsideSafeDrawingArea(host)
         }
+        assertTrue(
+            "Expected an overlap failure, got: ${failure.message}",
+            failure.message.orEmpty().contains("reach outside the safe drawing area"),
+        )
     }
 
     @Test

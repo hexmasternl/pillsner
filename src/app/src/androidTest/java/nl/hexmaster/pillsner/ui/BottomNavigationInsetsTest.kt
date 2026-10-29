@@ -166,15 +166,17 @@ class BottomNavigationInsetsTest {
 
     /** Scrolls a screen at a time until the list stops moving: a lazy list's length is an estimate. */
     private fun scrollToEnd(list: SemanticsNodeInteraction) {
-        var previous = -1f
+        fun position() = list.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
+
+        var previous = position()
         repeat(MAX_SCROLL_STEPS) {
-            val position = list.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
-            if (position == previous) return
-            previous = position
             list.performSemanticsAction(SemanticsActions.ScrollBy) { scrollBy ->
                 scrollBy(0f, host.activity.window.decorView.height.toFloat())
             }
             composeRule.waitForIdle()
+            val current = position()
+            if (current == previous) return
+            previous = current
         }
         throw AssertionError("The list did not reach its end in $MAX_SCROLL_STEPS screens")
     }

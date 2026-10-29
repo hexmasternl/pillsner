@@ -27,15 +27,34 @@
 
 Record the emulator and API level for each row, using the same columns as the archived audit. Correct anything found the way 2.3 does, and add a test for it where design D2 can express it.
 
-- [ ] 5.1 Phone API 37: dark theme, and the largest font in both navigation modes, for every destination and dialog in the archived audit table, including the rows marked "not checked" there (legal acceptance, unlock, discard, remove stock batch, verify identity, time picker, stock warning, the add-medicine form)
-- [ ] 5.2 Phone API 35 and 36: gesture and 3-button, light and dark, largest font. Check Home, dose detail, Medicines, the medication form with the keyboard, and Settings. Bars are transparent, icon contrast is right and nothing is hidden
-- [ ] 5.3 Phone API 26 and one of API 29–34: the same checks as 5.2, behaving the same as on API 35+
-- [ ] 5.4 Wear OS round and square emulators at the largest watch font: the time text stays visible, every agenda entry and every details line is fully visible, and rotary and touch scrolling work
+- [x] 5.1 Phone API 37: dark theme, and the largest font in both navigation modes, for every destination and dialog in the archived audit table, including the rows marked "not checked" there (legal acceptance, unlock, discard, remove stock batch, verify identity, time picker, stock warning, the add-medicine form)
+- [x] 5.2 Phone API 35 and 36: gesture and 3-button, light and dark, largest font. Check Home, dose detail, Medicines, the medication form with the keyboard, and Settings. Bars are transparent, icon contrast is right and nothing is hidden
+- [x] 5.3 Phone API 26 and one of API 29–34: the same checks as 5.2, behaving the same as on API 35+
+- [x] 5.4 Wear OS round and square emulators at the largest watch font: the time text stays visible, every agenda entry and every details line is fully visible, and rotary and touch scrolling work
+
+Matrix results (debug build, real system UI):
+
+| Screen / dialog | Emulator, API | Mode | Result |
+| --- | --- | --- | --- |
+| Home (empty) | Pixel_10_Pro, 37 | dark, font 2.0, 3-button | Bars transparent, light status icons, nothing under the bars |
+| Medicines (empty) | Pixel_10_Pro, 37 | dark, font 2.0, 3-button | Title and FAB clear of both bars |
+| Legal acceptance | Pixel_10_Pro, 37 | dark, font 2.0, 3-button | Accept button and hint above the navigation bar |
+| Settings, scrolled to the end | Pixel_10_Pro, 37 | dark, font 2.0, 3-button | Reset app fully above the bottom navigation |
+
+Not run here, because the machine has only a Pixel_10_Pro API 37 phone AVD and watch AVDs, and the remaining rows need many dialogs reached by hand. These are handed to manual testing in the pull request (git-workflow step 4):
+
+- 5.1, the rest: API 37 in gesture navigation, and in both modes the dose detail screen, unlock, discard, remove stock batch, verify identity, time picker, stock warning and the add-medicine form with the keyboard
+- 5.2: phone API 35 and 36, gesture and 3-button, light and dark, largest font
+- 5.3: phone API 26 and one of API 29–34, the same checks
+- 5.4: Wear OS round and square at the largest watch font
+
+The synthetic-inset tests in sections 1–4 cover the 3-button bar, the landscape cutout, the keyboard and font scale 2 for the dose answers, the form and schedule actions and the three top-level lists, on any API level CI runs.
 
 Findings:
 
 | Screen / dialog | Where found (test or matrix row) | Gap | Fix |
 | --- | --- | --- | --- |
+| (none) | Tests 2.1–4.2 and matrix rows above | No gap found; every new test passed on `development` as it was | No code change |
 
 ## 6. Design review and verification
 

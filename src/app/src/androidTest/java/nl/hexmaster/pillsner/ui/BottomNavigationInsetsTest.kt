@@ -64,8 +64,10 @@ import org.junit.runner.RunWith
  * content padding away from it (design D4).
  *
  * Hosted through the app shell rather than a screen on its own, because what is tested is how
- * `NavigationSuiteScaffold` and each destination share the bottom inset. The data lives in an
- * in-memory database, so the device's own data is neither read nor changed.
+ * `NavigationSuiteScaffold` and each destination share the bottom inset. The medicines, doses and
+ * stock batches it seeds live in an in-memory database, so the device's own lists stay untouched;
+ * the rest of the container (settings, the stock warning queue, the transaction runner's database)
+ * is still the device's own storage, which these tests only read.
  */
 @RunWith(AndroidJUnit4::class)
 class BottomNavigationInsetsTest {

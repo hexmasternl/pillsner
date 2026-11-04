@@ -6,6 +6,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -78,6 +84,19 @@ class RoundScreenFitTest {
                 WatchTimeGroup(morning, listOf(entry(1, "Examplamol", 0), entry(2, "Testafen", 0))),
                 WatchTimeGroup(morning.plusSeconds(4 * 3600), listOf(entry(3, "Placebotin", 240))),
             ),
+        ),
+    )
+
+    /** More doses than a small round screen shows at once, so the last one is reached by scrolling. */
+    private val longAgenda = listOf(
+        WatchDaySection(
+            day = AgendaDay.TODAY,
+            groups = (0L until 5L).map { hour ->
+                WatchTimeGroup(
+                    morning.plusSeconds(hour * 3600),
+                    listOf(entry(10 + hour, "Examplamol", hour * 60), entry(20 + hour, "Testafen", hour * 60)),
+                )
+            },
         ),
     )
 
@@ -163,6 +182,81 @@ class RoundScreenFitTest {
     fun theTopOfTheAgendaClearsTheBezelAtTheLargestFont() {
         setAgenda(LARGEST_FONT, sections = agenda)
         assertLinesInsideTheCircle(Region.UPPER_HALF)
+    }
+
+    /**
+     * Issue #116: scrolled to the end of a list longer than the screen, the last dose card lies
+     * entirely inside the circle — its rounded container too, not only its text — so the round
+     * screen never cuts off an entry ("the list scrolls to reveal every entry").
+     */
+    @Test
+    fun theLastDoseOfALongAgendaClearsTheBezel() {
+        setAgendaCapturingTheCardShape(DEFAULT_FONT)
+        scrollToTheEnd()
+        assertCardsInTheLowerHalfInsideTheCircle()
+    }
+
+    @Test
+    fun theLastDoseOfALongAgendaClearsTheBezelAtTheLargestFont() {
+        setAgendaCapturingTheCardShape(LARGEST_FONT)
+        scrollToTheEnd()
+        assertCardsInTheLowerHalfInsideTheCircle()
+    }
+
+    private var cardShape: Shape? = null
+
+    private fun setAgendaCapturingTheCardShape(fontScale: Float) = setContent(fontScale) {
+        // DoseCard draws its container in MaterialTheme.shapes.large.
+        cardShape = MaterialTheme.shapes.large
+        UpcomingDosesScreen(WatchUiState(longAgenda, phoneConnected = true, hasData = true, locale = Locale.ENGLISH))
+    }
+
+    private fun scrollToTheEnd() {
+        val list = composeRule.onNodeWithTag(UpcomingDosesTestTags.LIST)
+        list.performScrollToIndex(list.itemCount() - 1)
+    }
+
+    /**
+     * Every dose card wholly below the middle of the screen must fit the circle. A card's outline is
+     * a rounded rectangle; its points farthest from the screen's centre lie on the corner arcs, so a
+     * corner fits when the distance to its arc's centre plus the arc's radius is within the circle.
+     */
+    private fun assertCardsInTheLowerHalfInsideTheCircle() {
+        composeRule.waitForIdle()
+        val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        val center = screen.center
+        val radius = minOf(screen.width, screen.height) / 2f
+        val density = composeRule.density
+        val shape = checkNotNull(cardShape)
+
+        val cards = composeRule.onAllNodes(hasClickAction()).fetchSemanticsNodes()
+            .filter { it.boundsInRoot.top >= center.y }
+        assertTrue("Expected a dose card in the lower half when scrolled to the end", cards.isNotEmpty())
+
+        val outside = cards.mapNotNull { card ->
+            val drawn = card.boundsInRoot
+            val scale = drawn.width / card.size.width
+            val outline = shape.createOutline(
+                Size(card.size.width.toFloat(), card.size.height.toFloat()),
+                LayoutDirection.Ltr,
+                density,
+            )
+            val corner = (outline as? Outline.Rounded)?.roundRect?.bottomLeftCornerRadius?.x?.times(scale) ?: 0f
+            val arcCentres = listOf(
+                Offset(drawn.left + corner, drawn.top + corner),
+                Offset(drawn.right - corner, drawn.top + corner),
+                Offset(drawn.left + corner, drawn.bottom - corner),
+                Offset(drawn.right - corner, drawn.bottom - corner),
+            )
+            val farthest = arcCentres.maxOf { hypot(it.x - center.x, it.y - center.y) + corner }
+            if (farthest <= radius) null else "card at $drawn reaches ${farthest}px from the centre"
+        }
+
+        assertTrue(
+            "A dose card crosses the edge of the round screen at the end of the list " +
+                "(radius $radius around $center):\n" + outside.joinToString("\n"),
+            outside.isEmpty(),
+        )
     }
 
     @Test

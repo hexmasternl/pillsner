@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.ListHeaderDefaults
 import androidx.wear.compose.material3.MaterialTheme
@@ -55,15 +56,15 @@ object UpcomingDosesTestTags {
  * footer is the honest part — a list the phone can no longer correct is still shown, because it is
  * the best answer available, but it says the phone is out of reach so nobody mistakes it for live.
  *
- * [appVersion] is the installed version name, for the mark and version that end the list
- * (`fix-watch-agenda-bottom-inset` design D3). Nothing renders it yet: the parameter and its tags
- * exist so the tests of task 1.7 compile. Task 2.1 renders the item and drops the default, once
- * `MainActivity` passes the build's version name.
+ * [appVersion] is the installed version name, shown under the product mark as the last item of
+ * the list in every state: after the doses or the empty text, and after the footer when that is
+ * shown (`fix-watch-agenda-bottom-inset` design D1 and D3). It is a parameter rather than part of
+ * the state because it never changes while the app runs; `MainActivity` passes the build's own.
  */
 @Composable
 fun UpcomingDosesScreen(
     uiState: WatchUiState,
-    @Suppress("UNUSED_PARAMETER") appVersion: String = "",
+    appVersion: String,
     onDoseClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -144,11 +145,25 @@ fun UpcomingDosesScreen(
                             )
                         }
                     }
+
+                    // Every agenda ends the same way. As the last item it tells the scaffold how
+                    // much room the end of the list needs to clear a round screen's bezel.
+                    item(key = APP_MARK_KEY) {
+                        AppMarkAndVersion(
+                            appVersion = appVersion,
+                            modifier = Modifier
+                                .minimumVerticalContentPadding(CardDefaults.minimumVerticalListContentPadding)
+                                .itemScrollTransform(this, transformationSpec),
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+/** The key of the list's last item; dose rows use `day-`, `time-` and `dose-` keys. */
+private const val APP_MARK_KEY = "app-mark-and-version"
 
 private fun Modifier.itemScrollTransform(
     scope: androidx.wear.compose.foundation.lazy.TransformingLazyColumnItemScope,
@@ -246,6 +261,9 @@ private fun previewEntry(
     stockText = "24 tablets",
 )
 
+/** A made-up version name for the previews. */
+private const val PREVIEW_VERSION = "1.2.3"
+
 private val previewSections = listOf(
     WatchDaySection(
         day = AgendaDay.TODAY,
@@ -281,7 +299,7 @@ private val previewSections = listOf(
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
 @Composable
 private fun UpcomingDosesPreview() {
-    PillsnerWearTheme { UpcomingDosesScreen(previewState(previewSections)) }
+    PillsnerWearTheme { UpcomingDosesScreen(previewState(previewSections), PREVIEW_VERSION) }
 }
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
@@ -289,14 +307,14 @@ private fun UpcomingDosesPreview() {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
 @Composable
 private fun UpcomingDosesEmptyPreview() {
-    PillsnerWearTheme { UpcomingDosesScreen(previewState(emptyList())) }
+    PillsnerWearTheme { UpcomingDosesScreen(previewState(emptyList()), PREVIEW_VERSION) }
 }
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 private fun UpcomingDosesDisconnectedPreview() {
     PillsnerWearTheme {
-        UpcomingDosesScreen(previewState(previewSections, phoneConnected = false))
+        UpcomingDosesScreen(previewState(previewSections, phoneConnected = false), PREVIEW_VERSION)
     }
 }
 
@@ -306,6 +324,9 @@ private fun UpcomingDosesDisconnectedPreview() {
 @Composable
 private fun UpcomingDosesNeverSyncedPreview() {
     PillsnerWearTheme {
-        UpcomingDosesScreen(previewState(emptyList(), phoneConnected = false, hasData = false))
+        UpcomingDosesScreen(
+            previewState(emptyList(), phoneConnected = false, hasData = false),
+            PREVIEW_VERSION,
+        )
     }
 }

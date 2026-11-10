@@ -106,7 +106,7 @@ class UpcomingDosesScreenTest {
         assertShown(hasText("Simvastatin"))
         // Today, two times with one dose each; Tomorrow, one time with one dose: two day headings.
         // Then the mark and version, which end every agenda.
-        assertEquals(9, list().itemCount())
+        assertItems(9, "two day headings, three time headings, three doses, then the mark and version")
     }
 
     @Test
@@ -125,7 +125,7 @@ class UpcomingDosesScreenTest {
 
         // Today, then one time heading over the two doses at that time, then one over the third:
         // six items, and the mark and version after them. A heading per dose would make eight.
-        assertEquals(7, list().itemCount())
+        assertItems(7, "one day heading, two time headings, three doses, then the mark and version")
         assertShown(hasText("Simvastatin"))
     }
 
@@ -214,7 +214,7 @@ class UpcomingDosesScreenTest {
         setScreen(state(agenda(AgendaDay.TODAY to listOf(entry(1, "Examplamol")))))
 
         // Today, one time, one dose, then the mark and version.
-        assertEquals(4, list().itemCount())
+        assertItems(4, "a day heading, a time heading, a dose, then the mark and version")
         assertTheMarkAndVersionEndTheListBelow(hasClickAction(), "the last dose")
     }
 
@@ -223,7 +223,7 @@ class UpcomingDosesScreenTest {
         setScreen(state())
 
         // The empty text, then the mark and version.
-        assertEquals(2, list().itemCount())
+        assertItems(2, "the empty text, then the mark and version")
         assertTheMarkAndVersionEndTheListBelow(hasTestTag(UpcomingDosesTestTags.EMPTY), "the empty text")
     }
 
@@ -232,7 +232,7 @@ class UpcomingDosesScreenTest {
         setScreen(state(agenda(AgendaDay.TODAY to listOf(entry(1, "Examplamol"))), phoneConnected = false))
 
         // Today, one time, one dose, the footer, then the mark and version.
-        assertEquals(5, list().itemCount())
+        assertItems(5, "a day heading, a time heading, a dose, the footer, then the mark and version")
         assertTheMarkAndVersionEndTheListBelow(hasTestTag(UpcomingDosesTestTags.FOOTER), "the footer")
     }
 
@@ -241,7 +241,7 @@ class UpcomingDosesScreenTest {
         setScreen(state(phoneConnected = false, hasData = false))
 
         // The empty text, the footer, then the mark and version.
-        assertEquals(3, list().itemCount())
+        assertItems(3, "the empty text, the footer, then the mark and version")
         assertTheMarkAndVersionEndTheListBelow(hasTestTag(UpcomingDosesTestTags.FOOTER), "the footer")
     }
 
@@ -304,6 +304,11 @@ class UpcomingDosesScreenTest {
                 .onAllNodes(hasText("Version", substring = true, ignoreCase = true), useUnmergedTree = true)
                 .assertCountEquals(0)
         }
+    }
+
+    /** The agenda holds exactly [expected] items; [what] names them, so a failure says what is missing. */
+    private fun assertItems(expected: Int, what: String) {
+        assertEquals("The agenda should hold $expected items: $what", expected, list().itemCount())
     }
 
     private fun scrollToTheEnd() {

@@ -22,6 +22,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.text.TextLayoutResult
@@ -142,7 +143,7 @@ class RoundScreenFitTest {
     @Test
     fun aWatchThatHasNeverSyncedFitsTheRoundScreenAtTheLargestFont() {
         setAgenda(LARGEST_FONT, phoneConnected = false, hasData = false)
-        assertLinesInsideTheCircle()
+        assertTheEmptyStateFitsAtRestAndTheMarkAndVersionAtTheEnd()
     }
 
     @Test
@@ -154,7 +155,18 @@ class RoundScreenFitTest {
     @Test
     fun aPhoneOutOfReachFitsTheRoundScreenAtTheLargestFont() {
         setAgenda(LARGEST_FONT, phoneConnected = false, hasData = true)
-        assertLinesInsideTheCircle()
+        assertTheEmptyStateFitsAtRestAndTheMarkAndVersionAtTheEnd()
+    }
+
+    /**
+     * Design D8: at the largest font the empty text, the footer and the list's last item are
+     * together taller than the screen. The empty text and the footer keep their place — every line
+     * of them inside the circle at rest, with no scroll allowance — and the mark and version are
+     * reached by scrolling, where they must fit in turn.
+     */
+    private fun assertTheEmptyStateFitsAtRestAndTheMarkAndVersionAtTheEnd() {
+        assertLinesInsideTheCircle(label = "at rest", exceptTag = UpcomingDosesTestTags.VERSION)
+        assertTheMarkAndVersionInsideTheCircle(label = "at the end")
     }
 
     /** The tallest empty state, in every language the watch ships, longest words included. */
@@ -222,10 +234,16 @@ class RoundScreenFitTest {
         )
     }
 
-    /** Scrolls the column tagged [listTag] to its last item, however many items it holds. */
+    /**
+     * Scrolls the column tagged [listTag] to its very end: to its last item, however many items it
+     * holds, and then as far as the list still moves. Scrolling to an item alone brings a tall last
+     * item to the middle of the screen, which is not yet the end of the list.
+     */
     private fun scrollToTheEnd(listTag: String = UpcomingDosesTestTags.LIST) {
         val list = composeRule.onNodeWithTag(listTag)
         list.performScrollToIndex(list.itemCount() - 1)
+        list.performSemanticsAction(SemanticsActions.ScrollBy) { scrollBy -> scrollBy(0f, FAR) }
+        composeRule.waitForIdle()
     }
 
     /**
@@ -350,28 +368,31 @@ class RoundScreenFitTest {
             .fetchSemanticsNodes()
         val versions = composeRule.onAllNodesWithTag(UpcomingDosesTestTags.VERSION, useUnmergedTree = true)
             .fetchSemanticsNodes()
+        val where = if (label.isEmpty()) "" else " $label"
         assertTrue(
-            "The agenda does not end with the product mark $label: ${marks.size} found",
+            "The agenda does not end with the product mark$where: expected one node tagged " +
+                "\"${UpcomingDosesTestTags.MARK}\" at the end of the list, found ${marks.size}",
             marks.size == 1,
         )
         assertTrue(
-            "The agenda does not end with the version line $label: ${versions.size} found",
+            "The agenda does not end with the version line$where: expected one node tagged " +
+                "\"${UpcomingDosesTestTags.VERSION}\" at the end of the list, found ${versions.size}",
             versions.size == 1,
         )
 
-        val mark = marks.single().boundsInRoot
+        val mark = marks.single().drawnBox()
         val versionLines = versions.single().lineBoxes()
-        assertTrue("The product mark is not drawn $label: $mark", !mark.isEmpty)
-        assertTrue("The version line has no laid-out text $label", versionLines.isNotEmpty())
+        assertTrue("The product mark has no size$where: $mark", mark.width > 0f && mark.height > 0f)
+        assertTrue("The version line has no laid-out text$where", versionLines.isNotEmpty())
 
         assertTrue(
-            "The product mark crosses the edge of the round screen at the end of the list $label " +
+            "The product mark crosses the edge of the round screen at the end of the list$where " +
                 "(radius $radius around $center): mark at $mark",
             mark.isInsideCircle(center, radius),
         )
         val outside = versionLines.filter { line -> !line.isInsideCircle(center, radius) }
         assertTrue(
-            "The version crosses the edge of the round screen at the end of the list $label " +
+            "The version crosses the edge of the round screen at the end of the list$where " +
                 "(radius $radius around $center):\n" +
                 outside.joinToString("\n") { line -> "\"${versions.single().text()}\" line at $line" },
             outside.isEmpty(),
@@ -432,13 +453,24 @@ class RoundScreenFitTest {
         )
     }
 
-    private fun assertLinesInsideTheCircle(region: Region = Region.WHOLE, label: String = "") {
+    /**
+     * Every laid-out line in [region] lies inside the circle. [exceptTag] leaves out the one text
+     * tagged with it, for a state where that text is checked scrolled to the end instead.
+     */
+    private fun assertLinesInsideTheCircle(
+        region: Region = Region.WHOLE,
+        label: String = "",
+        exceptTag: String? = null,
+    ) {
         composeRule.waitForIdle()
         val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
         val center = screen.center
         val radius = minOf(screen.width, screen.height) / 2f
 
-        val outside = textNodes().flatMap { node ->
+        val checked = textNodes().filter { node ->
+            exceptTag == null || node.config.getOrNull(SemanticsProperties.TestTag) != exceptTag
+        }
+        val outside = checked.flatMap { node ->
             node.lineBoxes()
                 .filter { line -> region.contains(line, center.y) }
                 .filter { line -> !line.isInsideCircle(center, radius) }
@@ -483,6 +515,18 @@ class RoundScreenFitTest {
         }
     }
 
+    /**
+     * This node's whole box where it is drawn, in root coordinates: its laid-out size carried
+     * through the transformations of its layers, and not cut down to the part that is visible. A
+     * node half below the screen keeps its full box here, so it cannot pass by being clipped.
+     */
+    private fun SemanticsNode.drawnBox(): Rect {
+        val coordinates = layoutInfo.coordinates
+        val topLeft = coordinates.localToRoot(Offset.Zero)
+        val bottomRight = coordinates.localToRoot(Offset(size.width.toFloat(), size.height.toFloat()))
+        return Rect(topLeft, bottomRight)
+    }
+
     private fun Rect.isInsideCircle(center: Offset, radius: Float): Boolean =
         listOf(topLeft, topRight, bottomLeft, bottomRight).all { corner ->
             hypot(corner.x - center.x, corner.y - center.y) <= radius
@@ -506,6 +550,9 @@ class RoundScreenFitTest {
 
         /** The largest of Wear OS's font sizes. */
         const val LARGEST_FONT = 1.24f
+
+        /** More pixels than any list here is long, to scroll as far as it goes. */
+        const val FAR = 10_000f
 
         /** A made-up version name with a two-digit part, as wide as a version line plausibly gets. */
         const val APP_VERSION = "1.12.3"

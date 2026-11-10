@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val container = (application as PillsnerWearApplication).container
-        setContent { WearApp(container.viewModelFactory) }
+        setContent { WearApp(container.viewModelFactory, BuildConfig.VERSION_NAME) }
     }
 }
 
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
  * back to the list rather than leaving a dose on screen that no longer exists.
  */
 @Composable
-fun WearApp(viewModelFactory: ViewModelProvider.Factory) {
+fun WearApp(viewModelFactory: ViewModelProvider.Factory, appVersion: String) {
     val viewModel: WatchViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedDoseId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -54,7 +54,7 @@ fun WearApp(viewModelFactory: ViewModelProvider.Factory) {
 
     PillsnerWearTheme {
         if (selected == null) {
-            UpcomingDosesScreen(uiState, onDoseClick = { selectedDoseId = it })
+            UpcomingDosesScreen(uiState, appVersion, onDoseClick = { selectedDoseId = it })
         } else {
             BackHandler { selectedDoseId = null }
             DoseDetailsScreen(selected, uiState.locale)

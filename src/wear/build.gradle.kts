@@ -81,6 +81,9 @@ android {
 
     buildFeatures {
         compose = true
+        // For BuildConfig.VERSION_NAME, the version the agenda ends with: the build knows it, so
+        // it cannot disagree with the installed package.
+        buildConfig = true
     }
 
     lint {

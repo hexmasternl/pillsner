@@ -28,7 +28,7 @@
 - [x] 4.1 Run the full watch instrumented suite on `Wear_Small_Round_API_36` through the `pillsner-test-runner` agent, and verify every `RoundScreenFitTest` and `UpcomingDosesScreenTest` case passes and nothing that passed before fails. The known CI-only #105 timeout (`aNewListArrivesWhileTheScreenIsOpen`) is reported separately, not counted as a regression.
 - [x] 4.2 Take before and after screenshots of the agenda scrolled to the end on the round emulator, at font scale 1.0 and 1.24, and one of the empty state, for the pull request.
 - [x] 4.3 Run the `verify-change` skill (unit tests, lint, assembly) and record the result in the `## Verification` section.
-- [ ] 4.4 Open the pull request into `development` with `Fixes #116`.
+- [x] 4.4 Open the pull request into `development` with `Fixes #116`.
 
 ## Verification
 

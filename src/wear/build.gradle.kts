@@ -40,9 +40,10 @@ android {
         versionName = releaseVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // The two languages the app ships. Strips every other locale from library resources, and
-        // makes the fallback chain exactly values-nl to values (English).
-        resourceConfigurations += listOf("en", "nl")
+        // Every language the app ships, the same six as the phone: the watch renders in whichever
+        // one the phone app is set to. Strips every other locale from library resources; anything
+        // not listed here silently falls back to values (English).
+        resourceConfigurations += listOf("en", "nl", "de", "fr", "es", "pt")
     }
 
     signingConfigs {
@@ -88,7 +89,7 @@ android {
 
     bundle {
         language {
-            // Both languages ship in the base install, as on the phone: the watch renders in
+            // Every language ships in the base install, as on the phone: the watch renders in
             // whichever language the phone app is set to, which Play cannot know at install time.
             enableSplit = false
         }

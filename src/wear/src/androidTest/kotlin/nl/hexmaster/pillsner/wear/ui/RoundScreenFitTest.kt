@@ -49,7 +49,8 @@ import org.junit.runner.RunWith
  *
  * What is checked: the empty and footer states, which fit without scrolling, whole; and a list
  * scrolled to the top, in its upper half only. A line in the lower half of a list is content still
- * to be scrolled to, not content cut off.
+ * to be scrolled to, not content cut off. The end of a list is checked scrolled to its last item
+ * (issue #116): the outline of the last dose card and the last line of the details.
  */
 @RunWith(AndroidJUnit4::class)
 class RoundScreenFitTest {
@@ -193,14 +194,14 @@ class RoundScreenFitTest {
     fun theLastDoseOfALongAgendaClearsTheBezel() {
         setAgendaCapturingTheCardShape(DEFAULT_FONT)
         scrollToTheEnd()
-        assertCardsInTheLowerHalfInsideTheCircle()
+        assertTheLastDoseCardInsideTheCircle()
     }
 
     @Test
     fun theLastDoseOfALongAgendaClearsTheBezelAtTheLargestFont() {
         setAgendaCapturingTheCardShape(LARGEST_FONT)
         scrollToTheEnd()
-        assertCardsInTheLowerHalfInsideTheCircle()
+        assertTheLastDoseCardInsideTheCircle()
     }
 
     private var cardShape: Shape? = null
@@ -218,11 +219,14 @@ class RoundScreenFitTest {
     }
 
     /**
-     * Every dose card wholly below the middle of the screen must fit the circle. A card's outline is
-     * a rounded rectangle; its points farthest from the screen's centre lie on the corner arcs, so a
-     * corner fits when the distance to its arc's centre plus the arc's radius is within the circle.
+     * The last dose card of the list must fit the circle, wherever it comes to rest (design D5).
+     * Dose cards are the only things on the agenda that can be tapped, so once the list is scrolled
+     * to its end the last one is the click-action node with the greatest bottom edge; an item under
+     * it may leave it above the middle of the screen. A card's outline is a rounded rectangle; its
+     * points farthest from the screen's centre lie on the corner arcs, so a corner fits when the
+     * distance to its arc's centre plus the arc's radius is within the circle.
      */
-    private fun assertCardsInTheLowerHalfInsideTheCircle() {
+    private fun assertTheLastDoseCardInsideTheCircle() {
         composeRule.waitForIdle()
         val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
         val center = screen.center
@@ -230,9 +234,10 @@ class RoundScreenFitTest {
         val density = composeRule.density
         val shape = checkNotNull(cardShape)
 
-        val cards = composeRule.onAllNodes(hasClickAction()).fetchSemanticsNodes()
-            .filter { it.boundsInRoot.top >= center.y }
-        assertTrue("Expected a dose card in the lower half when scrolled to the end", cards.isNotEmpty())
+        val lastCard = composeRule.onAllNodes(hasClickAction()).fetchSemanticsNodes()
+            .maxByOrNull { it.boundsInRoot.bottom }
+        assertTrue("Expected a dose card on the screen when scrolled to the end", lastCard != null)
+        val cards = listOfNotNull(lastCard)
 
         val outside = cards.mapNotNull { card ->
             val drawn = card.boundsInRoot

@@ -20,6 +20,7 @@ import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.onRoot
@@ -50,7 +51,8 @@ import org.junit.runner.RunWith
  * What is checked: the empty and footer states, which fit without scrolling, whole; and a list
  * scrolled to the top, in its upper half only. A line in the lower half of a list is content still
  * to be scrolled to, not content cut off. The end of a list is checked scrolled to its last item
- * (issue #116): the outline of the last dose card and the last line of the details.
+ * (issue #116): the outline of the last dose card, the last line of the details, and the product
+ * mark and version line that end the agenda.
  */
 @RunWith(AndroidJUnit4::class)
 class RoundScreenFitTest {
@@ -114,8 +116,9 @@ class RoundScreenFitTest {
         sections: List<WatchDaySection> = emptyList(),
         phoneConnected: Boolean = true,
         hasData: Boolean = true,
+        locale: Locale = Locale.ENGLISH,
     ) = setContent(fontScale) {
-        UpcomingDosesScreen(WatchUiState(sections, phoneConnected, hasData, Locale.ENGLISH))
+        UpcomingDosesScreen(WatchUiState(sections, phoneConnected, hasData, locale), APP_VERSION)
     }
 
     @Test
@@ -159,7 +162,10 @@ class RoundScreenFitTest {
     fun everyLanguageFitsTheRoundScreenAtTheLargestFont() {
         var locale by mutableStateOf(Locale.ENGLISH)
         setContent(LARGEST_FONT) {
-            UpcomingDosesScreen(WatchUiState(emptyList(), phoneConnected = false, hasData = false, locale = locale))
+            UpcomingDosesScreen(
+                WatchUiState(emptyList(), phoneConnected = false, hasData = false, locale = locale),
+                APP_VERSION,
+            )
         }
 
         listOf("en", "nl", "de", "fr", "es", "pt").forEach { tag ->
@@ -210,7 +216,10 @@ class RoundScreenFitTest {
     private fun setAgendaCapturingTheCardShape(fontScale: Float) = setContent(fontScale) {
         // DoseCard draws its container in MaterialTheme.shapes.large.
         cardShape = MaterialTheme.shapes.large
-        UpcomingDosesScreen(WatchUiState(longAgenda, phoneConnected = true, hasData = true, locale = Locale.ENGLISH))
+        UpcomingDosesScreen(
+            WatchUiState(longAgenda, phoneConnected = true, hasData = true, locale = Locale.ENGLISH),
+            APP_VERSION,
+        )
     }
 
     /** Scrolls the column tagged [listTag] to its last item, however many items it holds. */
@@ -262,6 +271,109 @@ class RoundScreenFitTest {
         assertTrue(
             "A dose card crosses the edge of the round screen at the end of the list " +
                 "(radius $radius around $center):\n" + outside.joinToString("\n"),
+            outside.isEmpty(),
+        )
+    }
+
+    /**
+     * Spec: "Mark and version clear the bezel" — the agenda ends with the product mark and the
+     * version line, and scrolled to the end both lie inside the circle, in each state, font size
+     * and language of design D6's table.
+     */
+    @Test
+    fun theMarkAndVersionOfALongAgendaClearTheBezel() {
+        setAgenda(DEFAULT_FONT, sections = longAgenda)
+        assertTheMarkAndVersionInsideTheCircle()
+    }
+
+    @Test
+    fun theMarkAndVersionOfALongAgendaClearTheBezelAtTheLargestFont() {
+        setAgenda(LARGEST_FONT, sections = longAgenda)
+        assertTheMarkAndVersionInsideTheCircle()
+    }
+
+    @Test
+    fun theMarkAndVersionUnderTheFooterOfALongAgendaClearTheBezelAtTheLargestFont() {
+        setAgenda(LARGEST_FONT, sections = longAgenda, phoneConnected = false)
+        assertTheMarkAndVersionInsideTheCircle()
+    }
+
+    @Test
+    fun theMarkAndVersionOfTheEmptyStateClearTheBezel() {
+        setAgenda(DEFAULT_FONT)
+        assertTheMarkAndVersionInsideTheCircle()
+    }
+
+    @Test
+    fun theMarkAndVersionOfTheEmptyStateClearTheBezelAtTheLargestFont() {
+        setAgenda(LARGEST_FONT)
+        assertTheMarkAndVersionInsideTheCircle()
+    }
+
+    @Test
+    fun theMarkAndVersionOfAWatchThatHasNeverSyncedClearTheBezel() {
+        setAgenda(DEFAULT_FONT, phoneConnected = false, hasData = false)
+        assertTheMarkAndVersionInsideTheCircle()
+    }
+
+    /** The tallest state with the longest footer, so the one checked in every language. */
+    @Test
+    fun theMarkAndVersionClearTheBezelInEveryLanguageAtTheLargestFont() {
+        var locale by mutableStateOf(Locale.ENGLISH)
+        setContent(LARGEST_FONT) {
+            UpcomingDosesScreen(
+                WatchUiState(emptyList(), phoneConnected = false, hasData = false, locale = locale),
+                APP_VERSION,
+            )
+        }
+
+        listOf("en", "nl", "de", "fr", "es", "pt").forEach { tag ->
+            locale = Locale.forLanguageTag(tag)
+            assertTheMarkAndVersionInsideTheCircle(label = "in $tag")
+        }
+    }
+
+    /**
+     * Scrolls the agenda to its last item and checks the mark and the version line there. The mark
+     * is checked by the four corners of its bounding box, which is stricter than its own round
+     * shape; the version by every laid-out line, as the rest of the text is.
+     */
+    private fun assertTheMarkAndVersionInsideTheCircle(label: String = "") {
+        composeRule.waitForIdle()
+        scrollToTheEnd()
+        composeRule.waitForIdle()
+        val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        val center = screen.center
+        val radius = minOf(screen.width, screen.height) / 2f
+
+        val marks = composeRule.onAllNodesWithTag(UpcomingDosesTestTags.MARK, useUnmergedTree = true)
+            .fetchSemanticsNodes()
+        val versions = composeRule.onAllNodesWithTag(UpcomingDosesTestTags.VERSION, useUnmergedTree = true)
+            .fetchSemanticsNodes()
+        assertTrue(
+            "The agenda does not end with the product mark $label: ${marks.size} found",
+            marks.size == 1,
+        )
+        assertTrue(
+            "The agenda does not end with the version line $label: ${versions.size} found",
+            versions.size == 1,
+        )
+
+        val mark = marks.single().boundsInRoot
+        val versionLines = versions.single().lineBoxes()
+        assertTrue("The product mark is not drawn $label: $mark", !mark.isEmpty)
+        assertTrue("The version line has no laid-out text $label", versionLines.isNotEmpty())
+
+        assertTrue(
+            "The product mark crosses the edge of the round screen at the end of the list $label " +
+                "(radius $radius around $center): mark at $mark",
+            mark.isInsideCircle(center, radius),
+        )
+        val outside = versionLines.filter { line -> !line.isInsideCircle(center, radius) }
+        assertTrue(
+            "The version crosses the edge of the round screen at the end of the list $label " +
+                "(radius $radius around $center):\n" +
+                outside.joinToString("\n") { line -> "\"${versions.single().text()}\" line at $line" },
             outside.isEmpty(),
         )
     }
@@ -394,5 +506,8 @@ class RoundScreenFitTest {
 
         /** The largest of Wear OS's font sizes. */
         const val LARGEST_FONT = 1.24f
+
+        /** A made-up version name with a two-digit part, as wide as a version line plausibly gets. */
+        const val APP_VERSION = "1.12.3"
     }
 }

@@ -39,6 +39,12 @@ object UpcomingDosesTestTags {
     const val EMPTY = "wear_empty"
     const val FOOTER = "wear_footer"
     const val LIST = "wear_list"
+
+    /** The product mark in the agenda's last item. Decorative: it carries no description. */
+    const val MARK = "wear_app_mark"
+
+    /** The version line under the mark, on the text itself so its laid-out lines can be read. */
+    const val VERSION = "wear_app_version"
 }
 
 /**
@@ -48,10 +54,16 @@ object UpcomingDosesTestTags {
  * Read-only by design: a tap opens the details of the medicine behind a dose and nothing else. The
  * footer is the honest part — a list the phone can no longer correct is still shown, because it is
  * the best answer available, but it says the phone is out of reach so nobody mistakes it for live.
+ *
+ * [appVersion] is the installed version name, for the mark and version that end the list
+ * (`fix-watch-agenda-bottom-inset` design D3). Nothing renders it yet: the parameter and its tags
+ * exist so the tests of task 1.7 compile. Task 2.1 renders the item and drops the default, once
+ * `MainActivity` passes the build's version name.
  */
 @Composable
 fun UpcomingDosesScreen(
     uiState: WatchUiState,
+    @Suppress("UNUSED_PARAMETER") appVersion: String = "",
     onDoseClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {

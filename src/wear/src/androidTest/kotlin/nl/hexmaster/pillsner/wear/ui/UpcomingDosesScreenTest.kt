@@ -1,8 +1,10 @@
 package nl.hexmaster.pillsner.wear.ui
 
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -17,6 +19,7 @@ import java.util.Locale
 import nl.hexmaster.pillsner.wear.domain.AgendaDay
 import nl.hexmaster.pillsner.wear.ui.theme.PillsnerWearTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -189,5 +192,46 @@ class UpcomingDosesScreenTest {
 
         composeRule.onNodeWithText("Vandaag").assertIsDisplayed()
         composeRule.onNodeWithText("2 tabletten").assertIsDisplayed()
+    }
+
+    /**
+     * Spec: "Language follows the phone app" — the watch package must carry every supported
+     * language, not only the sources (design D7). Lint reads the sources and cannot see a language
+     * the build strips, so this reads the footer as the installed app resolves it.
+     */
+    @Test
+    fun aPortuguesePhoneAppIsNotAnsweredInEnglish() {
+        assertTheNeverSyncedFooterIsTranslated("pt")
+    }
+
+    @Test
+    fun aGermanPhoneAppIsNotAnsweredInEnglish() {
+        assertTheNeverSyncedFooterIsTranslated("de")
+    }
+
+    private fun assertTheNeverSyncedFooterIsTranslated(languageTag: String) {
+        composeRule.setContent {
+            PillsnerWearTheme {
+                UpcomingDosesScreen(
+                    WatchUiState(
+                        sections = emptyList(),
+                        phoneConnected = false,
+                        hasData = false,
+                        locale = Locale.forLanguageTag(languageTag),
+                    ),
+                )
+            }
+        }
+
+        list().performScrollToNode(hasTestTag(UpcomingDosesTestTags.FOOTER))
+        val footer = composeRule.onNodeWithTag(UpcomingDosesTestTags.FOOTER).fetchSemanticsNode()
+            .config[SemanticsProperties.Text].joinToString(" ") { it.text }
+
+        assertNotEquals(
+            "The never-synced footer for \"$languageTag\" is the English text: " +
+                "the watch package does not carry that language",
+            "Open Pillsner on your phone to sync",
+            footer,
+        )
     }
 }

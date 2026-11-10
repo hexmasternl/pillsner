@@ -189,7 +189,35 @@ class RoundScreenFitTest {
             // the column's last item, whatever its index is in this state (design D6).
             scrollToTheEnd()
             assertLinesInsideTheCircle(Region.LOWER_HALF, label = "$tag at the end")
+            // With the mark and version under it, the footer comes to rest above the lower half at
+            // the end, where the check above does not look, and it may start in the lower half at
+            // the top. So it is also read whole where a user reads it: scrolled to the middle of
+            // the screen. A footer too wide for the circle in any language fails here.
+            list.performScrollToIndex(FOOTER_INDEX_WHEN_NEVER_SYNCED)
+            assertTheTextInsideTheCircle(UpcomingDosesTestTags.FOOTER, label = "$tag, the footer mid-screen")
         }
+    }
+
+    /**
+     * Every line of the text tagged [tag], wherever on the screen it is now, lies inside the circle.
+     * It cannot pass on nothing: the text must be composed and have laid-out lines.
+     */
+    private fun assertTheTextInsideTheCircle(tag: String, label: String) {
+        composeRule.waitForIdle()
+        val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        val center = screen.center
+        val radius = minOf(screen.width, screen.height) / 2f
+
+        val node = composeRule.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+        val lines = node.lineBoxes()
+        assertTrue("The text tagged \"$tag\" has no laid-out lines ($label)", lines.isNotEmpty())
+        val outside = lines.filter { line -> !line.isInsideCircle(center, radius) }
+
+        assertTrue(
+            "Text crosses the edge of the round screen ($label) (radius $radius around $center):\n" +
+                outside.joinToString("\n") { line -> "\"${node.text()}\" line at $line" },
+            outside.isEmpty(),
+        )
     }
 
     @Test
@@ -580,6 +608,9 @@ class RoundScreenFitTest {
 
         /** The largest of Wear OS's font sizes. */
         const val LARGEST_FONT = 1.24f
+
+        /** Never synced, the agenda holds the empty text, the footer, then the mark and version. */
+        const val FOOTER_INDEX_WHEN_NEVER_SYNCED = 1
 
         /** More pixels than any list here is long, to scroll as far as it goes. */
         const val FAR = 10_000f

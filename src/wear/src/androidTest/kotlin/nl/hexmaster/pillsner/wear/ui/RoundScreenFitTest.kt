@@ -422,6 +422,36 @@ class RoundScreenFitTest {
         assertTheLastLineInsideTheCircle()
     }
 
+    @Test
+    fun theEndOfTheDetailsClearsTheBezel() {
+        setContent(DEFAULT_FONT) { DoseDetailsScreen(entryWithLongDetails, Locale.ENGLISH) }
+        scrollToTheEnd(DoseDetailsTestTags.LIST)
+        assertTheLastLineInsideTheCircle()
+    }
+
+    /** Whichever line is last gets the room: here it is the schedule, with no stock under it. */
+    @Test
+    fun theEndOfTheDetailsWithoutStockClearsTheBezelAtTheLargestFont() {
+        setContent(LARGEST_FONT) {
+            DoseDetailsScreen(entryWithLongDetails.copy(stockText = null), Locale.ENGLISH)
+        }
+        scrollToTheEnd(DoseDetailsTestTags.LIST)
+        assertTheLastLineInsideTheCircle()
+    }
+
+    /** With nothing known about the medicine, the last line is the centred "no details" text. */
+    @Test
+    fun theEndOfTheDetailsWithoutDetailsClearsTheBezelAtTheLargestFont() {
+        setContent(LARGEST_FONT) {
+            DoseDetailsScreen(
+                entry(1, "Examplamol", 0).copy(defaultDoseText = null, scheduleLines = emptyList(), stockText = null),
+                Locale.ENGLISH,
+            )
+        }
+        scrollToTheEnd(DoseDetailsTestTags.LIST)
+        assertTheLastLineInsideTheCircle()
+    }
+
     /** Made-up details, several schedule lines long, so the details screen has to scroll. */
     private val entryWithLongDetails = entry(1, "Examplamol", 0).copy(
         scheduleLines = listOf(

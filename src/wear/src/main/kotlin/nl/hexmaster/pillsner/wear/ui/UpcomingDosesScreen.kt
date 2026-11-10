@@ -302,6 +302,36 @@ private fun UpcomingDosesPreview() {
     PillsnerWearTheme { UpcomingDosesScreen(previewState(previewSections), PREVIEW_VERSION) }
 }
 
+/** Five times with two made-up doses each: far more than a small round screen shows at once. */
+private val previewLongSections = listOf(
+    WatchDaySection(
+        day = AgendaDay.TODAY,
+        groups = (8..16 step 2).map { hour ->
+            val at = "2026-09-13T${hour.toString().padStart(2, '0')}:00:00Z"
+            WatchTimeGroup(
+                scheduledAt = Instant.parse(at),
+                doses = listOf(
+                    previewEntry(hour * 10L, "Examplamol", "2 tablets", at),
+                    previewEntry(hour * 10L + 1, "Testafen", "1 capsule", at),
+                ),
+            )
+        },
+    ),
+)
+
+/**
+ * An agenda long enough to scroll, on the smallest round screen (issue #116). A static preview shows
+ * the top of the list; scroll it in interactive mode to see the last dose, the mark and the version
+ * clear the bezel. The square device is here to check the end of the list for an extra gap.
+ */
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
+@Preview(device = WearDevices.SQUARE, showSystemUi = true)
+@Composable
+private fun UpcomingDosesLongAgendaPreview() {
+    PillsnerWearTheme { UpcomingDosesScreen(previewState(previewLongSections), PREVIEW_VERSION) }
+}
+
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)

@@ -10,6 +10,8 @@
     <string name="upcoming_tomorrow_at">Morgen %1$s</string>
     <string name="phone_not_connected">Telefoon niet verbonden</string>
     <string name="never_synced">Open Pillsner op je telefoon om te synchroniseren</string>
+    <!-- De laatste regel van de agenda, onder het productlogo. %1$s: de versienaam van de geïnstalleerde horloge-app, bijvoorbeeld 0.1.0 -->
+    <string name="app_version">Versie %1$s</string>
 
     <!-- %1$s: naam van het medicijn, %2$s: hoeveelheid, %3$s: tijd -->
     <string name="dose_description">%1$s, %2$s, om %3$s</string>

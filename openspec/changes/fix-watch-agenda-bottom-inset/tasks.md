@@ -21,7 +21,7 @@
 
 ## 3. Website
 
-- [ ] 3.1 Run the `website-feature-sync` skill for this change: update the watch page in all six locales if it describes or pictures the end of the agenda, otherwise record that nothing on the site needed changing. Verify `hugo --minify --panicOnWarning` passes and every locale has the same structure as English.
+- [x] 3.1 Run the `website-feature-sync` skill for this change: update the watch page in all six locales if it describes or pictures the end of the agenda, otherwise record that nothing on the site needed changing. Verify `hugo --minify --panicOnWarning` passes and every locale has the same structure as English. **Result:** nothing on the site needed changing, so no Hugo build was run. `wearable.md` neither describes nor pictures the end of the agenda, and a logo with a version line is not something a user can do or rely on. Packaging all six languages restores what the "In your language" section already promises. Not part of this change: the site still describes a six-hour list where the app shows today and tomorrow; that drift predates this change and belongs to a `website-feature-sync` audit.
 
 ## 4. Verification
 

@@ -79,3 +79,4 @@ Findings:
 - Device scenarios: not run (no reminder, alarm or receiver code changed)
 - Not run: Room checks (no schema change), wear contract (no `src/shared` change), website (no user-visible change)
 - Manual testing still needed: the section 5 rows listed above as not run here
+- CI: on this pull request the full `phoneApi37` suite passes, 459 of 459, including every new test. The `wear` suite fails on `UpcomingDosesRepositoryTest.aNewListArrivesWhileTheScreenIsOpen` with `kotlinx.coroutines.TimeoutCancellationException: Timed out waiting for 60000 ms`. That failure predates this change: the same test fails the same way on `development`'s own head 8414a85 (run 40663866301), and this change touches no `src/wear` or `src/shared` code. So task 6.3's CI half is not met until that watch test is fixed separately.

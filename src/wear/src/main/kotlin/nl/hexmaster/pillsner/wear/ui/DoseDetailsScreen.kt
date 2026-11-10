@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
@@ -54,6 +55,9 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
     LocalizedContent(locale) {
         val columnState = rememberTransformingLazyColumnState()
         val transformationSpec = rememberTransformationSpec()
+        // Whichever line turns out to be the last declares the room the end of the list needs to
+        // clear a round screen's bezel; the scaffold applies it only to the last item (#116).
+        val endOfListPadding = CardDefaults.minimumVerticalListContentPadding
 
         AppScaffold(modifier = modifier) {
             ScreenScaffold(scrollState = columnState) { contentPadding ->
@@ -95,7 +99,9 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_default_dose),
                                 value = defaultDose,
                                 tag = DoseDetailsTestTags.DEFAULT_DOSE,
-                                modifier = Modifier.itemScrollTransform(this, transformationSpec),
+                                modifier = Modifier
+                                    .minimumVerticalContentPadding(endOfListPadding)
+                                    .itemScrollTransform(this, transformationSpec),
                             )
                         }
                     }
@@ -105,7 +111,9 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_schedule),
                                 value = entry.scheduleLines.joinToString("\n"),
                                 tag = DoseDetailsTestTags.SCHEDULE,
-                                modifier = Modifier.itemScrollTransform(this, transformationSpec),
+                                modifier = Modifier
+                                    .minimumVerticalContentPadding(endOfListPadding)
+                                    .itemScrollTransform(this, transformationSpec),
                             )
                         }
                     }
@@ -115,7 +123,9 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 label = stringResource(R.string.details_stock),
                                 value = stock,
                                 tag = DoseDetailsTestTags.STOCK,
-                                modifier = Modifier.itemScrollTransform(this, transformationSpec),
+                                modifier = Modifier
+                                    .minimumVerticalContentPadding(endOfListPadding)
+                                    .itemScrollTransform(this, transformationSpec),
                             )
                         }
                     }
@@ -127,6 +137,7 @@ fun DoseDetailsScreen(entry: WatchDoseEntry, locale: Locale, modifier: Modifier 
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
+                                    .minimumVerticalContentPadding(endOfListPadding)
                                     .itemScrollTransform(this, transformationSpec)
                                     .fillMaxWidth()
                                     .padding(horizontal = WearDimens.screenEdge)

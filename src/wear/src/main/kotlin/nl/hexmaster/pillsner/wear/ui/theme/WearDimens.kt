@@ -18,6 +18,12 @@ object WearDimens {
     val cardPaddingHorizontal = 12.dp
     val cardPaddingVertical = 8.dp
     val iconSize = 20.dp
+
+    /** The product mark that ends the agenda: one step above [iconSize], so the capsule still reads. */
+    val markSize = 24.dp
+
+    /** Between the product mark and the version line under it. */
+    val betweenMarkAndVersion = 4.dp
     val betweenCards = 6.dp
     val screenEdge = 8.dp
 

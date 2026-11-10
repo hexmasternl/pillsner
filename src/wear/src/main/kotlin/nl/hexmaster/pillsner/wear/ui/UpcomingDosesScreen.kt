@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
+import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.ListHeaderDefaults
 import androidx.wear.compose.material3.MaterialTheme
@@ -39,6 +40,12 @@ object UpcomingDosesTestTags {
     const val EMPTY = "wear_empty"
     const val FOOTER = "wear_footer"
     const val LIST = "wear_list"
+
+    /** The product mark in the agenda's last item. Decorative: it carries no description. */
+    const val MARK = "wear_app_mark"
+
+    /** The version line under the mark, on the text itself so its laid-out lines can be read. */
+    const val VERSION = "wear_app_version"
 }
 
 /**
@@ -48,10 +55,16 @@ object UpcomingDosesTestTags {
  * Read-only by design: a tap opens the details of the medicine behind a dose and nothing else. The
  * footer is the honest part — a list the phone can no longer correct is still shown, because it is
  * the best answer available, but it says the phone is out of reach so nobody mistakes it for live.
+ *
+ * [appVersion] is the installed version name, shown under the product mark as the last item of
+ * the list in every state: after the doses or the empty text, and after the footer when that is
+ * shown (`fix-watch-agenda-bottom-inset` design D1 and D3). It is a parameter rather than part of
+ * the state because it never changes while the app runs; `MainActivity` passes the build's own.
  */
 @Composable
 fun UpcomingDosesScreen(
     uiState: WatchUiState,
+    appVersion: String,
     onDoseClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -132,11 +145,25 @@ fun UpcomingDosesScreen(
                             )
                         }
                     }
+
+                    // Every agenda ends the same way. As the last item it tells the scaffold how
+                    // much room the end of the list needs to clear a round screen's bezel.
+                    item(key = APP_MARK_KEY) {
+                        AppMarkAndVersion(
+                            appVersion = appVersion,
+                            modifier = Modifier
+                                .minimumVerticalContentPadding(CardDefaults.minimumVerticalListContentPadding)
+                                .itemScrollTransform(this, transformationSpec),
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+/** The key of the list's last item; dose rows use `day-`, `time-` and `dose-` keys. */
+private const val APP_MARK_KEY = "app-mark-and-version"
 
 private fun Modifier.itemScrollTransform(
     scope: androidx.wear.compose.foundation.lazy.TransformingLazyColumnItemScope,
@@ -234,6 +261,9 @@ private fun previewEntry(
     stockText = "24 tablets",
 )
 
+/** A made-up version name for the previews. */
+private const val PREVIEW_VERSION = "1.2.3"
+
 private val previewSections = listOf(
     WatchDaySection(
         day = AgendaDay.TODAY,
@@ -269,7 +299,37 @@ private val previewSections = listOf(
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
 @Composable
 private fun UpcomingDosesPreview() {
-    PillsnerWearTheme { UpcomingDosesScreen(previewState(previewSections)) }
+    PillsnerWearTheme { UpcomingDosesScreen(previewState(previewSections), PREVIEW_VERSION) }
+}
+
+/** Five times with two made-up doses each: far more than a small round screen shows at once. */
+private val previewLongSections = listOf(
+    WatchDaySection(
+        day = AgendaDay.TODAY,
+        groups = (8..16 step 2).map { hour ->
+            val at = "2026-09-13T${hour.toString().padStart(2, '0')}:00:00Z"
+            WatchTimeGroup(
+                scheduledAt = Instant.parse(at),
+                doses = listOf(
+                    previewEntry(hour * 10L, "Examplamol", "2 tablets", at),
+                    previewEntry(hour * 10L + 1, "Testafen", "1 capsule", at),
+                ),
+            )
+        },
+    ),
+)
+
+/**
+ * An agenda long enough to scroll, on the smallest round screen (issue #116). A static preview shows
+ * the top of the list; scroll it in interactive mode to see the last dose, the mark and the version
+ * clear the bezel. The square device is here to check the end of the list for an extra gap.
+ */
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
+@Preview(device = WearDevices.SQUARE, showSystemUi = true)
+@Composable
+private fun UpcomingDosesLongAgendaPreview() {
+    PillsnerWearTheme { UpcomingDosesScreen(previewState(previewLongSections), PREVIEW_VERSION) }
 }
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
@@ -277,14 +337,14 @@ private fun UpcomingDosesPreview() {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, fontScale = 1.24f)
 @Composable
 private fun UpcomingDosesEmptyPreview() {
-    PillsnerWearTheme { UpcomingDosesScreen(previewState(emptyList())) }
+    PillsnerWearTheme { UpcomingDosesScreen(previewState(emptyList()), PREVIEW_VERSION) }
 }
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 private fun UpcomingDosesDisconnectedPreview() {
     PillsnerWearTheme {
-        UpcomingDosesScreen(previewState(previewSections, phoneConnected = false))
+        UpcomingDosesScreen(previewState(previewSections, phoneConnected = false), PREVIEW_VERSION)
     }
 }
 
@@ -294,6 +354,9 @@ private fun UpcomingDosesDisconnectedPreview() {
 @Composable
 private fun UpcomingDosesNeverSyncedPreview() {
     PillsnerWearTheme {
-        UpcomingDosesScreen(previewState(emptyList(), phoneConnected = false, hasData = false))
+        UpcomingDosesScreen(
+            previewState(emptyList(), phoneConnected = false, hasData = false),
+            PREVIEW_VERSION,
+        )
     }
 }

@@ -1,6 +1,6 @@
 ---
 name: emulator-tests
-description: Run Pillsner's instrumented (androidTest) tests on the emulator quickly - reuse a running emulator or boot one headless, disable animations, work out which test classes a change affects from the git diff, and run only those plus a fixed safety set, falling back to the full suite only when the change has a wide blast radius. Use whenever instrumented tests need to run - during /opsx:apply after a task touches app or wear code, before a change's pull request is opened, when asked to "run the emulator tests" or "run the connected tests", and when a single failing instrumented test needs re-running.
+description: Run Pillsner's instrumented (androidTest) tests on the emulator quickly - reuse a running emulator or boot one headless, disable animations, work out which test classes a change affects from the git diff, and run only those, leaving the full suite to CI's instrumented-tests job on every pull request (a full local run only on request). Used by the pillsner-test-runner agent for the emulator mechanics and the selection. Use whenever instrumented tests need to run - during /opsx:apply after a task touches app or wear code, before a change's pull request is opened, when asked to "run the emulator tests" or "run the connected tests", and when a single failing instrumented test needs re-running.
 license: MIT
 metadata:
   author: pillsner
@@ -89,17 +89,20 @@ Compare against where the change started: `git diff --name-only development...HE
 uncommitted files (`git status --porcelain`). During `/opsx:apply`, a run after a single task may
 narrow this to that task's files; the run before the pull request uses the whole branch diff.
 
-**Full suite instead** — skip selection and run everything (step 3, no class filter) when the diff
-touches any of these, because almost every test depends on them:
+**Wide blast radius** — these files affect almost every test, but the full suite does not run
+locally for them; CI's `instrumented-tests` job runs it on the pull request. Select for the rest of
+the diff as below, and name these files in the report as covered only by CI:
 
 - Any `build.gradle.kts`, `settings.gradle.kts`, `gradle/libs.versions.toml` or `gradle.properties`
 - An `AndroidManifest.xml`
 - `MainActivity`, `AppContainer`, the application class, `ui/theme/`, `ui/navigation/`
 - Shared test infrastructure under `androidTest` that isn't itself a test class (fixtures,
   rules, runners)
-- More than roughly a third of the app's packages at once — selection buys little then
 
-**Otherwise, build the class list** from these rules, de-duplicated:
+If such files are the only thing changed, run no instrumented tests and say so.
+
+**Build the class list** from these rules, de-duplicated. Only tests the change affects run; there
+is no fixed safety set, because CI's full run on every pull request is the backstop:
 
 1. **Same package.** For every changed main source file under
    `app/src/main/java/nl/hexmaster/pillsner/<pkg>/`, every test class in
@@ -115,12 +118,6 @@ touches any of these, because almost every test depends on them:
    find the main files that reference `R.string.<id>`, and apply rule 1 to them. A changed
    drawable, font or layout resource → the same, via `R.drawable.<id>` and so on.
 5. **`shared/` changes** — run all `wear` tests, plus the tests in `app/.../data/wear/` if any.
-6. **Safety set**, always added because these are the parts `CLAUDE.md` calls fragile:
-   - Anything under `data/` or `domain/` changed → every test in `data/reminders/` and
-     `data/db/PillsnerDatabaseMigrationTest`.
-   - A Room entity, DAO, database class or `app/schemas/` changed → every test in `data/db/`.
-   - Anything under `ui/` changed → `ui/PillsnerAppNavigationTest`, `ui/DeadDestinationTest`,
-     `ui/LegalGateNavigationTest`.
 
 If the list comes out empty for a module (a docs-only change, or a change in `app` only, for
 `wear`), say so and run nothing for that module.
@@ -154,7 +151,7 @@ Pass the classes as a comma-separated list of fully-qualified names:
 Every run ends with a short report, and the last one before the pull request goes into the PR
 summary (`github-openspec-sync`'s **apply-complete** mode) under its verification status:
 
-- Mode: **selective** or **full**, and why full if it was full.
+- Mode: **selective**, or **full** when the user asked for it; and any wide-blast-radius files left to CI.
 - How many test classes and tests ran, out of how many: e.g. "12 of 59 classes (84 of 446 tests)".
 - Which rule pulled each class in, briefly — enough for a reviewer to see the selection was sound.
 - Pass/fail, with failures verbatim.
@@ -183,7 +180,6 @@ when the user asks for a full run that matches CI.
 
 ## Guardrails
 
-- Never skip the safety set to save time.
 - Never mark a failing test `@Ignore`, delete it, or narrow the selection to drop it. Fix it, or
   report it as failing.
 - If the user asks for the full suite, run the full suite.

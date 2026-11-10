@@ -10,6 +10,8 @@
     <string name="upcoming_tomorrow_at">Tomorrow %1$s</string>
     <string name="phone_not_connected">Phone not connected</string>
     <string name="never_synced">Open Pillsner on your phone to sync</string>
+    <!-- The last line of the agenda, under the product mark. %1$s: the version name of the installed watch app, for example 0.1.0 -->
+    <string name="app_version">Version %1$s</string>
 
     <!-- %1$s: medicine name, %2$s: amount, %3$s: time -->
     <string name="dose_description">%1$s, %2$s, at %3$s</string>

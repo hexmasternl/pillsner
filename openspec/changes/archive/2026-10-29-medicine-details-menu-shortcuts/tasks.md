@@ -12,6 +12,6 @@
 
 ## 3. Verification
 
-- [ ] 3.1 Run the unit tests and lint from `src/`
-- [ ] 3.2 Run the medicine form instrumented tests
-- [ ] 3.3 Check the menu against `docs/design-system.md`: theme tokens only, string resources only, minimum touch targets, readable at the largest font scale
+- [x] 3.1 Run the unit tests and lint from `src/`
+- [x] 3.2 Run the medicine form instrumented tests
+- [x] 3.3 Check the menu against `docs/design-system.md`: theme tokens only, string resources only, minimum touch targets, readable at the largest font scale

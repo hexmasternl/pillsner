@@ -2,7 +2,7 @@
 
 ## 1. The failing tests
 
-- [ ] 1.1 Work in the existing worktree `../pillsner-worktrees/fix-watch-agenda-bottom-inset` on `feature/fix-watch-agenda-bottom-inset`, which triage created with the failing tests (`f56aa53`). Merge `development` into it so it carries this change's artifacts, and verify `git log` shows `f56aa53` and the proposal commits.
+- [x] 1.1 Work in the existing worktree `../pillsner-worktrees/fix-watch-agenda-bottom-inset` on `feature/fix-watch-agenda-bottom-inset`, which triage created with the failing tests (`f56aa53`). Merge `development` into it so it carries this change's artifacts, and verify `git log` shows `f56aa53` and the proposal commits.
 - [ ] 1.2 Run `RoundScreenFitTest` on `Wear_Small_Round_API_36` against the unchanged screen code, and verify `theLastDoseOfALongAgendaClearsTheBezel` and `theLastDoseOfALongAgendaClearsTheBezelAtTheLargestFont` fail with "A dose card crosses the edge of the round screen at the end of the list", while the other 11 cases pass.
 - [ ] 1.3 Add a case for the end of the details screen: with font scale 1.24 and made-up details long enough to scroll, check that the last line, measured at the end of the list, lies inside the circle (design D9). Record whether it fails on the unchanged code.
 - [ ] 1.4 Change how the two triage cases find the last dose card (design D5): the click-action node with the greatest bottom edge once scrolled to the end, instead of the click-action nodes in the lower half. Keep the outline assertion as it is. Verify both still fail on the unchanged screen code with the same message.

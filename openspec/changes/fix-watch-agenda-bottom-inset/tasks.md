@@ -25,7 +25,21 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run the full watch instrumented suite on `Wear_Small_Round_API_36` through the `pillsner-test-runner` agent, and verify every `RoundScreenFitTest` and `UpcomingDosesScreenTest` case passes and nothing that passed before fails. The known CI-only #105 timeout (`aNewListArrivesWhileTheScreenIsOpen`) is reported separately, not counted as a regression.
-- [ ] 4.2 Take before and after screenshots of the agenda scrolled to the end on the round emulator, at font scale 1.0 and 1.24, and one of the empty state, for the pull request.
-- [ ] 4.3 Run the `verify-change` skill (unit tests, lint, assembly) and record the result in the `## Verification` section.
+- [x] 4.1 Run the full watch instrumented suite on `Wear_Small_Round_API_36` through the `pillsner-test-runner` agent, and verify every `RoundScreenFitTest` and `UpcomingDosesScreenTest` case passes and nothing that passed before fails. The known CI-only #105 timeout (`aNewListArrivesWhileTheScreenIsOpen`) is reported separately, not counted as a regression.
+- [x] 4.2 Take before and after screenshots of the agenda scrolled to the end on the round emulator, at font scale 1.0 and 1.24, and one of the empty state, for the pull request.
+- [x] 4.3 Run the `verify-change` skill (unit tests, lint, assembly) and record the result in the `## Verification` section.
 - [ ] 4.4 Open the pull request into `development` with `Fixes #116`.
+
+## Verification
+
+- Unit tests: pass at `792487e` — app 773, wear 27, shared 7 (`./gradlew test`, forced re-run)
+- Lint: pass — `:wear:lintDebug` 0 errors, 0 MissingTranslation, 0 ExtraTranslation, 1 warning (`ModifierParameter` on `UpcomingDosesScreen`, there before this change); `:app:lintDebug` passed at `ad0b90c` and no phone source changed
+- Assemble debug: pass (`./gradlew assembleDebug`, all modules); `:wear:assembleRelease` (unsigned) passed at `ad0b90c`
+- UI review: `pillsner-ui-review` on the watch screens, no findings
+- Instrumented tests: pass — full watch suite, 4 of 4 classes, 51 of 51 tests, on `Wear_Small_Round_API_36` (API 36), one class per invocation. The #105 timeout did not occur. No phone instrumented tests were run (the branch changes nothing in `src/app`); the full suite of both modules runs in CI on the pull request, on API 37
+- Review: proposal critic ship after round 2 (SPEC-1, SPEC-2, SPEC-3 fixed); wear critic ship after round 2 (WEAR-1, WEAR-2 fixed); Play critic ship, clean
+- Screenshots (4.2): before and after captured from the composables rendered in a temporary instrumented test with made-up data and version `0.1.0`, round mask applied; not committed, to be attached to the pull request by hand
+- Not run: device scenarios and Room checks (no reminder or schema change); Hugo build (no website change, see 3.1)
+- Not verified: a real square watch or a rendered square preview (the end-of-list gap is 23% of the screen height on every shape, measured through a round-screen override only); TalkBack on a device
+- Known and accepted, recorded in design.md: at font scale 1.24, scrolled to the very end of the never-synced state, the first line of the German footer sits scrolled past near the top and crosses the circle by about 9 px; the spec scenario covers only the lower half there
+- Manual testing still needed: look at the end of the agenda and of the details screen on a square watch or the square preview; TalkBack reads the version line once at the end of the agenda

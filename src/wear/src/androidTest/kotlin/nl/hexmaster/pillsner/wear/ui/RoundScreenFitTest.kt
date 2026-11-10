@@ -167,8 +167,9 @@ class RoundScreenFitTest {
             val list = composeRule.onNodeWithTag(UpcomingDosesTestTags.LIST)
             list.performScrollToIndex(0)
             assertLinesInsideTheCircle(Region.UPPER_HALF, label = "$tag at the top")
-            // Longer languages overflow at this size; their last lines are read scrolled to the end.
-            list.performScrollToIndex(1)
+            // Longer languages overflow at this size; their last lines are read scrolled to the end:
+            // the column's last item, whatever its index is in this state (design D6).
+            scrollToTheEnd()
             assertLinesInsideTheCircle(Region.LOWER_HALF, label = "$tag at the end")
         }
     }

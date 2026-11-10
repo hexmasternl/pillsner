@@ -211,8 +211,9 @@ class RoundScreenFitTest {
         UpcomingDosesScreen(WatchUiState(longAgenda, phoneConnected = true, hasData = true, locale = Locale.ENGLISH))
     }
 
-    private fun scrollToTheEnd() {
-        val list = composeRule.onNodeWithTag(UpcomingDosesTestTags.LIST)
+    /** Scrolls the column tagged [listTag] to its last item, however many items it holds. */
+    private fun scrollToTheEnd(listTag: String = UpcomingDosesTestTags.LIST) {
+        val list = composeRule.onNodeWithTag(listTag)
         list.performScrollToIndex(list.itemCount() - 1)
     }
 
@@ -269,6 +270,48 @@ class RoundScreenFitTest {
     fun theTopOfTheDetailsClearsTheBezelAtTheLargestFont() {
         setContent(LARGEST_FONT) { DoseDetailsScreen(entry(1, "Examplamol", 0), Locale.ENGLISH) }
         assertLinesInsideTheCircle(Region.UPPER_HALF)
+    }
+
+    /**
+     * The end of the details screen (design D9): with details long enough to scroll at the largest
+     * font, the last line on the screen lies inside the circle once the list is scrolled to its end.
+     */
+    @Test
+    fun theEndOfTheDetailsClearsTheBezelAtTheLargestFont() {
+        setContent(LARGEST_FONT) { DoseDetailsScreen(entryWithLongDetails, Locale.ENGLISH) }
+        scrollToTheEnd(DoseDetailsTestTags.LIST)
+        assertTheLastLineInsideTheCircle()
+    }
+
+    /** Made-up details, several schedule lines long, so the details screen has to scroll. */
+    private val entryWithLongDetails = entry(1, "Examplamol", 0).copy(
+        scheduleLines = listOf(
+            "2 tablets every morning",
+            "1 tablet every evening",
+            "1 tablet on Sunday afternoon",
+        ),
+        stockText = "30 tablets",
+    )
+
+    /**
+     * The lowest line of text on the screen, wherever it came to rest, must fit the circle. It is
+     * picked by its bottom edge rather than by a region, so the check cannot pass on an empty set.
+     */
+    private fun assertTheLastLineInsideTheCircle() {
+        composeRule.waitForIdle()
+        val screen = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        val center = screen.center
+        val radius = minOf(screen.width, screen.height) / 2f
+
+        val lines = textNodes().flatMap { node -> node.lineBoxes().map { line -> node.text() to line } }
+        assertTrue("Expected text on the screen when scrolled to the end", lines.isNotEmpty())
+        val (text, line) = lines.maxBy { (_, box) -> box.bottom }
+
+        assertTrue(
+            "The last line crosses the edge of the round screen at the end of the list " +
+                "(radius $radius around $center):\n\"$text\" line at $line",
+            line.isInsideCircle(center, radius),
+        )
     }
 
     private fun assertLinesInsideTheCircle(region: Region = Region.WHOLE, label: String = "") {

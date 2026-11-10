@@ -10,6 +10,8 @@
     <string name="upcoming_tomorrow_at">Mañana %1$s</string>
     <string name="phone_not_connected">Teléfono no conectado</string>
     <string name="never_synced">Abre Pillsner en tu teléfono para sincronizar</string>
+    <!-- La última línea de la agenda, bajo el logotipo del producto. %1$s: el nombre de versión de la app instalada en el reloj, por ejemplo 0.1.0 -->
+    <string name="app_version">Versión %1$s</string>
 
     <!-- %1$s: nombre del medicamento, %2$s: cantidad, %3$s: hora -->
     <string name="dose_description">%1$s, %2$s, a las %3$s</string>

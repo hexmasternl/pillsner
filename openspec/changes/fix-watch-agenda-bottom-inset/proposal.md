@@ -3,6 +3,7 @@
 ## Why
 
 **GitHub Issue:** #116 (https://github.com/hexmasternl/pillsner/issues/116)
+**Pull Request:** #117 (https://github.com/hexmasternl/pillsner/pull/117)
 
 On a round watch, when the agenda is longer than the screen, the last dose can't be scrolled far enough up: its card stops about 40 px above the bottom edge on a small round watch, and the round edge cuts off its corners (the card reaches about 209 px from the centre of a 192 px circle). The text stays inside the circle, but the entry doesn't fit. The `wearable-app` spec already says the list scrolls "to reveal every entry" on a round screen. The app doesn't meet that, and nothing tests the end of the list: `fix-wear-round-edge-clipping` (#107) covered only the empty state, the footer and the top of the list. This is the same Wear quality guideline Play rejected the watch app for before, so it should be fixed before the next Wear release.
 

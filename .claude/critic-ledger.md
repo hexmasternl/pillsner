@@ -35,3 +35,6 @@ Review periodically (the `pillsner-tech-debt-scout` agent computes it): per crit
 | 2026-10-29 | app | edge-to-edge-correction-and-tests | 1 | APP-2 | Major | app/ui | real | Large-font tests now assert title and Back against the status bar |
 | 2026-10-29 | app | edge-to-edge-correction-and-tests | 1 | APP-3 | Major | app/ui | real | tasks.md 5.x now say per line what ran and what was handed to manual testing |
 | 2026-10-29 | app | edge-to-edge-correction-and-tests | 1 | APP-4 | Minor | app/ui | real | Helper waits out insets animations and its KDoc states the limit |
+| 2026-11-10 | proposal | fix-watch-agenda-bottom-inset | 2 | SPEC-1 | Major | proposal | real | Watch packaged only en and nl; fixed in the change by D7, tasks 1.6 and 2.0, with a test that pt and de resolve |
+| 2026-11-10 | proposal | fix-watch-agenda-bottom-inset | 2 | SPEC-2 | Major | proposal | real | D5 rewritten: assertion kept, last card selected by greatest bottom edge; tasks 1.4 and 2.2 |
+| 2026-11-10 | proposal | fix-watch-agenda-bottom-inset | 2 | SPEC-3 | Minor | proposal | real | D6 pins "end" to the last item and names every state; tasks 1.5 and 1.7 |

@@ -15,7 +15,8 @@ The product owner also asked for the agenda to end with a small Pillsner logo an
 - At the end of a long agenda, the last dose card can be scrolled far enough that its whole outline sits inside the circle, at the default and at the largest watch font size.
 - The details screen's last line gets the same check at the end of its list. The details screen does not get the mark or the version.
 - `RoundScreenFitTest` gets cases that measure the outline of the last card (its shape, not just its text) against the circle once the list is scrolled to the end. Triage already wrote and committed them on `feature/fix-watch-agenda-bottom-inset` (`f56aa53`). New cases measure the mark and the version line the same way.
-- Nothing changes in which doses the watch shows, in what order, or in which language.
+- The watch app packages all six languages. Today `src/wear/build.gradle.kts` keeps only English and Dutch (`resourceConfigurations += listOf("en", "nl")`), so a watch following a German, French, Spanish or Portuguese phone shows English, against "Language follows the phone app". The phone had the same defect and fixed it in `app-language-german-string-resolution-fix`; the watch line was missed. It is fixed here because this change's six-language fit checks would otherwise measure English four times and prove nothing.
+- Nothing changes in which doses the watch shows or in what order.
 
 ## Capabilities
 
@@ -32,7 +33,7 @@ None.
 
 ## Impact
 
-- **Code**: `src/wear/.../ui/UpcomingDosesScreen.kt` (the new last item), `WearDimens.kt` (a token for the mark's size), `MainActivity.kt` (passes the version name in), `src/wear/build.gradle.kts` (turns on `BuildConfig` so the version name comes from the build), a copy of the phone's `ic_pillsner_logo.xml` in the watch's drawables, and `DoseCard.kt` / `DoseDetailsScreen.kt` only if their end still clips. Nothing in the phone app, `src/shared` or the sync payload.
+- **Code**: `src/wear/.../ui/UpcomingDosesScreen.kt` (the new last item), `WearDimens.kt` (a token for the mark's size), `MainActivity.kt` (passes the version name in), `src/wear/build.gradle.kts` (turns on `BuildConfig` so the version name comes from the build, and packages all six languages), a copy of the phone's `ic_pillsner_logo.xml` in the watch's drawables, and `DoseCard.kt` / `DoseDetailsScreen.kt` only if their end still clips. Nothing in the phone app, `src/shared` or the sync payload.
 - **Tests**: `src/wear/src/androidTest/.../ui/RoundScreenFitTest.kt` (the triage reproduction, already committed, plus the mark and version cases) and `UpcomingDosesScreenTest.kt` (the item is present, last, and read by a screen reader as the version). Runs on `Wear_Small_Round_API_36`, and in CI's instrumented job.
 - **Strings**: one new watch string, "Version %1$s", in six locales.
 - **Dependencies, schema**: none.

@@ -44,14 +44,31 @@ After triage, the product owner asked for the agenda to end with a small logo an
 *Alternative:* add a fixed extra bottom padding to `contentPadding`. Rejected: it hard-codes a value the scaffold already works out per screen shape, and the spec leaves round-screen padding to the scaffold.
 *Fallback:* if the scaffold's value turns out not to be enough for the mark and version on the small round screen at font scale 1.24, add the shortfall as a `WearDimens` token for the list's end padding, sized as a fraction of the screen like `textInsetFraction`. Record that here if it happens.
 
-**D5. The triage tests stay as written, and the new item is measured the same way.** The triage tests measure the card's real outline (`MaterialTheme.shapes.large`) once the list is scrolled to the end; the fix must make them pass without changing what they assert. New cases scroll to the end and check that the mark's bounding box (all four corners, which is stricter than its circle) and every line of the version text lie inside the circle, at font scale 1.0 and 1.24, with doses and in the empty state with the never-synced footer, and at 1.24 in each of the six languages.
+**D5. The triage tests keep their assertion; how they find the last card may change.** The triage tests measure the card's real outline (`MaterialTheme.shapes.large`) once the list is scrolled to the end, and that assertion (the whole outline inside the circle) must not be weakened. Their selection does change: today they take the click-action nodes in the lower half of the screen and require at least one, but with an item under it the last card may come to rest above the centre, where that selection would either find nothing or measure an earlier card. The tests instead pick the last dose card of the list, wherever it is drawn: the click-action node with the greatest bottom edge once scrolled to the end. Task 1.2 still runs them unchanged first, to see them fail for the reported reason; task 1.4 changes the selection and confirms they still fail on the unchanged screen code.
 
-**D6. Check the details screen's end with the same kind of test.** It uses the same scaffold and column. If its last line already fits, the new case passes at once, and the screen's code stays as it is.
+**D6. "Scrolled to the end" means the list's last item, and each state is named.** Every case that scrolls to the end scrolls to the last index of the column, not to a fixed index: the existing `everyLanguageFitsTheRoundScreenAtTheLargestFont` uses `performScrollToIndex(1)`, which stops being the end once the never-synced state has three items, so it is updated. The new cases check that the mark's bounding box (all four corners, which is stricter than its circle) and every line of the version text lie inside the circle, scrolled to the end, in these states:
+
+| State | Font scale | Language |
+| --- | --- | --- |
+| Long agenda, phone connected | 1.0 and 1.24 | English |
+| Long agenda, phone not connected (footer shown) | 1.24 | English |
+| Empty, phone connected | 1.0 and 1.24 | English |
+| Empty, never synced (footer shown) | 1.0 and 1.24 | each of the six at 1.24, English at 1.0 |
+
+The never-synced state is the tallest and has the longest footer text, so it is the one run in all six languages. Empty with "Phone not connected" is left out: it is the same layout as never synced with a shorter footer.
+
+**D7. The watch packages all six languages, and a test proves a non-Dutch translation resolves.** `resourceConfigurations` in `src/wear/build.gradle.kts` becomes `listOf("en", "nl", "de", "fr", "es", "pt")`, as on the phone, with the comment corrected. Without it the six-language cases of D6 would render English for German, French, Spanish and Portuguese and could never fail on a long translation; lint cannot catch it, because lint reads the sources and not the package. A new instrumented case asserts that the footer rendered for a Portuguese and for a German locale is not the English text.
+*Alternative:* fix the packaging in a separate bug change first. Rejected as slower for a one-line fix this change cannot be verified without; the proposal names it so it is not hidden.
+
+**D8. The existing at-rest scenarios win over the new item.** "Empty state on a round screen" and "Footer on a round screen" check every line at rest, with no scroll allowance. If the empty text, the footer and the new item together no longer fit at rest at the default font, the empty text and the footer keep their place inside the circle and the mark and version are reached by scrolling; the new scenario only promises they fit once scrolled to the end. Task 2.1 measures this and records the result here.
+
+**D9. Check the details screen's end with the same kind of test.** It uses the same scaffold and column. If its last line already fits, the new case passes at once, and the screen's code stays as it is.
 
 ## Risks / Trade-offs
 
-- [The empty state at the largest font, with the footer, is already taller than the screen; one more item makes it taller] → the existing "Round screen at the largest font" cases run unchanged and must still pass; the new item is at the end, so it is covered by "once scrolled to the end".
-- [In the empty state the mark is not at the bottom edge but under the centred text] → accepted (D1); it is still the last thing on the screen and fully visible without scrolling at the default font.
+- [The empty state at the largest font, with the footer, is already taller than the screen; one more item makes it taller] → the existing "Round screen at the largest font" cases must still pass, with only their scroll-to-end changed to the real last item (D6); the new item is at the end, so it is covered by "once scrolled to the end".
+- [In the empty state the mark is not at the bottom edge but under the centred text] → accepted (D1); it is still the last thing on the screen. Whether it is visible without scrolling at the default font when the footer is also shown is not known yet; D8 says what gives way if it is not.
+- [Packaging four more languages surfaces a translation that is too long for the round screen] → that is the point of D7; a failing existing six-language case is fixed in this change through the translator, not by removing the language.
 - [The inferred cause for the dose card is wrong and the extra item changes nothing] → task 2.2 runs the triage tests right after the item is added; if they still fail, D4's dose-row padding, then its fallback.
 - [More space at the end of the list on a square watch] → check the square preview, and accept a small extra gap.
 - [The scroll transformation scales the last item, so the measured outline differs from the laid-out one] → the tests map bounds through each node's drawn position, as `RoundScreenFitTest` did for #107.

@@ -206,6 +206,40 @@ class UpcomingDosesScreenTest {
     }
 
     /**
+     * Spec: "Language follows the phone app", scenarios "Dutch phone app" and "New language phone
+     * app" — the version line is a translated string resource read in the phone app's language, not
+     * text written in code.
+     */
+    @Test
+    fun theVersionLineIsReadInDutch() {
+        assertTheVersionLineReads("nl-NL", "Versie 1.2.3")
+    }
+
+    @Test
+    fun theVersionLineIsReadInPortuguese() {
+        assertTheVersionLineReads("pt-PT", "Versão 1.2.3")
+    }
+
+    private fun assertTheVersionLineReads(languageTag: String, expected: String) {
+        composeRule.setContent {
+            PillsnerWearTheme {
+                UpcomingDosesScreen(
+                    WatchUiState(
+                        sections = emptyList(),
+                        phoneConnected = true,
+                        hasData = true,
+                        locale = Locale.forLanguageTag(languageTag),
+                    ),
+                    APP_VERSION,
+                )
+            }
+        }
+        scrollToTheEnd()
+
+        version().assertIsDisplayed().assertTextEquals(expected)
+    }
+
+    /**
      * Spec: "App mark and version on the agenda" — the agenda ends with the product mark and, under
      * it, "Version" and the installed version name, both centred, in every state of the screen.
      */

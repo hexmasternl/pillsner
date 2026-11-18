@@ -9,6 +9,16 @@ import androidx.wear.compose.material3.MaterialTheme
  * The watch palette: the dark column of `docs/design-system.md` section 2.2, because a watch face
  * is always dark. The only file in this module with a hex literal, exactly as on the phone.
  *
+ * The watch builds from black, not from the phone's tinted Deep Moss: `background` and
+ * `surfaceContainerLow` are `Color.Black`, because the Wear OS app quality guidelines require a
+ * black background for every app screen and tile (WO-V13,
+ * https://developer.android.com/docs/quality-guidelines/wear-app-quality) and Wear Material 3's own
+ * dark scheme does the same. `surfaceContainerLow` is black too so that no component defaulting to
+ * it paints a tinted panel that reads as background. Raised roles (`surfaceContainer`,
+ * `surfaceContainerHigh`) and the dose card containers keep their tones so they still separate
+ * from the canvas. `WearThemeTest` pins this and the text contrast on black (change
+ * `wear-black-background`, design D1 and D3).
+ *
  * Typography and shapes stay the Wear Material 3 defaults (design D6): the phone's Montserrat and
  * Raleway scale is drawn for phone screens, and another megabyte of fonts buys a watch nothing.
  */
@@ -29,7 +39,7 @@ private object WearPalette {
     val OnError = Color(0xFF690005)
     val ErrorContainer = Color(0xFF93000A)
     val OnErrorContainer = Color(0xFFFFDAD6)
-    val Background = Color(0xFF101413)
+    val Background = Color.Black
     val OnBackground = Color(0xFFE1E3E0)
     val Surface = Color(0xFF1D211F)
     val OnSurface = Color(0xFFE1E3E0)

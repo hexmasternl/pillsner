@@ -3,7 +3,7 @@
 ## 1. Black colour roles in the watch theme
 
 - [x] 1.1 Write a failing JVM unit test, `WearThemeTest` under `src/wear/src/test/.../ui/theme/`. It asserts that the watch colour scheme's `background` and `surfaceContainerLow` equal `Color.Black`, and that each D3 text pair meets at least 4.5 : 1 (computed from the scheme's own values). Change the scheme from `private` to `internal` so the test can read it. Verify that the test fails on the current `#101413`.
-- [ ] 1.2 In `WearTheme.kt`, set `background` and `surfaceContainerLow` to `Color.Black` (design D1). Update the KDoc so it says the watch builds from black and cites WO-V13. Verify that `WearThemeTest` passes and that `grep -rn "101413" src/wear/src/main/kotlin` finds nothing.
+- [x] 1.2 In `WearTheme.kt`, set `background` and `surfaceContainerLow` to `Color.Black` (design D1). Update the KDoc so it says the watch builds from black and cites WO-V13. Verify that `WearThemeTest` passes and that `grep -rn "101413" src/wear/src/main/kotlin` finds nothing.
 
 ## 2. Black window and startup screen
 

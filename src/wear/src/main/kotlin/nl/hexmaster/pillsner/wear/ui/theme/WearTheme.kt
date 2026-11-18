@@ -49,7 +49,7 @@ private object WearPalette {
     val OutlineVariant = Color(0xFF3F4945)
 }
 
-internal val PillsnerWearColorScheme =ColorScheme(
+internal val PillsnerWearColorScheme = ColorScheme(
     primary = WearPalette.Primary,
     onPrimary = WearPalette.OnPrimary,
     primaryContainer = WearPalette.PrimaryContainer,

@@ -44,6 +44,7 @@ The project pins every tool and library version in `src/gradle/libs.versions.tom
 | Fragment (host required by Biometric's `BiometricPrompt`) | 1.9.0 |
 | Wear Compose (Material 3, Foundation) | 1.6.2 |
 | Play services Wearable | 20.0.1 |
+| AndroidX Core SplashScreen (the Wear OS startup screen) | 1.2.0 |
 | kotlinx-coroutines / kotlinx-serialization | 1.11.0 / 1.11.0 |
 
 Every library in this table is now in use.

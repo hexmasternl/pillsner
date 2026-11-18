@@ -37,6 +37,10 @@ camerax = "1.6.2"
 wearCompose = "1.6.2"
 wearToolingPreview = "1.0.0"
 playServicesWearable = "20.0.1"
+# The watch's startup screen: the launcher icon on black on every Wear OS version the watch supports,
+# as WO-V15 requires and Google's Wear splash guide prescribes (wear-black-background design D2).
+# Newest stable on 18 November 2026.
+coreSplashscreen = "1.2.0"
 
 # Kotlin libraries
 coroutines = "1.11.0"
@@ -98,6 +102,7 @@ androidx-wear-compose-foundation = { group = "androidx.wear.compose", name = "co
 androidx-wear-compose-ui-tooling = { group = "androidx.wear.compose", name = "compose-ui-tooling", version.ref = "wearCompose" }
 androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 # Kotlin libraries
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }

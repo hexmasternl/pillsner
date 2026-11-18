@@ -138,6 +138,9 @@ dependencies {
     // The only supported phone-to-watch transport (design D9).
     implementation(libs.play.services.wearable)
 
+    // The launcher icon on black at startup on every supported Wear OS version (wear-black-background D2).
+    implementation(libs.androidx.core.splashscreen)
+
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)

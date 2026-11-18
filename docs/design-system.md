@@ -27,11 +27,11 @@ Pillsner reminds people to take their medication and records whether they did. T
 | Pillsner Teal | `#0F7C8C` | Tertiary. A bridge between green and blue used sparingly for "snoozed" and decorative accents. |
 | Signal Red | `#BA1A1A` | Error. Danger and warnings only. |
 | Mint White | `#F9FBFA` | Light surface. White with a trace of green so that pure white cards lift off it. |
-| Deep Moss | `#101413` | Dark surface. Near-black with the same green bias. |
+| Deep Moss | `#101413` | Dark surface on the phone. Near-black with the same green bias. The watch never uses it; it builds from black (2.5). |
 
 ### 2.2 Material 3 colour roles
 
-Pillsner uses the Material 3 colour role system unchanged so that every Material component picks up the brand without per-component overrides. The two schemes below are the complete token set. All "on" pairs meet at least 4.5 : 1; outlines meet at least 3 : 1.
+Pillsner uses the Material 3 colour role system unchanged so that every Material component picks up the brand without per-component overrides. The two schemes below are the complete token set. All "on" pairs meet at least 4.5 : 1; outlines meet at least 3 : 1. The dark column is the phone's dark theme; the watch derives its own mapping from it in 2.5, with a black background in place of Deep Moss.
 
 | Role | Light | Dark |
 | --- | --- | --- |
@@ -100,6 +100,40 @@ A skipped dose is neutral grey on purpose. The user chose it; the app does not s
 - **Never hard-code a hex in a composable.** Read from `MaterialTheme.colorScheme`. The only file that knows a hex value is `ui/theme/Color.kt`.
 - **Dynamic colour is off.** Do not call `dynamicLightColorScheme` or `dynamicDarkColorScheme`.
 - **Text over images or gradients** is not used. Text always sits on a surface role.
+
+### 2.5 Watch colour
+
+The watch builds from black. Every watch screen, the window behind the first frame, the startup screen and any tile the app offers use pure black, `#000000`, as their background. Google Play requires it: the [Wear OS app quality guidelines](https://developer.android.com/docs/quality-guidelines/wear-app-quality) ask for a black background for every app screen and tile (**WO-V13**) and for the app icon on a black background at startup (**WO-V15**). The [Wear colour guidance](https://developer.android.com/design/ui/wear/guides/styles/color) gives the reason: watches are designed with a black background, not the tinted one phones use. Deep Moss stays on the phone.
+
+**Startup screen.** The launcher icon, 48 × 48 dp, centred on `#000000`, and nothing else. It is drawn by AndroidX `core-splashscreen` (`Theme.PillsnerWear.Starting`), so it looks the same on Wear OS versions below and above API 31. The window background behind the first Compose frame is `@android:color/black`.
+
+**Role mapping.** The watch uses Wear Compose Material 3, whose colour scheme has fewer roles than the phone's. Each role takes its value from the dark column of 2.2, except the two that paint the canvas:
+
+| Watch role | Value | Source |
+| --- | --- | --- |
+| background | `#000000` | Black, not Deep Moss (WO-V13) |
+| surfaceContainerLow | `#000000` | Black, so a component that defaults to it doesn't paint a tinted panel that reads as background |
+| surfaceContainer | `#1D211F` | Dark surfaceContainer |
+| surfaceContainerHigh | `#3F4945` | Dark surfaceVariant tone, so raised elements separate clearly from black |
+| onBackground, onSurface | `#E1E3E0` | Dark onSurface |
+| onSurfaceVariant | `#BFC9C4` | Dark onSurfaceVariant |
+| outline / outlineVariant | `#89938E` / `#3F4945` | Dark outline / outlineVariant |
+| primary, secondary, tertiary, error and their on, container and on-container roles | as the dark column | Dark column of 2.2 |
+
+Intake states (2.3) mean the same on the watch: a due dose sits on `secondaryContainer`, an overdue one on `errorContainer`, and red stays reserved (2.4). Cards and buttons use container colours on top of the black; nothing else paints a background.
+
+**Contrast on black.** Every text pair clears 4.5 : 1 (10), pinned by `WearThemeTest`:
+
+| Foreground | Background | Ratio |
+| --- | --- | --- |
+| onSurface `#E1E3E0` | black | 16.27 : 1 |
+| onSurfaceVariant `#BFC9C4` | black | 12.37 : 1 |
+| onSecondaryContainer `#D3E4FF` | secondaryContainer `#1D4E7F` | 6.66 : 1 |
+| onErrorContainer `#FFDAD6` | errorContainer `#93000A` | 7.24 : 1 |
+
+The cards themselves stand out from black at 2.45 : 1 (`#1D4E7F`) and 2.24 : 1 (`#93000A`). A card carries its text (name and amount), a state icon (clock for due, filled error for overdue) and a TalkBack description that names the state, so the fill only has to differ from black. Known gap: an overdue card has no visible "overdue" text yet, which §10 asks for; closing it needs its own change.
+
+**In code.** The watch palette lives in `ui/theme/WearTheme.kt` (`src/wear`), the only watch file with a hex literal. Sizes and spacing live in `ui/theme/WearDimens.kt`. Dynamic colour stays off, as on the phone.
 
 ---
 

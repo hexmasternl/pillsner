@@ -13,7 +13,9 @@ lint error doesn't cost an emulator run, and writes down what ran and what didn'
 
 Run it from the change's worktree (`../pillsner-worktrees/<name>`). Gradle commands run from `src/`.
 
-**Tests go to the test runner.** When the `pillsner-test-runner` agent is available (the main session, usually inside the `change-delivery-loop` skill), send it one test request with `scope: branch` and use its report for the unit-test line of step 2 and for step 5; do not run `./gradlew test` or the emulator tests yourself as well. Only where no agent can be started, run them directly as below.
+**Tests go to the test runner, once.** When the `pillsner-test-runner` agent is available (the main session, usually inside the `change-delivery-loop` skill), send it one test request with `scope: branch` and use its report for the unit-test line of step 2 and for step 5. Don't run `./gradlew test` or the emulator tests yourself as well. Only where no agent can be started, run them directly as below.
+
+If the test runner already reported green at a commit and nothing under `src/` has changed since (`git diff --name-only <that commit>..HEAD -- src` is empty), reuse that report and don't send another request. Never start a device or emulator measurement from this skill; anything only a device can check goes in the manual-testing line.
 
 ## 1. Classify the diff
 

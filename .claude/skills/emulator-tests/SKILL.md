@@ -127,12 +127,33 @@ Run a module's tests only when its list is non-empty: `wear` usually isn't touch
 
 ## 3. Run them
 
-Pass the classes as a comma-separated list of fully-qualified names:
+**Run one class per Gradle invocation.** Never pass a comma-separated list. On this setup (Windows,
+Git Bash, the project's AGP), `-Pandroid.testInstrumentationRunnerArguments.class=A,B` silently runs
+only `A`. Gradle passes `am instrument -e class A` to the device, exits 0 and reports BUILD
+SUCCESSFUL, so the skipped classes look as if they passed (found on 2026-11-18,
+`wear-black-background`).
+
+Each run also overwrites the previous run's XML, so copy it away before the next one:
 
 ```bash
-./gradlew :app:connectedDebugAndroidTest \
-  "-Pandroid.testInstrumentationRunnerArguments.class=nl.hexmaster.pillsner.data.db.DoseDaoTest,nl.hexmaster.pillsner.ui.dose.DoseDetailScreenTest"
+out="$TEMP/connected-<change>"; rm -rf "$out"; mkdir -p "$out"
+for c in nl.hexmaster.pillsner.data.db.DoseDaoTest nl.hexmaster.pillsner.ui.dose.DoseDetailScreenTest; do
+  ./gradlew :app:connectedDebugAndroidTest -q \
+    "-Pandroid.testInstrumentationRunnerArguments.class=$c" > "$out/${c##*.}.log" 2>&1
+  echo "$c exit=$?"
+  cp app/build/outputs/androidTest-results/connected/debug/TEST-*.xml "$out/${c##*.}.xml"
+done
+grep -ho '<testsuite [^>]*' "$out"/*.xml   # one line per class: name, tests, failures, errors, skipped
 ```
+
+**Count before you report.** The number of `<testsuite>` entries in `$out` must equal the number of
+classes you selected, and each must have `tests` > 0. A class with no XML, or an XML with
+`tests="0"`, didn't run: report it as **not run**, never as passing. The "N of M classes" line comes
+from these XML files, not from the selection list or Gradle's exit code.
+
+When every selected class is in one package and that package holds nothing else, a single
+`-Pandroid.testInstrumentationRunnerArguments.package=<pkg>` run is an alternative. Run the same
+count check against its XML.
 
 - `wear` the same way with `:wear:connectedDebugAndroidTest`, with `ANDROID_SERIAL` set to the
   watch emulator. If `Wear_Small_Round_API_36` can't be created or booted, report the wear tests as
@@ -140,10 +161,10 @@ Pass the classes as a comma-separated list of fully-qualified names:
   own watch device (see "A clean full run locally").
 - Re-running one failing test while fixing it: `class=<fqcn>#<method>`. Re-run the full selection
   once the fix is in, not just the one test.
-- Run Gradle with `run_in_background` for anything but a handful of classes and wait for the
+- Run the loop with `run_in_background` for anything but a handful of classes, and wait for the
   completion notification instead of polling.
-- Results: `app/build/reports/androidTests/connected/` (HTML) and
-  `app/build/outputs/androidTest-results/connected/` (XML). Report failures verbatim, as
+- Results: the per-class copies in `$out`. The build folders `app/build/reports/androidTests/connected/` (HTML) and
+  `app/build/outputs/androidTest-results/connected/` (XML) only ever hold the last class. Report failures verbatim, as
   `CLAUDE.md` requires — the test name and the assertion message, not a paraphrase.
 
 ## 4. Report
@@ -188,3 +209,7 @@ when the user asks for a full run that matches CI.
 - Never change Gradle configuration, add a test runner argument to `build.gradle.kts`, or add or
   change a Gradle Managed Device from this skill — those change the build and need an OpenSpec
   change.
+- Never install a system image, or create an AVD other than `Wear_Small_Round_API_36` and the
+  phone AVD, without the user's approval for that specific change. Never boot more than one
+  emulator per module. This skill runs tests; it doesn't take screen recordings or frame-by-frame
+  measurements.

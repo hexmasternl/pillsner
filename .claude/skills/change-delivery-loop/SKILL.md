@@ -1,6 +1,6 @@
 ---
 name: change-delivery-loop
-description: The main session's loop for delivering a Pillsner change with agents - have pillsner-proposal-critic review the proposal before any code, hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI) with pillsner-translator translating new English text in parallel, send what it changed to pillsner-test-runner, then have the finished change reviewed by the matching critics (pillsner-app-critic, pillsner-wear-critic, pillsner-play-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
+description: The main session's loop for delivering a Pillsner change with agents - have pillsner-proposal-critic review the proposal before any code, hand each task to the implementer (pillsner-kotlin-expert for non-UI Kotlin, pillsner-designer for UI) with pillsner-translator translating new English text in parallel, send each finished task group to pillsner-test-runner in one request, then have the finished change reviewed by one critic per area it touches (pillsner-app-critic, pillsner-wear-critic, pillsner-wear-color-critic, pillsner-play-critic) for at most two rounds, record the outcomes in the critic ledger, and stop and report when the critics are still not satisfied. Use during /opsx:apply when implementing a change with agents, when asked to "implement this with the agents", "run the critic loop" or "get this reviewed", and when resuming a change whose review is in progress.
 license: MIT
 metadata:
   author: pillsner
@@ -43,13 +43,27 @@ notes: <anything the next step must know>
 Keep each implementer alive across the change and continue it with `SendMessage`, so it keeps what it
 learned about the code.
 
+**When a report doesn't arrive.** Every agent also writes its final report to
+`<worktree>/.handoff/<agent>-<task or round>.md`, which is gitignored. If an agent finishes but its
+report says it was refused or not delivered, read that file instead of rebuilding the result from
+git and build output. When you continue an agent with a follow-up, don't wait on a report that
+says it is "waiting on its own background work": read its `.handoff/` file once the work is
+committed, or ask it to stop its background work first.
+
 **Translations run in parallel.** Implementers write English only, following the `app-strings` skill. When a handoff changes English strings, website pages or release notes, send a translation request to `pillsner-translator` (change, worktree, the keys and files) and carry on with the next task while it works. Lint reports `MissingTranslation` until it is done; that is expected between the two, never a reason to put English in a locale file. All translations must be committed before step 3, and its length flags go to the designer.
 
-## 2. Test each task
+## 2. Test each task group
 
-Send the handoff to `pillsner-test-runner` as a test request with `scope: task`. Start it once per
-change and continue it with `SendMessage` for each later task. It runs every unit test and only the
-instrumented tests the task affects.
+Tests run **once per task group** (a `## n.` heading in `tasks.md`), not once per task. The
+implementer runs the tests it writes test-first, as part of the task. Then, when a group is done,
+merge its handoffs into one test request with `scope: task` and the union of `changed` and
+`new tests`, and send it to `pillsner-test-runner`. Start the runner once per change and continue it
+with `SendMessage` for each later group. It runs every unit test and only the instrumented tests the
+group affects.
+
+- **No request** for a group that changed nothing under `src/` (docs, `openspec/`, `.claude/`, website-only groups have their own check).
+- **No request** for a measurement or review task (a device check, a UI review). Those report their own result.
+- **Device checks need approval.** Never send the test runner a device or emulator measurement (startup frames, screen recordings, a new emulator image or AVD) unless the user approved it for this change. By default such a check becomes a manual test step in the pull request's callout.
 
 - **Green**: tick nothing yourself; the implementer has already marked the task. Go to the next task.
 - **Red**: send the failures verbatim to the implementer, which fixes them and returns a new handoff
@@ -61,19 +75,36 @@ instrumented tests the task affects.
 When every task is done:
 
 1. Run the `verify-change` skill. Its test step goes to the test runner with `scope: branch`; the
-   test runner's report becomes the instrumented-test line of the Verification section.
+   test runner's report becomes the instrumented-test line of the Verification section. If the
+   last group's test request was green and nothing under `src/` changed since its HEAD, reuse that
+   report instead of sending another: one test run per state of the code.
 2. Fix anything red through the implementer, as in step 2.
 
 ## 4. Review: at most two rounds
 
-Pick the critics from the branch diff (`git diff --name-only development...HEAD`). Run every critic
-that applies, in parallel:
+Pick the critics from the branch diff (`git diff --name-only development...HEAD`). **One critic per
+area**: sort each changed file into exactly one area below, and run one critic for each area that
+has files. Run them in parallel. Areas don't overlap, so no two critics review the same file, and a
+critic never checks a rule another area owns, even when that rule is mentioned in its own text.
 
-| Diff touches | Critic |
-| --- | --- |
-| `src/app` (except `data/wear/`) | `pillsner-app-critic` |
-| `src/wear`, `src/shared`, `src/app/.../data/wear/` | `pillsner-wear-critic` |
-| A manifest, a Gradle file, the version catalog, permissions, backup rules, `.github/workflows/release.yml`, the website privacy page, or the change is a release | `pillsner-play-critic` |
+| Area | Files in it | Critic |
+| --- | --- | --- |
+| Phone app | `src/app/**` except `data/wear/` and `AndroidManifest.xml` | `pillsner-app-critic` |
+| Watch colour | `src/wear/**/ui/theme/**`, `src/wear/src/main/res/values*/colors.xml` and `themes.xml`, `src/wear/src/main/res/drawable*/**`, `src/wear/src/main/res/mipmap*/**` | `pillsner-wear-color-critic` |
+| Watch and sync | every other file in `src/wear/**`, `src/shared/**`, `src/app/**/data/wear/**` | `pillsner-wear-critic` |
+| Store policy | only these Play triggers: a permission, an exported component, `minSdk` or `targetSdk`, a dependency added, removed or bumped in `src/gradle/libs.versions.toml`, backup rules, `.github/workflows/release.yml`, `src/website/content/*/privacy.md` | `pillsner-play-critic` |
+
+A manifest or Gradle file is not a Play trigger by itself. Look at what the change does in it:
+- **A theme attribute on an activity:** belongs to the area of what it points at (here, watch colour).
+- **A new dependency:** a Play trigger.
+
+Files outside all four areas (docs, `openspec/`, `.claude/`, tests whose main code isn't changed) need no critic.
+
+On a **release**, run all four critics on everything, as `release-prep` asks.
+
+The Wear OS visual quality items (WO-V13, WO-V15 and the other `WO-V` items) belong to the watch
+critics: colour and startup to `pillsner-wear-color-critic`, shapes and fonts to
+`pillsner-wear-critic`. `pillsner-play-critic` doesn't re-check them.
 
 **Brief for independence.** Give each critic the change name, the worktree, the scope
 (`git diff development...HEAD`) and the round number; in round 2, also the previous round's findings

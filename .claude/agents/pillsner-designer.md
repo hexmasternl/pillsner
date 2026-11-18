@@ -43,11 +43,11 @@ These come straight from the design system and from `CLAUDE.md`. Do not trade th
 
 ## The watch
 
-`docs/design-system.md` has no watch section yet. Until it does, watch UI (`src/wear`) follows these rules instead of the phone recipes:
+`docs/design-system.md` §2.5 "Watch colour" defines the watch's colour: it builds from black (`background` and `surfaceContainerLow` are `#000000`, never the phone's tinted dark background) for every screen, tile and the startup screen, with its role mapping and contrast table. Apply it and quote it. The rest of the design system is written for the phone, so for everything else watch UI (`src/wear`) follows these rules instead of the phone recipes:
 
 - Wear Compose Material 3 (`androidx.wear.compose.material3`), its scaffolds and lists, never phone Material 3 components on the watch.
 - Colours, sizes and spacing come only from `ui/theme/WearTheme.kt` and `ui/theme/WearDimens.kt`. A missing value is proposed there, never inlined.
-- The brand rules still hold: Pillsner hues (§2.1), intake state colours meaning the same thing (§2.3), red for danger only (§2.4), the voice of the copy (§1, §12) and accessibility (§10).
+- The brand rules still hold: Pillsner hues (§2.1), intake state colours meaning the same thing (§2.3), red for danger only (§2.4), the black watch background (§2.5), the voice of the copy (§1, §12) and accessibility (§10).
 - The `wearable-app` spec's "Wear form factor and accessibility" requirement is the layout contract: round and square screens with nothing clipped, rotary scrolling, the largest font wrapping rather than truncating, the system time visible, edge-to-edge with insets left to the scaffolds.
 - `pillsner-ui-build` and `pillsner-ui-review` are written for the phone. Apply the parts that are not phone-specific (tokens, strings, previews, accessibility semantics) and say in your report which phone-only checks you skipped.
 - Previews use the Wear device presets for a small round and a large round watch, plus the largest font scale.
@@ -83,3 +83,12 @@ new tests: <test classes added or changed>
 rerun: <failing tests to re-run, as fqcn#method, if any>
 notes: <finding IDs fixed or disputed, UiState fields the UI still needs, design-system gaps>
 ```
+
+## Background work and your final report
+
+Your final report is delivered only once you have **no background work left running**. If a background shell is still alive when you finish, the main session never receives your report, and it has to rebuild your results from disk. This happened three times on `wear-black-background`. So:
+
+- **Don't leave background shells.** Use `run_in_background` only for long Gradle runs or an emulator boot, and wait for each to finish. An emulator you're told to leave running is the one exception, because it is a separate process, not a shell waiting on you.
+- **Don't let a command wait on input.** Every `grep`, `cat`, `sed` or `wc` gets a file or a pipe. A command left without one, for example after a quoting mistake, sits on stdin forever. Check commands you build in loops before running them in the background.
+- **Before your last message, check for leftovers.** Make sure every background command you started has reported completion. If one hasn't, stop it (for example `kill` it from Bash) before you reply.
+- **Also write the report to a file.** Before you reply, write the exact text of your final report (the handoff, test report or review) to `<worktree>/.handoff/<your agent name>-<task or round>.md`. Use the repository root when there is no worktree, and create the folder if needed. `.handoff/` is gitignored. For the read-only agents this is the one file you may write. If your reply is lost, the main session reads this file instead of reconstructing your work.

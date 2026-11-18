@@ -7,6 +7,7 @@ import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import nl.hexmaster.pillsner.domain.scheduling.WakeKind
 import nl.hexmaster.pillsner.domain.scheduling.WakeMoment
+import nl.hexmaster.pillsner.domain.scheduling.WakeSchedule
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -32,6 +33,17 @@ class ReminderAlarmReconcileTest {
     private val evening = WakeMoment(Instant.parse("2026-09-14T18:00:00Z"), WakeKind.REMINDER)
     private val housekeeping = WakeMoment(Instant.parse("2026-09-14T22:05:00Z"), WakeKind.HOUSEKEEPING)
 
+    /**
+     * What the record says about this test's own moments.
+     *
+     * The test shares the record with the app it runs in. The app's own start-up wake reconciles the
+     * real schedule into the same store, and on a slow emulator it can land between this test's
+     * calls (CI, 2026-11-18). Its moments are real future times, never these fixed 2026-09-14 ones,
+     * so filtering to them keeps every assertion about what *this* scheduler recorded.
+     */
+    private suspend fun recorded(): WakeSchedule =
+        store.armed().filterTo(mutableSetOf()) { it in setOf(morning, evening, housekeeping) }
+
     @Before
     fun clearTheRecord() = runBlocking { store.clear() }
 
@@ -45,7 +57,7 @@ class ReminderAlarmReconcileTest {
         scheduler.reconcile(setOf(morning, evening, housekeeping))
 
         assertEquals(setOf(morning, evening, housekeeping), scheduler.armedMoments)
-        assertEquals(setOf(morning, evening, housekeeping), store.armed())
+        assertEquals(setOf(morning, evening, housekeeping), recorded())
     }
 
     @Test
@@ -72,7 +84,7 @@ class ReminderAlarmReconcileTest {
 
         assertEquals(setOf(morning), scheduler.cancelledMoments)
         assertEquals(setOf(evening, housekeeping), scheduler.armedMoments)
-        assertEquals(setOf(evening, housekeeping), store.armed())
+        assertEquals(setOf(evening, housekeeping), recorded())
     }
 
     @Test
@@ -85,7 +97,7 @@ class ReminderAlarmReconcileTest {
 
         assertEquals(setOf(morning, housekeeping), scheduler.cancelledMoments)
         assertTrue(scheduler.armedMoments.isEmpty())
-        assertTrue("Nothing to wake up for means nothing recorded", store.armed().isEmpty())
+        assertTrue("Nothing to wake up for means nothing recorded", recorded().isEmpty())
     }
 
     @Test

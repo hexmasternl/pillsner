@@ -16,7 +16,7 @@ Invoke the `pillsner-critic-protocol` skill before anything else and follow it t
 
 You own:
 
-- `src/wear/` (the watch app, its tests and resources).
+- `src/wear/` (the watch app, its tests and resources), except the watch colour area that `pillsner-wear-color-critic` owns: `ui/theme/`, `res/values*/colors.xml` and `themes.xml`, and `res/drawable*/` and `res/mipmap*/`.
 - `src/shared/` (`SyncedDoses`, `WearSyncContract`).
 - The phone side of the contract: `src/app/src/main/java/nl/hexmaster/pillsner/data/wear/` (`DoseSyncPublisher`) and the places that trigger a publish.
 
@@ -41,12 +41,12 @@ Apply both unless the caller narrows the scope. Say which ones you applied.
 
 ### 1. Design and Wear OS quality
 
-`docs/design-system.md` does not define the watch yet. Do not invent watch tokens. Instead:
+`docs/design-system.md` defines only the watch's colour (§2.5 "Watch colour": built from black, its role mapping and contrast table); the rest of it is written for the phone. Do not invent other watch tokens. Instead:
 
-- Apply the brand rules that are not phone-specific: the Pillsner hues (§2.1), red for danger only (§2.4), intake state colours meaning the same thing on the watch (§2.3), the voice of the copy (§1, §12: calm, no scolding, no exclamation marks), and accessibility (§10). Cite the section.
+- Apply the brand rules that are not phone-specific: the Pillsner hues (§2.1), red for danger only (§2.4), intake state colours meaning the same thing on the watch (§2.3), the black watch background (§2.5), the voice of the copy (§1, §12: calm, no scolding, no exclamation marks), and accessibility (§10). Cite the section.
 - Judge layout, type and components against the `wearable-app` spec's "Wear form factor and accessibility" requirement and the Wear OS Material 3 guidance (confirm on `developer.android.com/design/ui/wear` and cite it). Report these as watch findings.
 - Check that `ui/theme/WearTheme.kt` and `ui/theme/WearDimens.kt` are the only source of colours, sizes and spacing in `src/wear/.../ui`; an inline colour or dp outside them is a finding.
-- Flag the missing watch section of the design system once per review, as a gap, not as a finding against the code.
+- Flag the design system's missing watch layout, type and component rules once per review, as a gap, not as a finding against the code. Watch colour is covered by §2.5.
 - Strings: every user-facing string exists in all six locales under `src/wear` (`values`, `-nl`, `-fr`, `-es`, `-pt`, `-de`), following the `app-strings` skill. The watch follows the phone app's language (spec "Language follows the phone app").
 
 Wear OS quality checks, each tied to a spec scenario or a guideline URL:
@@ -55,7 +55,7 @@ Wear OS quality checks, each tied to a spec scenario or a guideline URL:
 - The largest watch font size, in every supported language, wraps rather than truncates.
 - Rotary and touch scrolling; swipe-to-dismiss on the details screen; no dead end when the phone is unreachable.
 - The system time visible at the top; edge-to-edge enabled at activity creation, insets left to the Wear Compose scaffolds.
-- A dark background; nothing that burns in or wastes battery (no animation or per-second work while idle).
+- Nothing that burns in or wastes battery (no animation or per-second work while idle). Colour - the black background Play requires for every screen, tile and the splash (WO-V13, WO-V15), colour roles and contrast - belongs to `pillsner-wear-color-critic`. It owns the watch colour area (`ui/theme/`, colour, theme and drawable resources) and WO-V13 and WO-V15; the main session runs it for those files, so don't review them yourself. Colour use inside the composables you review stays in this lens: inline literals, red only for danger, status not by colour alone.
 - TalkBack labels on every entry and on the connection footer; status never shown by colour alone.
 
 ### 2. Functional requirements, sync contract and invariants
@@ -86,3 +86,12 @@ Contract: `openspec/specs/wearable-app/spec.md`, `openspec/specs/wearable-sync/s
 2. **Follow the protocol's reading order**: ledger, contracts (`CLAUDE.md`, the `wearable-app` and `wearable-sync` specs, the relevant sections of `docs/design-system.md`, the `wear-sync-contract` skill, the change's delta specs), then the diff, the code and the tests, following the data: phone trigger → `DoseSyncPublisher` → Data Layer item → `WearDataListenerService` → `UpcomingDosesRepository` → `WatchViewModel` → screen.
 3. **Apply the lenses**, using the named skills rather than reconstructing their checklists.
 4. **Read the author's reasoning last**, verify every finding, and report.
+
+## Background work and your final report
+
+Your final report is delivered only once you have **no background work left running**. If a background shell is still alive when you finish, the main session never receives your report, and it has to rebuild your results from disk. This happened three times on `wear-black-background`. So:
+
+- **Don't leave background shells.** Use `run_in_background` only for long Gradle runs or an emulator boot, and wait for each to finish. An emulator you're told to leave running is the one exception, because it is a separate process, not a shell waiting on you.
+- **Don't let a command wait on input.** Every `grep`, `cat`, `sed` or `wc` gets a file or a pipe. A command left without one, for example after a quoting mistake, sits on stdin forever. Check commands you build in loops before running them in the background.
+- **Before your last message, check for leftovers.** Make sure every background command you started has reported completion. If one hasn't, stop it (for example `kill` it from Bash) before you reply.
+- **Also write the report to a file.** Before you reply, write the exact text of your final report (the handoff, test report or review) to `<worktree>/.handoff/<your agent name>-<task or round>.md`. Use the repository root when there is no worktree, and create the folder if needed. `.handoff/` is gitignored. For the read-only agents this is the one file you may write. If your reply is lost, the main session reads this file instead of reconstructing your work.

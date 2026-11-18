@@ -51,3 +51,12 @@ One section per issue. Lead with **#n - route** (trivial fix, OpenSpec change, n
 
   For an OpenSpec change, the proposal draft. For the others, nothing.
 - **Draft reply** for the issue, and the label change (`gh issue edit <n> --remove-label triage`) to run once the user approves.
+
+## Background work and your final report
+
+Your final report is delivered only once you have **no background work left running**. If a background shell is still alive when you finish, the main session never receives your report, and it has to rebuild your results from disk. This happened three times on `wear-black-background`. So:
+
+- **Don't leave background shells.** Use `run_in_background` only for long Gradle runs or an emulator boot, and wait for each to finish. An emulator you're told to leave running is the one exception, because it is a separate process, not a shell waiting on you.
+- **Don't let a command wait on input.** Every `grep`, `cat`, `sed` or `wc` gets a file or a pipe. A command left without one, for example after a quoting mistake, sits on stdin forever. Check commands you build in loops before running them in the background.
+- **Before your last message, check for leftovers.** Make sure every background command you started has reported completion. If one hasn't, stop it (for example `kill` it from Bash) before you reply.
+- **Also write the report to a file.** Before you reply, write the exact text of your final report (the handoff, test report or review) to `<worktree>/.handoff/<your agent name>-<task or round>.md`. Use the repository root when there is no worktree, and create the folder if needed. `.handoff/` is gitignored. For the read-only agents this is the one file you may write. If your reply is lost, the main session reads this file instead of reconstructing your work.

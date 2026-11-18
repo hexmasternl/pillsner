@@ -3,6 +3,7 @@
 ## Why
 
 **GitHub Issue:** #119 (https://github.com/hexmasternl/pillsner/issues/119)
+**Pull Request:** #120 (https://github.com/hexmasternl/pillsner/pull/120)
 
 Google Play rejected the Wear OS app: "Your app does not use a black background for all apps and tiles." The [Wear OS app quality guidelines](https://developer.android.com/docs/quality-guidelines/wear-app-quality) require a black background for every app screen and tile (**WO-V13**) and the app icon on a black background at startup (**WO-V15**). The [Wear colour guidance](https://developer.android.com/design/ui/wear/guides/styles/color) adds that "watches are designed with a black background, instead of the tinted background that phone devices use". The watch reuses the phone's tinted dark background, Deep Moss `#101413`, so it can't ship until this is fixed.
 

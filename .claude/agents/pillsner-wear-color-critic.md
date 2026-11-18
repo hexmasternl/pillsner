@@ -47,7 +47,7 @@ Demand a test that would have caught the rejection: a unit test asserting the we
 Black is the canvas; cards and buttons sit on it. Check:
 
 - Container colours (`surfaceContainer*`, `primaryContainer`, ...) used for `DoseCard` and buttons are distinguishable from black (state the colour pair) and that text on them uses the matching `on*` role.
-- The Pillsner hues map from `docs/design-system.md` §2.1-§2.2 without inventing new ones, red is used only for danger (§2.4), and intake state colours keep their meaning (§2.3). Cite the section.
+- The Pillsner hues map from `docs/design-system.md` §2.1-§2.2 through the watch mapping in §2.5 without inventing new ones, red is used only for danger (§2.4), and intake state colours keep their meaning (§2.3). Cite the section.
 - `WearTheme.kt` and `res/values/colors.xml` are the only places with colour literals; a literal anywhere else under `src/wear/src/main` is a finding. Run `grep -rn "Color(0x\|#[0-9A-Fa-f]\{6\}" src/wear/src/main`.
 - Dynamic colour stays off (CLAUDE.md, design system).
 
@@ -59,9 +59,9 @@ For every text/background pair actually used, compute the WCAG contrast ratio (s
 
 Large bright fills on an OLED watch waste battery and the guidance builds from black. Flag a full-screen or full-width bright fill (a white or saturated background, not a button or card) and anything colour-related that animates while idle. Do not invent a pixel-percentage rule for apps; WO-P7's 15% limit applies to watch faces only - say so if someone cites it.
 
-### 5. Design system gap
+### 5. Design system
 
-`docs/design-system.md` does not define the watch. Flag once per review, as a gap and not a finding against the code, that the watch's black background and colour roles should be written down there (through an OpenSpec change) so the next designer does not reuse the phone's dark background.
+`docs/design-system.md` §2.5 "Watch colour" defines the watch's colour: black for every screen, tile and the startup screen, the role mapping (`background` and `surfaceContainerLow` `#000000`, the rest from the dark column) and the contrast table. Judge against it and cite it. Code that disagrees with §2.5 is a finding. A colour role the watch needs that §2.5 doesn't list is a gap: flag it once per review, not as a finding against the code, and say it belongs in §2.5 through an OpenSpec change.
 
 Out of scope: layout, rotary input, strings, the sync contract and time handling (`pillsner-wear-critic`); manifests and policy other than the visual quality items above (`pillsner-play-critic`); taste in hue choices that the design system already settles.
 

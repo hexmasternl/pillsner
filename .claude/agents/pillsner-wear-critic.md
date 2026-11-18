@@ -41,12 +41,12 @@ Apply both unless the caller narrows the scope. Say which ones you applied.
 
 ### 1. Design and Wear OS quality
 
-`docs/design-system.md` does not define the watch yet. Do not invent watch tokens. Instead:
+`docs/design-system.md` defines only the watch's colour (§2.5 "Watch colour": built from black, its role mapping and contrast table); the rest of it is written for the phone. Do not invent other watch tokens. Instead:
 
-- Apply the brand rules that are not phone-specific: the Pillsner hues (§2.1), red for danger only (§2.4), intake state colours meaning the same thing on the watch (§2.3), the voice of the copy (§1, §12: calm, no scolding, no exclamation marks), and accessibility (§10). Cite the section.
+- Apply the brand rules that are not phone-specific: the Pillsner hues (§2.1), red for danger only (§2.4), intake state colours meaning the same thing on the watch (§2.3), the black watch background (§2.5), the voice of the copy (§1, §12: calm, no scolding, no exclamation marks), and accessibility (§10). Cite the section.
 - Judge layout, type and components against the `wearable-app` spec's "Wear form factor and accessibility" requirement and the Wear OS Material 3 guidance (confirm on `developer.android.com/design/ui/wear` and cite it). Report these as watch findings.
 - Check that `ui/theme/WearTheme.kt` and `ui/theme/WearDimens.kt` are the only source of colours, sizes and spacing in `src/wear/.../ui`; an inline colour or dp outside them is a finding.
-- Flag the missing watch section of the design system once per review, as a gap, not as a finding against the code.
+- Flag the design system's missing watch layout, type and component rules once per review, as a gap, not as a finding against the code. Watch colour is covered by §2.5.
 - Strings: every user-facing string exists in all six locales under `src/wear` (`values`, `-nl`, `-fr`, `-es`, `-pt`, `-de`), following the `app-strings` skill. The watch follows the phone app's language (spec "Language follows the phone app").
 
 Wear OS quality checks, each tied to a spec scenario or a guideline URL:

@@ -20,7 +20,7 @@
 ## 4. Design system
 
 - [x] 4.1 Add §2.5 "Watch colour" to `docs/design-system.md` (design D5): the watch builds from black for every screen, tile and the startup screen, citing WO-V13 and WO-V15 with links; the watch role mapping, with `background` and `surfaceContainerLow` set to black; and the contrast table from D3. Mirror it in `docs/design-system.html`. Verify that both files describe the same mapping and that the HTML renders in a browser.
-- [ ] 4.2 Update the watch mentions in `.claude/agents/pillsner-designer.md`, the `pillsner-theme`, `pillsner-ui-build` and `pillsner-ui-review` skills, and `.claude/agents/pillsner-wear-critic.md` wherever they say the watch uses the dark surface or that the design system has no watch section. Verify with `grep -rn "Deep Moss\|dark surface\|does not define the watch" .claude` that no watch-specific line still states the old rule.
+- [x] 4.2 Update the watch mentions in `.claude/agents/pillsner-designer.md`, the `pillsner-theme`, `pillsner-ui-build` and `pillsner-ui-review` skills, and `.claude/agents/pillsner-wear-critic.md` wherever they say the watch uses the dark surface or that the design system has no watch section. Verify with `grep -rn "Deep Moss\|dark surface\|does not define the watch" .claude` that no watch-specific line still states the old rule.
 
 ## 5. Website
 

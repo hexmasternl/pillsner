@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        Window-level theme only: it paints the dark surface behind the first Compose frame. Every
-        visible thing is styled by PillsnerWearTheme in Compose.
+        Window-level themes only. Every visible thing after the first frame is styled by
+        PillsnerWearTheme in Compose. The watch builds from black (wear-black-background design D2):
+        Google Play rejects a Wear OS app whose screens or startup aren't on black (WO-V13, WO-V15,
+        https://developer.android.com/docs/quality-guidelines/wear-app-quality).
     -->
+
+    <!-- Paints black behind the first Compose frame, after the startup screen. -->
     <style name="Theme.PillsnerWear" parent="@android:style/Theme.DeviceDefault">
-        <item name="android:windowBackground">@color/deep_moss</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+    <!--
+        The startup screen: the launcher icon on black, drawn by androidx.core:core-splashscreen on
+        every Wear OS version the watch supports. MainActivity's manifest theme;
+        installSplashScreen() swaps to Theme.PillsnerWear before the first frame.
+    -->
+    <style name="Theme.PillsnerWear.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@android:color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.PillsnerWear</item>
     </style>
 </resources>

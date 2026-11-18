@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The startup icon (wear-black-background design D2, "Correction found during implementation"):
+    the launcher icon's green disc and its foreground artwork as one flat drawable, so every API
+    level draws the same thing. The adaptive launcher icon can't be used directly: the splash
+    library draws only its foreground below API 31, and it shows 60 dp across on a watch.
+
+    The splash draws an icon without a background into a square and masks it to a circle two thirds
+    as wide: on a watch a 90 dp square behind the 60 dp circle measured on device. The insets are
+    fractions of that square, so the icon scales with whatever size the platform or the library
+    gives it:
+    - the green disc is 48 / 90 of the square, so 23.33 % per side: 48 dp, 6 dp clear of the circle;
+    - the foreground is the launcher's own 108-unit layer, whose visible circle is its central
+      72 units. Drawn at 80 % of the square (10 % per side) it is 72 dp, so that circle is exactly
+      the 48 dp disc.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <inset android:inset="23.333%">
+            <shape android:shape="oval">
+                <solid android:color="@color/pillsner_green" />
+            </shape>
+        </inset>
+    </item>
+    <item>
+        <inset
+            android:drawable="@drawable/ic_launcher_foreground"
+            android:inset="10%" />
+    </item>
+</layer-list>

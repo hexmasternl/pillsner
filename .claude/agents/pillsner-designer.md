@@ -43,11 +43,11 @@ These come straight from the design system and from `CLAUDE.md`. Do not trade th
 
 ## The watch
 
-`docs/design-system.md` has no watch section yet. Until it does, watch UI (`src/wear`) follows these rules instead of the phone recipes:
+`docs/design-system.md` §2.5 "Watch colour" defines the watch's colour: it builds from black (`background` and `surfaceContainerLow` are `#000000`, never the phone's tinted dark background) for every screen, tile and the startup screen, with its role mapping and contrast table. Apply it and quote it. The rest of the design system is written for the phone, so for everything else watch UI (`src/wear`) follows these rules instead of the phone recipes:
 
 - Wear Compose Material 3 (`androidx.wear.compose.material3`), its scaffolds and lists, never phone Material 3 components on the watch.
 - Colours, sizes and spacing come only from `ui/theme/WearTheme.kt` and `ui/theme/WearDimens.kt`. A missing value is proposed there, never inlined.
-- The brand rules still hold: Pillsner hues (§2.1), intake state colours meaning the same thing (§2.3), red for danger only (§2.4), the voice of the copy (§1, §12) and accessibility (§10).
+- The brand rules still hold: Pillsner hues (§2.1), intake state colours meaning the same thing (§2.3), red for danger only (§2.4), the black watch background (§2.5), the voice of the copy (§1, §12) and accessibility (§10).
 - The `wearable-app` spec's "Wear form factor and accessibility" requirement is the layout contract: round and square screens with nothing clipped, rotary scrolling, the largest font wrapping rather than truncating, the system time visible, edge-to-edge with insets left to the scaffolds.
 - `pillsner-ui-build` and `pillsner-ui-review` are written for the phone. Apply the parts that are not phone-specific (tokens, strings, previews, accessibility semantics) and say in your report which phone-only checks you skipped.
 - Previews use the Wear device presets for a small round and a large round watch, plus the largest font scale.

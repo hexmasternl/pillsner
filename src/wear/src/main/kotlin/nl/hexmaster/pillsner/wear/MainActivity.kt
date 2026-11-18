@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,10 +27,16 @@ import nl.hexmaster.pillsner.wear.ui.theme.PillsnerWearTheme
  * same on every Wear OS version and Google Play stops flagging the watch bundle (issue #72,
  * edge-to-edge-insets design D1). The Wear Compose scaffolds own the round-screen and time-text
  * padding, so nothing else here changes.
+ *
+ * Starts on `Theme.PillsnerWear.Starting`, the launcher icon on black (`wear-black-background`
+ * design D2, WO-V15). `installSplashScreen()` comes first, because it switches the activity to
+ * `Theme.PillsnerWear`, and that theme must be in place before `enableEdgeToEdge()` creates the
+ * window's decor view.
  */
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         val container = (application as PillsnerWearApplication).container

@@ -17,7 +17,7 @@ Every watch app screen, the window shown before the first frame, the startup scr
 
 #### Scenario: Startup on black
 - **WHEN** the watch app is launched from the app list while its process is not running, on a watch running a Wear OS version below API 31 or at API 31 or later
-- **THEN** from the app's first starting-window frame until the agenda appears, the screen shows the launcher icon at 48 × 48 dp centred on `#000000`, and nothing else
+- **THEN** from the moment the system's window-open transition has finished drawing the app's starting window until the agenda appears, the screen shows the launcher icon artwork (green ring, white disc and capsule) at 48 × 48 dp centred on `#000000`, and nothing else; the system's own transition frames (its scrim or the outgoing watch face) are not the app's and are not counted
 
 #### Scenario: Cards stand out on black
 - **WHEN** the agenda shows a due dose and an overdue dose

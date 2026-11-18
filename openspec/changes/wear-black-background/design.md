@@ -38,6 +38,14 @@ The setup:
 - Rely on the platform splash with no library. Rejected because no icon appears below API 31 (proposal critic SPEC-1).
 - Raise the watch's minSdk to 31. Rejected because it drops Wear OS 3 watches on API 30 to avoid a small first-party library, and CLAUDE.md forbids changing the minimum SDK to gain a feature without its own proposal.
 
+**Correction found during implementation (task 3.2, 2026-11-18).** The startup check measured the result on a Wear OS 3 emulator (API 30) and the API 37 CI image. The background is right: the steady startup frame is pure `#000000` around the icon on both. Two things were wrong:
+- With `@mipmap/ic_launcher` as the icon, the library draws it 60 dp across on both API levels, not 48 dp.
+- On API 30 the library draws only the adaptive icon's foreground layer, so the green ring is missing and the startup icon doesn't match the launcher icon. API 37 draws both layers.
+
+The fix: the starting theme's `windowSplashScreenAnimatedIcon` becomes a dedicated drawable, `splash_icon.xml`. It is a layer list of the launcher's green background disc and its foreground artwork, so it is one flat drawable that every API level draws the same way. It is inset so the visible icon is 48 dp across inside the library's 60 dp icon slot: a 6 dp inset on each side, i.e. 10 % of the slot. The launcher icon resources themselves don't change.
+
+Separately, a few frames during the system's window-open animation contain non-app pixels: a grey scrim on API 30, or the outgoing watch face on API 37. With animations off they don't appear, so the system draws them, not the app. The "Startup on black" scenario now counts from the end of that transition.
+
 **Tiles.** The requirement's clause on tiles is forward-looking. The app has no tile today, so there is no scenario for it. A change that adds a tile must add a scenario under this requirement.
 
 **D3. Keep the container and text colours, and prove contrast on black in a test.** The ratios are all well above WCAG AA:

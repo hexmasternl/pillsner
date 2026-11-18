@@ -16,7 +16,7 @@ Invoke the `pillsner-critic-protocol` skill before anything else and follow it t
 
 You own:
 
-- `src/wear/` (the watch app, its tests and resources).
+- `src/wear/` (the watch app, its tests and resources), except the watch colour area that `pillsner-wear-color-critic` owns: `ui/theme/`, `res/values*/colors.xml` and `themes.xml`, and `res/drawable*/` and `res/mipmap*/`.
 - `src/shared/` (`SyncedDoses`, `WearSyncContract`).
 - The phone side of the contract: `src/app/src/main/java/nl/hexmaster/pillsner/data/wear/` (`DoseSyncPublisher`) and the places that trigger a publish.
 
@@ -55,7 +55,7 @@ Wear OS quality checks, each tied to a spec scenario or a guideline URL:
 - The largest watch font size, in every supported language, wraps rather than truncates.
 - Rotary and touch scrolling; swipe-to-dismiss on the details screen; no dead end when the phone is unreachable.
 - The system time visible at the top; edge-to-edge enabled at activity creation, insets left to the Wear Compose scaffolds.
-- Nothing that burns in or wastes battery (no animation or per-second work while idle). Colour - the black background Play requires for every screen, tile and the splash (WO-V13, WO-V15), colour roles and contrast - belongs to `pillsner-wear-color-critic`; when the scope touches theme, colour or a composable's fills, tell the caller to run it too.
+- Nothing that burns in or wastes battery (no animation or per-second work while idle). Colour - the black background Play requires for every screen, tile and the splash (WO-V13, WO-V15), colour roles and contrast - belongs to `pillsner-wear-color-critic`. It owns the watch colour area (`ui/theme/`, colour, theme and drawable resources) and WO-V13 and WO-V15; the main session runs it for those files, so don't review them yourself. Colour use inside the composables you review stays in this lens: inline literals, red only for danger, status not by colour alone.
 - TalkBack labels on every entry and on the connection footer; status never shown by colour alone.
 
 ### 2. Functional requirements, sync contract and invariants
@@ -86,3 +86,12 @@ Contract: `openspec/specs/wearable-app/spec.md`, `openspec/specs/wearable-sync/s
 2. **Follow the protocol's reading order**: ledger, contracts (`CLAUDE.md`, the `wearable-app` and `wearable-sync` specs, the relevant sections of `docs/design-system.md`, the `wear-sync-contract` skill, the change's delta specs), then the diff, the code and the tests, following the data: phone trigger → `DoseSyncPublisher` → Data Layer item → `WearDataListenerService` → `UpcomingDosesRepository` → `WatchViewModel` → screen.
 3. **Apply the lenses**, using the named skills rather than reconstructing their checklists.
 4. **Read the author's reasoning last**, verify every finding, and report.
+
+## Background work and your final report
+
+Your final report is delivered only once you have **no background work left running**. If a background shell is still alive when you finish, the main session never receives your report, and it has to rebuild your results from disk. This happened three times on `wear-black-background`. So:
+
+- **Don't leave background shells.** Use `run_in_background` only for long Gradle runs or an emulator boot, and wait for each to finish. An emulator you're told to leave running is the one exception, because it is a separate process, not a shell waiting on you.
+- **Don't let a command wait on input.** Every `grep`, `cat`, `sed` or `wc` gets a file or a pipe. A command left without one, for example after a quoting mistake, sits on stdin forever. Check commands you build in loops before running them in the background.
+- **Before your last message, check for leftovers.** Make sure every background command you started has reported completion. If one hasn't, stop it (for example `kill` it from Bash) before you reply.
+- **Also write the report to a file.** Before you reply, write the exact text of your final report (the handoff, test report or review) to `<worktree>/.handoff/<your agent name>-<task or round>.md`. Use the repository root when there is no worktree, and create the folder if needed. `.handoff/` is gitignored. For the read-only agents this is the one file you may write. If your reply is lost, the main session reads this file instead of reconstructing your work.

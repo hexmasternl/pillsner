@@ -20,5 +20,10 @@ schema: spec-driven
 #       - Break tasks into chunks of max 2 hours
 
 rules:
+  proposal:
+    - Scope the change to what its issue or request asks for, and nothing more. Adjacent improvements found while proposing (other guideline items, extra documentation sections, agent or skill updates, refactors, extra hardening) go in a "Follow-ups" section at the end of the proposal, each as one line, and are not part of the change's specs, design or tasks. The user decides whether each becomes its own change.
+  design:
+    - Choose the smallest approach that satisfies the change's scenarios. When a decision would add a dependency, a new kind of test infrastructure or a check on a device or emulator that the scenarios do not strictly need, name the smaller alternative and why it was not enough.
   tasks:
+    - Size the tasks to the change. A fix of a few values or lines gets the fix and the one test that pins it; it gets no documentation, agent or skill updates, no device or emulator measurements and no new emulator images unless a scenario in this change requires them. Never plan installing a system image or creating an AVD; when only a device can verify a scenario, make it a manual test step for the pull request's callout.
     - When the change adds or changes anything a user of the app can see or notice (a feature, a behaviour change, a permission, a language, where data goes), include a task group "Website" that updates the marketing website in all six locales through the website-feature-sync skill, with the verification "hugo --minify --panicOnWarning passes and every locale has the same structure as English". When the change has no user-visible effect, include no website task.

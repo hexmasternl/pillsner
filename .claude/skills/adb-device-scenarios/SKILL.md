@@ -13,6 +13,13 @@ from the command line, which turns a manual test into one the agent runs and rep
 for those, and keep "manual" for what truly needs a person (a real watch, a real lock screen
 experience, a specific phone maker's battery manager).
 
+**Reminder paths only.** This skill covers the scenarios listed below, for changes to reminder
+scheduling, alarms, notifications and the boot and time receivers. It isn't for visual checks
+(startup screens, colours, layout measured from screenshots). Those are covered by Compose and
+instrumented tests, or go in the pull request's manual-testing callout. A visual device check runs
+only when the user approved it for that change, on the emulators the `emulator-tests` skill names,
+without installing new system images.
+
 **Emulator only.** These commands change the device's clock, time zone and power state. Never run
 them against a physical device unless the user explicitly says that device is a test device.
 

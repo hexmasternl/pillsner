@@ -61,6 +61,16 @@
     --sc-lowest:#0B0F0E; --sc-low:#191C1B; --sc:#1D211F; --sc-high:#272B29; --sc-highest:#323634;
     --outline:#89938E; --outline-variant:#3F4945; --card:#272B29;
   }
+  /* The watch (section 2.5): the dark roles, built from black instead of Deep Moss. */
+  .theme-watch {
+    --primary:#8CD8B0; --on-primary:#00382A; --primary-container:#005E43; --on-primary-container:#A8F0CE;
+    --secondary:#A2C9FF; --on-secondary:#003259; --secondary-container:#1D4E7F; --on-secondary-container:#D3E4FF;
+    --tertiary:#83D4E0; --on-tertiary:#00363D; --tertiary-container:#005A66; --on-tertiary-container:#B5EEF6;
+    --error:#FFB4AB; --on-error:#690005; --error-container:#93000A; --on-error-container:#FFDAD6;
+    --surface:#000000; --on-surface:#E1E3E0; --on-surface-variant:#BFC9C4;
+    --sc-low:#000000; --sc:#1D211F; --sc-high:#3F4945;
+    --outline:#89938E; --outline-variant:#3F4945;
+  }
 
   * { box-sizing: border-box; }
   body {
@@ -217,6 +227,16 @@
   .wd { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--outline); font-size: 14px; font-weight: 600; display:grid; place-items:center; }
   .wd.on { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
 
+  .watches { display:flex; flex-wrap:wrap; gap: 20px; justify-content:center; }
+  .watch { width: 220px; height: 220px; border-radius: 50%; background: #000; color: var(--on-surface); border: 6px solid var(--outline-variant); display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 6px; padding: 24px; text-align:center; }
+  .watch .wtime { font-size: 13px; font-variant-numeric: tabular-nums; }
+  .watch .wcard { width: 100%; border-radius: 22px; padding: 6px 12px; display:flex; align-items:center; gap: 8px; font-size: 13px; line-height: 1.3; text-align:left; }
+  .watch .wcard .sym { font-size: 18px; }
+  .watch .wcard b { font-weight: 600; }
+  .watch .wfoot { font-size: 12px; color: var(--on-surface-variant); }
+  .watch svg.launcher { width: 48px; height: 48px; }
+  .caption { text-align:center; font-size: 14px; color: var(--on-surface-variant); margin-top: 8px; }
+
   table { border-collapse: collapse; width: 100%; font-size: 16px; }
   th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--outline-variant); vertical-align: top; }
   th { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--on-surface-variant); }
@@ -298,7 +318,7 @@
   <div class="hue" style="background:#0F7C8C;color:#fff"><b>Pillsner Teal</b><span>#0F7C8C · tertiary</span></div>
   <div class="hue" style="background:#BA1A1A;color:#fff"><b>Signal Red</b><span>#BA1A1A · error</span></div>
   <div class="hue" style="background:#F9FBFA;color:#191C1B;border:1px solid #BFC9C4"><b>Mint White</b><span>#F9FBFA · light surface</span></div>
-  <div class="hue" style="background:#101413;color:#E1E3E0"><b>Deep Moss</b><span>#101413 · dark surface</span></div>
+  <div class="hue" style="background:#101413;color:#E1E3E0"><b>Deep Moss</b><span>#101413 · phone dark surface</span></div>
 </div>
 
 <h3>Colour roles in both themes</h3>
@@ -326,7 +346,7 @@
     <p class="small muted" style="margin:10px 0 0">surface #F9FBFA · onSurface #191C1B · onSurfaceVariant #3F4945 · outline #6F7975</p>
   </div>
   <div class="panel theme-dark">
-    <h4>Dark</h4>
+    <h4>Dark (phone)</h4>
     <div class="roles">
       <div class="role" style="background:var(--primary);color:var(--on-primary)"><b>primary</b><span>#8CD8B0 · on #00382A</span></div>
       <div class="role" style="background:var(--primary-container);color:var(--on-primary-container)"><b>primaryContainer</b><span>#005E43 · on #A8F0CE</span></div>
@@ -345,7 +365,7 @@
       <div class="tier" style="background:var(--sc-high)">high</div>
       <div class="tier" style="background:var(--sc-highest)">highest</div>
     </div>
-    <p class="small muted" style="margin:10px 0 0">surface #101413 · onSurface #E1E3E0 · onSurfaceVariant #BFC9C4 · outline #89938E</p>
+    <p class="small muted" style="margin:10px 0 0">surface #101413 · onSurface #E1E3E0 · onSurfaceVariant #BFC9C4 · outline #89938E. Deep Moss is for the phone only; the watch builds from black (see Watch colour).</p>
   </div>
 </div>
 <p class="small muted" style="margin-top:12px">Every text-on-container pair above measures at least 4.5 : 1 (lowest pair: light primary on white at 4.96 : 1). Outlines clear 3 : 1.</p>
@@ -376,6 +396,65 @@
     </div>
   </div>
 </div>
+
+<h3>Watch colour</h3>
+<p class="prose muted">The watch builds from black. Every watch screen, the window behind the first frame, the startup screen and any tile use pure black, #000000, as Google Play requires (<a href="https://developer.android.com/docs/quality-guidelines/wear-app-quality">Wear OS app quality</a> WO-V13 for screens and tiles, WO-V15 for the icon on black at startup). Deep Moss stays on the phone. Every other role comes from the dark column; cards keep their container colours on top of the black.</p>
+<div class="grid g2">
+  <div class="panel theme-watch">
+    <h4>Watch roles</h4>
+    <div class="roles">
+      <div class="role" style="background:#000000;color:var(--on-surface);border:1px solid var(--outline-variant)"><b>background</b><span>#000000 · on #E1E3E0</span></div>
+      <div class="role" style="background:#000000;color:var(--on-surface);border:1px solid var(--outline-variant)"><b>surfaceContainerLow</b><span>#000000</span></div>
+      <div class="role" style="background:var(--sc);color:var(--on-surface)"><b>surfaceContainer</b><span>#1D211F</span></div>
+      <div class="role" style="background:var(--sc-high);color:var(--on-surface)"><b>surfaceContainerHigh</b><span>#3F4945</span></div>
+      <div class="role" style="background:var(--secondary-container);color:var(--on-secondary-container)"><b>secondaryContainer</b><span>#1D4E7F · on #D3E4FF</span></div>
+      <div class="role" style="background:var(--error-container);color:var(--on-error-container)"><b>errorContainer</b><span>#93000A · on #FFDAD6</span></div>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">onSurface #E1E3E0 · onSurfaceVariant #BFC9C4 · outline #89938E. primary, secondary, tertiary, error and their containers as the dark column.</p>
+  </div>
+  <div class="panel theme-watch">
+    <h4>On a round screen</h4>
+    <div class="watches">
+      <div>
+        <div class="watch" role="img" aria-label="Watch agenda on black: a due dose card in blue and an overdue dose card in red">
+          <span class="wtime">07:40</span>
+          <div class="wcard" style="background:var(--error-container);color:var(--on-error-container)"><span class="sym fill">error</span><span><b>07:00</b> Metformin<br>500 mg</span></div>
+          <div class="wcard" style="background:var(--secondary-container);color:var(--on-secondary-container)"><span class="sym">schedule</span><span><b>08:00</b> Ibuprofen<br>40 mg</span></div>
+          <span class="wfoot">Version 0.1.0</span>
+        </div>
+        <p class="caption">Agenda</p>
+      </div>
+      <div>
+        <div class="watch" role="img" aria-label="Startup screen: the launcher icon, 48 dp, centred on black">
+          <svg class="launcher" viewBox="0 0 108 108" aria-hidden="true">
+            <defs><clipPath id="wl-clip"><circle cx="54" cy="54" r="54"/></clipPath></defs>
+            <g clip-path="url(#wl-clip)">
+              <rect width="108" height="108" fill="#1B7F5C"/>
+              <circle cx="54" cy="54" r="30" fill="#FFFFFF"/>
+              <g transform="rotate(-45 54 54)">
+                <path d="M54,45.5 L45.5,45.5 A8.5,8.5 0 0 0 45.5,62.5 L54,62.5 Z" fill="#1B7F5C"/>
+                <path d="M54,45.5 L62.5,45.5 A8.5,8.5 0 0 1 62.5,62.5 L54,62.5 Z" fill="#2D6DA8"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <p class="caption">Startup: launcher icon, 48 dp</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tablewrap" style="margin-top:20px">
+<table>
+  <thead><tr><th>Foreground</th><th>Background</th><th>Ratio</th></tr></thead>
+  <tbody>
+    <tr><td>onSurface #E1E3E0</td><td>black</td><td>16.27 : 1</td></tr>
+    <tr><td>onSurfaceVariant #BFC9C4</td><td>black</td><td>12.37 : 1</td></tr>
+    <tr><td>onSecondaryContainer #D3E4FF</td><td>secondaryContainer #1D4E7F</td><td>6.66 : 1</td></tr>
+    <tr><td>onErrorContainer #FFDAD6</td><td>errorContainer #93000A</td><td>7.24 : 1</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="small muted" style="margin-top:12px">Every watch text pair clears 4.5 : 1. The cards differ from black at 2.45 : 1 (blue) and 2.24 : 1 (red); their meaning is carried by icon, label and TalkBack description, never by the fill alone. The startup icon is drawn by AndroidX core-splashscreen, the same on every Wear OS version.</p>
 
 <h2>Typography</h2>
 <p class="prose muted">Two anchors: Montserrat 18 / 400 for everything you read, Raleway 48 / 200 for the one header a screen gets. The rest of the Material 3 scale is derived from those. Raleway stays at or above 24 sp and steps up to weight 300 under 34 sp, because ExtraLight strokes lose contrast when small. Fonts are bundled in <code>res/font</code>, not downloaded.</p>

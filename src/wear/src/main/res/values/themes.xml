@@ -13,13 +13,14 @@
     </style>
 
     <!--
-        The startup screen: the launcher icon on black, drawn by androidx.core:core-splashscreen on
-        every Wear OS version the watch supports. MainActivity's manifest theme;
-        installSplashScreen() swaps to Theme.PillsnerWear before the first frame.
+        The startup screen: the launcher icon artwork at 48 dp on black, drawn by
+        androidx.core:core-splashscreen on every Wear OS version the watch supports. The icon is the
+        flat splash_icon, not the adaptive mipmap (design D2 correction). MainActivity's manifest
+        theme; installSplashScreen() swaps to Theme.PillsnerWear before the first frame.
     -->
     <style name="Theme.PillsnerWear.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@android:color/black</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
         <item name="postSplashScreenTheme">@style/Theme.PillsnerWear</item>
     </style>
 </resources>

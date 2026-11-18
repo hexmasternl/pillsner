@@ -53,11 +53,13 @@ class StartupThemeTest {
     }
 
     @Test
-    fun startingTheme_splashIconIsTheLauncherIcon() {
+    fun startingTheme_splashIconIsTheFlatLauncherArtwork() {
+        // Not @mipmap/ic_launcher: the library draws only an adaptive icon's foreground below API 31
+        // and draws it 60 dp across. splash_icon is the same artwork, flat and inset to 48 dp (D2).
         val value = startingTheme().resolve(SplashR.attr.windowSplashScreenAnimatedIcon)
         assertEquals(
             "windowSplashScreenAnimatedIcon is ${context.resources.nameOf(value.resourceId)}",
-            R.mipmap.ic_launcher,
+            R.drawable.splash_icon,
             value.resourceId,
         )
     }

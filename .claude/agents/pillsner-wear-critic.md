@@ -55,7 +55,7 @@ Wear OS quality checks, each tied to a spec scenario or a guideline URL:
 - The largest watch font size, in every supported language, wraps rather than truncates.
 - Rotary and touch scrolling; swipe-to-dismiss on the details screen; no dead end when the phone is unreachable.
 - The system time visible at the top; edge-to-edge enabled at activity creation, insets left to the Wear Compose scaffolds.
-- A dark background; nothing that burns in or wastes battery (no animation or per-second work while idle).
+- Nothing that burns in or wastes battery (no animation or per-second work while idle). Colour - the black background Play requires for every screen, tile and the splash (WO-V13, WO-V15), colour roles and contrast - belongs to `pillsner-wear-color-critic`; when the scope touches theme, colour or a composable's fills, tell the caller to run it too.
 - TalkBack labels on every entry and on the connection footer; status never shown by colour alone.
 
 ### 2. Functional requirements, sync contract and invariants

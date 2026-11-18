@@ -73,6 +73,7 @@ that applies, in parallel:
 | --- | --- |
 | `src/app` (except `data/wear/`) | `pillsner-app-critic` |
 | `src/wear`, `src/shared`, `src/app/.../data/wear/` | `pillsner-wear-critic` |
+| `src/wear` themes, colours, composables, tiles, launcher or splash resources, or the change is a release | `pillsner-wear-color-critic` |
 | A manifest, a Gradle file, the version catalog, permissions, backup rules, `.github/workflows/release.yml`, the website privacy page, or the change is a release | `pillsner-play-critic` |
 
 **Brief for independence.** Give each critic the change name, the worktree, the scope

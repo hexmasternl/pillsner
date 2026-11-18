@@ -24,9 +24,11 @@
 
 ## 5. Website
 
-- [ ] 5.1 Run the `website-feature-sync` skill for this change. The watch's background colour is visible, but the site describes no watch colours and shows no watch screenshot, so the expected outcome is no page change. Update any page or screenshot it does find in all six locales. Verify that `hugo --minify --panicOnWarning` passes and that every locale has the same structure as English.
+- [x] 5.1 Run the `website-feature-sync` skill for this change. The watch's background colour is visible, but the site describes no watch colours and shows no watch screenshot, so the expected outcome is no page change. Update any page or screenshot it does find in all six locales. Verify that `hugo --minify --panicOnWarning` passes and that every locale has the same structure as English.
 
 ## 6. Review and verification
 
 - [ ] 6.1 Run `pillsner-wear-color-critic` and `pillsner-wear-critic` on the branch through the `change-delivery-loop` skill, and record their rows in `.claude/critic-ledger.md`. Verify that both critics are satisfied: no Blocker or Major is open.
 - [ ] 6.2 Run the `verify-change` skill and write the Verification section of this file. Verify that the unit tests, lint, the wear debug assembly and the selected instrumented tests are green, with failures quoted verbatim.
+
+> 5.1 outcome (2026-11-18): no website change needed. No page in any locale describes the watch's colours or shows a watch screenshot; the FAQ's "The watch app keeps its own look" stays accurate. `hugo --minify --panicOnWarning` passes, and all six locales have the same 9 content files as English.

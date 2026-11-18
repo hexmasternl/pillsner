@@ -28,7 +28,7 @@ None.
 
 - `src/wear/src/main/kotlin/nl/hexmaster/pillsner/wear/ui/theme/WearTheme.kt`: the `background` and `surfaceContainerLow` colour roles.
 - `src/wear/src/main/res/values/colors.xml` and `themes.xml`: the window background and a new starting theme. The watch manifest and `MainActivity` install the splash screen.
-- New dependency: `androidx.core:core-splashscreen` (first-party AndroidX) for the watch module only, added to the version catalog and the README Toolchain table. Reason: Google's Wear splash guide prescribes it to show the startup icon correctly on every Wear OS version (design D2).
+- New dependency: `androidx.core:core-splashscreen` (first-party AndroidX) for the watch module only, added to the version catalog and the CONTRIBUTING.md Toolchain table. Reason: Google's Wear splash guide prescribes it to show the startup icon correctly on every Wear OS version (design D2).
 - New unit and instrumented tests under `src/wear/src/test` and `src/wear/src/androidTest`.
 - `docs/design-system.md` and `docs/design-system.html`: the new watch section.
 - The phone app, the sync contract, strings and permissions don't change.

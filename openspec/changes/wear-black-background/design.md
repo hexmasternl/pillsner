@@ -32,7 +32,7 @@ The setup:
   - `postSplashScreenTheme` to `@style/Theme.PillsnerWear`
 - The activity uses the splash theme in the manifest, and `MainActivity` calls `installSplashScreen()` before `super.onCreate`.
 - The library's `windowSplashScreenIconBackgroundColor` is used only if the icon needs a background at the size the library draws on a watch.
-- The version is the newest stable release, added to the version catalog through the `dependency-bump` skill. The README Toolchain table is updated in step.
+- The version is the newest stable release, added to the version catalog through the `dependency-bump` skill. The CONTRIBUTING.md Toolchain table is updated in step.
 
 *Alternatives considered:*
 - Rely on the platform splash with no library. Rejected because no icon appears below API 31 (proposal critic SPEC-1).

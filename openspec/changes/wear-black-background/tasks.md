@@ -30,7 +30,7 @@
 ## 6. Review and verification
 
 - [x] 6.1 Run `pillsner-wear-color-critic` and `pillsner-wear-critic` on the branch through the `change-delivery-loop` skill, and record their rows in `.claude/critic-ledger.md`. Verify that both critics are satisfied: no Blocker or Major is open.
-- [ ] 6.2 Run the `verify-change` skill and write the Verification section of this file. Verify that the unit tests, lint, the wear debug assembly and the selected instrumented tests are green, with failures quoted verbatim.
+- [x] 6.2 Run the `verify-change` skill and write the Verification section of this file. Verify that the unit tests, lint, the wear debug assembly and the selected instrumented tests are green, with failures quoted verbatim.
 
 > 5.1 outcome (2026-11-18): no website change needed. No page in any locale describes the watch's colours or shows a watch screenshot; the FAQ's "The watch app keeps its own look" stays accurate. `hugo --minify --panicOnWarning` passes, and all six locales have the same 9 content files as English.
 
@@ -40,3 +40,15 @@
 > - **Before the steady frame:** the only non-black frames are the system's window-open transition (a grey scrim on API 30, the outgoing watch face on API 37). With animations off, both levels go straight from the watch face to the steady frame.
 
 > 3.3 outcome (2026-11-18): `pillsner-ui-review` on `git diff development...HEAD -- src/wear` is compliant. There are no colour literals outside `ui/theme` and `res/values/colors.xml` (§2.4), no dynamic colour (§1.5), and the only error-role use is `DoseCard`'s overdue container, which §2.4 allows. The diff adds no composable and no string. Checked: colour, type, layout, components, accessibility, strings.
+
+## Verification
+
+- Unit tests: pass. app 773, wear 37, shared 7 tests; 0 failures.
+- Lint: pass (`./gradlew lint`).
+- Assemble debug: pass (`./gradlew assembleDebug`).
+- UI review: compliant (task 3.3).
+- Instrumented tests: pass. All 6 wear classes (60 of 60 tests) on Wear_Small_Round_API_36, one class per run. App instrumented classes are left to CI; no app file changed.
+- Startup check: pass on API 30 and API 37 (task 3.2 outcome above).
+- Website: no change needed; the Hugo build passes (task 5.1).
+- Not run: Room checks (no schema change), wear sync contract (untouched), device reminder scenarios (no scheduling change).
+- Manual steps in Play Console (not code tests): retake the Wear screenshots on black (WO-G5), resubmit the wear track, and confirm the Wear listing description.

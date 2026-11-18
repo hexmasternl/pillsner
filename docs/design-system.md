@@ -131,7 +131,7 @@ Intake states (2.3) mean the same on the watch: a due dose sits on `secondaryCon
 | onSecondaryContainer `#D3E4FF` | secondaryContainer `#1D4E7F` | 6.66 : 1 |
 | onErrorContainer `#FFDAD6` | errorContainer `#93000A` | 7.24 : 1 |
 
-The cards themselves stand out from black at 2.45 : 1 (`#1D4E7F`) and 2.24 : 1 (`#93000A`). A card's meaning is carried by its icon, its label and its TalkBack description, never by the fill alone, so the fill only has to differ from black.
+The cards themselves stand out from black at 2.45 : 1 (`#1D4E7F`) and 2.24 : 1 (`#93000A`). A card carries its text (name and amount), a state icon (clock for due, filled error for overdue) and a TalkBack description that names the state, so the fill only has to differ from black. Known gap: an overdue card has no visible "overdue" text yet, which §10 asks for; closing it needs its own change.
 
 **In code.** The watch palette lives in `ui/theme/WearTheme.kt` (`src/wear`), the only watch file with a hex literal. Sizes and spacing live in `ui/theme/WearDimens.kt`. Dynamic colour stays off, as on the phone.
 

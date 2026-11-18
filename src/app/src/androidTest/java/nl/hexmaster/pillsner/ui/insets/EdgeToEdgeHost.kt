@@ -2,7 +2,11 @@ package nl.hexmaster.pillsner.ui.insets
 
 import android.app.UiAutomation
 import android.content.res.Configuration
+import android.hardware.display.DisplayManager
+import android.os.SystemClock
 import android.provider.Settings
+import android.view.Display
+import android.view.Surface
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -187,19 +191,57 @@ class EdgeToEdgeHost<A : ComponentActivity>(private val activityClass: Class<A>)
         ) == 1
         instrumentation.uiAutomation.setRotation(UiAutomation.ROTATION_FREEZE_90)
         rotated = true
+        // The display turns only once an activity that allows it is on screen (a phone's launcher
+        // stays portrait), so [launch] checks the activity's orientation after it starts.
         instrumentation.waitForIdleSync()
     }
 
-    /** Back to portrait, and auto-rotate back to how the device had it, so later tests see neither. */
+    /**
+     * Back to portrait, and auto-rotate back to how the device had it, so later tests see neither.
+     *
+     * Every step waits for the display to get there. Unfreezing straight after freezing at 0 used to
+     * race the rotation: on a fresh emulator with auto-rotate on, the display stayed in landscape and
+     * every later portrait test in the run failed (CI, 2026-11-18).
+     */
     private fun restoreRotation() {
         val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
         uiAutomation.setRotation(UiAutomation.ROTATION_FREEZE_0)
-        if (autoRotateWasOn) uiAutomation.setRotation(UiAutomation.ROTATION_UNFREEZE)
+        check(awaitRotation(Surface.ROTATION_0)) { "The display did not rotate back to portrait" }
+        if (!autoRotateWasOn) return
+
+        uiAutomation.setRotation(UiAutomation.ROTATION_UNFREEZE)
+        // Auto-rotate may take the display back to the landscape its sensor last proposed. A later
+        // test needs portrait more than it needs auto-rotate, so then it stays frozen at portrait.
+        if (!awaitRotation(Surface.ROTATION_0, settleMs = UNFREEZE_SETTLE_MS, requireStable = true)) {
+            uiAutomation.setRotation(UiAutomation.ROTATION_FREEZE_0)
+            check(awaitRotation(Surface.ROTATION_0)) { "The display did not stay in portrait" }
+        }
+    }
+
+    /**
+     * Waits until the default display reports [rotation], up to [settleMs]. With [requireStable] it
+     * must also still report it at the end of the wait, which catches a rotation that is about to
+     * happen rather than one that already did.
+     */
+    private fun awaitRotation(rotation: Int, settleMs: Long = ROTATION_SETTLE_TIMEOUT_MS, requireStable: Boolean = false): Boolean {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val display = instrumentation.targetContext.getSystemService(DisplayManager::class.java)
+            .getDisplay(Display.DEFAULT_DISPLAY)
+        val deadline = SystemClock.uptimeMillis() + settleMs
+        while (SystemClock.uptimeMillis() < deadline) {
+            if (display.rotation == rotation && !requireStable) break
+            SystemClock.sleep(ROTATION_POLL_MS)
+        }
+        instrumentation.waitForIdleSync()
+        return display.rotation == rotation
     }
 
     private companion object {
         const val TOLERANCE_DP = 0.5f
         const val INSETS_SETTLE_TIMEOUT_MS = 5_000L
+        const val ROTATION_SETTLE_TIMEOUT_MS = 5_000L
+        const val UNFREEZE_SETTLE_MS = 1_000L
+        const val ROTATION_POLL_MS = 50L
     }
 }
 
